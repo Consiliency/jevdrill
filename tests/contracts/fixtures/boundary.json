@@ -1,0 +1,2218 @@
+[
+  {
+    "id": "RouteRequest-0",
+    "contract": "RouteRequest",
+    "payload": {
+      "active_guidance": [],
+      "attachment_refs": [],
+      "capabilities": {
+        "declared": [],
+        "expires_at": "2026-09-28T00:00:00Z",
+        "inventory_revision": "fixture",
+        "runtime": [],
+        "verified_at": "2026-09-28T00:00:00Z"
+      },
+      "envelope": {
+        "created_at": "2026-09-28T00:00:00Z",
+        "execution_target_id": "fixture",
+        "extensions": {},
+        "harness_id": "fixture",
+        "idempotency_key": "fixture",
+        "operation": "route",
+        "project_id": "00000000-0000-4000-8000-000000000001",
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "workspace_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "execution_mode": "main",
+      "hard_constraints": {
+        "allowed_providers": [],
+        "context_token_limit": 1,
+        "governing_instruction_refs": [],
+        "local_only": false,
+        "max_attempts": 1,
+        "spending_ceiling": null,
+        "total_deadline_ms": 1
+      },
+      "optimization_objective": {
+        "acceptance_requirements": [],
+        "direction": "minimize",
+        "metric_id": "fixture",
+        "objective_id": "fixture",
+        "routing_cost_basis": "raw",
+        "version": "fixture"
+      },
+      "recursion_bypass": false,
+      "representation_source": "fixture",
+      "retry_context": null,
+      "task_id": "00000000-0000-4000-8000-000000000001",
+      "task_representation": "fixture",
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "fixture"
+      }
+    },
+    "accepted": true,
+    "digest": "b8255c8713b59c54892587098ab2c114dfb40eedfe3df3728b717dda655338c6"
+  },
+  {
+    "id": "RouteRequest-0-unknown_field",
+    "contract": "RouteRequest",
+    "payload": {
+      "active_guidance": [],
+      "attachment_refs": [],
+      "capabilities": {
+        "declared": [],
+        "expires_at": "2026-09-28T00:00:00Z",
+        "inventory_revision": "fixture",
+        "runtime": [],
+        "verified_at": "2026-09-28T00:00:00Z"
+      },
+      "envelope": {
+        "created_at": "2026-09-28T00:00:00Z",
+        "execution_target_id": "fixture",
+        "extensions": {},
+        "harness_id": "fixture",
+        "idempotency_key": "fixture",
+        "operation": "route",
+        "project_id": "00000000-0000-4000-8000-000000000001",
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "workspace_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "execution_mode": "main",
+      "hard_constraints": {
+        "allowed_providers": [],
+        "context_token_limit": 1,
+        "governing_instruction_refs": [],
+        "local_only": false,
+        "max_attempts": 1,
+        "spending_ceiling": null,
+        "total_deadline_ms": 1
+      },
+      "optimization_objective": {
+        "acceptance_requirements": [],
+        "direction": "minimize",
+        "metric_id": "fixture",
+        "objective_id": "fixture",
+        "routing_cost_basis": "raw",
+        "version": "fixture"
+      },
+      "recursion_bypass": false,
+      "representation_source": "fixture",
+      "retry_context": null,
+      "task_id": "00000000-0000-4000-8000-000000000001",
+      "task_representation": "fixture",
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "fixture"
+      },
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "RouteRequest-0-missing_field",
+    "contract": "RouteRequest",
+    "payload": {
+      "attachment_refs": [],
+      "capabilities": {
+        "declared": [],
+        "expires_at": "2026-09-28T00:00:00Z",
+        "inventory_revision": "fixture",
+        "runtime": [],
+        "verified_at": "2026-09-28T00:00:00Z"
+      },
+      "envelope": {
+        "created_at": "2026-09-28T00:00:00Z",
+        "execution_target_id": "fixture",
+        "extensions": {},
+        "harness_id": "fixture",
+        "idempotency_key": "fixture",
+        "operation": "route",
+        "project_id": "00000000-0000-4000-8000-000000000001",
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "workspace_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "execution_mode": "main",
+      "hard_constraints": {
+        "allowed_providers": [],
+        "context_token_limit": 1,
+        "governing_instruction_refs": [],
+        "local_only": false,
+        "max_attempts": 1,
+        "spending_ceiling": null,
+        "total_deadline_ms": 1
+      },
+      "optimization_objective": {
+        "acceptance_requirements": [],
+        "direction": "minimize",
+        "metric_id": "fixture",
+        "objective_id": "fixture",
+        "routing_cost_basis": "raw",
+        "version": "fixture"
+      },
+      "recursion_bypass": false,
+      "representation_source": "fixture",
+      "retry_context": null,
+      "task_id": "00000000-0000-4000-8000-000000000001",
+      "task_representation": "fixture",
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "fixture"
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "RoutingDecision-0",
+    "contract": "RoutingDecision",
+    "payload": {
+      "details": {
+        "acceptance_rationale": "fixture",
+        "alternatives": [],
+        "capability_mismatches": [],
+        "close_calls": [],
+        "cost_estimate": {
+          "adjusted_token_cost": null,
+          "assumptions": [],
+          "missing_reason": null,
+          "observed_cost": null,
+          "rate_revision": "fixture",
+          "raw_token_cost": null
+        },
+        "created_at": "2026-09-28T00:00:00Z",
+        "diagnostics": [],
+        "evidence_refs": [],
+        "exclusions": [],
+        "human_summary": "fixture",
+        "measurements": [],
+        "notices": [],
+        "optimization_objective": {
+          "acceptance_requirements": [],
+          "direction": "minimize",
+          "metric_id": "fixture",
+          "objective_id": "fixture",
+          "routing_cost_basis": "raw",
+          "version": "fixture"
+        },
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "reused_decision_id": null,
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "setup_proposals": [],
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "versions": {
+          "catalog_revision": "fixture",
+          "context_revision": "fixture",
+          "evidence_revision": "fixture",
+          "policy_revision": "fixture",
+          "settings_revision": "fixture"
+        }
+      },
+      "execution_plan": {
+        "access_route": "fixture",
+        "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+        "execution_target_id": "fixture",
+        "guidance_action": "none",
+        "harness_id": "fixture",
+        "model_id": "fixture",
+        "native_effort": {
+          "kind": "explicit",
+          "native_value": "fixture"
+        },
+        "optional_guidance": [],
+        "predecessor_plan_id": null,
+        "provider": "fixture",
+        "required_capabilities": [],
+        "required_guidance": [],
+        "resolved_model_revision": null
+      },
+      "fallback_used": false,
+      "readiness": {
+        "checked_capabilities": [],
+        "evidence_refs": [],
+        "inventory_revision": "fixture",
+        "valid_until": "2026-09-28T00:00:00Z",
+        "verified_at": "2026-09-28T00:00:00Z"
+      },
+      "status": "ready"
+    },
+    "accepted": true,
+    "digest": "38aabb538a219b0ba7369ad8f54ea8b47d1ad6d62126a30990c256d6f23bf5e4"
+  },
+  {
+    "id": "RoutingDecision-0-unknown_field",
+    "contract": "RoutingDecision",
+    "payload": {
+      "details": {
+        "acceptance_rationale": "fixture",
+        "alternatives": [],
+        "capability_mismatches": [],
+        "close_calls": [],
+        "cost_estimate": {
+          "adjusted_token_cost": null,
+          "assumptions": [],
+          "missing_reason": null,
+          "observed_cost": null,
+          "rate_revision": "fixture",
+          "raw_token_cost": null
+        },
+        "created_at": "2026-09-28T00:00:00Z",
+        "diagnostics": [],
+        "evidence_refs": [],
+        "exclusions": [],
+        "human_summary": "fixture",
+        "measurements": [],
+        "notices": [],
+        "optimization_objective": {
+          "acceptance_requirements": [],
+          "direction": "minimize",
+          "metric_id": "fixture",
+          "objective_id": "fixture",
+          "routing_cost_basis": "raw",
+          "version": "fixture"
+        },
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "reused_decision_id": null,
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "setup_proposals": [],
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "versions": {
+          "catalog_revision": "fixture",
+          "context_revision": "fixture",
+          "evidence_revision": "fixture",
+          "policy_revision": "fixture",
+          "settings_revision": "fixture"
+        }
+      },
+      "execution_plan": {
+        "access_route": "fixture",
+        "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+        "execution_target_id": "fixture",
+        "guidance_action": "none",
+        "harness_id": "fixture",
+        "model_id": "fixture",
+        "native_effort": {
+          "kind": "explicit",
+          "native_value": "fixture"
+        },
+        "optional_guidance": [],
+        "predecessor_plan_id": null,
+        "provider": "fixture",
+        "required_capabilities": [],
+        "required_guidance": [],
+        "resolved_model_revision": null
+      },
+      "fallback_used": false,
+      "readiness": {
+        "checked_capabilities": [],
+        "evidence_refs": [],
+        "inventory_revision": "fixture",
+        "valid_until": "2026-09-28T00:00:00Z",
+        "verified_at": "2026-09-28T00:00:00Z"
+      },
+      "status": "ready",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "RoutingDecision-0-missing_field",
+    "contract": "RoutingDecision",
+    "payload": {
+      "execution_plan": {
+        "access_route": "fixture",
+        "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+        "execution_target_id": "fixture",
+        "guidance_action": "none",
+        "harness_id": "fixture",
+        "model_id": "fixture",
+        "native_effort": {
+          "kind": "explicit",
+          "native_value": "fixture"
+        },
+        "optional_guidance": [],
+        "predecessor_plan_id": null,
+        "provider": "fixture",
+        "required_capabilities": [],
+        "required_guidance": [],
+        "resolved_model_revision": null
+      },
+      "fallback_used": false,
+      "readiness": {
+        "checked_capabilities": [],
+        "evidence_refs": [],
+        "inventory_revision": "fixture",
+        "valid_until": "2026-09-28T00:00:00Z",
+        "verified_at": "2026-09-28T00:00:00Z"
+      },
+      "status": "ready"
+    },
+    "accepted": false
+  },
+  {
+    "id": "RoutingDecision-1",
+    "contract": "RoutingDecision",
+    "payload": {
+      "details": {
+        "acceptance_rationale": "fixture",
+        "alternatives": [],
+        "capability_mismatches": [],
+        "close_calls": [],
+        "cost_estimate": {
+          "adjusted_token_cost": null,
+          "assumptions": [],
+          "missing_reason": null,
+          "observed_cost": null,
+          "rate_revision": "fixture",
+          "raw_token_cost": null
+        },
+        "created_at": "2026-09-28T00:00:00Z",
+        "diagnostics": [],
+        "evidence_refs": [],
+        "exclusions": [],
+        "human_summary": "fixture",
+        "measurements": [],
+        "notices": [],
+        "optimization_objective": {
+          "acceptance_requirements": [],
+          "direction": "minimize",
+          "metric_id": "fixture",
+          "objective_id": "fixture",
+          "routing_cost_basis": "raw",
+          "version": "fixture"
+        },
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "reused_decision_id": null,
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "setup_proposals": [],
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "versions": {
+          "catalog_revision": "fixture",
+          "context_revision": "fixture",
+          "evidence_revision": "fixture",
+          "policy_revision": "fixture",
+          "settings_revision": "fixture"
+        }
+      },
+      "missing_facts": [],
+      "status": "needs_context"
+    },
+    "accepted": true,
+    "digest": "e25407f7c6715f0eefa6a896883b2222ae874f4889748695787c27f2ee9ca165"
+  },
+  {
+    "id": "RoutingDecision-1-unknown_field",
+    "contract": "RoutingDecision",
+    "payload": {
+      "details": {
+        "acceptance_rationale": "fixture",
+        "alternatives": [],
+        "capability_mismatches": [],
+        "close_calls": [],
+        "cost_estimate": {
+          "adjusted_token_cost": null,
+          "assumptions": [],
+          "missing_reason": null,
+          "observed_cost": null,
+          "rate_revision": "fixture",
+          "raw_token_cost": null
+        },
+        "created_at": "2026-09-28T00:00:00Z",
+        "diagnostics": [],
+        "evidence_refs": [],
+        "exclusions": [],
+        "human_summary": "fixture",
+        "measurements": [],
+        "notices": [],
+        "optimization_objective": {
+          "acceptance_requirements": [],
+          "direction": "minimize",
+          "metric_id": "fixture",
+          "objective_id": "fixture",
+          "routing_cost_basis": "raw",
+          "version": "fixture"
+        },
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "reused_decision_id": null,
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "setup_proposals": [],
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "versions": {
+          "catalog_revision": "fixture",
+          "context_revision": "fixture",
+          "evidence_revision": "fixture",
+          "policy_revision": "fixture",
+          "settings_revision": "fixture"
+        }
+      },
+      "missing_facts": [],
+      "status": "needs_context",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "RoutingDecision-1-missing_field",
+    "contract": "RoutingDecision",
+    "payload": {
+      "missing_facts": [],
+      "status": "needs_context"
+    },
+    "accepted": false
+  },
+  {
+    "id": "RoutingDecision-2",
+    "contract": "RoutingDecision",
+    "payload": {
+      "conflicting_requirements": [],
+      "details": {
+        "acceptance_rationale": "fixture",
+        "alternatives": [],
+        "capability_mismatches": [],
+        "close_calls": [],
+        "cost_estimate": {
+          "adjusted_token_cost": null,
+          "assumptions": [],
+          "missing_reason": null,
+          "observed_cost": null,
+          "rate_revision": "fixture",
+          "raw_token_cost": null
+        },
+        "created_at": "2026-09-28T00:00:00Z",
+        "diagnostics": [],
+        "evidence_refs": [],
+        "exclusions": [],
+        "human_summary": "fixture",
+        "measurements": [],
+        "notices": [],
+        "optimization_objective": {
+          "acceptance_requirements": [],
+          "direction": "minimize",
+          "metric_id": "fixture",
+          "objective_id": "fixture",
+          "routing_cost_basis": "raw",
+          "version": "fixture"
+        },
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "reused_decision_id": null,
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "setup_proposals": [],
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "versions": {
+          "catalog_revision": "fixture",
+          "context_revision": "fixture",
+          "evidence_revision": "fixture",
+          "policy_revision": "fixture",
+          "settings_revision": "fixture"
+        }
+      },
+      "status": "constraint_conflict"
+    },
+    "accepted": true,
+    "digest": "8d93cdaa6c0efc486bd30e7126b7ed25cf7658fff7b6dc8c6bef6c65c3675664"
+  },
+  {
+    "id": "RoutingDecision-2-unknown_field",
+    "contract": "RoutingDecision",
+    "payload": {
+      "conflicting_requirements": [],
+      "details": {
+        "acceptance_rationale": "fixture",
+        "alternatives": [],
+        "capability_mismatches": [],
+        "close_calls": [],
+        "cost_estimate": {
+          "adjusted_token_cost": null,
+          "assumptions": [],
+          "missing_reason": null,
+          "observed_cost": null,
+          "rate_revision": "fixture",
+          "raw_token_cost": null
+        },
+        "created_at": "2026-09-28T00:00:00Z",
+        "diagnostics": [],
+        "evidence_refs": [],
+        "exclusions": [],
+        "human_summary": "fixture",
+        "measurements": [],
+        "notices": [],
+        "optimization_objective": {
+          "acceptance_requirements": [],
+          "direction": "minimize",
+          "metric_id": "fixture",
+          "objective_id": "fixture",
+          "routing_cost_basis": "raw",
+          "version": "fixture"
+        },
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "reused_decision_id": null,
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "setup_proposals": [],
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "versions": {
+          "catalog_revision": "fixture",
+          "context_revision": "fixture",
+          "evidence_revision": "fixture",
+          "policy_revision": "fixture",
+          "settings_revision": "fixture"
+        }
+      },
+      "status": "constraint_conflict",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "RoutingDecision-2-missing_field",
+    "contract": "RoutingDecision",
+    "payload": {
+      "details": {
+        "acceptance_rationale": "fixture",
+        "alternatives": [],
+        "capability_mismatches": [],
+        "close_calls": [],
+        "cost_estimate": {
+          "adjusted_token_cost": null,
+          "assumptions": [],
+          "missing_reason": null,
+          "observed_cost": null,
+          "rate_revision": "fixture",
+          "raw_token_cost": null
+        },
+        "created_at": "2026-09-28T00:00:00Z",
+        "diagnostics": [],
+        "evidence_refs": [],
+        "exclusions": [],
+        "human_summary": "fixture",
+        "measurements": [],
+        "notices": [],
+        "optimization_objective": {
+          "acceptance_requirements": [],
+          "direction": "minimize",
+          "metric_id": "fixture",
+          "objective_id": "fixture",
+          "routing_cost_basis": "raw",
+          "version": "fixture"
+        },
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "reused_decision_id": null,
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "setup_proposals": [],
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "versions": {
+          "catalog_revision": "fixture",
+          "context_revision": "fixture",
+          "evidence_revision": "fixture",
+          "policy_revision": "fixture",
+          "settings_revision": "fixture"
+        }
+      },
+      "status": "constraint_conflict"
+    },
+    "accepted": false
+  },
+  {
+    "id": "RoutingDecision-3",
+    "contract": "RoutingDecision",
+    "payload": {
+      "details": {
+        "acceptance_rationale": "fixture",
+        "alternatives": [],
+        "capability_mismatches": [],
+        "close_calls": [],
+        "cost_estimate": {
+          "adjusted_token_cost": null,
+          "assumptions": [],
+          "missing_reason": null,
+          "observed_cost": null,
+          "rate_revision": "fixture",
+          "raw_token_cost": null
+        },
+        "created_at": "2026-09-28T00:00:00Z",
+        "diagnostics": [],
+        "evidence_refs": [],
+        "exclusions": [],
+        "human_summary": "fixture",
+        "measurements": [],
+        "notices": [],
+        "optimization_objective": {
+          "acceptance_requirements": [],
+          "direction": "minimize",
+          "metric_id": "fixture",
+          "objective_id": "fixture",
+          "routing_cost_basis": "raw",
+          "version": "fixture"
+        },
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "reused_decision_id": null,
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "setup_proposals": [],
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "versions": {
+          "catalog_revision": "fixture",
+          "context_revision": "fixture",
+          "evidence_revision": "fixture",
+          "policy_revision": "fixture",
+          "settings_revision": "fixture"
+        }
+      },
+      "status": "no_compatible_plan"
+    },
+    "accepted": true,
+    "digest": "c81282e8590bcbbf3b911101f19908450e999840e58ba52f29fd00e7fd1dbc58"
+  },
+  {
+    "id": "RoutingDecision-3-unknown_field",
+    "contract": "RoutingDecision",
+    "payload": {
+      "details": {
+        "acceptance_rationale": "fixture",
+        "alternatives": [],
+        "capability_mismatches": [],
+        "close_calls": [],
+        "cost_estimate": {
+          "adjusted_token_cost": null,
+          "assumptions": [],
+          "missing_reason": null,
+          "observed_cost": null,
+          "rate_revision": "fixture",
+          "raw_token_cost": null
+        },
+        "created_at": "2026-09-28T00:00:00Z",
+        "diagnostics": [],
+        "evidence_refs": [],
+        "exclusions": [],
+        "human_summary": "fixture",
+        "measurements": [],
+        "notices": [],
+        "optimization_objective": {
+          "acceptance_requirements": [],
+          "direction": "minimize",
+          "metric_id": "fixture",
+          "objective_id": "fixture",
+          "routing_cost_basis": "raw",
+          "version": "fixture"
+        },
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "reused_decision_id": null,
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "setup_proposals": [],
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "versions": {
+          "catalog_revision": "fixture",
+          "context_revision": "fixture",
+          "evidence_revision": "fixture",
+          "policy_revision": "fixture",
+          "settings_revision": "fixture"
+        }
+      },
+      "status": "no_compatible_plan",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "RoutingDecision-3-missing_field",
+    "contract": "RoutingDecision",
+    "payload": {
+      "status": "no_compatible_plan"
+    },
+    "accepted": false
+  },
+  {
+    "id": "RoutingDecision-4",
+    "contract": "RoutingDecision",
+    "payload": {
+      "details": {
+        "acceptance_rationale": "fixture",
+        "alternatives": [],
+        "capability_mismatches": [],
+        "close_calls": [],
+        "cost_estimate": {
+          "adjusted_token_cost": null,
+          "assumptions": [],
+          "missing_reason": null,
+          "observed_cost": null,
+          "rate_revision": "fixture",
+          "raw_token_cost": null
+        },
+        "created_at": "2026-09-28T00:00:00Z",
+        "diagnostics": [],
+        "evidence_refs": [],
+        "exclusions": [],
+        "human_summary": "fixture",
+        "measurements": [],
+        "notices": [],
+        "optimization_objective": {
+          "acceptance_requirements": [],
+          "direction": "minimize",
+          "metric_id": "fixture",
+          "objective_id": "fixture",
+          "routing_cost_basis": "raw",
+          "version": "fixture"
+        },
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "reused_decision_id": null,
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "setup_proposals": [],
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "versions": {
+          "catalog_revision": "fixture",
+          "context_revision": "fixture",
+          "evidence_revision": "fixture",
+          "policy_revision": "fixture",
+          "settings_revision": "fixture"
+        }
+      },
+      "error_code": "fixture",
+      "retryable": false,
+      "status": "routing_failed"
+    },
+    "accepted": true,
+    "digest": "4541241abb97da875cad66f49425c385cb2a8dd5c614a07a4b6ecd5dcb972a0c"
+  },
+  {
+    "id": "RoutingDecision-4-unknown_field",
+    "contract": "RoutingDecision",
+    "payload": {
+      "details": {
+        "acceptance_rationale": "fixture",
+        "alternatives": [],
+        "capability_mismatches": [],
+        "close_calls": [],
+        "cost_estimate": {
+          "adjusted_token_cost": null,
+          "assumptions": [],
+          "missing_reason": null,
+          "observed_cost": null,
+          "rate_revision": "fixture",
+          "raw_token_cost": null
+        },
+        "created_at": "2026-09-28T00:00:00Z",
+        "diagnostics": [],
+        "evidence_refs": [],
+        "exclusions": [],
+        "human_summary": "fixture",
+        "measurements": [],
+        "notices": [],
+        "optimization_objective": {
+          "acceptance_requirements": [],
+          "direction": "minimize",
+          "metric_id": "fixture",
+          "objective_id": "fixture",
+          "routing_cost_basis": "raw",
+          "version": "fixture"
+        },
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "reused_decision_id": null,
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "setup_proposals": [],
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "versions": {
+          "catalog_revision": "fixture",
+          "context_revision": "fixture",
+          "evidence_revision": "fixture",
+          "policy_revision": "fixture",
+          "settings_revision": "fixture"
+        }
+      },
+      "error_code": "fixture",
+      "retryable": false,
+      "status": "routing_failed",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "RoutingDecision-4-missing_field",
+    "contract": "RoutingDecision",
+    "payload": {
+      "error_code": "fixture",
+      "retryable": false,
+      "status": "routing_failed"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ExecutionPlan-0",
+    "contract": "ExecutionPlan",
+    "payload": {
+      "access_route": "fixture",
+      "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+      "execution_target_id": "fixture",
+      "guidance_action": "none",
+      "harness_id": "fixture",
+      "model_id": "fixture",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "fixture"
+      },
+      "optional_guidance": [],
+      "predecessor_plan_id": null,
+      "provider": "fixture",
+      "required_capabilities": [],
+      "required_guidance": [],
+      "resolved_model_revision": null
+    },
+    "accepted": true,
+    "digest": "e29f4beb7d71de0c632a1e6b7b8c5613836408ee9199a5198daa4b877403bb81"
+  },
+  {
+    "id": "ExecutionPlan-0-unknown_field",
+    "contract": "ExecutionPlan",
+    "payload": {
+      "access_route": "fixture",
+      "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+      "execution_target_id": "fixture",
+      "guidance_action": "none",
+      "harness_id": "fixture",
+      "model_id": "fixture",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "fixture"
+      },
+      "optional_guidance": [],
+      "predecessor_plan_id": null,
+      "provider": "fixture",
+      "required_capabilities": [],
+      "required_guidance": [],
+      "resolved_model_revision": null,
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ExecutionPlan-0-missing_field",
+    "contract": "ExecutionPlan",
+    "payload": {
+      "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+      "execution_target_id": "fixture",
+      "guidance_action": "none",
+      "harness_id": "fixture",
+      "model_id": "fixture",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "fixture"
+      },
+      "optional_guidance": [],
+      "predecessor_plan_id": null,
+      "provider": "fixture",
+      "required_capabilities": [],
+      "required_guidance": [],
+      "resolved_model_revision": null
+    },
+    "accepted": false
+  },
+  {
+    "id": "ExecutionRun-0",
+    "contract": "ExecutionRun",
+    "payload": {
+      "applied_plan_id": null,
+      "execution_mode": "main",
+      "execution_run_id": "00000000-0000-4000-8000-000000000001",
+      "prior_execution_run_id": null,
+      "selected_plan_id": "00000000-0000-4000-8000-000000000001",
+      "substitution_reason": null,
+      "task_id": "00000000-0000-4000-8000-000000000001"
+    },
+    "accepted": true,
+    "digest": "87001ddcf26091f65af1f704eb31e720c5d1c3c960f1bb056334446b7d53f923"
+  },
+  {
+    "id": "ExecutionRun-0-unknown_field",
+    "contract": "ExecutionRun",
+    "payload": {
+      "applied_plan_id": null,
+      "execution_mode": "main",
+      "execution_run_id": "00000000-0000-4000-8000-000000000001",
+      "prior_execution_run_id": null,
+      "selected_plan_id": "00000000-0000-4000-8000-000000000001",
+      "substitution_reason": null,
+      "task_id": "00000000-0000-4000-8000-000000000001",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ExecutionRun-0-missing_field",
+    "contract": "ExecutionRun",
+    "payload": {
+      "execution_mode": "main",
+      "execution_run_id": "00000000-0000-4000-8000-000000000001",
+      "prior_execution_run_id": null,
+      "selected_plan_id": "00000000-0000-4000-8000-000000000001",
+      "substitution_reason": null,
+      "task_id": "00000000-0000-4000-8000-000000000001"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ReportRequest-0",
+    "contract": "ReportRequest",
+    "payload": {
+      "envelope": {
+        "created_at": "2026-09-28T00:00:00Z",
+        "execution_target_id": "fixture",
+        "extensions": {},
+        "harness_id": "fixture",
+        "idempotency_key": "fixture",
+        "operation": "report",
+        "project_id": "00000000-0000-4000-8000-000000000001",
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "workspace_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "event": {
+        "event_id": "00000000-0000-4000-8000-000000000001",
+        "execution_run_id": "00000000-0000-4000-8000-000000000001",
+        "occurred_at": "2026-09-28T00:00:00Z",
+        "payload": {
+          "applied_plan_id": null,
+          "event_type": "queued",
+          "kind": "lifecycle",
+          "reason": null
+        },
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "source_id": "fixture",
+        "source_sequence": 0,
+        "supersedes_event_id": null,
+        "task_id": "00000000-0000-4000-8000-000000000001"
+      }
+    },
+    "accepted": true,
+    "digest": "bfd3aa76c9711b21c6eabe56698e5f3371ab738dd81700e5c6967793860425a9"
+  },
+  {
+    "id": "ReportRequest-0-unknown_field",
+    "contract": "ReportRequest",
+    "payload": {
+      "envelope": {
+        "created_at": "2026-09-28T00:00:00Z",
+        "execution_target_id": "fixture",
+        "extensions": {},
+        "harness_id": "fixture",
+        "idempotency_key": "fixture",
+        "operation": "report",
+        "project_id": "00000000-0000-4000-8000-000000000001",
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "workspace_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "event": {
+        "event_id": "00000000-0000-4000-8000-000000000001",
+        "execution_run_id": "00000000-0000-4000-8000-000000000001",
+        "occurred_at": "2026-09-28T00:00:00Z",
+        "payload": {
+          "applied_plan_id": null,
+          "event_type": "queued",
+          "kind": "lifecycle",
+          "reason": null
+        },
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "source_id": "fixture",
+        "source_sequence": 0,
+        "supersedes_event_id": null,
+        "task_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ReportRequest-0-missing_field",
+    "contract": "ReportRequest",
+    "payload": {
+      "event": {
+        "event_id": "00000000-0000-4000-8000-000000000001",
+        "execution_run_id": "00000000-0000-4000-8000-000000000001",
+        "occurred_at": "2026-09-28T00:00:00Z",
+        "payload": {
+          "applied_plan_id": null,
+          "event_type": "queued",
+          "kind": "lifecycle",
+          "reason": null
+        },
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "source_id": "fixture",
+        "source_sequence": 0,
+        "supersedes_event_id": null,
+        "task_id": "00000000-0000-4000-8000-000000000001"
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "ReportAcknowledgment-0",
+    "contract": "ReportAcknowledgment",
+    "payload": {
+      "durable": true,
+      "event_id": "fixture",
+      "schema_version": "1",
+      "status": "accepted"
+    },
+    "accepted": true,
+    "digest": "2073852484109fc374829a0a7b6dff78e84719c408c377a0bb52070f46441fab"
+  },
+  {
+    "id": "ReportAcknowledgment-0-unknown_field",
+    "contract": "ReportAcknowledgment",
+    "payload": {
+      "durable": true,
+      "event_id": "fixture",
+      "schema_version": "1",
+      "status": "accepted",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ReportAcknowledgment-0-missing_field",
+    "contract": "ReportAcknowledgment",
+    "payload": {
+      "event_id": "fixture",
+      "schema_version": "1",
+      "status": "accepted"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ReportAcknowledgment-1",
+    "contract": "ReportAcknowledgment",
+    "payload": {
+      "durable": true,
+      "event_id": "fixture",
+      "schema_version": "1",
+      "status": "duplicate"
+    },
+    "accepted": true,
+    "digest": "b8fb0e1509e4b2fc5c1b5efaa0e3aea65157f1c8876096a808c6bb95d844f20c"
+  },
+  {
+    "id": "ReportAcknowledgment-1-unknown_field",
+    "contract": "ReportAcknowledgment",
+    "payload": {
+      "durable": true,
+      "event_id": "fixture",
+      "schema_version": "1",
+      "status": "duplicate",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ReportAcknowledgment-1-missing_field",
+    "contract": "ReportAcknowledgment",
+    "payload": {
+      "event_id": "fixture",
+      "schema_version": "1",
+      "status": "duplicate"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ReportAcknowledgment-2",
+    "contract": "ReportAcknowledgment",
+    "payload": {
+      "durable": false,
+      "event_id": "fixture",
+      "reason": "fixture",
+      "schema_version": "1",
+      "status": "conflict"
+    },
+    "accepted": true,
+    "digest": "4bc906a43bcf4a62b3705e2509fe8e77dd1e3b73cd17b1390fed0cd1082d6a4d"
+  },
+  {
+    "id": "ReportAcknowledgment-2-unknown_field",
+    "contract": "ReportAcknowledgment",
+    "payload": {
+      "durable": false,
+      "event_id": "fixture",
+      "reason": "fixture",
+      "schema_version": "1",
+      "status": "conflict",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ReportAcknowledgment-2-missing_field",
+    "contract": "ReportAcknowledgment",
+    "payload": {
+      "event_id": "fixture",
+      "reason": "fixture",
+      "schema_version": "1",
+      "status": "conflict"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ReportAcknowledgment-3",
+    "contract": "ReportAcknowledgment",
+    "payload": {
+      "durable": false,
+      "event_id": null,
+      "reason": "fixture",
+      "schema_version": "1",
+      "status": "rejected"
+    },
+    "accepted": true,
+    "digest": "a267145542164409139441259a9dbac56c14e0a67a228a4ed84c0eee3d47a204"
+  },
+  {
+    "id": "ReportAcknowledgment-3-unknown_field",
+    "contract": "ReportAcknowledgment",
+    "payload": {
+      "durable": false,
+      "event_id": null,
+      "reason": "fixture",
+      "schema_version": "1",
+      "status": "rejected",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ReportAcknowledgment-3-missing_field",
+    "contract": "ReportAcknowledgment",
+    "payload": {
+      "event_id": null,
+      "reason": "fixture",
+      "schema_version": "1",
+      "status": "rejected"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ExecutionEvent-0",
+    "contract": "ExecutionEvent",
+    "payload": {
+      "event_id": "00000000-0000-4000-8000-000000000001",
+      "execution_run_id": "00000000-0000-4000-8000-000000000001",
+      "occurred_at": "2026-09-28T00:00:00Z",
+      "payload": {
+        "applied_plan_id": null,
+        "event_type": "queued",
+        "kind": "lifecycle",
+        "reason": null
+      },
+      "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+      "schema_version": "1",
+      "source_id": "fixture",
+      "source_sequence": 0,
+      "supersedes_event_id": null,
+      "task_id": "00000000-0000-4000-8000-000000000001"
+    },
+    "accepted": true,
+    "digest": "c67bd8fb56162e96fc959c194c7a16afa68d3a499e4cca7be76a946f807688aa"
+  },
+  {
+    "id": "ExecutionEvent-0-unknown_field",
+    "contract": "ExecutionEvent",
+    "payload": {
+      "event_id": "00000000-0000-4000-8000-000000000001",
+      "execution_run_id": "00000000-0000-4000-8000-000000000001",
+      "occurred_at": "2026-09-28T00:00:00Z",
+      "payload": {
+        "applied_plan_id": null,
+        "event_type": "queued",
+        "kind": "lifecycle",
+        "reason": null
+      },
+      "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+      "schema_version": "1",
+      "source_id": "fixture",
+      "source_sequence": 0,
+      "supersedes_event_id": null,
+      "task_id": "00000000-0000-4000-8000-000000000001",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ExecutionEvent-0-missing_field",
+    "contract": "ExecutionEvent",
+    "payload": {
+      "execution_run_id": "00000000-0000-4000-8000-000000000001",
+      "occurred_at": "2026-09-28T00:00:00Z",
+      "payload": {
+        "applied_plan_id": null,
+        "event_type": "queued",
+        "kind": "lifecycle",
+        "reason": null
+      },
+      "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+      "schema_version": "1",
+      "source_id": "fixture",
+      "source_sequence": 0,
+      "supersedes_event_id": null,
+      "task_id": "00000000-0000-4000-8000-000000000001"
+    },
+    "accepted": false
+  },
+  {
+    "id": "Measurement-0",
+    "contract": "Measurement",
+    "payload": {
+      "counting_semantics": "disjoint",
+      "measurement_value": {
+        "kind": "known",
+        "unit": "fixture",
+        "value": 1
+      },
+      "method": "fixture",
+      "metric_id": "fixture",
+      "metric_version": "fixture",
+      "parent_metric_id": null,
+      "scope": "call",
+      "source": "direct"
+    },
+    "accepted": true,
+    "digest": "e11cd3e08738a7297e031722312ccaa6a94aed581cc6b19580bb8ac92f115e20"
+  },
+  {
+    "id": "Measurement-0-unknown_field",
+    "contract": "Measurement",
+    "payload": {
+      "counting_semantics": "disjoint",
+      "measurement_value": {
+        "kind": "known",
+        "unit": "fixture",
+        "value": 1
+      },
+      "method": "fixture",
+      "metric_id": "fixture",
+      "metric_version": "fixture",
+      "parent_metric_id": null,
+      "scope": "call",
+      "source": "direct",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "Measurement-0-missing_field",
+    "contract": "Measurement",
+    "payload": {
+      "measurement_value": {
+        "kind": "known",
+        "unit": "fixture",
+        "value": 1
+      },
+      "method": "fixture",
+      "metric_id": "fixture",
+      "metric_version": "fixture",
+      "parent_metric_id": null,
+      "scope": "call",
+      "source": "direct"
+    },
+    "accepted": false
+  },
+  {
+    "id": "Settings-0",
+    "contract": "Settings",
+    "payload": {
+      "default_plan_id": null,
+      "excluded_paths": [],
+      "experiment_enabled": false,
+      "local_analysis_enabled": false,
+      "model_analysis_enabled": false,
+      "retain_raw_outputs": false,
+      "retain_raw_tasks": false,
+      "routing_cost_basis": "raw",
+      "routing_deadline_ms": 1,
+      "schema_version": "1",
+      "setting_sources": {},
+      "settings_revision": "fixture"
+    },
+    "accepted": true,
+    "digest": "fe7c5894ef756799b6eb34c4debeca00cdbfb9186016e089f795d9a5aea7f9c5"
+  },
+  {
+    "id": "Settings-0-unknown_field",
+    "contract": "Settings",
+    "payload": {
+      "default_plan_id": null,
+      "excluded_paths": [],
+      "experiment_enabled": false,
+      "local_analysis_enabled": false,
+      "model_analysis_enabled": false,
+      "retain_raw_outputs": false,
+      "retain_raw_tasks": false,
+      "routing_cost_basis": "raw",
+      "routing_deadline_ms": 1,
+      "schema_version": "1",
+      "setting_sources": {},
+      "settings_revision": "fixture",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "Settings-0-missing_field",
+    "contract": "Settings",
+    "payload": {
+      "excluded_paths": [],
+      "experiment_enabled": false,
+      "local_analysis_enabled": false,
+      "model_analysis_enabled": false,
+      "retain_raw_outputs": false,
+      "retain_raw_tasks": false,
+      "routing_cost_basis": "raw",
+      "routing_deadline_ms": 1,
+      "schema_version": "1",
+      "setting_sources": {},
+      "settings_revision": "fixture"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ComparisonExperiment-0",
+    "contract": "ComparisonExperiment",
+    "payload": {
+      "assignment_policy": "fixture",
+      "assignment_probabilities": {},
+      "authorization_revision": null,
+      "candidate_plans": [
+        {
+          "access_route": "fixture",
+          "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+          "execution_target_id": "fixture",
+          "guidance_action": "none",
+          "harness_id": "fixture",
+          "model_id": "fixture",
+          "native_effort": {
+            "kind": "explicit",
+            "native_value": "fixture"
+          },
+          "optional_guidance": [],
+          "predecessor_plan_id": null,
+          "provider": "fixture",
+          "required_capabilities": [],
+          "required_guidance": [],
+          "resolved_model_revision": null
+        },
+        {
+          "access_route": "fixture",
+          "execution_plan_id": "00000000-0000-4000-8000-000000000002",
+          "execution_target_id": "fixture",
+          "guidance_action": "none",
+          "harness_id": "fixture",
+          "model_id": "fixture",
+          "native_effort": {
+            "kind": "explicit",
+            "native_value": "fixture"
+          },
+          "optional_guidance": [],
+          "predecessor_plan_id": null,
+          "provider": "fixture",
+          "required_capabilities": [],
+          "required_guidance": [],
+          "resolved_model_revision": null
+        }
+      ],
+      "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+      "context_hash": "fixture",
+      "context_ref": "fixture",
+      "evaluator_ref": "fixture",
+      "execution_path": "internal",
+      "experiment_state": "proposed",
+      "host_accepted": false,
+      "isolation_ref": "fixture",
+      "limits": {
+        "cpu_limit": 1,
+        "daily_spend": null,
+        "max_candidates": 2,
+        "max_concurrency": 1,
+        "max_duration_ms": 1,
+        "memory_limit_bytes": 1,
+        "per_experiment_spend": null
+      },
+      "optimization_objectives": [],
+      "rubric_revision": "fixture",
+      "schema_version": "1",
+      "task_id": "00000000-0000-4000-8000-000000000001"
+    },
+    "accepted": true,
+    "digest": "4b7cc2e761b069a8e1f4d9245781bbb24423cfd36b103d867951cdc591932f12"
+  },
+  {
+    "id": "ComparisonExperiment-0-unknown_field",
+    "contract": "ComparisonExperiment",
+    "payload": {
+      "assignment_policy": "fixture",
+      "assignment_probabilities": {},
+      "authorization_revision": null,
+      "candidate_plans": [
+        {
+          "access_route": "fixture",
+          "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+          "execution_target_id": "fixture",
+          "guidance_action": "none",
+          "harness_id": "fixture",
+          "model_id": "fixture",
+          "native_effort": {
+            "kind": "explicit",
+            "native_value": "fixture"
+          },
+          "optional_guidance": [],
+          "predecessor_plan_id": null,
+          "provider": "fixture",
+          "required_capabilities": [],
+          "required_guidance": [],
+          "resolved_model_revision": null
+        },
+        {
+          "access_route": "fixture",
+          "execution_plan_id": "00000000-0000-4000-8000-000000000002",
+          "execution_target_id": "fixture",
+          "guidance_action": "none",
+          "harness_id": "fixture",
+          "model_id": "fixture",
+          "native_effort": {
+            "kind": "explicit",
+            "native_value": "fixture"
+          },
+          "optional_guidance": [],
+          "predecessor_plan_id": null,
+          "provider": "fixture",
+          "required_capabilities": [],
+          "required_guidance": [],
+          "resolved_model_revision": null
+        }
+      ],
+      "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+      "context_hash": "fixture",
+      "context_ref": "fixture",
+      "evaluator_ref": "fixture",
+      "execution_path": "internal",
+      "experiment_state": "proposed",
+      "host_accepted": false,
+      "isolation_ref": "fixture",
+      "limits": {
+        "cpu_limit": 1,
+        "daily_spend": null,
+        "max_candidates": 2,
+        "max_concurrency": 1,
+        "max_duration_ms": 1,
+        "memory_limit_bytes": 1,
+        "per_experiment_spend": null
+      },
+      "optimization_objectives": [],
+      "rubric_revision": "fixture",
+      "schema_version": "1",
+      "task_id": "00000000-0000-4000-8000-000000000001",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "ComparisonExperiment-0-missing_field",
+    "contract": "ComparisonExperiment",
+    "payload": {
+      "assignment_probabilities": {},
+      "authorization_revision": null,
+      "candidate_plans": [
+        {
+          "access_route": "fixture",
+          "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+          "execution_target_id": "fixture",
+          "guidance_action": "none",
+          "harness_id": "fixture",
+          "model_id": "fixture",
+          "native_effort": {
+            "kind": "explicit",
+            "native_value": "fixture"
+          },
+          "optional_guidance": [],
+          "predecessor_plan_id": null,
+          "provider": "fixture",
+          "required_capabilities": [],
+          "required_guidance": [],
+          "resolved_model_revision": null
+        },
+        {
+          "access_route": "fixture",
+          "execution_plan_id": "00000000-0000-4000-8000-000000000002",
+          "execution_target_id": "fixture",
+          "guidance_action": "none",
+          "harness_id": "fixture",
+          "model_id": "fixture",
+          "native_effort": {
+            "kind": "explicit",
+            "native_value": "fixture"
+          },
+          "optional_guidance": [],
+          "predecessor_plan_id": null,
+          "provider": "fixture",
+          "required_capabilities": [],
+          "required_guidance": [],
+          "resolved_model_revision": null
+        }
+      ],
+      "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+      "context_hash": "fixture",
+      "context_ref": "fixture",
+      "evaluator_ref": "fixture",
+      "execution_path": "internal",
+      "experiment_state": "proposed",
+      "host_accepted": false,
+      "isolation_ref": "fixture",
+      "limits": {
+        "cpu_limit": 1,
+        "daily_spend": null,
+        "max_candidates": 2,
+        "max_concurrency": 1,
+        "max_duration_ms": 1,
+        "memory_limit_bytes": 1,
+        "per_experiment_spend": null
+      },
+      "optimization_objectives": [],
+      "rubric_revision": "fixture",
+      "schema_version": "1",
+      "task_id": "00000000-0000-4000-8000-000000000001"
+    },
+    "accepted": false
+  },
+  {
+    "id": "CapabilityMismatch-0",
+    "contract": "CapabilityMismatch",
+    "payload": {
+      "affected_operations": [],
+      "code": "capability_mismatch",
+      "declared": [],
+      "effective": [],
+      "evidence_refs": [],
+      "resolution_advice": [],
+      "runtime": []
+    },
+    "accepted": true,
+    "digest": "d0d507754a8d9c655a726aa9613493f7d723ee17d87c8bb9bd3d49bf05d047bc"
+  },
+  {
+    "id": "CapabilityMismatch-0-unknown_field",
+    "contract": "CapabilityMismatch",
+    "payload": {
+      "affected_operations": [],
+      "code": "capability_mismatch",
+      "declared": [],
+      "effective": [],
+      "evidence_refs": [],
+      "resolution_advice": [],
+      "runtime": [],
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "CapabilityMismatch-0-missing_field",
+    "contract": "CapabilityMismatch",
+    "payload": {
+      "code": "capability_mismatch",
+      "declared": [],
+      "effective": [],
+      "evidence_refs": [],
+      "resolution_advice": [],
+      "runtime": []
+    },
+    "accepted": false
+  },
+  {
+    "id": "LocalNotice-0",
+    "contract": "LocalNotice",
+    "payload": {
+      "automatic_action": "archive",
+      "deadline": null,
+      "kind": "archive_prompt",
+      "notice_id": "00000000-0000-4000-8000-000000000001",
+      "summary": "fixture"
+    },
+    "accepted": true,
+    "digest": "c1a1abf635e7b016e9b9f2b18b6a6b48876be1762d2514ba444cd5f4d5962151"
+  },
+  {
+    "id": "LocalNotice-0-unknown_field",
+    "contract": "LocalNotice",
+    "payload": {
+      "automatic_action": "archive",
+      "deadline": null,
+      "kind": "archive_prompt",
+      "notice_id": "00000000-0000-4000-8000-000000000001",
+      "summary": "fixture",
+      "unexpected": "extra"
+    },
+    "accepted": false
+  },
+  {
+    "id": "LocalNotice-0-missing_field",
+    "contract": "LocalNotice",
+    "payload": {
+      "deadline": null,
+      "kind": "archive_prompt",
+      "notice_id": "00000000-0000-4000-8000-000000000001",
+      "summary": "fixture"
+    },
+    "accepted": false
+  },
+  {
+    "id": "numeric_string",
+    "contract": "Settings",
+    "payload": {
+      "default_plan_id": null,
+      "excluded_paths": [],
+      "experiment_enabled": false,
+      "local_analysis_enabled": false,
+      "model_analysis_enabled": false,
+      "retain_raw_outputs": false,
+      "retain_raw_tasks": false,
+      "routing_cost_basis": "raw",
+      "routing_deadline_ms": "1",
+      "schema_version": "1",
+      "setting_sources": {},
+      "settings_revision": "fixture"
+    },
+    "accepted": false
+  },
+  {
+    "id": "whitespace_numeric_string",
+    "contract": "Settings",
+    "payload": {
+      "default_plan_id": null,
+      "excluded_paths": [],
+      "experiment_enabled": false,
+      "local_analysis_enabled": false,
+      "model_analysis_enabled": false,
+      "retain_raw_outputs": false,
+      "retain_raw_tasks": false,
+      "routing_cost_basis": "raw",
+      "routing_deadline_ms": " 1 ",
+      "schema_version": "1",
+      "setting_sources": {},
+      "settings_revision": "fixture"
+    },
+    "accepted": false
+  },
+  {
+    "id": "bool_integer",
+    "contract": "Settings",
+    "payload": {
+      "default_plan_id": null,
+      "excluded_paths": [],
+      "experiment_enabled": false,
+      "local_analysis_enabled": false,
+      "model_analysis_enabled": false,
+      "retain_raw_outputs": false,
+      "retain_raw_tasks": false,
+      "routing_cost_basis": "raw",
+      "routing_deadline_ms": true,
+      "schema_version": "1",
+      "setting_sources": {},
+      "settings_revision": "fixture"
+    },
+    "accepted": false
+  },
+  {
+    "id": "unsupported_major",
+    "contract": "Settings",
+    "payload": {
+      "default_plan_id": null,
+      "excluded_paths": [],
+      "experiment_enabled": false,
+      "local_analysis_enabled": false,
+      "model_analysis_enabled": false,
+      "retain_raw_outputs": false,
+      "retain_raw_tasks": false,
+      "routing_cost_basis": "raw",
+      "routing_deadline_ms": 1,
+      "schema_version": "2",
+      "setting_sources": {},
+      "settings_revision": "fixture"
+    },
+    "accepted": false
+  },
+  {
+    "id": "missing_nullable",
+    "contract": "Settings",
+    "payload": {
+      "excluded_paths": [],
+      "experiment_enabled": false,
+      "local_analysis_enabled": false,
+      "model_analysis_enabled": false,
+      "retain_raw_outputs": false,
+      "retain_raw_tasks": false,
+      "routing_cost_basis": "raw",
+      "routing_deadline_ms": 1,
+      "schema_version": "1",
+      "setting_sources": {},
+      "settings_revision": "fixture"
+    },
+    "accepted": false
+  },
+  {
+    "id": "nested_extra",
+    "contract": "RouteRequest",
+    "payload": {
+      "active_guidance": [],
+      "attachment_refs": [],
+      "capabilities": {
+        "declared": [],
+        "expires_at": "2026-09-28T00:00:00Z",
+        "inventory_revision": "fixture",
+        "runtime": [],
+        "verified_at": "2026-09-28T00:00:00Z"
+      },
+      "envelope": {
+        "created_at": "2026-09-28T00:00:00Z",
+        "execution_target_id": "fixture",
+        "extensions": {},
+        "harness_id": "fixture",
+        "idempotency_key": "fixture",
+        "operation": "route",
+        "project_id": "00000000-0000-4000-8000-000000000001",
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "workspace_id": "00000000-0000-4000-8000-000000000001",
+        "secret": "must-not-appear"
+      },
+      "execution_mode": "main",
+      "hard_constraints": {
+        "allowed_providers": [],
+        "context_token_limit": 1,
+        "governing_instruction_refs": [],
+        "local_only": false,
+        "max_attempts": 1,
+        "spending_ceiling": null,
+        "total_deadline_ms": 1
+      },
+      "optimization_objective": {
+        "acceptance_requirements": [],
+        "direction": "minimize",
+        "metric_id": "fixture",
+        "objective_id": "fixture",
+        "routing_cost_basis": "raw",
+        "version": "fixture"
+      },
+      "recursion_bypass": false,
+      "representation_source": "fixture",
+      "retry_context": null,
+      "task_id": "00000000-0000-4000-8000-000000000001",
+      "task_representation": "fixture",
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "fixture"
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "wrong_operation",
+    "contract": "ReportRequest",
+    "payload": {
+      "envelope": {
+        "created_at": "2026-09-28T00:00:00Z",
+        "execution_target_id": "fixture",
+        "extensions": {},
+        "harness_id": "fixture",
+        "idempotency_key": "fixture",
+        "operation": "route",
+        "project_id": "00000000-0000-4000-8000-000000000001",
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "workspace_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "event": {
+        "event_id": "00000000-0000-4000-8000-000000000001",
+        "execution_run_id": "00000000-0000-4000-8000-000000000001",
+        "occurred_at": "2026-09-28T00:00:00Z",
+        "payload": {
+          "applied_plan_id": null,
+          "event_type": "queued",
+          "kind": "lifecycle",
+          "reason": null
+        },
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "source_id": "fixture",
+        "source_sequence": 0,
+        "supersedes_event_id": null,
+        "task_id": "00000000-0000-4000-8000-000000000001"
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "extension_namespace",
+    "contract": "RouteRequest",
+    "payload": {
+      "active_guidance": [],
+      "attachment_refs": [],
+      "capabilities": {
+        "declared": [],
+        "expires_at": "2026-09-28T00:00:00Z",
+        "inventory_revision": "fixture",
+        "runtime": [],
+        "verified_at": "2026-09-28T00:00:00Z"
+      },
+      "envelope": {
+        "created_at": "2026-09-28T00:00:00Z",
+        "execution_target_id": "fixture",
+        "extensions": {
+          "bad": "x"
+        },
+        "harness_id": "fixture",
+        "idempotency_key": "fixture",
+        "operation": "route",
+        "project_id": "00000000-0000-4000-8000-000000000001",
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "workspace_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "execution_mode": "main",
+      "hard_constraints": {
+        "allowed_providers": [],
+        "context_token_limit": 1,
+        "governing_instruction_refs": [],
+        "local_only": false,
+        "max_attempts": 1,
+        "spending_ceiling": null,
+        "total_deadline_ms": 1
+      },
+      "optimization_objective": {
+        "acceptance_requirements": [],
+        "direction": "minimize",
+        "metric_id": "fixture",
+        "objective_id": "fixture",
+        "routing_cost_basis": "raw",
+        "version": "fixture"
+      },
+      "recursion_bypass": false,
+      "representation_source": "fixture",
+      "retry_context": null,
+      "task_id": "00000000-0000-4000-8000-000000000001",
+      "task_representation": "fixture",
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "fixture"
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "guidance_action",
+    "contract": "ExecutionPlan",
+    "payload": {
+      "access_route": "fixture",
+      "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+      "execution_target_id": "fixture",
+      "guidance_action": "inject",
+      "harness_id": "fixture",
+      "model_id": "fixture",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "fixture"
+      },
+      "optional_guidance": [],
+      "predecessor_plan_id": null,
+      "provider": "fixture",
+      "required_capabilities": [],
+      "required_guidance": [],
+      "resolved_model_revision": null
+    },
+    "accepted": false
+  },
+  {
+    "id": "effective_permission",
+    "contract": "CapabilityMismatch",
+    "payload": {
+      "affected_operations": [],
+      "code": "capability_mismatch",
+      "declared": [],
+      "effective": [
+        "ungranted"
+      ],
+      "evidence_refs": [],
+      "resolution_advice": [],
+      "runtime": []
+    },
+    "accepted": false
+  },
+  {
+    "id": "subset_without_parent",
+    "contract": "Measurement",
+    "payload": {
+      "counting_semantics": "subset",
+      "measurement_value": {
+        "kind": "known",
+        "unit": "fixture",
+        "value": 1
+      },
+      "method": "fixture",
+      "metric_id": "fixture",
+      "metric_version": "fixture",
+      "parent_metric_id": null,
+      "scope": "call",
+      "source": "direct"
+    },
+    "accepted": false
+  },
+  {
+    "id": "experiment_without_authority",
+    "contract": "ComparisonExperiment",
+    "payload": {
+      "assignment_policy": "fixture",
+      "assignment_probabilities": {},
+      "authorization_revision": null,
+      "candidate_plans": [
+        {
+          "access_route": "fixture",
+          "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+          "execution_target_id": "fixture",
+          "guidance_action": "none",
+          "harness_id": "fixture",
+          "model_id": "fixture",
+          "native_effort": {
+            "kind": "explicit",
+            "native_value": "fixture"
+          },
+          "optional_guidance": [],
+          "predecessor_plan_id": null,
+          "provider": "fixture",
+          "required_capabilities": [],
+          "required_guidance": [],
+          "resolved_model_revision": null
+        },
+        {
+          "access_route": "fixture",
+          "execution_plan_id": "00000000-0000-4000-8000-000000000002",
+          "execution_target_id": "fixture",
+          "guidance_action": "none",
+          "harness_id": "fixture",
+          "model_id": "fixture",
+          "native_effort": {
+            "kind": "explicit",
+            "native_value": "fixture"
+          },
+          "optional_guidance": [],
+          "predecessor_plan_id": null,
+          "provider": "fixture",
+          "required_capabilities": [],
+          "required_guidance": [],
+          "resolved_model_revision": null
+        }
+      ],
+      "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+      "context_hash": "fixture",
+      "context_ref": "fixture",
+      "evaluator_ref": "fixture",
+      "execution_path": "internal",
+      "experiment_state": "running",
+      "host_accepted": false,
+      "isolation_ref": "fixture",
+      "limits": {
+        "cpu_limit": 1,
+        "daily_spend": null,
+        "max_candidates": 2,
+        "max_concurrency": 1,
+        "max_duration_ms": 1,
+        "memory_limit_bytes": 1,
+        "per_experiment_spend": null
+      },
+      "optimization_objectives": [],
+      "rubric_revision": "fixture",
+      "schema_version": "1",
+      "task_id": "00000000-0000-4000-8000-000000000001"
+    },
+    "accepted": false
+  },
+  {
+    "id": "self_correction",
+    "contract": "ExecutionEvent",
+    "payload": {
+      "event_id": "00000000-0000-4000-8000-000000000001",
+      "execution_run_id": "00000000-0000-4000-8000-000000000001",
+      "occurred_at": "2026-09-28T00:00:00Z",
+      "payload": {
+        "applied_plan_id": null,
+        "event_type": "queued",
+        "kind": "lifecycle",
+        "reason": null
+      },
+      "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+      "schema_version": "1",
+      "source_id": "fixture",
+      "source_sequence": 0,
+      "supersedes_event_id": "00000000-0000-4000-8000-000000000001",
+      "task_id": "00000000-0000-4000-8000-000000000001"
+    },
+    "accepted": false
+  },
+  {
+    "id": "wrong_status",
+    "contract": "RoutingDecision",
+    "payload": {
+      "details": {
+        "acceptance_rationale": "fixture",
+        "alternatives": [],
+        "capability_mismatches": [],
+        "close_calls": [],
+        "cost_estimate": {
+          "adjusted_token_cost": null,
+          "assumptions": [],
+          "missing_reason": null,
+          "observed_cost": null,
+          "rate_revision": "fixture",
+          "raw_token_cost": null
+        },
+        "created_at": "2026-09-28T00:00:00Z",
+        "diagnostics": [],
+        "evidence_refs": [],
+        "exclusions": [],
+        "human_summary": "fixture",
+        "measurements": [],
+        "notices": [],
+        "optimization_objective": {
+          "acceptance_requirements": [],
+          "direction": "minimize",
+          "metric_id": "fixture",
+          "objective_id": "fixture",
+          "routing_cost_basis": "raw",
+          "version": "fixture"
+        },
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "reused_decision_id": null,
+        "routing_decision_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "setup_proposals": [],
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "versions": {
+          "catalog_revision": "fixture",
+          "context_revision": "fixture",
+          "evidence_revision": "fixture",
+          "policy_revision": "fixture",
+          "settings_revision": "fixture"
+        }
+      },
+      "execution_plan": {
+        "access_route": "fixture",
+        "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+        "execution_target_id": "fixture",
+        "guidance_action": "none",
+        "harness_id": "fixture",
+        "model_id": "fixture",
+        "native_effort": {
+          "kind": "explicit",
+          "native_value": "fixture"
+        },
+        "optional_guidance": [],
+        "predecessor_plan_id": null,
+        "provider": "fixture",
+        "required_capabilities": [],
+        "required_guidance": [],
+        "resolved_model_revision": null
+      },
+      "fallback_used": false,
+      "readiness": {
+        "checked_capabilities": [],
+        "evidence_refs": [],
+        "inventory_revision": "fixture",
+        "valid_until": "2026-09-28T00:00:00Z",
+        "verified_at": "2026-09-28T00:00:00Z"
+      },
+      "status": "unknown"
+    },
+    "accepted": false
+  },
+  {
+    "id": "unicode_digest",
+    "contract": "RouteRequest",
+    "payload": {
+      "active_guidance": [],
+      "attachment_refs": [],
+      "capabilities": {
+        "declared": [],
+        "expires_at": "2026-09-28T00:00:00Z",
+        "inventory_revision": "fixture",
+        "runtime": [],
+        "verified_at": "2026-09-28T00:00:00Z"
+      },
+      "envelope": {
+        "created_at": "2026-09-28T00:00:00Z",
+        "execution_target_id": "fixture",
+        "extensions": {
+          "test.z": "value",
+          "test.a": "a"
+        },
+        "harness_id": "fixture",
+        "idempotency_key": "fixture",
+        "operation": "route",
+        "project_id": "00000000-0000-4000-8000-000000000001",
+        "request_id": "00000000-0000-4000-8000-000000000001",
+        "schema_version": "1",
+        "workspace_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "execution_mode": "main",
+      "hard_constraints": {
+        "allowed_providers": [],
+        "context_token_limit": 1,
+        "governing_instruction_refs": [],
+        "local_only": false,
+        "max_attempts": 1,
+        "spending_ceiling": null,
+        "total_deadline_ms": 1
+      },
+      "optimization_objective": {
+        "acceptance_requirements": [],
+        "direction": "minimize",
+        "metric_id": "fixture",
+        "objective_id": "fixture",
+        "routing_cost_basis": "raw",
+        "version": "fixture"
+      },
+      "recursion_bypass": false,
+      "representation_source": "fixture",
+      "retry_context": null,
+      "task_id": "00000000-0000-4000-8000-000000000001",
+      "task_representation": "é 😀 \n",
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "fixture"
+      }
+    },
+    "accepted": true,
+    "digest": "ad080e7db7d4b283c8dfcf6c7c44858aad245b934e521cb48c21466d0250b00b"
+  }
+]

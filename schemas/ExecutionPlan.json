@@ -1,0 +1,237 @@
+{
+  "$defs": {
+    "DefaultEffort": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "provider_default",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "DefaultEffort",
+      "type": "object"
+    },
+    "ExplicitEffort": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "explicit",
+          "title": "Kind",
+          "type": "string"
+        },
+        "native_value": {
+          "title": "Native Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "native_value"
+      ],
+      "title": "ExplicitEffort",
+      "type": "object"
+    },
+    "GuidanceRevision": {
+      "additionalProperties": false,
+      "properties": {
+        "admission": {
+          "anyOf": [
+            {
+              "const": "policy_admitted",
+              "type": "string"
+            },
+            {
+              "const": "explicitly_enabled",
+              "type": "string"
+            }
+          ],
+          "title": "Admission"
+        },
+        "authority": {
+          "title": "Authority",
+          "type": "string"
+        },
+        "content_hash": {
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "resource_id": {
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "token_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Token Count"
+        }
+      },
+      "required": [
+        "admission",
+        "authority",
+        "content_hash",
+        "resource_id",
+        "revision",
+        "role",
+        "task_id",
+        "token_count"
+      ],
+      "title": "GuidanceRevision",
+      "type": "object"
+    },
+    "UnsupportedEffort": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "unsupported",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "UnsupportedEffort",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "access_route": {
+      "title": "Access Route",
+      "type": "string"
+    },
+    "execution_plan_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Execution Plan Id",
+      "type": "string"
+    },
+    "execution_target_id": {
+      "title": "Execution Target Id",
+      "type": "string"
+    },
+    "guidance_action": {
+      "anyOf": [
+        {
+          "const": "none",
+          "type": "string"
+        },
+        {
+          "const": "inject",
+          "type": "string"
+        }
+      ],
+      "title": "Guidance Action"
+    },
+    "harness_id": {
+      "title": "Harness Id",
+      "type": "string"
+    },
+    "model_id": {
+      "title": "Model Id",
+      "type": "string"
+    },
+    "native_effort": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExplicitEffort"
+        },
+        {
+          "$ref": "#/$defs/DefaultEffort"
+        },
+        {
+          "$ref": "#/$defs/UnsupportedEffort"
+        }
+      ],
+      "title": "Native Effort"
+    },
+    "optional_guidance": {
+      "items": {
+        "$ref": "#/$defs/GuidanceRevision"
+      },
+      "maxItems": 2,
+      "title": "Optional Guidance",
+      "type": "array"
+    },
+    "predecessor_plan_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Predecessor Plan Id"
+    },
+    "provider": {
+      "title": "Provider",
+      "type": "string"
+    },
+    "required_capabilities": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Required Capabilities",
+      "type": "array"
+    },
+    "required_guidance": {
+      "items": {
+        "$ref": "#/$defs/GuidanceRevision"
+      },
+      "title": "Required Guidance",
+      "type": "array"
+    },
+    "resolved_model_revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Resolved Model Revision"
+    }
+  },
+  "required": [
+    "access_route",
+    "execution_plan_id",
+    "execution_target_id",
+    "guidance_action",
+    "harness_id",
+    "model_id",
+    "native_effort",
+    "optional_guidance",
+    "predecessor_plan_id",
+    "provider",
+    "required_capabilities",
+    "required_guidance",
+    "resolved_model_revision"
+  ],
+  "title": "ExecutionPlan",
+  "type": "object"
+}

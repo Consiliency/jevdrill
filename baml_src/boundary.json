@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "compiler_version": "0.20.1",
+  "contracts": ["RouteRequest", "RoutingDecision", "ExecutionPlan", "ExecutionRun", "ReportRequest", "ReportAcknowledgment", "ExecutionEvent", "Measurement", "Settings", "ComparisonExperiment", "CapabilityMismatch", "LocalNotice"],
+  "omittable": {},
+  "field_rules": {
+    "Money.amount": {"pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"},
+    "Money.currency": {"pattern": "^[A-Z]{3}$"},
+    "RequestEnvelope.extensions": {"propertyNames": {"pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_.]*$"}},
+    "ExecutionPlan.optional_guidance": {"maxItems": 2},
+    "ExperimentLimits.max_candidates": {"minimum": 2},
+    "ExperimentLimits.max_concurrency": {"minimum": 1},
+    "ExperimentLimits.max_duration_ms": {"minimum": 1},
+    "ExperimentLimits.cpu_limit": {"minimum": 1},
+    "ExperimentLimits.memory_limit_bytes": {"minimum": 1},
+    "HardConstraints.total_deadline_ms": {"minimum": 1},
+    "HardConstraints.context_token_limit": {"minimum": 1},
+    "HardConstraints.max_attempts": {"minimum": 1},
+    "RetryContext.remaining_attempts": {"minimum": 0},
+    "RetryContext.remaining_time_ms": {"minimum": 0},
+    "ExecutionEvent.source_sequence": {"minimum": 0},
+    "Settings.routing_deadline_ms": {"minimum": 1},
+    "ComparisonExperiment.candidate_plans": {"minItems": 2},
+    "ComparisonExperiment.assignment_probabilities": {"additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}}
+  },
+  "identities": ["RequestEnvelope.request_id", "RequestEnvelope.project_id", "RequestEnvelope.workspace_id", "ExecutionPlan.execution_plan_id", "ExecutionPlan.predecessor_plan_id", "RouteRequest.task_id", "RetryContext.prior_routing_decision_id", "RetryContext.prior_execution_run_id", "DecisionDetails.routing_decision_id", "DecisionDetails.request_id", "DecisionDetails.task_id", "DecisionDetails.reused_decision_id", "ExecutionRun.execution_run_id", "ExecutionRun.task_id", "ExecutionRun.selected_plan_id", "ExecutionRun.applied_plan_id", "ExecutionRun.prior_execution_run_id", "ExecutionEvent.event_id", "ExecutionEvent.task_id", "ExecutionEvent.routing_decision_id", "ExecutionEvent.execution_run_id", "ExecutionEvent.supersedes_event_id", "ComparisonExperiment.comparison_experiment_id", "ComparisonExperiment.task_id", "LocalNotice.notice_id"],
+  "timestamps": ["RequestEnvelope.created_at", "DecisionDetails.created_at", "Capabilities.verified_at", "Capabilities.expires_at", "ReadinessEvidence.verified_at", "ReadinessEvidence.valid_until", "ExecutionEvent.occurred_at", "LocalNotice.deadline"],
+  "semantic_validators": ["request_operation", "effective_capabilities", "guidance_consistency", "measurement_subset", "experiment_authority", "event_correction"],
+  "experiment_transitions": {
+    "proposed": ["accepted", "blocked", "canceled"], "accepted": ["queued", "running", "blocked", "canceled"],
+    "queued": ["running", "blocked", "canceled"], "running": ["completed", "incomplete", "canceled", "blocked"],
+    "completed": [], "incomplete": [], "canceled": [], "blocked": ["proposed"]
+  },
+  "event_transitions": {"queued": ["started", "failed", "canceled"], "started": ["plan_applied", "completed", "failed", "canceled"], "plan_applied": ["completed", "failed", "canceled"], "completed": [], "failed": [], "canceled": []}
+}

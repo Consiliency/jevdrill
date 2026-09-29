@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jevdrill"
+version = "0.1.0.dev0"
+description = "Evidence-based model and guidance routing"
+requires-python = ">=3.13,<3.14"
+dependencies = ["baml-bridge==0.20.1", "pydantic==2.13.5", "PyYAML>=6,<7", "jsonschema>=4.23,<5"]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "ruff>=0.11,<1", "mypy>=1.15,<2", "types-PyYAML", "types-jsonschema"]
+
+[tool.hatch.build]
+ignore-vcs = true
+exclude = ["**/__pycache__/**", "**/*.pyc", "**/.baml*"]
+
+[tool.hatch.build.targets.sdist]
+only-include = ["src/jevdrill", "src/baml_sdk", "pyproject.toml", "README.md"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jevdrill", "src/baml_sdk"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/contracts", "tests/evaluation"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+extend-exclude = ["src/baml_sdk"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+exclude = ["src/baml_sdk"]
+
+[[tool.mypy.overrides]]
+module = ["baml_sdk.*", "baml_bridge.*"]
+follow_imports = "skip"
+ignore_missing_imports = true

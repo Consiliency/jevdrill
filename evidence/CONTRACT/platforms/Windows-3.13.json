@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "execution_kind": "native",
+  "os": "Windows",
+  "architecture": "AMD64",
+  "python_minor": "3.13",
+  "python_version": "3.13.15",
+  "bridge_version": "0.20.1",
+  "compiler_version": "baml-cli 0.20.1",
+  "runner_identity": "win",
+  "timestamp": "2026-09-28T16:28:03.933085+00:00",
+  "input_digest": "a40334f2aa69e5748ddf9e017cc82d99a3775f7d2507e41fd7fc2c80958eef12",
+  "checks": [
+    {
+      "name": "tests",
+      "command": [
+        "C:\\Users\\viperjuice\\jevdrill-contract-verification-20260928\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "tests/contracts",
+        "tests/evaluation",
+        "-q",
+        "--junitxml=C:\\Users\\VIPERJ~1\\AppData\\Local\\Temp\\jevdrill-verification-7275stcj\\tests.xml",
+        "--basetemp=C:\\Users\\VIPERJ~1\\AppData\\Local\\Temp\\jevdrill-verification-7275stcj\\pytest"
+      ],
+      "exit_code": 0,
+      "output_sha256": "f00e583d69850ae5e4ce5c431563c361d84816fedf02485b587824392294e949"
+    },
+    {
+      "name": "generation",
+      "command": [
+        "C:\\Users\\viperjuice\\jevdrill-contract-verification-20260928\\.venv\\Scripts\\python.exe",
+        "scripts/check_generated_contracts.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "8c3a159ec4a62f01a4c76514054ee18f1b2dcad4103d4668917a0abaf9da9735"
+    },
+    {
+      "name": "coverage",
+      "command": [
+        "C:\\Users\\viperjuice\\jevdrill-contract-verification-20260928\\.venv\\Scripts\\python.exe",
+        "scripts/check_contract_coverage.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "e8eec64ced1f7fd3017b2b25b4100f14683aca96f5bb66ce6f1c4b448c7cad48"
+    },
+    {
+      "name": "vocabulary",
+      "command": [
+        "C:\\Users\\viperjuice\\jevdrill-contract-verification-20260928\\.venv\\Scripts\\python.exe",
+        "scripts/lint_vocabulary.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "ac9da0dbb4cfb01d3ecaefff7b88e8b373e3f6edbdec9357ac927877cbb94ad4"
+    },
+    {
+      "name": "glossary",
+      "command": [
+        "C:\\Users\\viperjuice\\jevdrill-contract-verification-20260928\\.venv\\Scripts\\python.exe",
+        "scripts/render_vocabulary.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "imports",
+      "command": [
+        "C:\\Users\\viperjuice\\jevdrill-contract-verification-20260928\\.venv\\Scripts\\python.exe",
+        "scripts/check_import_boundaries.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "ac9da0dbb4cfb01d3ecaefff7b88e8b373e3f6edbdec9357ac927877cbb94ad4"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "C:\\Users\\viperjuice\\jevdrill-contract-verification-20260928\\.venv\\Scripts\\python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "src",
+        "tests/contracts",
+        "tests/evaluation"
+      ],
+      "exit_code": 0,
+      "output_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "name": "format",
+      "command": [
+        "C:\\Users\\viperjuice\\jevdrill-contract-verification-20260928\\.venv\\Scripts\\python.exe",
+        "-m",
+        "ruff",
+        "format",
+        "--check",
+        "src",
+        "tests/contracts",
+        "tests/evaluation"
+      ],
+      "exit_code": 0,
+      "output_sha256": "04eb0d6e6734823dcd2b2b704729e976f683df7a8f334da7216520ef1cb319bf"
+    },
+    {
+      "name": "types",
+      "command": [
+        "C:\\Users\\viperjuice\\jevdrill-contract-verification-20260928\\.venv\\Scripts\\python.exe",
+        "-m",
+        "mypy",
+        "src/jevdrill"
+      ],
+      "exit_code": 0,
+      "output_sha256": "d9a5631f7d87a741fbecc3236286d1792d22d349ff13846d71cdc9217307bb76"
+    },
+    {
+      "name": "build",
+      "command": [
+        "uv",
+        "build"
+      ],
+      "exit_code": 0,
+      "output_sha256": "0e601ba98cce7ea496404c44dad7ceac42adf970b7912f2b9bb3c2498509645f"
+    }
+  ],
+  "tests": {
+    "total": 119,
+    "skipped": 0
+  }
+}

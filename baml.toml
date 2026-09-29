@@ -1,0 +1,6 @@
+[package]
+name = "jevdrill"
+
+[generator.python]
+output_type = "python/pydantic"
+naming_convention = "preserve-case"

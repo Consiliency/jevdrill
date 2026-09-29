@@ -1,0 +1,77 @@
+name: Contract conformance
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  platform:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: uv sync --locked
+      - run: npm ci
+      - name: Install checksum-verified compiler
+        shell: python
+        run: |
+          import hashlib, os, pathlib, platform, tarfile, urllib.request, zipfile
+          machine = {'AMD64': 'x86_64', 'x86_64': 'x86_64', 'arm64': 'aarch64', 'aarch64': 'aarch64'}[platform.machine()]
+          target = {'Linux': 'unknown-linux-gnu', 'Darwin': 'apple-darwin', 'Windows': 'pc-windows-msvc'}[platform.system()]
+          suffix = 'zip' if platform.system() == 'Windows' else 'tar.gz'
+          name = f'baml-language-0.20.1-{machine}-{target}.{suffix}'
+          base = 'https://github.com/boundaryml/baml/releases/download/baml-language-0.20.1/'
+          directory = pathlib.Path(os.environ['RUNNER_TEMP']) / 'jevdrill-compiler'
+          directory.mkdir()
+          archive = directory / name
+          urllib.request.urlretrieve(base + name, archive)
+          with urllib.request.urlopen(base + name + '.sha256') as response:
+              expected = response.read().decode().split()[0]
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == expected, 'checksum mismatch'
+          if suffix == 'zip':
+              with zipfile.ZipFile(archive) as file:
+                  file.extractall(directory)
+          else:
+              with tarfile.open(archive) as file:
+                  file.extractall(directory, filter='data')
+          executables = list(directory.rglob('baml-cli.exe' if suffix == 'zip' else 'baml-cli'))
+          assert len(executables) == 1
+          with open(os.environ['GITHUB_ENV'], 'a') as file:
+              file.write(f'BAML_CLI={executables[0]}\n')
+              file.write(f'JEVDRILL_PLATFORM={platform.system()}\n')
+      - run: uv run python scripts/verify_contract_phase.py --local-only
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: contract-${{ matrix.os }}
+          path: evidence/CONTRACT/platforms/${{ env.JEVDRILL_PLATFORM }}-3.13.json
+          if-no-files-found: error
+  reduce:
+    needs: platform
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: contract-*
+          path: evidence/CONTRACT/platforms
+          merge-multiple: true
+      - name: Require successful native jobs
+        env:
+          PLATFORM_RESULT: ${{ needs.platform.result }}
+        run: test "$PLATFORM_RESULT" = success
+      - run: uv run python scripts/verify_contract_phase.py --reduce-only
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: contract-verification
+          path: evidence/CONTRACT/verification.json

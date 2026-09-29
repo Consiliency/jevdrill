@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "affected_operations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Affected Operations",
+      "type": "array"
+    },
+    "code": {
+      "const": "capability_mismatch",
+      "title": "Code",
+      "type": "string"
+    },
+    "declared": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Declared",
+      "type": "array"
+    },
+    "effective": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Effective",
+      "type": "array"
+    },
+    "evidence_refs": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "resolution_advice": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Resolution Advice",
+      "type": "array"
+    },
+    "runtime": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Runtime",
+      "type": "array"
+    }
+  },
+  "required": [
+    "affected_operations",
+    "code",
+    "declared",
+    "effective",
+    "evidence_refs",
+    "resolution_advice",
+    "runtime"
+  ],
+  "title": "CapabilityMismatch",
+  "type": "object"
+}

@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "execution_kind": "native",
+  "os": "Darwin",
+  "architecture": "arm64",
+  "python_minor": "3.13",
+  "python_version": "3.13.7",
+  "bridge_version": "0.20.1",
+  "compiler_version": "baml-cli 0.20.1",
+  "runner_identity": "macmini",
+  "timestamp": "2026-09-28T16:27:57.690317+00:00",
+  "input_digest": "a40334f2aa69e5748ddf9e017cc82d99a3775f7d2507e41fd7fc2c80958eef12",
+  "checks": [
+    {
+      "name": "tests",
+      "command": [
+        "/Users/viperjuice/jevdrill-contract-verification-20260928/.venv/bin/python",
+        "-m",
+        "pytest",
+        "tests/contracts",
+        "tests/evaluation",
+        "-q",
+        "--junitxml=/tmp/jevdrill-verification-i6x_t2vm/tests.xml",
+        "--basetemp=/tmp/jevdrill-verification-i6x_t2vm/pytest"
+      ],
+      "exit_code": 0,
+      "output_sha256": "c2aeb9d1424b58af52209417b59228017a04a3eb333c032255e256cc9e4a1013"
+    },
+    {
+      "name": "generation",
+      "command": [
+        "/Users/viperjuice/jevdrill-contract-verification-20260928/.venv/bin/python",
+        "scripts/check_generated_contracts.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "f5cd56f6316dc040e316bcc7a83a13b705dc0e097eaa6ce970d5380b7fb2e9ab"
+    },
+    {
+      "name": "coverage",
+      "command": [
+        "/Users/viperjuice/jevdrill-contract-verification-20260928/.venv/bin/python",
+        "scripts/check_contract_coverage.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "04a0cf10ca397eb42290bf8c04c156bbba6b2abd8d47dd73400f333b59e67f83"
+    },
+    {
+      "name": "vocabulary",
+      "command": [
+        "/Users/viperjuice/jevdrill-contract-verification-20260928/.venv/bin/python",
+        "scripts/lint_vocabulary.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "8bd2e937f15b750ff2e18abc445df9e143156651f4415267b0c018c4b07a051b"
+    },
+    {
+      "name": "glossary",
+      "command": [
+        "/Users/viperjuice/jevdrill-contract-verification-20260928/.venv/bin/python",
+        "scripts/render_vocabulary.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "imports",
+      "command": [
+        "/Users/viperjuice/jevdrill-contract-verification-20260928/.venv/bin/python",
+        "scripts/check_import_boundaries.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "8bd2e937f15b750ff2e18abc445df9e143156651f4415267b0c018c4b07a051b"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "/Users/viperjuice/jevdrill-contract-verification-20260928/.venv/bin/python",
+        "-m",
+        "ruff",
+        "check",
+        "src",
+        "tests/contracts",
+        "tests/evaluation"
+      ],
+      "exit_code": 0,
+      "output_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "name": "format",
+      "command": [
+        "/Users/viperjuice/jevdrill-contract-verification-20260928/.venv/bin/python",
+        "-m",
+        "ruff",
+        "format",
+        "--check",
+        "src",
+        "tests/contracts",
+        "tests/evaluation"
+      ],
+      "exit_code": 0,
+      "output_sha256": "04eb0d6e6734823dcd2b2b704729e976f683df7a8f334da7216520ef1cb319bf"
+    },
+    {
+      "name": "types",
+      "command": [
+        "/Users/viperjuice/jevdrill-contract-verification-20260928/.venv/bin/python",
+        "-m",
+        "mypy",
+        "src/jevdrill"
+      ],
+      "exit_code": 0,
+      "output_sha256": "71144743c83babea384888a735db0c4daba3d4d7b7942b6839984bd5c21b52bb"
+    },
+    {
+      "name": "build",
+      "command": [
+        "uv",
+        "build"
+      ],
+      "exit_code": 0,
+      "output_sha256": "0bfc53bf735929dfff416350098fde09bf74e0ca4b893004f12200e8daeae7b5"
+    }
+  ],
+  "tests": {
+    "total": 119,
+    "skipped": 0
+  }
+}

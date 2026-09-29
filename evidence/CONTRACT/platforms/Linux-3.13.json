@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "execution_kind": "native",
+  "os": "Linux",
+  "architecture": "x86_64",
+  "python_minor": "3.13",
+  "python_version": "3.13.15",
+  "bridge_version": "0.20.1",
+  "compiler_version": "baml-cli 0.20.1",
+  "runner_identity": "dev0",
+  "timestamp": "2026-09-28T16:27:59.863306+00:00",
+  "input_digest": "a40334f2aa69e5748ddf9e017cc82d99a3775f7d2507e41fd7fc2c80958eef12",
+  "checks": [
+    {
+      "name": "tests",
+      "command": [
+        "/home/viperjuice/code/jev-advisor-router/.venv/bin/python",
+        "-m",
+        "pytest",
+        "tests/contracts",
+        "tests/evaluation",
+        "-q",
+        "--junitxml=/home/viperjuice/workspace/tmp/jevdrill/jevdrill-verification-gf3vw0x7/tests.xml",
+        "--basetemp=/home/viperjuice/workspace/tmp/jevdrill/jevdrill-verification-gf3vw0x7/pytest"
+      ],
+      "exit_code": 0,
+      "output_sha256": "4e8c3b14696559ec64602e2a8b06f02ec2f452b5846cd690df0cab4cfbbfd4f6"
+    },
+    {
+      "name": "generation",
+      "command": [
+        "/home/viperjuice/code/jev-advisor-router/.venv/bin/python",
+        "scripts/check_generated_contracts.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "f5cd56f6316dc040e316bcc7a83a13b705dc0e097eaa6ce970d5380b7fb2e9ab"
+    },
+    {
+      "name": "coverage",
+      "command": [
+        "/home/viperjuice/code/jev-advisor-router/.venv/bin/python",
+        "scripts/check_contract_coverage.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "04a0cf10ca397eb42290bf8c04c156bbba6b2abd8d47dd73400f333b59e67f83"
+    },
+    {
+      "name": "vocabulary",
+      "command": [
+        "/home/viperjuice/code/jev-advisor-router/.venv/bin/python",
+        "scripts/lint_vocabulary.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "8bd2e937f15b750ff2e18abc445df9e143156651f4415267b0c018c4b07a051b"
+    },
+    {
+      "name": "glossary",
+      "command": [
+        "/home/viperjuice/code/jev-advisor-router/.venv/bin/python",
+        "scripts/render_vocabulary.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "imports",
+      "command": [
+        "/home/viperjuice/code/jev-advisor-router/.venv/bin/python",
+        "scripts/check_import_boundaries.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "8bd2e937f15b750ff2e18abc445df9e143156651f4415267b0c018c4b07a051b"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "/home/viperjuice/code/jev-advisor-router/.venv/bin/python",
+        "-m",
+        "ruff",
+        "check",
+        "src",
+        "tests/contracts",
+        "tests/evaluation"
+      ],
+      "exit_code": 0,
+      "output_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "name": "format",
+      "command": [
+        "/home/viperjuice/code/jev-advisor-router/.venv/bin/python",
+        "-m",
+        "ruff",
+        "format",
+        "--check",
+        "src",
+        "tests/contracts",
+        "tests/evaluation"
+      ],
+      "exit_code": 0,
+      "output_sha256": "04eb0d6e6734823dcd2b2b704729e976f683df7a8f334da7216520ef1cb319bf"
+    },
+    {
+      "name": "types",
+      "command": [
+        "/home/viperjuice/code/jev-advisor-router/.venv/bin/python",
+        "-m",
+        "mypy",
+        "src/jevdrill"
+      ],
+      "exit_code": 0,
+      "output_sha256": "71144743c83babea384888a735db0c4daba3d4d7b7942b6839984bd5c21b52bb"
+    },
+    {
+      "name": "build",
+      "command": [
+        "uv",
+        "build"
+      ],
+      "exit_code": 0,
+      "output_sha256": "0bfc53bf735929dfff416350098fde09bf74e0ca4b893004f12200e8daeae7b5"
+    },
+    {
+      "name": "catalog",
+      "command": [
+        "/home/viperjuice/code/jev-advisor-router/.venv/bin/python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_catalog*.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "fe51fc1ed2c3407e085417c9b7ccfecb7630da44b45e57901a64305093f12d05"
+    }
+  ],
+  "tests": {
+    "total": 119,
+    "skipped": 0
+  }
+}

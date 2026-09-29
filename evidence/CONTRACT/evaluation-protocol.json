@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "protocol_version": "1",
+  "status": "synthetic_conformance_only",
+  "task_families": ["code_implementation", "code_review", "technical_documentation"],
+  "baselines": ["fixed_user_default", "cheapest_feasible", "selected_model_without_optional_guidance", "previous_policy", "simple_retrieval_where_applicable"],
+  "splits": ["development", "validation", "policy_holdout", "policy_regression", "release_holdout"],
+  "quality_floors": null,
+  "regression_tolerances": null,
+  "threshold_status": "pending_calibration_and_authority_before_holdout_exposure",
+  "owner": "evaluation implementation and user for consequential risk limits",
+  "blocked_operations": ["release_holdout_evaluation", "policy_promotion"],
+  "release_holdout_exposed": false
+}

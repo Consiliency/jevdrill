@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "default_plan_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Default Plan Id"
+    },
+    "excluded_paths": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Excluded Paths",
+      "type": "array"
+    },
+    "experiment_enabled": {
+      "title": "Experiment Enabled",
+      "type": "boolean"
+    },
+    "local_analysis_enabled": {
+      "title": "Local Analysis Enabled",
+      "type": "boolean"
+    },
+    "model_analysis_enabled": {
+      "title": "Model Analysis Enabled",
+      "type": "boolean"
+    },
+    "retain_raw_outputs": {
+      "title": "Retain Raw Outputs",
+      "type": "boolean"
+    },
+    "retain_raw_tasks": {
+      "title": "Retain Raw Tasks",
+      "type": "boolean"
+    },
+    "routing_cost_basis": {
+      "anyOf": [
+        {
+          "const": "raw",
+          "type": "string"
+        },
+        {
+          "const": "adjusted",
+          "type": "string"
+        }
+      ],
+      "title": "Routing Cost Basis"
+    },
+    "routing_deadline_ms": {
+      "minimum": 1,
+      "title": "Routing Deadline Ms",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "setting_sources": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Setting Sources",
+      "type": "object"
+    },
+    "settings_revision": {
+      "title": "Settings Revision",
+      "type": "string"
+    }
+  },
+  "required": [
+    "default_plan_id",
+    "excluded_paths",
+    "experiment_enabled",
+    "local_analysis_enabled",
+    "model_analysis_enabled",
+    "retain_raw_outputs",
+    "retain_raw_tasks",
+    "routing_cost_basis",
+    "routing_deadline_ms",
+    "schema_version",
+    "setting_sources",
+    "settings_revision"
+  ],
+  "title": "Settings",
+  "type": "object"
+}

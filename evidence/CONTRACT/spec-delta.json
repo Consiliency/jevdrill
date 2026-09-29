@@ -1,0 +1,25 @@
+{
+  "schema": "spec_delta_closeout.v1",
+  "decision": "roadmap_amendment",
+  "redaction_posture": "metadata_only",
+  "phase": "CONTRACT",
+  "roadmap_before_sha256": "20fa42af2727febb0f8e692da89c46dcb390cc95a07e27c2f1091b4757206a20",
+  "roadmap_after_sha256": "b7b225a492d677a65de4eb59b748659ec09303989e72da4cfdcf81cd991f8700",
+  "target_surfaces": ["specs/phase-plans-v1.md", "specs/jevdrill-implementation-proposal.md", "specs/jevdrill-current-state.md", "docs/vocabulary.yaml"],
+  "changes": [
+    "Added verifying downstream criteria for accepted review obligations without renumbering criteria",
+    "Resolved Git home as public Consiliency/jevdrill",
+    "Selected tested Python 3.13 and compiler/bridge 0.20.1",
+    "Used compiler-required baml_sdk namespace with explicit generated import boundaries",
+    "Validated artifact checksums before normalizing declared source path separators",
+    "Separated numeric telemetry retention from upstream events that retain headers and arguments"
+  ],
+  "evidence_paths": ["evidence/CONTRACT/coverage.json", "evidence/CONTRACT/verification.json", "evidence/CONTRACT/platforms"],
+  "verification_status": "passed",
+  "closeout_status": "blocked",
+  "blocker_class": "dirty_worktree_conflict",
+  "blocker_summary": "Required installed closeout classifier returns 1 for 15 ignored paths; existing research logs and BAML/build outputs remain preserved",
+  "downstream_handling": "Keep interface gates open; reconcile closeout before ROUTE planning",
+  "canonical_adoption": false,
+  "publication_performed": false
+}

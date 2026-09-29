@@ -1,0 +1,205 @@
+schema_version: "0.1"
+status: enforced_scoped_registry
+authority: authored_machine_vocabulary
+source: specs/jevdrill-design-input.md
+generated_glossary: docs/vocabulary.md
+notes:
+  - Accepted concept names are distinguished from proposed ownership and code forms.
+  - Deterministic usage checks cover declared identifiers and active documentation; arbitrary prose semantics remain a review responsibility.
+  - Historical interview records and external names are not rewritten to erase provenance.
+  - Contract field definitions belong in BAML under JD-082; this registry owns terminology.
+naming:
+  module: snake_case
+  field: snake_case
+  function: snake_case
+  class: PascalCase
+  forbid_module_names: [utils, helpers, common]
+scope:
+  intended_code_roots: [src/jevdrill, baml_src]
+  intended_doc_roots: [specs, docs]
+  exceptions:
+    - {kind: historical_input, path: docs/jevdrill-spec.md, reason: Preserve the original draft until explicit adoption.}
+    - {kind: decision_history, path: specs/jevdrill-design-input.md, reason: Superseded terms must remain identifiable in historical decisions.}
+    - {kind: imported_evidence, path: research, reason: Preserve source wording and provenance.}
+    - {kind: research_code, path: scripts, reason: Existing research identifiers retain historical meanings.}
+    - {kind: generated_display, path: docs/vocabulary.md, reason: Check regeneration rather than count definitions twice.}
+    - {kind: external_identifier, token: state, context: TypeSafe request field, reason: External wire spelling is provider-owned.}
+    - {kind: external_identifier, token: LaunchSpec, context: agent-harness type, reason: Upstream identifiers are not JEV Drill execution plans.}
+modules:
+  contracts: Public contract facade and validation rules.
+  settings: Loading preferences and resolving overrides.
+  catalog: Resource identities, revisions, taxonomy, and admission.
+  inventory: Model and tool capabilities, access routes, and availability.
+  context: Task and project information collection.
+  routing: Feasibility, candidate comparison, and plan selection.
+  guidance: Instruction assembly, compatibility, and delivery checks.
+  storage: SQLite, migrations, artifacts, and retention persistence.
+  telemetry: Execution reports, events, and measurement collection.
+  integrations: External clients and provider-specific translation, including BAML JEV calls.
+  application: Coordination and effect wiring.
+  costing: Raw token costs and optional subscription adjustment.
+  evaluation: Acceptance checks, rubrics, and objective-specific assessments.
+  analysis: Comparable groups, accumulated evidence, and policy proposals.
+  experiments: Comparison proposals, scheduling, execution rules, and host coordination.
+  cli: Local commands and portable JSON transport.
+  objectives: Later objective recommendation within configured authority.
+concepts:
+  - id: settings
+    term: settings
+    definition: Persistent user, project, or machine preferences; mandatory constraints are evaluated separately.
+    identifier: settings
+    owner: settings
+    decision: JD-002
+  - id: execution_plan
+    term: execution plan
+    definition: Immutable proposed model, access route, native effort, exact guidance revisions, and capability requirements.
+    identifier: execution_plan
+    owner: contracts
+    decision: JD-011
+    forbidden_public_aliases: [execution_configuration]
+  - id: routing_decision
+    term: routing decision
+    definition: Selection of an execution plan or an explicit non-ready outcome, with evidence and policy provenance.
+    identifier: routing_decision
+    owner: routing
+    decision: JD-002
+  - id: execution_run
+    term: execution run
+    definition: One actual attempt to carry out an execution plan, distinct from a message retry.
+    identifier: execution_run
+    owner: telemetry
+    decision: JD-012
+  - id: routing_evidence
+    term: routing evidence
+    definition: Scoped observations and derived estimates relevant to selecting execution plans.
+    identifier: routing_evidence
+    owner: analysis
+    decision: JD-031
+  - id: routing_policy
+    term: routing policy
+    definition: Versioned selection rules, separate from changing evidence evaluated by those rules.
+    identifier: routing_policy
+    owner: routing
+    decision: JD-031
+  - id: routing_context
+    term: routing context
+    definition: Task-specific information assembled for a routing request.
+    identifier: routing_context
+    owner: context
+    decision: JD-002
+  - id: comparison_experiment
+    term: comparison experiment
+    definition: Deliberate comparison of complete execution plans under recorded objectives and evaluation criteria.
+    identifier: comparison_experiment
+    owner: experiments
+    decision: JD-028
+    display_aliases: [bakeoff, benchmark showdown]
+  - id: observed_execution
+    term: observed execution
+    definition: Ordinary harness work used as observational evidence with its actual environment recorded.
+    identifier: observed_execution
+    owner: telemetry
+    decision: JD-028
+  - id: controlled_experiment
+    term: controlled experiment
+    definition: Deliberate execution under defined comparison conditions, distinct from observing ordinary work.
+    identifier: controlled_experiment
+    owner: experiments
+    decision: JD-033
+  - id: optimization_objective
+    term: optimization objective
+    definition: Acceptance requirements, optimized metric, constraints, and cost basis defining what a win means.
+    identifier: optimization_objective
+    owner: contracts
+    decision: JD-039
+  - id: raw_token_cost
+    term: raw token cost
+    definition: Token-based monetary cost using undiscounted rates, with estimate or observed-usage basis recorded separately.
+    identifier: raw_token_cost
+    owner: costing
+    decision: JD-023
+  - id: adjusted_token_cost
+    term: adjusted token cost
+    definition: Optional token cost adjusted using explicit subscription information and discount rules.
+    identifier: adjusted_token_cost
+    owner: costing
+    decision: JD-023
+  - id: observed_cost
+    term: observed cost
+    definition: Actual reported charges with their source; neither raw nor adjusted estimates establish a bill.
+    identifier: observed_cost
+    owner: costing
+    decision: JD-023
+  - id: routing_cost_basis
+    term: routing cost basis
+    definition: Setting selecting raw or explicitly enabled adjusted token cost for routing.
+    identifier: routing_cost_basis
+    owner: settings
+    decision: JD-023
+  - id: capability_mismatch
+    term: capability mismatch
+    definition: Disagreement between configured and runtime capabilities, with effective restrictions and resolution advice.
+    identifier: capability_mismatch
+    owner: inventory
+    decision: JD-036
+  - id: project_id
+    term: project ID
+    definition: Stable identity declared in project settings and preserved across directory moves and worktrees.
+    identifier: project_id
+    owner: settings
+    decision: JD-067
+  - id: workspace_id
+    term: workspace ID
+    definition: Identity of a particular execution workspace, separate from its shared project identity.
+    identifier: workspace_id
+    owner: context
+    decision: JD-067
+    spelling_status: implementation_proposal
+  - id: metric_id
+    term: metric ID
+    definition: Stable identifier for a measurement definition, distinct from its version or an individual observation.
+    identifier: metric_id
+    owner: evaluation
+    decision: JD-041
+  - id: harness_id
+    term: harness ID
+    definition: Stable identifier connecting declared host capabilities with runtime reports.
+    identifier: harness_id
+    owner: inventory
+    decision: JD-036
+scoped_rules:
+  - id: explicit_context_terms
+    rule: Do not use bare state or configuration as public fields for concepts already named in this registry.
+    applicability: Public JEV Drill contract fields; external APIs and historical source are exempt.
+    enforcement_status: implemented_scoped
+  - id: concept_reference
+    rule: Definitions in contracts and module documentation reference a registry concept ID rather than inventing synonyms.
+    applicability: Owned application contracts and active documentation.
+    enforcement_status: implemented_scoped
+  - id: module_ownership
+    rule: Module names use the declared responsibility names; amendments update the registry and import-boundary rules together.
+    applicability: src/jevdrill
+    enforcement_status: implemented_scoped
+import_rules:
+  contracts: [baml_sdk]
+  settings: [contracts]
+  inventory: [contracts]
+  context: [contracts]
+  catalog: [contracts]
+  costing: [contracts]
+  guidance: [contracts]
+  telemetry: [contracts, baml_sdk]
+  routing: [contracts, costing]
+  evaluation: [contracts]
+  analysis: [contracts, evaluation]
+  experiments: [contracts, evaluation, costing]
+  storage: [contracts]
+  integrations: [contracts]
+  application: [contracts, settings, inventory, context, catalog, costing, guidance, telemetry, routing, evaluation, analysis, experiments, storage, integrations]
+  cli: [application, contracts]
+  objectives: [contracts]
+usage_scope:
+  code: [src/jevdrill, baml_src]
+  docs: [docs/contracts.md, docs/contract-decisions.md, docs/toolchain.md, docs/evaluation-protocol.md, docs/contract-readiness.md]
+  excluded: [src/baml_sdk]
+  forbidden_public_fields: [state, configuration, execution_configuration]

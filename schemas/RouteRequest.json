@@ -1,0 +1,631 @@
+{
+  "$defs": {
+    "AcceptanceRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "evaluator_ref": {
+          "title": "Evaluator Ref",
+          "type": "string"
+        },
+        "requirement_id": {
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "user",
+              "type": "string"
+            },
+            {
+              "const": "task_family",
+              "type": "string"
+            },
+            {
+              "const": "inferred",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "description",
+        "evaluator_ref",
+        "requirement_id",
+        "source"
+      ],
+      "title": "AcceptanceRequirement",
+      "type": "object"
+    },
+    "AttachmentReference": {
+      "additionalProperties": false,
+      "properties": {
+        "authorized": {
+          "title": "Authorized",
+          "type": "boolean"
+        },
+        "modality": {
+          "anyOf": [
+            {
+              "const": "image",
+              "type": "string"
+            },
+            {
+              "const": "audio",
+              "type": "string"
+            },
+            {
+              "const": "video",
+              "type": "string"
+            },
+            {
+              "const": "document",
+              "type": "string"
+            }
+          ],
+          "title": "Modality"
+        },
+        "reference": {
+          "title": "Reference",
+          "type": "string"
+        },
+        "representation_source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Representation Source"
+        },
+        "text_representation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Text Representation"
+        }
+      },
+      "required": [
+        "authorized",
+        "modality",
+        "reference",
+        "representation_source",
+        "text_representation"
+      ],
+      "title": "AttachmentReference",
+      "type": "object"
+    },
+    "Capabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "declared": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Declared",
+          "type": "array"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "inventory_revision": {
+          "title": "Inventory Revision",
+          "type": "string"
+        },
+        "runtime": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Runtime",
+          "type": "array"
+        },
+        "verified_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Verified At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "declared",
+        "expires_at",
+        "inventory_revision",
+        "runtime",
+        "verified_at"
+      ],
+      "title": "Capabilities",
+      "type": "object"
+    },
+    "GuidanceRevision": {
+      "additionalProperties": false,
+      "properties": {
+        "admission": {
+          "anyOf": [
+            {
+              "const": "policy_admitted",
+              "type": "string"
+            },
+            {
+              "const": "explicitly_enabled",
+              "type": "string"
+            }
+          ],
+          "title": "Admission"
+        },
+        "authority": {
+          "title": "Authority",
+          "type": "string"
+        },
+        "content_hash": {
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "resource_id": {
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "token_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Token Count"
+        }
+      },
+      "required": [
+        "admission",
+        "authority",
+        "content_hash",
+        "resource_id",
+        "revision",
+        "role",
+        "task_id",
+        "token_count"
+      ],
+      "title": "GuidanceRevision",
+      "type": "object"
+    },
+    "HardConstraints": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_providers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Allowed Providers",
+          "type": "array"
+        },
+        "context_token_limit": {
+          "minimum": 1,
+          "title": "Context Token Limit",
+          "type": "integer"
+        },
+        "governing_instruction_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Governing Instruction Refs",
+          "type": "array"
+        },
+        "local_only": {
+          "title": "Local Only",
+          "type": "boolean"
+        },
+        "max_attempts": {
+          "minimum": 1,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "spending_ceiling": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "total_deadline_ms": {
+          "minimum": 1,
+          "title": "Total Deadline Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "allowed_providers",
+        "context_token_limit",
+        "governing_instruction_refs",
+        "local_only",
+        "max_attempts",
+        "spending_ceiling",
+        "total_deadline_ms"
+      ],
+      "title": "HardConstraints",
+      "type": "object"
+    },
+    "Money": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Amount",
+          "type": "string"
+        },
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "currency"
+      ],
+      "title": "Money",
+      "type": "object"
+    },
+    "OptimizationObjective": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptance_requirements": {
+          "items": {
+            "$ref": "#/$defs/AcceptanceRequirement"
+          },
+          "title": "Acceptance Requirements",
+          "type": "array"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "const": "minimize",
+              "type": "string"
+            },
+            {
+              "const": "maximize",
+              "type": "string"
+            }
+          ],
+          "title": "Direction"
+        },
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "objective_id": {
+          "title": "Objective Id",
+          "type": "string"
+        },
+        "routing_cost_basis": {
+          "anyOf": [
+            {
+              "const": "raw",
+              "type": "string"
+            },
+            {
+              "const": "adjusted",
+              "type": "string"
+            }
+          ],
+          "title": "Routing Cost Basis"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "acceptance_requirements",
+        "direction",
+        "metric_id",
+        "objective_id",
+        "routing_cost_basis",
+        "version"
+      ],
+      "title": "OptimizationObjective",
+      "type": "object"
+    },
+    "RequestEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Created At",
+          "type": "string"
+        },
+        "execution_target_id": {
+          "title": "Execution Target Id",
+          "type": "string"
+        },
+        "extensions": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_.]*$"
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "harness_id": {
+          "title": "Harness Id",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "operation": {
+          "anyOf": [
+            {
+              "const": "route",
+              "type": "string"
+            },
+            {
+              "const": "report",
+              "type": "string"
+            }
+          ],
+          "title": "Operation"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "workspace_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created_at",
+        "execution_target_id",
+        "extensions",
+        "harness_id",
+        "idempotency_key",
+        "operation",
+        "project_id",
+        "request_id",
+        "schema_version",
+        "workspace_id"
+      ],
+      "title": "RequestEnvelope",
+      "type": "object"
+    },
+    "RetryContext": {
+      "additionalProperties": false,
+      "properties": {
+        "failure_class": {
+          "anyOf": [
+            {
+              "const": "infrastructure",
+              "type": "string"
+            },
+            {
+              "const": "quality",
+              "type": "string"
+            }
+          ],
+          "title": "Failure Class"
+        },
+        "failure_summary": {
+          "title": "Failure Summary",
+          "type": "string"
+        },
+        "prior_execution_run_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Prior Execution Run Id",
+          "type": "string"
+        },
+        "prior_routing_decision_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Prior Routing Decision Id",
+          "type": "string"
+        },
+        "remaining_attempts": {
+          "minimum": 0,
+          "title": "Remaining Attempts",
+          "type": "integer"
+        },
+        "remaining_spend": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "remaining_time_ms": {
+          "minimum": 0,
+          "title": "Remaining Time Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "failure_class",
+        "failure_summary",
+        "prior_execution_run_id",
+        "prior_routing_decision_id",
+        "remaining_attempts",
+        "remaining_spend",
+        "remaining_time_ms"
+      ],
+      "title": "RetryContext",
+      "type": "object"
+    },
+    "VersionReferences": {
+      "additionalProperties": false,
+      "properties": {
+        "catalog_revision": {
+          "title": "Catalog Revision",
+          "type": "string"
+        },
+        "context_revision": {
+          "title": "Context Revision",
+          "type": "string"
+        },
+        "evidence_revision": {
+          "title": "Evidence Revision",
+          "type": "string"
+        },
+        "policy_revision": {
+          "title": "Policy Revision",
+          "type": "string"
+        },
+        "settings_revision": {
+          "title": "Settings Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "catalog_revision",
+        "context_revision",
+        "evidence_revision",
+        "policy_revision",
+        "settings_revision"
+      ],
+      "title": "VersionReferences",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "active_guidance": {
+      "items": {
+        "$ref": "#/$defs/GuidanceRevision"
+      },
+      "title": "Active Guidance",
+      "type": "array"
+    },
+    "attachment_refs": {
+      "items": {
+        "$ref": "#/$defs/AttachmentReference"
+      },
+      "title": "Attachment Refs",
+      "type": "array"
+    },
+    "capabilities": {
+      "$ref": "#/$defs/Capabilities"
+    },
+    "envelope": {
+      "$ref": "#/$defs/RequestEnvelope"
+    },
+    "execution_mode": {
+      "anyOf": [
+        {
+          "const": "main",
+          "type": "string"
+        },
+        {
+          "const": "delegated",
+          "type": "string"
+        },
+        {
+          "const": "dry_run",
+          "type": "string"
+        }
+      ],
+      "title": "Execution Mode"
+    },
+    "hard_constraints": {
+      "$ref": "#/$defs/HardConstraints"
+    },
+    "optimization_objective": {
+      "$ref": "#/$defs/OptimizationObjective"
+    },
+    "recursion_bypass": {
+      "title": "Recursion Bypass",
+      "type": "boolean"
+    },
+    "representation_source": {
+      "title": "Representation Source",
+      "type": "string"
+    },
+    "retry_context": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RetryContext"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "task_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Task Id",
+      "type": "string"
+    },
+    "task_representation": {
+      "title": "Task Representation",
+      "type": "string"
+    },
+    "versions": {
+      "$ref": "#/$defs/VersionReferences"
+    }
+  },
+  "required": [
+    "active_guidance",
+    "attachment_refs",
+    "capabilities",
+    "envelope",
+    "execution_mode",
+    "hard_constraints",
+    "optimization_objective",
+    "recursion_bypass",
+    "representation_source",
+    "retry_context",
+    "task_id",
+    "task_representation",
+    "versions"
+  ],
+  "title": "RouteRequest",
+  "type": "object"
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "phase": "CONTRACT",
+  "status": "passed",
+  "errors": [],
+  "platforms": [
+    "Darwin",
+    "Linux",
+    "Windows"
+  ],
+  "input_digest": "a40334f2aa69e5748ddf9e017cc82d99a3775f7d2507e41fd7fc2c80958eef12"
+}

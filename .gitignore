@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.venv/
+node_modules/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.baml/
+dist/
+*.egg-info/
+.env
+.env.*
+.jevdrill/local.yaml
+research/roadmap-review/**/events.jsonl
+research/roadmap-review/**/*-events.jsonl
+research/roadmap-review/**/stderr.log
+research/roadmap-review/**/*-stderr.log

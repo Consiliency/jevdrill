@@ -1,0 +1,13 @@
+# Evaluation protocol version 1
+
+Initial task families are code implementation, code review and technical documentation. Implementation uses independent task/regression tests. Review measures known-defect recall, false positives, severity and actionable findings. Documentation checks facts, requirement coverage, references and examples. Candidate-written tests, objective checks, model judgments and host preferences remain distinct observations.
+
+Baselines preserve JD-050: fixed user default, cheapest feasible selection, selected model without optional guidance, previous policy. Include simple retrieval where it answers the draft's retrieval question. Feasibility alone is not demonstrated quality. Compare paired starting conditions, count routing overhead, and hide candidate identity from evaluators where practical.
+
+Metrics have stable IDs and versions, units, methods, scope, provenance and missing reasons. Required families: acceptance and reliability rates; routing/execution/evaluation and first-answer milliseconds; waiting time where observable; input/output/cache/reasoning tokens with subset relationships; raw/adjusted/observed money; failure/retry/cancel/timeout counts; user interventions/preferences; useful-guidance recall, unnecessary injection, token efficiency at adequate quality and calibration against outcomes. Preserve guidance/model/effort/environment revisions.
+
+An undefined denominator or unavailable counter produces unknown, never zero. Cost per accepted task includes failed-attempt cost. Parallel elapsed time merges intervals instead of adding them. Cache and reasoning counts declared as subsets must not be double counted. Do not combine observations with different definitions, units, populations or provenance without a separately recorded derivation.
+
+Dataset splits: development, validation, policy holdout, policy regression, release holdout. Related repositories/templates stay together. Every exposure records task, dataset/evaluator/rubric revisions and purpose. Exposed holdouts must be retired or replaced before further claims. CONTRACT fixtures are synthetic conformance inputs, never empirical quality evidence or the sealed release holdout.
+
+Quality floors, regression tolerances, practical-equivalence margins and sample requirements are explicit versioned task-family settings. Their empirical values remain pending Q-12/Q-13; no policy promotion or release-holdout test may proceed without predeclared values and authority. Report uncertainty and denominators. A single win is scoped to its task; insufficient evidence, practical equivalence and non-comparability are distinct results.
