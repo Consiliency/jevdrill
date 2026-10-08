@@ -1,0 +1,245 @@
+--- round1/reviewed-plan.md
++++ plans/detailed-usage-reporting-20261001-1610.md
+@@ -44,6 +44,27 @@
+ must not be summed. Copies of this source, `exec_events.rs` and `protocol.rs`
+ are retained under `.phase-loop/runs/PLAN-usage-reporting-20261001-1610/`.
+ `inputs.json` records their hashes and the current report-schema/companion inputs.
++Additional review research pins `codex-rs/exec/src/lib.rs` at the same commit in
++`research/usage-review/upstream/exec-lib.rs` (SHA-256
++`48be5b8d89283f1fe338682d634ea3e73847ef1eb7c7626ca801002980527de1`).
++Its dispatch filter and token-update predicate bind notifications to the active
++root thread and turn. This establishes attribution, not complete accounting.
++
++## Advisor review amendments
++
++The four-seat manual advisory review and Opus president ruling are recorded in
++`research/usage-review/`. This review authorizes no implementation or governed
++gate closure. The president requires these changes before execution:
++
++- A1: define CLI-reported totals and document unobservable accounting residuals.
++- A2: make invalidation permanent, distinguish clean EOF from reader failure,
++  and accept the genuine duplicate-ID web-search item shape as opaque content.
++- A3: report timeout/stall as failed even after a graceful zero exit.
++- A4: enable capture only with a private adapter opt-in, never from `--json` alone.
++- A5: require the launcher seam, completion-proof and LaunchSpec regression suites.
++
++The changes below incorporate those amendments. See
++`research/usage-review/reconciliation.md` for deferred suggestions and follow-ups.
+ 
+ ## Frozen protocol and terminology
+ 
+@@ -70,37 +91,65 @@
+ `cached_input_tokens`, `reasoning_tokens`, `UsagePayload`, `ExecutionRun` and
+ `ReportRequest`. Register the one host-owned method identifier
+ `codex_exec_jsonl_0_159_2_v1` as an external identifier in the vocabulary registry.
+-It means a best-effort cumulative CLI observation for the supported fresh-thread
+-path, not a direct provider invoice or complete child-agent accounting.
++It means the latest cumulative total reported by the CLI for the supported
++fresh-thread path. `scope="run"` attaches the observation to its ExecutionRun;
++it does not certify complete run/task accounting. Stdout cannot certify coverage
++of compaction, internal review/compact/memory/guardian sub-agents, suppressed
++collaboration tools/states, provider retries, dropped internal notifications or
++mid-thread total resets. Both integration documents must state these residuals.
++A known zero means a CLI-reported zero; it does not establish independently
++measured provider cache/reasoning absence or invoice-level usage.
+ 
+ ## Behavior to implement
+ 
+ 1. Capture only standard Linux Codex `exec` launches with native version
+    `codex-cli 0.159.2`, a fresh thread and JSONL output. An active JEV adapter
+-   requests `json_output=True` before launch construction for Codex. Dry run,
+-   recursion bypass, other executors and launches without the adapter preserve
+-   their existing behavior. Unsupported versions still execute normally but
+-   yield unknown usage.
++   requests `json_output=True` before launch construction for Codex, then passes
++   the private `codex_usage_capture=True` kwarg to `launch_with_spec` at the bound
++   adapter launch. Its default is false. Probe, stream split and receipt capture
++   require that opt-in, executor Codex, Linux and a live launch. `--json` alone
++   never enables capture. Dry run, recursion bypass, other executors and launches
++   without the adapter preserve their existing behavior. Unsupported versions
++   retain the ordinary executor outcome with requested JSON mode, but usage stays
++   unknown; capture does not promise that an incompatible CLI will succeed.
+ 2. Probe the actual selected CLI with argv-based `--version`, timeout at most one
+    second, without shell interpretation or inference. Perform the probe inside
+    the existing timed launch, deduct its elapsed time from any execution deadline
+    and never extend that deadline. A failed probe disables known usage, not the
+    ordinary executor. If the deadline expires, use the existing unavailable or
+-   timeout behavior rather than dispatch outside it.
+-3. Observe stdout separately from stderr on the existing supervised Linux path.
+-   Pass an optional observer through ephemeral-monitor recursion and the
+-   supervisor path. Tag stream records, drain both streams after process exit
+-   before finalizing capture, and preserve combined output, log and heartbeat
+-   behavior. Bound reader shutdown; an incomplete stdout drain invalidates known
+-   usage. The existing unobserved/default path remains unchanged. Windows and
+-   other unsupported paths retain unknown usage.
+-4. Parse JSONL with duplicate-key rejection and a one-MiB per-record parsing
+-   limit. Accept only top-level protocol events from stdout. Ignore presentation
+-   text, nested tool output and unknown item content; never copy them into the
+-   receipt or report. Retain one terminal cumulative snapshot, never a sum of
+-   snapshots. Require one thread start, one turn start and one terminal completion
+-   with usage. Multiple starts, multiple terminal records, resume, compact/fork
+-   ambiguity, or observed collaboration/child-agent items invalidate known usage.
++   timeout behavior rather than dispatch outside it. Use the same selected CLI
++   and actual child environment/PATH for probing and dispatch. Own the probe's
++   process session/group, clean up its descendants on timeout, and bound pipe
++   shutdown so a wrapper child cannot hold the launch indefinitely. Keep recorded
++   executor argv unchanged. Do not cache the probe. Existing completion_time_ms
++   remains the host-monotonic wall time of the launch call, including preparation
++   and the probe; do not subtract overhead or add a timing metric.
++3. Observe stdout separately from stderr on the opted-in supervised Linux path.
++   Pass the optional observer through lease-supervisor recursion. Linux ephemeral
++   monitoring creates a local temporary log; Windows recursion stays unsupported.
++   Tag each stream's records and give clean EOF and reader errors distinct tags.
++   After process exit, consume queued records until both streams reach clean EOF
++   under the existing bounded shutdown policy; an empty queue or joined thread
++   alone does not prove drainage. Read/decode failure or an incomplete/timed-out
++   drain invalidates usage. Preserve combined output content, logs, heartbeat,
++   custody and cleanup behavior. The default observer-free path stays unchanged.
++4. Parse JSONL without overwriting duplicate authoritative keys, with a one-MiB
++   per-record parsing limit. Every nonempty stdout line must be a valid,
++   classifiable top-level event from the pinned protocol. Duplicate-key/number
++   strictness applies to the event envelope, usage and the single `item.type`
++   discriminator. Other item content is opaque: genuine web_search records have
++   duplicate nested `id` keys from upstream serde flattening and remain accepted.
++   Do not inspect opaque payloads as protocol events or copy them into receipts.
++   Malformed, oversized, non-finite or unclassifiable protocol records, duplicate
++   authoritative keys, non-protocol stdout text, serialization-error substitutes,
++   reader errors and incomplete drainage put the collector into a permanent
++   invalid state. Later valid terminal records cannot restore known usage.
++   Retain one terminal cumulative snapshot, never a sum. Require one thread start,
++   one turn start and one terminal completion with usage. Multiple starts or
++   terminal records, observable collaboration/child-agent items, or the pinned
++   model-rerouted error notice invalidate usage. Resume/fork are structural argv
++   exclusions. Compaction absence cannot be established from this stream and is
++   not a collector rejection guarantee.
+ 5. Re-use the registered four token metric IDs. Map CLI `reasoning_output_tokens`
+    to `reasoning_tokens`. Present counters must be exact integers from zero
+    through `2**53 - 1`; reject booleans, negatives, fractions and non-finite or
+@@ -117,6 +166,11 @@
+    Missing terminal usage after cancellation or failure stays unknown; do not
+    estimate spent tokens. A valid observed snapshot may survive a later process
+    failure, while that run remains failed and receives no completion claim.
++   Fix the adapter's existing terminal classification: interrupted means canceled;
++   timed_out or stalled means failed even if shutdown produces returncode zero;
++   failed/unavailable results mean failed; only the remaining success case means
++   completed. Preserve existing selected/applied identity rules: failure alone
++   does not null applied_plan_id for an available, identity-matching execution.
+ 7. The host stores a `UsagePayload`-shaped JSON mapping in optional
+    `LaunchResult.jevdrill_usage`, preserving it through `_result_with_spec`.
+    This is a host-local carrier for the existing BAML contract, not a new exported
+@@ -137,9 +191,12 @@
+ ### Companion `phase-loop-runtime/src/phase_loop_runtime/launcher.py` (modify)
+ 
+ - `LaunchResult`, `launch_with_spec`, `_result_with_spec` — add/preserve the optional
+-  normalized usage payload, version check and private bounded JSONL collector.
++  normalized usage payload, explicit default-false capture kwarg, bounded version
++  probe and private bounded JSONL collector. Preserve opaque web-search content,
++  permanently invalidate rejected observations and qualify only adapter launches.
+ - `launch` and `_read_lines` — add stdout-only observation on the supervised Linux
+   path, tagged stream handling and final drain for that optional capture path.
++  Give reader EOF/error outcomes distinct tags and drain through both EOF tags.
+   Preserve process cleanup, custody, stdin, deadlines and existing final-message
+   completion proof. Do not parse the combined `LaunchResult.output` as telemetry.
+ - Keep existing executor identity metadata distinct from observed usage. A usage
+@@ -149,9 +206,11 @@
+ 
+ - `prepare` — request JSONL for active Codex routing without changing prompt,
+   selected model, effort, permission or hard-limit authority.
+-- `launch` — validate the receipt and replace only the four unknown token
+-  measurements when trustworthy values exist; preserve host monotonic timing,
+-  lifecycle, execution-run linkage and one-event queue semantics.
++- `launch` — pass the private capture opt-in only for the bound Codex adapter
++  launch, validate the receipt and replace only the four unknown token measurements
++  when trustworthy values exist. Correct timeout/stall lifecycle classification
++  while preserving interruption, selected/applied identity, host-monotonic timing,
++  execution-run linkage and one-event queue semantics.
+ - `_validate_measurements` — register the explicit method and validate token
+   integers/subsets at this boundary. Unsupported/malformed receipts produce
+   unknown token measurements plus metadata-only diagnostics; they do not discard
+@@ -162,7 +221,15 @@
+ - Parser fixtures and real local child-process stream controls: trusted stdout,
+   forged stderr, nested tool content, malformed/duplicate keys, missing/zero
+   categories, all-zero fallback, large counters, subsets, versions, repeated
+-  terminal events, child items, abrupt exit and late stdout drain.
++  terminal events, child items, abrupt exit and late stdout drain. Require real
++  duplicate-ID web-search positive records, duplicate-authoritative-key negatives,
++  oversized/malformed collab followed by valid terminal usage, serialization-error
++  substitutes, non-protocol stdout, read/decode failures, EOF-vs-error outcomes
++  and model-reroute controls. Permanent invalidation must survive later valid data.
++  Require graceful timeout and stall children that emit valid synthetic usage,
++  handle SIGTERM and exit zero: preserve counters/identity, report failed lifecycle.
++  Require a non-adapter --json control with no probe, merged stderr and no receipt,
++  and probe-wrapper descendant cleanup with bounded timeout/pipe shutdown.
+ - Adapter-to-queue controls: immutable receipt propagation, unknown fallback,
+   preserved completion/identity/authority and repeatable durable delivery.
+   Use purpose-built local programs only; label all counters synthetic.
+@@ -178,8 +245,11 @@
+   local Codex-shaped child, the installed JEV CLI and a new disposable queue/DB.
+   Prove exact measurements survive queue restart, duplicate acknowledgment and
+   SQLite replay. Persist no task/output/credential/reasoning sentinel.
+-- Prove failed, missing, ambiguous and unsupported observations stay unknown.
+-  Actual transport/storage execution is required; provider execution is false.
++- Prove missing, observably ambiguous and unsupported observations stay unknown.
++  Failure without a valid terminal snapshot stays unknown; valid terminal usage
++  followed by nonzero exit, timeout or stall retains counters with failed lifecycle
++  and unchanged applied-identity semantics. Actual transport/storage execution is
++  required; provider execution is false.
+ 
+ ### JEV `scripts/verify_usage_reporting.py` (create)
+ 
+@@ -204,8 +274,10 @@
+ ### Documentation and registry (modify)
+ 
+ - Companion `docs/jevdrill-integration.md`: supported CLI/version, stdout
+-  provenance, snapshot semantics, unknown cases and unchanged hard-limit rules.
+-- JEV `docs/host-interfaces.md`: the registered method and its scope/limits;
++  provenance, snapshot semantics, accounting residuals, CLI-reported zero,
++  launch-call timing scope, unknown cases and unchanged hard-limit rules.
++- JEV `docs/host-interfaces.md`: the registered method, timing scope, CLI-zero
++  semantics and residual accounting limits;
+   distinguish fixture evidence from live provider or full HOST acceptance.
+ - JEV `docs/vocabulary.yaml`: add the host method as an external-identifier
+   exception with explicit provenance; regenerate `docs/vocabulary.md` through
+@@ -239,7 +311,7 @@
+ # Companion: new controls must run without skips or provider access.
+ phase-loop-runtime/.venv/bin/python -m pytest -q phase-loop-runtime/tests/test_jevdrill_usage.py phase-loop-runtime/tests/test_jevdrill_adapter.py phase-loop-runtime/tests/test_jevdrill_queue.py
+ # Companion: launcher lifecycle/custody regression checks.
+-phase-loop-runtime/.venv/bin/python -m pytest -q phase-loop-runtime/tests/test_launcher_liveness.py phase-loop-runtime/tests/test_launcher_exec_supervisor.py
++phase-loop-runtime/.venv/bin/python -m pytest -q phase-loop-runtime/tests/test_launcher_liveness.py phase-loop-runtime/tests/test_launcher_exec_supervisor.py phase-loop-runtime/tests/test_phase_loop_launcher.py phase-loop-runtime/tests/test_executor_exited_without_closeout_785.py phase-loop-runtime/tests/test_launchspec_golden.py
+ # JEV: verifier/reducer controls, then installed conformance with explicit paths.
+ .venv/bin/python -m pytest -q tests/verification/test_usage_reporting.py
+ .venv/bin/python -m pytest -q tests/conformance/test_usage_reporting.py
+@@ -250,6 +322,12 @@
+ .venv/bin/python -m pytest -q
+ ```
+ 
++The five designated companion launcher suites above are required reducer controls:
++launch_with_spec/_result_with_spec, completion proof/stdin and LaunchSpec guards
++must run, not just liveness/supervision. The panel egress-prefix suite exercises
++another subsystem and is not required for this change. New input/evidence metadata
++records each pinned local source's upstream path without rewriting old inputs.
++
+ The scoped verifier sets isolated temp paths, removes provider-key variables from
+ children, prevents real executor invocation in fixtures, runs the commands above,
+ builds/installs the wheel, supplies installed conformance paths and collects
+@@ -265,13 +343,16 @@
+ ## Acceptance criteria
+ 
+ - [ ] Supported fresh-thread stdout counters survive LaunchResult propagation;
+-  stderr/tool output and unsupported/ambiguous cases stay unknown — proven by
++  stderr/tool output and unsupported/observably ambiguous cases stay unknown;
++  ordinary non-adapter --json stays unchanged — proven by
+   `test_jevdrill_usage.py` through the suite command.
+ - [ ] Cache/reasoning are subsets; missing differs from zero; all-zero upstream
+-  fallback is unknown; invalid integers/snapshots cannot become known usage —
++  fallback is unknown; invalid integers/snapshots/streams stay permanently unknown,
++  while genuine opaque web-search duplicate IDs stay supported —
+   proven by designated parser controls through the suite command.
+-- [ ] One usage event retains existing lifecycle, selected/applied identity,
+-  permissions and requested-limit behavior, with no raw output or price/quality
++- [ ] One usage event retains selected/applied identity, permissions and requested
++  limits; timeout/stall is failed even after graceful zero exit, and observed
++  counters imply no completion claim, with no raw output or price/quality
+   invention — proven by adapter and installed conformance controls through the
+   suite command.
+ - [ ] Installed JEV CLI persistence, queue restart and duplicate delivery preserve

@@ -1,0 +1,49 @@
+{
+  "status": "manual_advisory_agree",
+  "plan": "plans/detailed-pre-gepa-repairs-20261005-1336.md",
+  "plan_sha256": "1c4f72d3178f9d07d2ed9ee9ae7cff437f1bbb83fe3b3241f8e040416ff73ca7",
+  "rounds": 3,
+  "president": {
+    "model": "claude-opus-5-5",
+    "verdict": "AGREE",
+    "report": "research/pre-gepa-review/president-ruling.md"
+  },
+  "standing_reviewers": [
+    {
+      "name": "Opus correctness",
+      "round": 3,
+      "verdict": "AGREE",
+      "carried": false
+    },
+    {
+      "name": "Gemini alternatives",
+      "round": 2,
+      "verdict": "AGREE",
+      "carried": true
+    },
+    {
+      "name": "Astra methods",
+      "round": 2,
+      "verdict": "AGREE",
+      "carried": true
+    },
+    {
+      "name": "Astra red-team",
+      "round": 2,
+      "verdict": "AGREE",
+      "carried": true
+    }
+  ],
+  "governed_gate_passed": false,
+  "governed_attempt": "governed-attempt.json",
+  "implementation_performed": false,
+  "implementation_tests": "not_run",
+  "live_experiment_performed": false,
+  "remaining_plan_blockers": [],
+  "implementation_limits": [
+    "B checkpoint may block; numeric-only success cannot close it",
+    "Live run requires authorization and usable metering or an adopted limited unknown-cost amendment",
+    "No GEPA readiness, policy promotion or release acceptance claimed"
+  ],
+  "completed_at": "2026-10-05T23:52:47.491126+00:00"
+}

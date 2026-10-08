@@ -1,0 +1,7 @@
+{
+  "status": "EMPTY",
+  "returncode": 2,
+  "verdict": "",
+  "elapsed_s": 0.1,
+  "diagnostic": "    List available agents\n  changelog       Show changelog and release notes\n  help            Show help for subcommands\n  install         Configure environment paths and shell settings\n  mcp             Manage MCP servers (add, remove, list, enable, disable)\n  mic-serve       Serve this machine's microphone to a CLI on another host\n  models          List available models\n  plugin          Manage plugins (install, uninstall, list, enable, disable)\n  plugins         Alias for plugin\n  remote-control  Manage the remote-control background daemon (start, status, stop)\n  update          Update CLI\n"
+}

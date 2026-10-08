@@ -1,0 +1,8 @@
+[
+  "A1: Verify revised CLI-reported-total semantics, root-thread attribution and residual coverage. Original RT-01/ADV-02/AA-05/C-3 required amendment; no claim of complete internal accounting.",
+  "A2: Verify permanent invalidation, EOF/error distinction, bounded drainage, opaque duplicate-ID web-search support and authoritative-key checks. Original RT-02/ADV-03/AA-03/C-1; AA-02 clarification.",
+  "A3: Verify explicit failed timeout/stall despite graceful zero exit and unchanged applied identity/cancellation. Original ADV-01; no runtime proof claimed.",
+  "A4: Verify private default-false adapter capture opt-in and non-adapter JSON regression control. Original C-2.",
+  "A5: Verify designated launcher seam, completion-proof/stdin and LaunchSpec suites are required reducer controls. Original C-4.",
+  "R2-1: Verify the new pinned announced-lag/drop error-item message prefix invalidates capture irreversibly before subsequent valid terminal usage; explicit narrow error-message inspection and negative control; docs distinguish announced drops from unobservable filtering. New source proof from exec-lib.rs:1310/1587 and exec-events.rs:409/623. Round3 final fresh Opus verdict and three carried round2 AGREE verdicts establish standing consensus only if usable."
+]

@@ -1,0 +1,53 @@
+{
+  "checked": [
+    {
+      "path": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/research/runtime-accounting/investigation-20261001.md",
+      "unchanged": true
+    },
+    {
+      "path": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/research/runtime-accounting/observations-20261001.json",
+      "unchanged": true
+    },
+    {
+      "path": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/baml_src/contracts.baml",
+      "unchanged": true
+    },
+    {
+      "path": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/schemas/ReportRequest.json",
+      "unchanged": true
+    },
+    {
+      "path": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/src/jevdrill/application.py",
+      "unchanged": true
+    },
+    {
+      "path": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/src/jevdrill/storage.py",
+      "unchanged": true
+    },
+    {
+      "path": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/docs/host-interfaces.md",
+      "unchanged": true
+    },
+    {
+      "path": "/mnt/workspace/worktrees/viperjuice/agent-harness-windows-port/phase-loop-runtime/src/phase_loop_runtime/launcher.py",
+      "unchanged": true
+    },
+    {
+      "path": "/mnt/workspace/worktrees/viperjuice/agent-harness-windows-port/phase-loop-runtime/src/phase_loop_runtime/jevdrill_adapter.py",
+      "unchanged": true
+    },
+    {
+      "path": "/mnt/workspace/worktrees/viperjuice/agent-harness-windows-port/phase-loop-runtime/src/phase_loop_runtime/jevdrill_queue.py",
+      "unchanged": true
+    },
+    {
+      "path": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/.phase-loop/runs/PLAN-usage-reporting-20261001-1610/exec-events.rs",
+      "unchanged": true
+    },
+    {
+      "path": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/.phase-loop/runs/PLAN-usage-reporting-20261001-1610/exec-contract.rs",
+      "unchanged": true
+    }
+  ],
+  "all_unchanged": true
+}

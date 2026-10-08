@@ -1,0 +1,58 @@
+[
+  {
+    "path": "plans/phase-plan-v1-ROUTE.md",
+    "sha256": "efb55905cc41f34a6741382fc32f136a55e459545b6b359efbf7c61abc1ca387"
+  },
+  {
+    "path": "docs/drill-roadmap-map.md",
+    "sha256": "e82ab2f38c698aa6c0c1a0a367e7435902eaa69360d70c77b832f7bdea46baea"
+  },
+  {
+    "path": "src/jevdrill/catalog.py",
+    "sha256": "a054d29de4a7160c4077dff83c8fb52d3844dba375d550fc52e180dfed798082"
+  },
+  {
+    "path": "baml_src/jev.baml",
+    "sha256": "031c8366575470fd990a7b4591e0294849817c98438f64fffddc2b49168d7b1c"
+  },
+  {
+    "path": "baml_src/contracts.baml",
+    "sha256": "444203c56f5273ac22f0f7cea5bbadba214aebddf961e4d7ab7e25360bb83b41",
+    "lines": [
+      175,
+      239
+    ]
+  },
+  {
+    "path": "src/jevdrill/application.py",
+    "sha256": "f228579a09e395287b4e73d411dd40efaae4a30d57ab5da1dc483e9575abcdd3",
+    "lines": [
+      225,
+      290
+    ]
+  },
+  {
+    "path": "src/jevdrill/application.py",
+    "sha256": "f228579a09e395287b4e73d411dd40efaae4a30d57ab5da1dc483e9575abcdd3",
+    "lines": [
+      419,
+      498
+    ]
+  },
+  {
+    "path": "src/jevdrill/integrations/jev.py",
+    "sha256": "bbffe4ee01ab60dd5dcc356d423035ba6fe6991f48cdb2274095ea368c28c55a",
+    "lines": [
+      15,
+      87
+    ]
+  },
+  {
+    "path": "scripts/verify_route_phase.py",
+    "sha256": "01f1feee51aa7d2486f5b4139d3b86c9b4e037caa929607e9290c3eba0874038",
+    "lines": [
+      20,
+      53
+    ]
+  }
+]

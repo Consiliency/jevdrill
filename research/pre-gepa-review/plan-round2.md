@@ -1,0 +1,151 @@
+# Detailed plan: repair experiment contracts, JEV metering, and suitability calibration
+
+## Task
+
+Establish a trustworthy baseline before introducing GEPA. Repair demonstrable contract and measurement defects, and prepare an uncalibrated, descriptive experiment comparing suitability judgments with observed candidate outcomes and always admitting every eligible model. The experiment may find insufficient discrimination evidence. Preserve the completed studies and their failed outcomes.
+
+Planning was requested in Default mode. This artifact authorizes no implementation by itself; no tests, builds, generators, or paid calls ran during planning. Execute the three bounded work packages serially, each with its own evidence and closeout. This is a standalone repair plan, not acceptance of an entire roadmap phase.
+
+## Research summary
+
+The completed `evidence/EXPERIMENT/routing-comparison-20261005/` study recorded 300 executions, 120 ready product routes, and 240 JEV events. Cost routing passed 56/60 tasks, speed routing 59/60, and fixed Luna 60/60. JEV admitted every offered candidate. The public application already combines candidate models with supplied guidance options; it does not establish a complete standalone skill-discovery interface.
+
+One remaining task ambiguity is concrete: `implementation-half-open-overlap` uses interval notation but omits the JavaScript array representation; an execution assumed objects. Returning the whole record in `implementation-last-correction` contradicts the supplied instruction and remains a model failure. Other failures include extra array nesting, altered example values, and one malformed JSON response. BAML converted nested arrays into strings in some review outputs, so successful typed parsing alone is insufficient evidence of faithful structure.
+
+`usage-diagnostics.json` reproduces empty JEV event counters even with numeric usage in a loopback response. A nullable output counter raises a BAML error. The generated interface exposes both `ai.ModelTurn.usage` and `LLMCall.usage`; determining where usage disappears is a required implementation checkpoint. Do not assert that the live provider omitted usage: live bodies were not retained.
+
+The first replay hash audit failed without recording the changed file. Original completed results kept their hash and later audits matched. Add diagnostic evidence for future discrepancies; leave the original limitation visible.
+
+## Architecture and scope decisions
+
+- Resource selection supplies guidance for the overall objective. The executive harness decomposes that objective and coordinates work. Each concrete task can request a separate model/effort/guidance execution plan.
+- V0 resource selection should use objective relevance and required capabilities. Model choice then uses the concrete task and applicable guidance. Compatibility can require reconsidering a resource/model combination.
+- Document these responsibilities in `docs/route-interfaces.md`. Do not create a new public skill-selection API in this repair. That requires its own bounded interface plan after an audit of the current catalog/handoff path.
+- Keep deterministic permissions, budgets, readiness checks, and the no-additional-critical-failures rule. Prompt optimization cannot edit these rules or the grader.
+- Do not install GEPA, optimize prompts, introduce confidence thresholds, promote policies, expose the release holdout, or publish changes as part of these repairs.
+- Retain BAML for JEV calls and typed response contracts. Do not work around the bridge by switching production calls to a separate untyped HTTP implementation.
+
+## Frozen contract and vocabulary obligations
+
+`docs/vocabulary.yaml:7-10` states: “Accepted concept names are distinguished from proposed ownership and code forms”; “Deterministic usage checks cover declared identifiers and active documentation”; and “Contract field definitions belong in BAML under JD-082; this registry owns terminology.” Lines 12-16 prescribe `snake_case` modules/fields/functions, `PascalCase` classes, and forbid `utils`, `helpers`, and `common` module names.
+
+`docs/jevdrill-spec.md:186-190` describes “domain → specialty → task → candidate descriptions → selected instructions” and requires JEV Drill's code to enforce feasibility and combine JEV judgments. Lines 194-198 require conservative accounting, bounded routing, and hard-constraint-preserving fallback.
+
+No new public vocabulary, routing outcome, policy objective, or measurement unit is introduced. Reuse existing contract identifiers; ordinary descriptions such as resource selection and executive harness are not new registry terms. Private experiment revisions and internal BAML helper identifiers are not new public protocol terms. Keep historical specification text intact; clarify current behavior in the active interface docs. Review `docs/route-interfaces.md` terminology manually because the existing vocabulary lint does not cover it.
+
+Before implementation edits, copy every historical study-bound source and generated file into a private immutable snapshot and verify the copy against `evidence/EXPERIMENT/routing-comparison-20261005/verification.json`. If current bytes already differ, record the mismatch and recover verified bytes from existing evidence or version control; do not claim historical replay until its bindings are satisfied. Audit planned edits against an explicit allowed-path list, with all other inherited files unchanged. Historical replay uses the verified snapshot, not the subsequently edited checkout.
+
+## Work package A: explicit task contracts and strict experiment validation
+
+### Changes
+
+- `research/evaluation/pilot/routing-contracts-v3.json` (create): versioned development task declarations. Audit all 20 exposed groups for argument representation, field names, null/empty behavior, ordering, mutation, and exact return shape. State intervals as two-element number arrays; state `.value` explicitly for records. Record an independent input schema and result schema per family, never infer the required schema from the model response. Preserve old fixture inputs and semantic expected answers; update documentation's expected wording only when its supplied wording changes. Mark all old groups exposed and ineligible for promotion.
+- `scripts/verify_routing_contracts.py` (create): load and validate that dataset, generate private BAML task contracts using the existing comparison generator pattern, and validate raw structured responses before evaluating a BAML result. Use strict JSON parsing with duplicate-key/nonfinite rejection and strict schemas that reject extra nesting, unknown fields, and incorrect primitive types. Use BAML as the authored source for representable response types, with explicit companion constraints for argument tuple arity and semantic shape that BAML cannot represent. Assert schema derivation parity. Permit harmless whitespace/key-order changes, but reject structural coercion. Keep valid-but-wrong answers for independent semantic grading.
+- `tests/verification/test_routing_contracts.py` (create): regressions for array/object mismatch, record-versus-value, nested-array-to-string coercion, serialized-object map keys, documentation argument corruption, malformed JSON, and correct controls. A structurally valid wrong answer must reach and fail the semantic grader.
+- `.phase-loop/runs/PRE-GEPA-20261005/**` (create): private generated SDK, isolated transport workers, fixtures, and protocol preparation. Reuse the existing comparison harness through a new version; do not edit frozen historical runners or import two generated `baml_sdk` packages in one process.
+- `evidence/EXPERIMENT/pre-gepa-20261005/contracts/**` (create): correction map, original/new digests, reference and negative-control outcomes, and schema parity evidence.
+
+### Order and limits
+
+First write the explicit declarations, then derive schemas/SDKs, then run the offline controls. A reference control must satisfy its own declared input/output contract before the dataset can be frozen. Historical failures remain historical failures. “Clearer wording improves accuracy” is a hypothesis until measured.
+
+Audit all 20 groups / 60 cases against every mandatory requirement, including restrictions that returned examples alone cannot prove. Record each requirement's independent check and violating control; an unsupported mandatory check blocks corpus freeze. The decimal-microunits reference currently violates its prohibition on floating-point multiplication. Repair the new reference using decimal digit assembly, preserve numeric expected answers, and add a correct-output implementation that violates the restriction and must fail. Do not change historical references or weaken requirements to fit existing graders.
+
+BAML declarations are the authored source for representable response fields and types; dataset schema fields are derived artifacts plus explicitly named companion constraints, not separately authored competing types. Accept one JSON value with surrounding whitespace only; reject code fences, prose, duplicate keys and nonfinite values. Integer fields reject `1.0`, `true`, and `"1"`. Grade the strictly parsed raw value after schema/parity checks; normalized BAML output must not replace it. Add a worker-level control proving nested-array corruption is rejected before semantic grading, alongside a structurally valid wrong answer that reaches the grader. Refuse to overwrite different existing offline evidence; identical replay may verify existing bytes.
+
+## Work package B: JEV usage capture through BAML
+
+### Changes
+
+- `baml_src/jev.baml` (modify): add an internal observation helper around the existing typed suitability specification. Inspect one direct `ai.ModelTurn` from the BAML client, capturing only the decoded Boolean, numeric usage, and timing needed by the adapter. Continue using BAML client construction, the supplied deadline, and disabled wire capture.
+- `src/jevdrill/integrations/jev.py` (modify): consume the internal observation and preserve candidate/function/model binding, deadline enforcement, and the existing public `JudgmentRecord`. Populate successful records' measurements with sanitized per-call observations. Return a redacted typed failure if the suitability value is invalid. Internal observation changes must not add a second provider invocation. Respect import boundaries: the adapter must not import `telemetry`; put any shared pure projection in an existing permitted dependency, or keep projection at the application boundary without changing public schemas.
+- `src/jevdrill/telemetry.py` (modify): reconcile each counter within an internally identified invocation using the table below. Do not sum a turn total with its component calls. Known zero remains zero; missing remains unknown. TypeSafe's free output pricing does not justify inventing an observed zero output count.
+- `src/jevdrill/application.py` (modify only as necessary): project validated successful `JudgmentRecord` measurements into decision details for both default and injected adapters. Decision details are the accounting view; judgment measurements are a replay view of the same observations, never additional spend. Merge failure-path observations by invocation identity, preserving known counts when a later judgment fails. Missing counts retain reservations. Cache reuse must not copy call-scope routing usage into a new decision that dispatched nothing; exact replay retains the original evidence without booking it again. Preserve measured costs separately from estimates and reservations.
+- `tests/contracts/test_jev_boundary.py`, `tests/integrations/test_jev.py`, `tests/privacy/test_jev_privacy.py`, `tests/application/test_route_integration.py` (modify): actual loopback fixtures for numeric usage, zero, absent/nullable usage, duplicate/conflicting telemetry, malformed responses, cancellation, timeout, and exact replay without dispatch. Canary values in task text, headers, credentials, and response bodies must not appear in retained metadata.
+- `docs/contracts.md`, `docs/route-interfaces.md` (modify): explain the actual implemented capture path, source precedence, missing counters, privacy, and the two-stage ownership boundary. Remove stale claims that the projection is not connected when the verified implementation is connected.
+- `src/baml_sdk/**`, `schemas/**` (regenerate only through `scripts/check_generated_contracts.py --write`): inspect the generated diff; public schemas should remain unchanged. Never manually patch generated files.
+- `evidence/EXPERIMENT/pre-gepa-20261005/metering/**` (create): fixtures, turn-versus-event observations, source hashes, and redaction evidence.
+
+### Mandatory evidence checkpoint
+
+Before changing the production adapter or regenerating product code, use an isolated private SDK to run the same local numeric-usage fixtures through direct `ModelTurn` and existing event callbacks. If direct turn usage is intact and all acceptance fixtures pass, use the observation helper above. If both surfaces retain counters, fix their projection with the smallest change. If both lose counters, or nullable usage fails inside the pinned client before the helper can observe it, stop package B with a reproducible upstream bridge blocker. The existing nullable fixture already suggests this stop will occur: package B is expected to remain blocked unless the checkpoint disproves that limitation. A successful numeric-only probe cannot close B. Keep unknown accounting in place; do not fabricate a successful fix. Package A and offline preparation of C may still complete.
+
+A compiler/runtime upgrade or custom replacement provider client is a separate bounded amendment because the current generator verifies a pinned artifact ABI and platform behavior. Record the exact failing fixture, compiler/runtime versions, and required behavior. This is an evidence-dependent stop condition, not an implementer's choice to weaken acceptance.
+
+Reconcile input and output counters independently; direct and event observations must bind to the same invocation. A complete component-call aggregate is the sum of distinct calls, never the sum of repeated notifications. A partial aggregate cannot stand in for a turn total.
+
+| Direct counter | Complete event counter/aggregate | Result |
+| --- | --- | --- |
+| Known | Absent | Direct value |
+| Absent | Known | Event value |
+| Known | Same known value | One value, counted once |
+| Known | Different known value | Unknown, with a numeric conflict diagnostic |
+| Absent | Absent | Unknown |
+
+Malformed, negative, or conflicting values within a source make that counter unknown with a diagnostic; no silent zero or fallback conceals a conflict. Use an existing contract missing reason and a redacted private diagnostic, without adding a public enum. Deduplicate observations within a call only; two calls with equal counters count twice. Test synthetic partial/multi-call turns, repeated events, cross-source conflicts and missing source counters.
+
+Add loopback fixtures for missing usage, omitted output keys, `{}`, explicit null, numeric zero, and invalid counters. Require one request, retained reservations for unknowns, and redacted failure for bridge decode errors. Check old/new request-body parity and Boolean decoding at scores 0, 0.49, 0.5, 0.51 and 1; exercise malformed answers and ensure the proposed path does not dispatch repair calls. Do not silently retain `JudgeCandidate-v1` if judgment semantics change: stop for an explicit versioned amendment on parity failure.
+
+Application tests must cover an injected adapter, successful first judgment followed by malformed second judgment without fallback, cached reuse, and zero-dispatch replay. The same sanitized JEV measurement subset must survive in successful judgment records and decision details without double counting. Known observations must survive failure, cancellation and deadline paths through the existing observer/runner ledger even when no complete judgment or routing decision can be returned. Exercise cancellation and timeouts through the proposed helper itself, not only the old entry point.
+
+For the live gate, usable usage means all required input/output counters are known and priced under the frozen raw list-rate convention. State whether cached tokens are applicable; never infer a zero cached count from omission. Missing pricing inputs mean unknown cost with reservations, not a measured estimate. Any limited unknown-cost amendment must bind authorization, the unresolved fixture, observable counters, conservative reservation formula, current ledger, total cap, and restricted claims. It cannot close package B.
+
+## Work package C: suitability calibration and a reliable fresh comparison
+
+### Changes
+
+- `research/evaluation/pilot/routing-calibration-v1.json` (create): 12 fresh related task groups with implementation, review, and documentation cases (36 cases). Keep every related variant in the same partition. Mark this corpus as development calibration; it is separate from the release holdout and must not become GEPA's final test set after exposure. Freeze concrete task requirements and independent expected outcomes before generation.
+- `scripts/verify_routing_contracts.py` (extend): offline suitability fixtures with relevant candidate evidence, insufficient evidence, disallowed capabilities, local-only restrictions, and exhausted budget. Assert deterministic exclusions before judgment and that a negative JEV judgment prevents selecting that candidate; a different admitted candidate may still yield a ready plan. These are orchestration controls, not evidence of live JEV discrimination.
+- `.phase-loop/runs/PRE-GEPA-20261005/**` (extend): prepare a five-arm comparison using the verified contracts and metering: fixed Groq, fixed Cerebras, fixed Luna, cost routing over Groq/Luna, and speed routing over Cerebras/Luna. Supply task-local guidance and family performance evidence with explicit source/exposure limits. Keep quality unknown until judged; never insert fabricated “measured sufficient” values. Keep the suitability prompt fixed for this baseline. GEPA may optimize it later against the frozen evaluation.
+- `tests/verification/test_routing_contracts.py` (extend): durable reservation, uncertain-attempt nonretry, budget admission, partition separation, no answer leakage to JEV, and objective-specific mandatory-check regressions.
+- `evidence/EXPERIMENT/pre-gepa-20261005/calibration/**` (create): frozen protocol, operational authorization record, ledger, decisions, typed outputs, independent grades, and objective analysis.
+- `evidence/ROADMAP/latest-study.json` (modify after actual outcomes): point to the new preparation or completed result using its true status and retain previous study references. Original phase reducers and PREPARE status remain separate.
+
+### Execution and evidence rules
+
+Prepare everything offline first. Live execution is an explicit next action after the offline suite passes and package B supplies usable usage or a separately adopted runner amendment defines the limited unknown-cost study. This planning request is not a fresh paid-call authorization.
+
+The prepared schedule is at most 180 execution calls and 144 JEV judgments, sequential, two candidates per route, no automatic retries, five-second routing deadline, 2,048 output-token cap, existing execution timeout, and the existing restricted grader limits of two CPUs and 2 GiB. Use only already authorized providers. Carry $0.845159775 committed or reserved into the inherited $2 guard; re-read the latest authoritative ledgers before admission. GEPA reflection-model spending is outside this schedule.
+
+Unknown attempts retain their maximum reservation. Persist a dispatch record before each remote request. A replay must make zero external calls. For any changed hash, save the path, before/after hashes, and semantic SQLite table comparison; distinguish physical database representation changes from logical evidence changes. Compare an immutable snapshot, not a database with active writers. Never overwrite an old observation to make the audit pass.
+
+Report additional mandatory failures against fixed Luna by task family, known and unknown cost, accepted-task cost only when complete, and latency including routing. Report suitability rejection rates and selection variation. All-true JEV responses are a calibration limitation, not successful discrimination. The baseline may still fail quality acceptance; the experiment runner can complete correctly while a policy remains ineligible.
+
+Supply task-local guidance as required active guidance or task text, without optional guidance combinations. Before freezing the schedule, verify that every case presents exactly one candidate row per intended model and both survive the actual candidate/context bounds. Stop preparation if either is truncated; do not silently run a one-model comparison. Freeze provider-supported sampling settings and seeded arm ordering; unsupported controls stay explicitly unavailable. Temperature zero does not prove determinism. Preserve the two-candidate limit and call caps.
+
+Pre-register candidate-level joins by case, family, candidate and offered guidance, comparing each Boolean judgment with that model's independently graded fixed-arm output. Report admitted/rejected observed passes/failures, transport/missing outcomes, non-ready routes and coverage. Compare against always admitting all eligible candidates and its fixed cheap/fast selection. Add offline fixtures with equal rejection rates but opposite usefulness. Individual outcomes are noisy observations, not gold suitability labels; a lack of observed candidate failures or rejections is insufficient evidence, not calibration success. Report same-model fixed/routed disagreements as sampling diagnostics. Keep the conservative no-additional-critical-failures gate without attributing each paired failure causally to routing. Interpret uncertainty at the 12 related-group level, not as 36 independent cases. Boundary coverage must use genuinely fresh semantic groups; reworded exposed tasks remain exposed.
+
+The dispatch record and reservation are per outbound request, including each JEV request inside a route. Calculate the worst-case remaining schedule reservation before admission; insufficient budget stops before dispatch. On a route with no ready plan, record the outcome and dispatch no execution call for it; continue later cases only within the frozen safety and budget checks. A metering/privacy/protocol invariant failure stops the study. Do not silently stop an entire arm at its first ordinary non-ready route, and never retry it automatically.
+
+Add offline replay-diagnostic controls for a changed evidence file, a physical-only SQLite rewrite, and a changed database row. Against immutable snapshots opened read-only for comparison/replay, assert changed paths, before/after hashes and logical-versus-physical classification. The private test copies may be mutated to create the fixtures; historical evidence may not.
+
+## Verification
+
+Run from the existing worktree with the repository `.venv`. Planned new command interfaces below are implementation requirements, not commands claimed to exist today.
+
+```sh
+.venv/bin/python -m pytest -q tests/verification/test_routing_contracts.py tests/contracts/test_jev_boundary.py tests/integrations/test_jev.py tests/privacy/test_jev_privacy.py tests/application/test_route_integration.py
+.venv/bin/python scripts/verify_routing_contracts.py --contracts research/evaluation/pilot/routing-contracts-v3.json --calibration research/evaluation/pilot/routing-calibration-v1.json --offline --output evidence/EXPERIMENT/pre-gepa-20261005/offline.json
+BAML_CLI=/mnt/workspace/worktrees/viperjuice/.baml-v1-0201-toolchain/bin/baml-cli .venv/bin/python scripts/check_generated_contracts.py
+.venv/bin/python scripts/lint_vocabulary.py
+.venv/bin/python scripts/check_import_boundaries.py
+.venv/bin/python -m pytest -q tests/contracts tests/application tests/privacy tests/integrations
+git diff --check
+```
+
+automation.suite_command: .venv/bin/python -m pytest -q tests/verification/test_routing_contracts.py tests/contracts/test_jev_boundary.py tests/integrations/test_jev.py tests/privacy/test_jev_privacy.py tests/application/test_route_integration.py
+
+The package B checkpoint is included in the boundary tests; an unavailable numeric observation must fail the metering acceptance test rather than be skipped. Run the narrow tests before regeneration comparison and broader integration checks. Do not run any verification during planning.
+
+Operational evidence, if subsequently authorized, is `evidence/EXPERIMENT/pre-gepa-20261005/calibration/verification.json`. The execution runner must stamp a plan amendment with authorization reference, frozen protocol digest, current source digests, carried ledger commitment, limits, and actual outcomes before any downstream roadmap gate relies on it. Fixture or offline evidence is never a substitute for live evidence.
+
+## Acceptance criteria
+
+- [ ] Explicit input/output declarations and requirement-to-grader controls cover all 20 groups / 60 cases and preserve semantic gold answers; invalid references are repaired only in the new version — proven by `scripts/verify_routing_contracts.py --contracts ... --calibration ... --offline --output ...` and `tests/verification/test_routing_contracts.py`.
+- [ ] Structural coercion and malformed JSON fail in the actual worker while valid-but-wrong raw values reach independent grading — proven by `tests/verification/test_routing_contracts.py`.
+- [ ] Known JEV usage survives one BAML invocation, default/injected adapters and later failures; zero, missing, duplicates, conflicts and cache reuse have the specified meanings, with unchanged judgment semantics — proven by `tests/contracts/test_jev_boundary.py`, `tests/integrations/test_jev.py` and `tests/application/test_route_integration.py`; otherwise package B is blocked with a reproduction, including the expected nullable-bridge limitation.
+- [ ] No credential/task/body leakage, extra dispatch on replay, or weakened deadline/permission checks — proven by `tests/privacy/test_jev_privacy.py` and `tests/application/test_route_integration.py`.
+- [ ] Generated code, import boundaries and existing public vocabulary remain consistent — proven by `scripts/check_generated_contracts.py`, `scripts/check_import_boundaries.py`, `scripts/lint_vocabulary.py` and manual interface terminology review.
+- [ ] Fresh calibration groups, exactly two intended candidate rows, frozen outcome-based descriptive analysis, durable per-request reservations, and useful replay-failure diagnostics are ready offline — proven by the offline verifier and its targeted tests, including opposite-usefulness analysis controls.
+- [ ] Historical artifacts and inherited dirty work outside explicitly allowed edits remain intact; historical source bindings have verified snapshots; docs accurately describe harness decomposition and the current API boundary — proven by snapshot binding checks, the execution runner's allowed-path starting/ending hash audit, and documentation review in its closeout.
+- [ ] Any later live result has machine-checked operational evidence and runner-stamped authorization; neither GEPA readiness nor policy promotion is inferred from a completed runner — proven by the adopted amendment and calibration verification artifact. Mark pending until live execution is separately authorized and actually completes.

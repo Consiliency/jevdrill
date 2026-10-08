@@ -1,0 +1,121 @@
+{
+  "board": "code-review",
+  "delivered_seats": 0,
+  "grounded_seats": 0,
+  "independence": {
+    "distinct_vendors": 0,
+    "level": "independent",
+    "seats": 0
+  },
+  "legs": [
+    {
+      "detail": "HARDEN review staged tree does not match authorization",
+      "leg": "grok",
+      "needs_native_agent": null,
+      "notices": [],
+      "seat_key": "grok:grok-4.7:max:adversarial",
+      "source_grounded": true,
+      "status": "DEGRADED",
+      "text": ""
+    },
+    {
+      "detail": "HARDEN review staged tree does not match authorization",
+      "leg": "claude",
+      "needs_native_agent": null,
+      "notices": [
+        {
+          "code": "seat_pointer_brief_unreadable",
+          "fix": "inline the referenced content into the review bundle, or fill this seat through a route with file access (e.g. native fill)",
+          "leg": "claude",
+          "seat_key": "claude:claude-opus-5-5:max:correctness",
+          "what": "seat runs, but its verdict is not counted as source-grounded",
+          "why": "the brief points at files in the staged tree and this seat's route gives it no file access"
+        }
+      ],
+      "seat_key": "claude:claude-opus-5-5:max:correctness",
+      "source_grounded": false,
+      "status": "DEGRADED",
+      "text": ""
+    },
+    {
+      "detail": "HARDEN review staged tree does not match authorization",
+      "leg": "codex",
+      "needs_native_agent": null,
+      "notices": [],
+      "seat_key": "codex:gpt-6-astra:max:red-team",
+      "source_grounded": true,
+      "status": "DEGRADED",
+      "text": ""
+    },
+    {
+      "detail": "HARDEN review staged tree does not match authorization",
+      "leg": "gemini",
+      "needs_native_agent": null,
+      "notices": [
+        {
+          "code": "seat_pointer_brief_unreadable",
+          "fix": "inline the referenced content into the review bundle, or fill this seat through a route with file access (e.g. native fill)",
+          "leg": "gemini",
+          "seat_key": "gemini:gemini-3.8-flash:high:alternative-approach",
+          "what": "seat runs, but its verdict is not counted as source-grounded",
+          "why": "the brief points at files in the staged tree and this seat's route gives it no file access"
+        }
+      ],
+      "seat_key": "gemini:gemini-3.8-flash:high:alternative-approach",
+      "source_grounded": false,
+      "status": "DEGRADED",
+      "text": ""
+    }
+  ],
+  "notices": [
+    {
+      "code": "seat_pointer_brief_unreadable",
+      "fix": "inline the referenced content into the review bundle, or fill this seat through a route with file access (e.g. native fill)",
+      "leg": "claude",
+      "seat_key": "claude:claude-opus-5-5:max:correctness",
+      "what": "seat runs, but its verdict is not counted as source-grounded",
+      "why": "the brief points at files in the staged tree and this seat's route gives it no file access"
+    },
+    {
+      "code": "seat_pointer_brief_unreadable",
+      "fix": "inline the referenced content into the review bundle, or fill this seat through a route with file access (e.g. native fill)",
+      "leg": "gemini",
+      "seat_key": "gemini:gemini-3.8-flash:high:alternative-approach",
+      "what": "seat runs, but its verdict is not counted as source-grounded",
+      "why": "the brief points at files in the staged tree and this seat's route gives it no file access"
+    }
+  ],
+  "requested_seats": 4,
+  "shortfall": {
+    "delivered_seats": 0,
+    "natively_fillable_seats": 0,
+    "requested_seats": 4,
+    "unfilled_seats": [
+      {
+        "leg": "grok",
+        "needs_native_agent": null,
+        "seat_key": "grok:grok-4.7:max:adversarial",
+        "status": "DEGRADED"
+      },
+      {
+        "leg": "claude",
+        "needs_native_agent": null,
+        "seat_key": "claude:claude-opus-5-5:max:correctness",
+        "status": "DEGRADED"
+      },
+      {
+        "leg": "codex",
+        "needs_native_agent": null,
+        "seat_key": "codex:gpt-6-astra:max:red-team",
+        "status": "DEGRADED"
+      },
+      {
+        "leg": "gemini",
+        "needs_native_agent": null,
+        "seat_key": "gemini:gemini-3.8-flash:high:alternative-approach",
+        "status": "DEGRADED"
+      }
+    ]
+  },
+  "usable": false
+}

@@ -1,0 +1,17 @@
+{
+  "authorization_identity": "public_board_president.v1",
+  "brief_digest": "778404372c6ad261eba394f5ebce1d5485c20a02ab82d4d3921716f5132926b9",
+  "finding_rulings": [
+    {
+      "disposition": "BLOCKING",
+      "id": "F001",
+      "reason": "All four board reviewers (adversarial, correctness, red-team, alternative-approach) returned unusable output, so this phase has no review at all. Treating that as deferrable would let unreviewed work pass as if it had been checked. The finding doesn't show a defect in the work. It shows that the review never happened, and that alone is enough to block."
+    }
+  ],
+  "findings_digest": "b08e9676c1dacadafea6b031c7d0e5f350ee42320ce5cf2e549286bf7a8c9dcc",
+  "forcing_decision": "Halt the phase and re-run the review board. First fix the cause of the degradation, such as model availability, timeouts, prompt or framing errors, or output parsing. Proceed only after at least the correctness and red-team reviewers return usable verdicts. If the board can't be restored, escalate to a human reviewer instead of auto-approving.",
+  "format_reask_count": 0,
+  "model_id": "claude-opus-5-5",
+  "rung_index": 0,
+  "schema": "president.ruling.v1"
+}

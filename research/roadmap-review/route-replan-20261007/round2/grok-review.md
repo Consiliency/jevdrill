@@ -1,0 +1,28 @@
+The repaired ROUTE plan is close, and the round-2 fixes hold: separate discovery scope and `ObserveDiscoveryOption-v1`, unchanged route-v1 literals and digests, `work_objective_id` distinct from `OptimizationObjective.objective_id`, serial disjoint lanes, and reuse of `_prepare` / `select_plan`. It is not implementation-ready. Five plan repairs are still required.
+
+## Required repairs
+
+1. **EC-ROUTE-6 — Freeze the expansion table in SL-0.** "Category false does not permanently exclude descendants," "requeue children," and the visited set still allow two schedulers. On category **true**, mark the node examined and append unvisited children at the tail. On category **false**, mark only that node examined-negative and append its unvisited children to the **deferred** queue, behind domains already queued. Do not drop them, do not mark them rejected, and do not expand them immediately. On **unknown or missing**, leave that node and its descendants unexamined on the deferred queue. Least-recently-served service, with stable taxonomy/resource-id ties, must serve queued alternate domains before a negatively judged domain's children. A visited question id cannot be asked again. `no_optional_guidance` is legal only when every reachable optional leaf was judged unsuitable. Any deferred unexamined leaf forces `selected_guidance` plus uncertainty if a supported leaf exists, otherwise `discovery_failed`.
+
+2. **EC-ROUTE-6 / EC-ROUTE-7 — Pin the v2 call path against current `application.route`.** Nested v1 `catalog_query` still runs `narrow` before `_prepare`, and `_prepare` combines every `guidance_options` entry. Route v2 must skip `narrow`, reject or ignore nested `catalog_query`, and pass the full admitted catalog into the existing `_prepare` / `select_plan` path only after substituting each candidate's optional `guidance_options`. v1 fixtures, v1 digest construction, and v1 `catalog_query` behavior stay as they are.
+
+3. **EC-ROUTE-2 / EC-ROUTE-7 — Pin task-guidance conversion.** The discovery allowlist is every judged-suitable, admitted optional leaf. Alternatives and caller-supplied instructions are explanatory only and cannot enter the intersection. "At most two" remains the existing `0/1/2` combinator, including the empty subset. Coalesce required guidance only on an exact `(resource_id, revision, content_hash, role, authority, admission)` match; any difference fails. Copy role, admission, and authority from the matched fresh candidate option, rewrite `task_id`, then `retrieve` and recount. Additional task hard constraints are accepted only when they are equal or stricter and do not remove required guidance; loosening fails. Stricter per-task constraints must reach the existing selector so two linked tasks can diverge.
+
+4. **EC-ROUTE-1 / EC-ROUTE-4 / EC-ROUTE-5 — Pin discovery identity and deletion.** One live discovery row per project, workspace, and `work_objective_id`. The idempotency key and scoped request digest are bound when that row is minted. The same key and digest resume; the same key with a different digest conflicts; a second live key for that objective conflicts. Delete tombstones the trace, metadata replay, and content-addressed discovery cache in one transaction. A later cache hit or lost-response retry must not recreate a success. Linked route commits recheck that tombstone inside the route commit transaction. Replay stays metadata-only and makes no provider call; erased raw text stays unavailable.
+
+5. **EC-ROUTE-3 / EC-ROUTE-6 — Align the output budget with `JevAdapter.judge`.** A finite output allowance is reserved in full before dispatch and kept if usage is missing. Reject missing rates, a positive output rate, or an omitted finite allowance. Do not reject `max_output_tokens` merely because the Boolean parser cannot truncate provider output. Keep the five-second CLI deadline and the existing 50 ms commit margin. This ledger is per discovery command, not shared with a later route command.
+
+## Suggestions
+
+- State the empty-catalog split: no required guidance ends as `no_optional_guidance` with no provider call; absent required guidance ends as `constraint_conflict`.
+- Keep the new discovery adapter off `candidate_request_shape` and `judge`. Those serialize whole candidate rows. Build the frozen allowlist in the new observation function, and leave `ObserveCandidate` unchanged.
+- SL-4 should write only `evidence/ROUTE/**` and the readiness docs it owns. Contract and vocabulary files stay SL-0's.
+- On discovery result commit, re-read the tombstone in that transaction and do not write a success over a delete.
+
+## Missing evidence
+
+`GuidanceRevision`'s role and authority fields are not in the excerpt, so repair 3 copies them from the matched candidate option rather than from the discovery payload. Current route cache invalidation on delete is not in the excerpt, so discovery cache tombstoning is specified directly. No description length limit is shown. A short cap should be frozen in SL-0 so a description cannot carry an instruction body.
+
+No implementation, native run, or panel verdict is claimed. Downstream HOST, LEARN, EXPERIMENT, and PREPARE plans stay historical until this boundary is repaired.
+
+PARTIALLY AGREE

@@ -1,0 +1,17 @@
+{
+  "authorization_identity": "public_board_president.v1",
+  "brief_digest": "778404372c6ad261eba394f5ebce1d5485c20a02ab82d4d3921716f5132926b9",
+  "finding_rulings": [
+    {
+      "disposition": "BLOCKING",
+      "id": "F001",
+      "reason": "All four reviewers (adversarial, correctness, red-team, alternative-approach) returned unusable output, so the board has zero review coverage. A DEGRADED board with no surviving lane gives no evidence on correctness, safety, or design. Deferring this would let the phase advance unreviewed. This is an infrastructure failure, not a code defect, but it still blocks: the gate cannot pass without at least one valid review."
+    }
+  ],
+  "findings_digest": "b08e9676c1dacadafea6b031c7d0e5f350ee42320ce5cf2e549286bf7a8c9dcc",
+  "forcing_decision": "Halt phase advancement. Diagnose why all four lanes failed (likely causes are a shared cause such as malformed input or framing, a timeout or token limit, or a provider or auth outage), fix it, and re-run the full board. Proceed only once at least the correctness lane returns a usable review. If a re-run still degrades, escalate to a human reviewer rather than waiving the gate.",
+  "format_reask_count": 0,
+  "model_id": "claude-opus-5-5",
+  "rung_index": 0,
+  "schema": "president.ruling.v1"
+}

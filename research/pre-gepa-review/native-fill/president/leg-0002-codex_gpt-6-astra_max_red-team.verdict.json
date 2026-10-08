@@ -1,0 +1,9 @@
+{
+  "detail": "HARDEN review staged tree does not match authorization",
+  "index": 2,
+  "leg": "codex",
+  "seat_key": "codex:gpt-6-astra:max:red-team",
+  "status": "DEGRADED",
+  "text": "",
+  "usable": false
+}

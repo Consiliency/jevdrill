@@ -1,0 +1,41 @@
+{
+  "review_class": "manual-advisory",
+  "governed_gate": false,
+  "implementation_executed": false,
+  "user_authorization": "current user request: local subscription panel with file pointers and full tool permissions",
+  "round_cap": 3,
+  "requested_seats": [
+    "grok:grok-4.7:adversarial",
+    "claude:claude-opus-5-5:correctness",
+    "codex:gpt-6-astra:red-team",
+    "gemini:gemini-3.8-flash-high:alternative-approach"
+  ],
+  "active_seats": [
+    "claude:claude-opus-5-5:correctness",
+    "codex:gpt-6-astra:red-team",
+    "gemini:gemini-3.8-flash-high:alternative-approach",
+    "codex:gpt-6-astra:adversarial"
+  ],
+  "exceptions": [
+    {
+      "seat": "grok",
+      "status": "unavailable",
+      "reason": "subscription server rejects installed CLI 0.1.220; requires at least 1.0.13",
+      "mitigation": "read-only local-copy search; no newer local copy. Separate Astra adversarial seat fills review count; no fleet CLI update."
+    },
+    {
+      "seat": "gemini",
+      "attempt": 1,
+      "status": "launch_error",
+      "reason": "print timeout requires duration suffix; corrected to 1800s before retry"
+    },
+    {
+      "seat": "gemini",
+      "attempt": 2,
+      "status": "capture_failed",
+      "reason": "empty placeholder from launch error took precedence over stdout. Wrapper corrected; fresh run produces usable PARTIALLY AGREE. The lost response is not counted."
+    }
+  ],
+  "provider_auth": "local subscription probes passed; provider API keys scrubbed",
+  "input_plan_sha256": "baf70220dadff60ff73ceae73d4f79b9346fa3d134c856aed83cd2abf26e5899"
+}

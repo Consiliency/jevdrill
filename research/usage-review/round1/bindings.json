@@ -1,0 +1,54 @@
+{
+  "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/plans/detailed-usage-reporting-20261001-1610.md": {
+    "sha256": "baf70220dadff60ff73ceae73d4f79b9346fa3d134c856aed83cd2abf26e5899",
+    "bytes": 17847
+  },
+  "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/research/runtime-accounting/investigation-20261001.md": {
+    "sha256": "c451f4e51a45eafcb1cba7192bda6e5ec01c699c0fea776e753ed35f38d559a6",
+    "bytes": 12397
+  },
+  "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/research/runtime-accounting/observations-20261001.json": {
+    "sha256": "c954147c17c82c1781b6dd14589f6df25f10366fd6e1f827463d965f872cc8f9",
+    "bytes": 2630
+  },
+  "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/baml_src/contracts.baml": {
+    "sha256": "444203c56f5273ac22f0f7cea5bbadba214aebddf961e4d7ab7e25360bb83b41",
+    "bytes": 22155
+  },
+  "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/schemas/ReportRequest.json": {
+    "sha256": "3958d5acb8819f53a743f3f98787e53b84541aeebdc76f3a756058f95a06ad71",
+    "bytes": 12278
+  },
+  "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/src/jevdrill/application.py": {
+    "sha256": "31a4213ca08dde029b5438405af371d1449525335fc19acfa2ef9878221df17d",
+    "bytes": 31533
+  },
+  "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/src/jevdrill/storage.py": {
+    "sha256": "5cf0f79c8d40604de16af6c2ce1ecaab4ef7aed022c45d14dd7f6980e54b59ba",
+    "bytes": 61520
+  },
+  "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/docs/host-interfaces.md": {
+    "sha256": "06f54dbc6cb0b9b800c24192ab10ec70f4a1b57ed6be452a7241517f642b145f",
+    "bytes": 6514
+  },
+  "/mnt/workspace/worktrees/viperjuice/agent-harness-windows-port/phase-loop-runtime/src/phase_loop_runtime/launcher.py": {
+    "sha256": "351e666ffe963bab7e3e89e241d3973def269a62dccdd2628119909fe34025a5",
+    "bytes": 192211
+  },
+  "/mnt/workspace/worktrees/viperjuice/agent-harness-windows-port/phase-loop-runtime/src/phase_loop_runtime/jevdrill_adapter.py": {
+    "sha256": "401b0c72c4b40b276b3e4ad69ec78c1f6ea6ad3ff7e6aab069c4676692517ede",
+    "bytes": 29765
+  },
+  "/mnt/workspace/worktrees/viperjuice/agent-harness-windows-port/phase-loop-runtime/src/phase_loop_runtime/jevdrill_queue.py": {
+    "sha256": "3e8ca1508681266c5cf5919d4e91681acc4f1c8102a5d490b4dc5a947b635000",
+    "bytes": 10317
+  },
+  "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/.phase-loop/runs/PLAN-usage-reporting-20261001-1610/exec-events.rs": {
+    "sha256": "bc296541b385f9b4ca2c28cc638e25a8d6b1332b2cd67f5a03eaa97a3d612b19",
+    "bytes": 27168
+  },
+  "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/.phase-loop/runs/PLAN-usage-reporting-20261001-1610/exec-contract.rs": {
+    "sha256": "dafa872d7e86a099e56e28a329dcb9c03db90ed768c3b88cca8c91d46dc1d0e5",
+    "bytes": 10713
+  }
+}

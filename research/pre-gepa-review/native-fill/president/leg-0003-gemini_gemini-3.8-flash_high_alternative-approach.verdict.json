@@ -1,0 +1,9 @@
+{
+  "detail": "HARDEN review staged tree does not match authorization",
+  "index": 3,
+  "leg": "gemini",
+  "seat_key": "gemini:gemini-3.8-flash:high:alternative-approach",
+  "status": "DEGRADED",
+  "text": "",
+  "usable": false
+}

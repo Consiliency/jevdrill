@@ -1,0 +1,22 @@
+{
+  "notices": [
+    {
+      "code": "seat_pointer_brief_unreadable",
+      "fix": "inline the referenced content into the review bundle, or fill this seat through a route with file access (e.g. native fill)",
+      "leg": "claude",
+      "seat_key": "claude:claude-opus-5-5:max:correctness",
+      "what": "seat runs, but its verdict is not counted as source-grounded",
+      "why": "the brief points at files in the staged tree and this seat's route gives it no file access"
+    },
+    {
+      "code": "seat_pointer_brief_unreadable",
+      "fix": "inline the referenced content into the review bundle, or fill this seat through a route with file access (e.g. native fill)",
+      "leg": "gemini",
+      "seat_key": "gemini:gemini-3.8-flash:high:alternative-approach",
+      "what": "seat runs, but its verdict is not counted as source-grounded",
+      "why": "the brief points at files in the staged tree and this seat's route gives it no file access"
+    }
+  ],
+  "pointer_brief": true,
+  "schema": "seat_preflight.v1"
+}

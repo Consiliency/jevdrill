@@ -1,0 +1,9 @@
+{
+  "detail": "HARDEN review staged tree does not match authorization",
+  "index": 1,
+  "leg": "claude",
+  "seat_key": "claude:claude-opus-5-5:max:correctness",
+  "status": "DEGRADED",
+  "text": "",
+  "usable": false
+}

@@ -1,0 +1,142 @@
+{
+  "authorization_identity": "public_board_president.v1",
+  "brief_digest": "9e9769d34efa10f794530df6559879e6e8c3e1244cc9d31b3d2f4e34dfd16f1a",
+  "finding_rulings": [
+    {
+      "disposition": "DEFERRED",
+      "id": "F001",
+      "reason": "Preserve the four frozen repairs, existing selector integration, all seven ECs, and both interface gates."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F002",
+      "reason": "Section label; substantive repairs are adjudicated below."
+    },
+    {
+      "disposition": "BLOCKING",
+      "id": "F003",
+      "reason": "Recovery must atomically recheck the tombstone and commit a terminal result before returning. Observations arriving after terminalization must remain audit-only without changing authority or reservations."
+    },
+    {
+      "disposition": "BLOCKING",
+      "id": "F004",
+      "reason": "Each idempotency key needs an independent ledger with a fixed initial allowance from a fresh limit intersection. New keys must not inherit another attempt\u2019s accounting; same-key recovery must not replenish allowance."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F005",
+      "reason": "Section label with no independent defect."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F006",
+      "reason": "Carry task rebinding, separate policy parsing, per-option call accounting, v1 compatibility, and patch exclusions into implementation; no additional plan defect is established here."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F007",
+      "reason": "Evidence limitation acknowledged; implementation correctness and verification remain unproven."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F008",
+      "reason": "The readiness endorsement does not resolve the concrete gaps in F003 and F004."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F009",
+      "reason": "Summary introduction with no independent defect."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F010",
+      "reason": "Preserve these confirmed repairs; they do not establish atomic recovery or independent attempt accounting."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F011",
+      "reason": "Preserve selector reuse, separate discovery contracts, and rejection of unsupported hard ceilings."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F012",
+      "reason": "These durability, privacy, deletion, and replay obligations remain mandatory implementation criteria."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F013",
+      "reason": "Implementation readiness cannot close verification gates; retain all stated acceptance, compatibility, and platform checks."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F014",
+      "reason": "Heading with no independent defect."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F015",
+      "reason": "The general readiness assessment is qualified by the unresolved F003 and F004 repairs."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F016",
+      "reason": "Formatting separator with no substantive finding."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F017",
+      "reason": "Heading with no independent defect."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F018",
+      "reason": "Preserve strict success-variant gating across ingress, cache, retry, and commit, with the required negative controls."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F019",
+      "reason": "Preserve FIFO sequencing, stable sibling ordering, queue alternation, and tail-requeued cursors; verify deadline enforcement separately."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F020",
+      "reason": "Preserve field-wise tightening, including empty-provider-list semantics and currency compatibility."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F021",
+      "reason": "No-redispatch recovery remains required, but does not alone resolve terminalization races or ledger isolation."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F022",
+      "reason": "Retain concrete-task rebinding, unsupported-limit rejection, and transactional tombstone checks as implementation requirements."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F023",
+      "reason": "Heading with no independent defect."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F024",
+      "reason": "Unconditional implementation readiness is premature until F003 and F004 are resolved."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F025",
+      "reason": "Section label with no independent defect."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F026",
+      "reason": "Verify candidate-specific token recounting and strict schema-version discrimination during implementation; no additional blocking defect is demonstrated."
+    }
+  ],
+  "findings_digest": "98bd7df01cc609c880ff9f851cf3fca08f8db5818d46bacc194a2b0890cbd733",
+  "forcing_decision": "Repair F003 and F004 before implementation. Preserve all frozen repairs and require all seven ECs and both interface gates for closure.",
+  "format_reask_count": 0,
+  "model_id": "gpt-6-astra",
+  "rung_index": 0,
+  "schema": "president.ruling.v1"
+}

@@ -1,0 +1,12 @@
+{
+  "base": {
+    "path": "research/usage-review/round2/reviewed-plan.md",
+    "sha256": "e77c918213dc4a0f60e4c2f13290ba5cf8971330aee9bbd1dc256a62d313cdd4"
+  },
+  "head": {
+    "path": "plans/detailed-usage-reporting-20261001-1610.md",
+    "sha256": "0727eabde2c75a7b097df8ff1d254c16150f0e6c332c90e5547060413b0e9d58"
+  },
+  "runtime_source_changes": false,
+  "acceptance_criteria_count": 6
+}

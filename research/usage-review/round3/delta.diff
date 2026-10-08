@@ -1,0 +1,73 @@
+--- round2/reviewed-plan.md
++++ plans/detailed-usage-reporting-20261001-1610.md
+@@ -95,8 +95,10 @@
+ fresh-thread path. `scope="run"` attaches the observation to its ExecutionRun;
+ it does not certify complete run/task accounting. Stdout cannot certify coverage
+ of compaction, internal review/compact/memory/guardian sub-agents, suppressed
+-collaboration tools/states, provider retries, dropped internal notifications or
+-mid-thread total resets. Both integration documents must state these residuals.
++collaboration tools/states, provider retries, unannounced internal notification
++filtering or mid-thread total resets. Announced event drops are observable and
++must invalidate capture, rather than being treated as residual coverage. Both
++integration documents must make this distinction.
+ A known zero means a CLI-reported zero; it does not establish independently
+ measured provider cache/reasoning absence or invoice-level usage.
+ 
+@@ -137,7 +139,9 @@
+    per-record parsing limit. Every nonempty stdout line must be a valid,
+    classifiable top-level event from the pinned protocol. Duplicate-key/number
+    strictness applies to the event envelope, usage and the single `item.type`
+-   discriminator. Other item content is opaque: genuine web_search records have
++   discriminator. Accept the pinned fifth usage key `cache_write_input_tokens`
++   without mapping it to a metric. Positive fixtures use that genuine five-key
++   shape. Other item content is opaque: genuine web_search records have
+    duplicate nested `id` keys from upstream serde flattening and remain accepted.
+    Do not inspect opaque payloads as protocol events or copy them into receipts.
+    Malformed, oversized, non-finite or unclassifiable protocol records, duplicate
+@@ -146,8 +150,13 @@
+    invalid state. Later valid terminal records cannot restore known usage.
+    Retain one terminal cumulative snapshot, never a sum. Require one thread start,
+    one turn start and one terminal completion with usage. Multiple starts or
+-   terminal records, observable collaboration/child-agent items, or the pinned
+-   model-rerouted error notice invalidate usage. Resume/fork are structural argv
++   terminal records or observable collaboration/child-agent items invalidate
++   usage. For `error` items only, inspect one classifiable string `item.message`
++   for the pinned notice prefixes `model rerouted: ` and
++   `in-process app-server event stream lagged; dropped `; either permanently
++   invalidates capture. Duplicate/malformed message discriminators are invalid.
++   This narrow exception does not inspect other opaque item content or copy the
++   message into a receipt. Resume/fork are structural argv
+    exclusions. Compaction absence cannot be established from this stream and is
+    not a collector rejection guarantee.
+ 5. Re-use the registered four token metric IDs. Map CLI `reasoning_output_tokens`
+@@ -225,7 +234,10 @@
+   duplicate-ID web-search positive records, duplicate-authoritative-key negatives,
+   oversized/malformed collab followed by valid terminal usage, serialization-error
+   substitutes, non-protocol stdout, read/decode failures, EOF-vs-error outcomes
+-  and model-reroute controls. Permanent invalidation must survive later valid data.
++  and model-reroute controls. Require the sequence thread.started -> turn.started
++  -> announced lag/drop error item -> valid nonzero turn.completed to stay unknown.
++  Permanent invalidation must survive later valid data; include the fifth native
++  cache-write key in positive fixtures without creating a cache-write metric.
+   Require graceful timeout and stall children that emit valid synthetic usage,
+   handle SIGTERM and exit zero: preserve counters/identity, report failed lifecycle.
+   Require a non-adapter --json control with no probe, merged stderr and no receipt,
+@@ -238,6 +250,8 @@
+ 
+ - Extend the existing unknown-usage assertion with known and unsupported receipt
+   cases; retain dry-run, recursion, operator override and requested-limit controls.
++  Update existing launcher fakes/spec mocks for the optional capture kwarg and
++  actual executor attribute; keep the original authority assertions intact.
+ 
+ ### JEV `tests/conformance/test_usage_reporting.py` (create)
+ 
+@@ -344,7 +358,8 @@
+ 
+ - [ ] Supported fresh-thread stdout counters survive LaunchResult propagation;
+   stderr/tool output and unsupported/observably ambiguous cases stay unknown;
+-  ordinary non-adapter --json stays unchanged — proven by
++  announced drops stay permanently unknown, and ordinary non-adapter --json stays
++  unchanged — proven by
+   `test_jevdrill_usage.py` through the suite command.
+ - [ ] Cache/reasoning are subsets; missing differs from zero; all-zero upstream
+   fallback is unknown; invalid integers/snapshots/streams stay permanently unknown,

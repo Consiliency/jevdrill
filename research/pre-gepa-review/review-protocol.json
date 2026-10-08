@@ -1,0 +1,18 @@
+{
+  "round_limit": 3,
+  "plan_sha256": "87597882e9b92c2398de4953ab151b81d8bd67811cda0f1609c43d2b46370d5d",
+  "manual_advisory": true,
+  "governed_gate_passed": false,
+  "reviewers": [
+    "Opus 5.5 correctness",
+    "Gemini 3.8 Flash alternatives",
+    "Astra red-team",
+    "Astra experimental methods"
+  ],
+  "president": "Opus 5.5",
+  "standing_verdict_rule": "Carry only AGREE; rerun dissent against recorded delta.",
+  "final_plan_sha256": "1c4f72d3178f9d07d2ed9ee9ae7cff437f1bbb83fe3b3241f8e040416ff73ca7",
+  "completed_rounds": 3,
+  "final_result": "result.json",
+  "status": "manual_advisory_agree"
+}

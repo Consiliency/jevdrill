@@ -329,6 +329,8 @@ Target: analysis RFC and release readiness.
 
 Automatically propose/test policies. Promotion needs separate standing authority; experiment participation alone is insufficient. Run offline checks, then a limited authorized rollout with predefined regression limits and rollback. Replay alone cannot supply counterfactual outcomes for unexecuted plans. Use controlled experiments where needed; retain previous policies and scope changes.
 
+Owner clarification on 2026-09-30: the first promoted policy may change only the ordering of already-eligible candidates within an approved task group. Caller constraints, permissions, spending limits and required guidance retain precedence. Pin the evaluated model and guidance revisions; retain the previous policy and restore it only while its evidence and promotion authority remain current. Implementation approval does not activate a policy.
+
 ## Telemetry, metrics, retention, and maintenance
 
 ### JD-041 — Metric definitions and baseline coverage
@@ -583,6 +585,10 @@ Target: integration RFC and roadmap.
 
 Initially support execution routes already exposed by agent-harness, using its verified model inventory. Define a common access interface for direct provider APIs and local inference endpoints; implement those integrations in later stages. This execution-route scope is separate from the JEV routing-model connection. Inspect the harness to establish the exact supported route set rather than inferring providers from names or installed tools.
 
+Owner exception on 2026-09-29: bring forward a bounded BAML direct-provider adapter solely for the approved development calibration pilot. Use already authorized providers, verified model identities and current raw rates. Reserve a conservative upper cost before each call; disable retries, fallback and extra calls. Enforce the approved per-experiment and whole-pilot caps. This does not authorize policy promotion or general direct-provider routing.
+
+Owner continuation on 2026-09-30 permits implementing this adapter for explicitly configured development comparisons behind the experiment admission service. Bind purpose-built cases, model profiles, evaluator and raw rates before dispatch. A durable queue and separately invoked trusted worker must retain reservations and never repeat a call after an uncertain outcome. Use local provider fixtures for implementation verification. Paid enablement still requires a current explicit grant and budget; the original pilot allowance is not renewed. General direct-provider routing remains deferred.
+
 ### JD-079 — Initial experiment limits
 
 Target: experiments and settings RFCs.
@@ -595,7 +601,10 @@ Target: test plan and release readiness.
 
 Default promotion requires no meaningful quality regression: meet each task family's quality floor and show that any loss stays within a predefined small tolerance. Insufficient evidence does not pass. Privacy, permission, and mandatory correctness checks cannot be traded for lower cost or latency. Users may explicitly authorize a different quality/cost tradeoff for a scoped optimization objective. Propose numeric tolerances with the evaluation design before held-out testing; this decision does not require zero observed loss on every individual task.
 
+Owner clarification on 2026-09-29 for JD-080: promotion must introduce no additional critical failures. Calibrate other quality tolerances separately for implementation, review and documentation. Improvements in cost, speed or average quality cannot offset a new critical failure. Numeric tolerances remain an evaluation-design task and must be frozen before held-out testing.
+
 ### JD-081 — BAML for JEV calls
+
 
 Target: integrations RFC and toolchain ADR.
 
@@ -612,6 +621,35 @@ Prefer one authored BAML contract source generating Pydantic and other required 
 Use [`baml-language-0.20.1`](https://github.com/BoundaryML/baml/releases/tag/baml-language-0.20.1) as the initial compatibility-test pin, as accepted after repository inspection. The BAML v1 language toolchain still has a `0.x` release number; the installed legacy `0.226.2` is a different toolchain line. The selected release contains JEV adapter tests and a Python Pydantic 2 generator. Adoption requires proving contract generation, strict validation, JSON Schema export, and mocked JEV calls together on this exact toolchain. Record matching runtime dependencies and artifact checksums during that proof. Change the pin explicitly if verification reveals a blocking defect; do not silently follow canary or nightly builds. This selects the test baseline, not a claim of successful local installation or integration.
 
 Subsequent verification: the [BAML proof](../research/baml-proof/README.md) demonstrates isolated generation, Python interoperation, schema export, mocked decoding, timeout behavior and one authorized live JEV call on this pin. Generated validation defaults do not satisfy JD-009; the strict validation supplement and remaining compatibility checks must pass before contract freeze. The original selection above describes the decision at selection time.
+
+### JD-083 — Estimated routing and requested hard ceilings
+
+Accepted by the user on 2026-09-29. Allow verified executors to participate in
+estimated-cost routing without enforceable total-run token limits when no hard
+execution spending or token ceiling is requested. Label estimates explicitly;
+keep raw cost available and observed usage unknown until measured.
+
+`execution_token_limits` names total input and output token ceilings for one
+execution run, including every model call in that run. Context capacity and
+per-call output limits do not establish these totals. A requested spending,
+retry-spend or token ceiling requires compatible verified execution limits and
+final host enforcement. Unknown rates cannot prove a spending ceiling; optional
+subscription adjustments do not relax raw-token spending ceilings. This does
+not relax JEV's own separate judgment-call budgets or experiment authorization.
+
+### JD-084 — Linux workers for leased macOS execution
+
+Accepted by the user on 2026-09-29. Use an explicitly configured Linux worker for
+jobs that require leased worktree execution from macOS. Ordinary local macOS
+routing and non-leased execution remain supported. Native macOS leased launch
+must stop before executor startup or lease transfer, report
+`native_macos_leased_execution_requires_linux_worker`, and recommend resuming on
+the Linux worker. Do not silently move worktrees, credentials or permissions.
+
+Native macOS acceptance verifies early rejection without executor side effects;
+Linux acceptance verifies actual leased process-tree cleanup. Linux worker
+execution is recorded as Linux evidence, never native macOS containment proof.
+Automatic cross-machine provisioning or forwarding is outside this change.
 
 ## Intended adoption outputs
 

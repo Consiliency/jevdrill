@@ -1,0 +1,44 @@
+{
+  "review_class": "manual-advisory",
+  "governed_gate": false,
+  "all_finished": true,
+  "round": 2,
+  "seats": [
+    {
+      "seat": "claude",
+      "status": "OK",
+      "returncode": 0,
+      "verdict": "DISAGREE",
+      "elapsed_s": 840.2,
+      "diagnostic": "",
+      "review": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/research/usage-review/round2/claude/verdict.md"
+    },
+    {
+      "seat": "codex",
+      "status": "OK",
+      "returncode": 0,
+      "verdict": "AGREE",
+      "elapsed_s": 235.2,
+      "diagnostic": "",
+      "review": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/research/usage-review/round2/codex/verdict.md"
+    },
+    {
+      "seat": "gemini",
+      "status": "OK",
+      "returncode": 0,
+      "verdict": "AGREE",
+      "elapsed_s": 153.0,
+      "diagnostic": "",
+      "review": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/research/usage-review/round2/gemini/verdict.md"
+    },
+    {
+      "seat": "codex_adversarial",
+      "status": "OK",
+      "returncode": 0,
+      "verdict": "AGREE",
+      "elapsed_s": 353.1,
+      "diagnostic": "",
+      "review": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/research/usage-review/round2/codex_adversarial/verdict.md"
+    }
+  ]
+}

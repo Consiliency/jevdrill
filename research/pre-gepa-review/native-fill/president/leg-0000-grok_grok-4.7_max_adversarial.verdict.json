@@ -1,0 +1,9 @@
+{
+  "detail": "HARDEN review staged tree does not match authorization",
+  "index": 0,
+  "leg": "grok",
+  "seat_key": "grok:grok-4.7:max:adversarial",
+  "status": "DEGRADED",
+  "text": "",
+  "usable": false
+}

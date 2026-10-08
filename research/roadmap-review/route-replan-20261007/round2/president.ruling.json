@@ -1,0 +1,237 @@
+{
+  "authorization_identity": "public_board_president.v1",
+  "brief_digest": "e10a8df787f42ed88086aa17bbbd70e737a011881d2a6b8583f5c9f29a9562df",
+  "finding_rulings": [
+    {
+      "disposition": "DEFERRED",
+      "id": "F001",
+      "reason": "Framing only. It records the round-2 fixes as holding and points to the repairs ruled on below."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F002",
+      "reason": "Section header with no content of its own."
+    },
+    {
+      "disposition": "BLOCKING",
+      "id": "F003",
+      "reason": "The ambiguity between \"requeue children\" and the visited set allows two valid schedulers, so traces and terminal outcomes would not be reproducible. SL-0 must freeze the true/false/unknown expansion table, least-recently-served ordering with stable taxonomy/resource-id ties, the no-re-ask rule, and the leaf-exhaustion precondition for `no_optional_guidance`. It is ruled together with F018\u2013F020."
+    },
+    {
+      "disposition": "BLOCKING",
+      "id": "F004",
+      "reason": "If v2 inherits v1's `narrow`-before-`_prepare` ordering and `_prepare` combines every `guidance_options` entry, discovery is bypassed or polluted. Route v2 must skip `narrow`, reject nested `catalog_query`, and substitute optional `guidance_options` per candidate before calling the unchanged `_prepare`/`select_plan`. v1 behavior and digests stay unchanged."
+    },
+    {
+      "disposition": "BLOCKING",
+      "id": "F005",
+      "reason": "The conversion boundary is where discovery's privacy and authority guarantees either hold or leak. The plan must pin all of the following:"
+    },
+    {
+      "disposition": "BLOCKING",
+      "id": "F006",
+      "reason": "Without a single live row per (project, workspace, `work_objective_id`), digest binding at mint, and one-transaction tombstoning of trace, replay metadata and cache, a cache hit or lost-response retry can resurrect a deleted discovery. Route-commit and discovery-commit tombstone rechecks must sit inside their respective transactions."
+    },
+    {
+      "disposition": "BLOCKING",
+      "id": "F007",
+      "reason": "Merged with F015/F017. Reserving the full finite allowance before dispatch and keeping it when usage is missing is the correct ledger rule. It is sound only if the allowance is actually sent to and enforced by the provider. The plan must state that mechanism and must not rely on Boolean parsing. Gemini's F040 rejection posture is superseded once enforcement is proven. Keep the 5 s deadline, the 50 ms margin and the per-command ledger."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F008",
+      "reason": "Section header with no content of its own."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F009",
+      "reason": "Each sub-item is either subsumed or a cheap clarification:"
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F010",
+      "reason": "Section header with no content of its own."
+    },
+    {
+      "disposition": "BLOCKING",
+      "id": "F011",
+      "reason": "This applies only to the description-length cap. Descriptions are dispatched to the provider, so an uncapped description can carry an instruction body past the F036 allowlist. Because it is a contract field, it must be frozen in SL-0. Copying role and authority from the candidate option is already covered by F005. Explicit cache-tombstone specification is covered by F006."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F012",
+      "reason": "Accurate scope statement. Downstream plans stay historical until this ROUTE plan is accepted."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F013",
+      "reason": "Degraded reviewer with no content to adjudicate. The effective panel is three reviewers."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F014",
+      "reason": "Framing that agrees with the structure. Its two issues are ruled at F015 and F018."
+    },
+    {
+      "disposition": "BLOCKING",
+      "id": "F015",
+      "reason": "Neither the BAML functions nor the adapter excerpt shows output-token enforcement. Without it, every provider-backed discovery either rejects before navigation (making it unusable) or reserves an allowance the provider ignores (making the ledger unsound). Merged with F007."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F016",
+      "reason": "Supporting rationale for F015. It is correctly framed as missing evidence, and F015 already carries the ruling."
+    },
+    {
+      "disposition": "BLOCKING",
+      "id": "F017",
+      "reason": "This is the required repair for F015/F007:"
+    },
+    {
+      "disposition": "BLOCKING",
+      "id": "F018",
+      "reason": "The always-feasible empty subset must not count as positive discovery evidence. Otherwise an incomplete search can terminate as success."
+    },
+    {
+      "disposition": "BLOCKING",
+      "id": "F019",
+      "reason": "The case of a complete search where Boolean-suitable leaves are all infeasible against required guidance or context currently falls between result variants. Suitability and final feasibility must be distinguished in the predicates."
+    },
+    {
+      "disposition": "BLOCKING",
+      "id": "F020",
+      "reason": "Freeze the five predicates with precedence and fixtures as listed, alongside F003's exhaustion rule. The complete-but-infeasible case needs a named outcome that keeps the feasible required guidance and records the reason. It must not reuse `no_optional_guidance` silently."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F021",
+      "reason": "A good verification addition. Cached, same-key retry and late-observation-after-delete tests should join the SL-2/SL-3 acceptance set. The F006 invariant already governs the behavior."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F022",
+      "reason": "Agrees that missing reducer and native evidence is expected for proposed work and is not a blocker."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F023",
+      "reason": "Title only."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F024",
+      "reason": "Header only."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F025",
+      "reason": "Overruled. \"Implementation-ready\" is contradicted by the open blockers at F003\u2013F007, F011 and F015\u2013F020."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F026",
+      "reason": "Accurate statement of the ROUTE/HOST split, consistent with the other reviewers."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F027",
+      "reason": "Overruled. \"No unresolved blockers\" does not engage the call-path, conversion, terminal-predicate or output-enforcement gaps raised by two other reviewers."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F028",
+      "reason": "Separator."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F029",
+      "reason": "Header only."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F030",
+      "reason": "Mostly accurate restatement. However, SL-0's `docs/*` and SL-4's status docs overlap; the revision should apply F009's narrowing. The conversion summary omits the `narrow` skip and the coalescing rules that F004/F005 require."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F031",
+      "reason": "Header only."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F032",
+      "reason": "Accurate summary of the contract separation and the description-record approach. The missing length cap is ruled at F011."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F033",
+      "reason": "Header only."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F034",
+      "reason": "Restates intent, but it treats as resolved the expansion and termination ambiguities ruled BLOCKING at F003 and F018\u2013F020."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F035",
+      "reason": "Header only."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F036",
+      "reason": "Consistent with the allowlist and metadata-only replay. It is enforceable only with the F011 cap and the F005 exclusion of explanatory text."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F037",
+      "reason": "Header only."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F038",
+      "reason": "Correct in direction. It lacks the one-live-row-per-objective rule and the cache-tombstone and commit rechecks pinned at F006."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F039",
+      "reason": "Header only."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F040",
+      "reason": "Superseded by F007/F015/F017. Blanket rejection of positive output rates would make discovery unusable. The fix is proven provider-side enforcement plus full reservation, with rejection kept only where enforcement is unsupported."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F041",
+      "reason": "Header only."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F042",
+      "reason": "The reducer extension and falsifier list are appropriate acceptance requirements for SL-4. They are not a readiness gap."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F043",
+      "reason": "Header only."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F044",
+      "reason": "These artifacts are correctly classified as planned deliverables rather than readiness evidence."
+    },
+    {
+      "disposition": "DEFERRED",
+      "id": "F045",
+      "reason": "Both are reasonable implementation notes. Tie-break determinism should be checked against the existing `select_plan` order rather than redefined. `busy_timeout` belongs to SL-2 storage configuration and must fit within the 50 ms margin."
+    }
+  ],
+  "findings_digest": "617bdd6e2df8290a81d6c86b9bbda5ea98bdc6836aed628ad05ecced2a73ab65",
+  "forcing_decision": "REVISE. One more plan round is required before the SL-0 interface freeze. The revision must address the BLOCKING rulings at F003\u2013F007, F011 and F015\u2013F020: freeze the expansion table and terminal predicates with fixtures, pin the v2 call path and the task-guidance conversion, pin discovery identity and tombstoning, prove provider-enforced output allowances with an emitted-request test, and cap description length. Gemini's \"implementable\" verdict is overruled. The Claude reviewer was degraded, so this decision rests on three reviewers. No implementation, native run, or panel pass is claimed, and HOST, LEARN, EXPERIMENT and PREPARE stay historical.",
+  "format_reask_count": 0,
+  "model_id": "claude-opus-5-5",
+  "rung_index": 0,
+  "schema": "president.ruling.v1"
+}

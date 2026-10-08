@@ -1,0 +1,33 @@
+{
+  "head_sha256": "0727eabde2c75a7b097df8ff1d254c16150f0e6c332c90e5547060413b0e9d58",
+  "carried": [
+    {
+      "seat": "codex",
+      "status": "OK",
+      "verdict": "AGREE",
+      "from_round": 2,
+      "from_head_sha256": "e77c918213dc4a0f60e4c2f13290ba5cf8971330aee9bbd1dc256a62d313cdd4",
+      "review": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/research/usage-review/round2/codex/verdict.md"
+    },
+    {
+      "seat": "gemini",
+      "status": "OK",
+      "verdict": "AGREE",
+      "from_round": 2,
+      "from_head_sha256": "e77c918213dc4a0f60e4c2f13290ba5cf8971330aee9bbd1dc256a62d313cdd4",
+      "review": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/research/usage-review/round2/gemini/verdict.md"
+    },
+    {
+      "seat": "codex_adversarial",
+      "status": "OK",
+      "verdict": "AGREE",
+      "from_round": 2,
+      "from_head_sha256": "e77c918213dc4a0f60e4c2f13290ba5cf8971330aee9bbd1dc256a62d313cdd4",
+      "review": "/mnt/workspace/worktrees/viperjuice/jevdrill-codex-v0-linux/research/usage-review/round2/codex_adversarial/verdict.md"
+    }
+  ],
+  "fresh_required": [
+    "claude"
+  ],
+  "reason": "delta review; carry only standing AGREE as prescribed; not an exact-head governed gate"
+}

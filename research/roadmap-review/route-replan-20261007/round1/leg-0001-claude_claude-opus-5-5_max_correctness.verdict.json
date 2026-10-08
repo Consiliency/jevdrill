@@ -1,0 +1,9 @@
+{
+  "detail": "claude_tui_stalled: unknown failure (exit 1); CLI output: leg-logs/claude-0764760303b9440ab43fa5ce.log",
+  "index": 1,
+  "leg": "claude",
+  "seat_key": "claude:claude-opus-5-5:max:correctness",
+  "status": "DEGRADED",
+  "text": "",
+  "usable": false
+}

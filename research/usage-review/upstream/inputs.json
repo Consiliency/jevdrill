@@ -1,0 +1,7 @@
+{
+  "repository": "openai/codex",
+  "commit": "ff6aec96948b70d94983af2641a6b67c94faeff5",
+  "path": "codex-rs/exec/src/lib.rs",
+  "sha256": "48be5b8d89283f1fe338682d634ea3e73847ef1eb7c7626ca801002980527de1",
+  "bytes": 86172
+}

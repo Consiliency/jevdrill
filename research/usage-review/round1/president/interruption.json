@@ -1,0 +1,6 @@
+{
+  "status": "interrupted",
+  "reason": "driving server restart; no canonical ruling and no surviving president process",
+  "recovery": "resume exact president session through same runtime self-PTY adapter, subscription and cwd",
+  "reviewer_round": "all four already complete; not repeated"
+}

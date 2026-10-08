@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "reviewed_plan_sha256": "22957800249f057405118450675b5919c0ffda7d15f94b9bb6f43b30f75a37d3",
+  "reconciled_plan_sha256": "a2d4151291c137cde686a22eedc4deaf4375703d67d36e4d08dfdfa843b11501",
+  "incorporated_findings": [
+    "F003",
+    "F004"
+  ],
+  "final_edits_independently_reviewed": false,
+  "dispatch_findings": [],
+  "roadmap_pin_matches": true,
+  "product_tests_run": false,
+  "implementation_started": false
+}

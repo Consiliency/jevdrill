@@ -1,0 +1,24 @@
+{
+  "mode": "manual-advisory",
+  "governed_gate": false,
+  "runtime": "phase_loop_runtime.invoke_panel custom spawn + subscription TUI/liveness adapters",
+  "round_cap": 3,
+  "models": {
+    "grok": "grok-4.7",
+    "claude": "claude-opus-5-5",
+    "codex": "gpt-6-astra",
+    "gemini": "gemini-3.8-flash",
+    "codex_adversarial": "gpt-6-astra"
+  },
+  "lenses": {
+    "grok": "adversarial",
+    "claude": "correctness",
+    "codex": "red-team",
+    "gemini": "alternative-approach",
+    "codex_adversarial": "adversarial"
+  },
+  "full_permissions_authorized": true,
+  "prompt_contents": "compact pointers only",
+  "api_keys": "scrubbed",
+  "reviewer_scope": "read sources; write own review only"
+}

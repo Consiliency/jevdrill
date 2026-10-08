@@ -1,0 +1,7 @@
+{
+  "status": "EMPTY",
+  "returncode": 1,
+  "verdict": "",
+  "elapsed_s": 4.0,
+  "diagnostic": "ernal error: {\n  \"message\": \"API error (status 426 Upgrade Required): Your Grok CLI version (0.1.220) is outdated. Please update to version 1.0.13 or later via `grok update` or the installation documentation.\\n\\nRequest URL: https://cli-chat-proxy.grok.com/v1/responses\",\n  \"http_status\": 426\n}\nError: Internal error: {\n  \"message\": \"API error (status 426 Upgrade Required): Your Grok CLI version (0.1.220) is outdated. Please update to version 1.0.13 or later via `grok update` or the installation documentation.\\n\\nRequest URL: https://cli-chat-proxy.grok.com/v1/responses\",\n  \"http_status\": 426\n}\n"
+}
