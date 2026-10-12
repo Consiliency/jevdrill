@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "kind": "bounded_development_runtime",
+  "os": "Linux",
+  "runner_identity": "dev0",
+  "input_digest": "57b0f33454d6d5c0d993c5bc038f99f2a229b231a63d0b93b9b156f7a476806f",
+  "image_id": "sha256:70af8b01bcbd3a008522f36ea07b679f14f9ad3fb721868cf0cc3f80b7e3f958",
+  "image_provenance": {
+    "Id": "sha256:70af8b01bcbd3a008522f36ea07b679f14f9ad3fb721868cf0cc3f80b7e3f958",
+    "Os": "linux",
+    "Architecture": "amd64"
+  },
+  "paid_calls": 0,
+  "checks": {
+    "actual_baml_local_provider_and_restricted_evaluation": true,
+    "recorded_comparisons_use_independent_restricted_grader": true,
+    "unavailable_image_observed": true,
+    "unavailable_image_rejected_by_runtime_probe": true,
+    "independent_grader_uses_restricted_runtime_and_external_answers": true,
+    "detached_child_observed": true,
+    "restricted_container_limits": true,
+    "container_client_retains_worker_custody": true,
+    "container_and_detached_child_removed_after_worker_death": true,
+    "custody_released_after_container_exit": true,
+    "source_unchanged": true
+  },
+  "criterion": "EC-EXPERIMENT-2",
+  "additional_criterion": "EC-EXPERIMENT-3",
+  "coverage": "partial_linux_development_runtime",
+  "runtime_test_command": [
+    "/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "--junitxml=/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/.phase-loop/runs/EXPERIMENT-development-20261009-5fd40d0423b84a86b691cd467f9770eb/tests.xml",
+    "tests/experiments/test_development.py::test_development_pair_uses_actual_baml_and_persistent_receipts",
+    "tests/experiments/test_development.py::test_development_cancel_before_start_survives_restart",
+    "tests/experiments/test_development.py::test_development_recovery_never_repeats_uncertain_call",
+    "tests/experiments/test_development.py::test_development_cancel_inflight_waits_and_prevents_second_call",
+    "tests/experiments/test_development.py::test_development_two_workers_cannot_dispatch_twice",
+    "tests/experiments/test_development.py::test_development_killed_worker_recovers_without_another_call",
+    "tests/experiments/test_development.py::test_actual_immediate_host_acceptance_is_bounded_and_not_redispatched",
+    "tests/experiments/test_development.py::test_actual_baml_artifact_worker_preserves_independent_checks[review]",
+    "tests/experiments/test_development.py::test_actual_baml_artifact_worker_preserves_independent_checks[documentation]",
+    "tests/experiments/test_development.py::test_resolved_pause_during_actual_call_prevents_later_call_and_retains_reservation",
+    "tests/experiments/test_development.py::test_five_arm_comparison_reserves_once_and_survives_restart_without_redispatch",
+    "tests/experiments/test_development.py::test_five_arm_cancellation_during_third_request_prevents_fourth_and_recovery_retry"
+  ],
+  "runtime_tests": [
+    "test_development_pair_uses_actual_baml_and_persistent_receipts",
+    "test_development_cancel_before_start_survives_restart",
+    "test_development_recovery_never_repeats_uncertain_call",
+    "test_development_cancel_inflight_waits_and_prevents_second_call",
+    "test_development_two_workers_cannot_dispatch_twice",
+    "test_development_killed_worker_recovers_without_another_call",
+    "test_actual_immediate_host_acceptance_is_bounded_and_not_redispatched",
+    "test_actual_baml_artifact_worker_preserves_independent_checks[review]",
+    "test_actual_baml_artifact_worker_preserves_independent_checks[documentation]",
+    "test_resolved_pause_during_actual_call_prevents_later_call_and_retains_reservation",
+    "test_five_arm_comparison_reserves_once_and_survives_restart_without_redispatch",
+    "test_five_arm_cancellation_during_third_request_prevents_fourth_and_recovery_retry"
+  ],
+  "runtime_test_exit_code": 0,
+  "recorded_test_command": [
+    "/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "--junitxml=/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/.phase-loop/runs/EXPERIMENT-development-20261009-5fd40d0423b84a86b691cd467f9770eb/recorded-tests.xml",
+    "tests/promotion/runtime_recorded_evidence.py"
+  ],
+  "recorded_tests": [
+    "test_recorded_comparison_uses_restricted_grader[runtime_good]",
+    "test_recorded_comparison_uses_restricted_grader[runtime_bad]"
+  ],
+  "recorded_test_exit_code": 0,
+  "run_directory": ".phase-loop/runs/EXPERIMENT-development-20261009-5fd40d0423b84a86b691cd467f9770eb",
+  "artifact_digests": {
+    "tests.xml": "bc0005e1b6c869be3cb70e497d4f2bf1a1670005898e749875181cff18ddff55",
+    "recorded-tests.xml": "aaa9c0a11d95c2bc4f4d4e2473ea00aa3ab76093e723b4714d1634f3e3f3aae4",
+    "restricted-comparison.log": "83ac6249ad127457e305165fd728fdd18e8ccbc02d13bfcb477046f7a05bea25",
+    "recorded-comparison.log": "37ec3f0db26ab7cef378352120ce05917c2e681dba160554c4a40de81e9e533b"
+  },
+  "status": "passed",
+  "limitations": [
+    "Local synthetic provider responses do not establish model quality.",
+    "This proof does not enable general host execution or policy promotion."
+  ]
+}

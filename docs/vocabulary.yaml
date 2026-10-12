@@ -8,6 +8,7 @@ notes:
   - Deterministic usage checks cover declared identifiers and active documentation; arbitrary prose semantics remain a review responsibility.
   - Historical interview records and external names are not rewritten to erase provenance.
   - Contract field definitions belong in BAML under JD-082; this registry owns terminology.
+  - The approved ROUTE drill-down amendment extends JD-002 naming to work objectives and discovery contracts.
 naming:
   module: snake_case
   field: snake_case
@@ -29,6 +30,7 @@ modules:
   contracts: Public contract facade and validation rules.
   settings: Loading preferences and resolving overrides.
   catalog: Resource identities, revisions, taxonomy, and admission.
+  discovery: Pure progressive guidance navigation and bound answer transitions.
   inventory: Model and tool capabilities, access routes, and availability.
   context: Task and project information collection.
   routing: Feasibility, candidate comparison, and plan selection.
@@ -40,10 +42,71 @@ modules:
   costing: Raw token costs and optional subscription adjustment.
   evaluation: Acceptance checks, rubrics, and objective-specific assessments.
   analysis: Comparable groups, accumulated evidence, and policy proposals.
+  maintenance: Bounded retention, recovery, scheduling and persistent local notices.
   experiments: Comparison proposals, scheduling, execution rules, and host coordination.
   cli: Local commands and portable JSON transport.
   objectives: Later objective recommendation within configured authority.
 concepts:
+  - id: learning_context
+    term: learning context
+    definition: Validated task and discovery lineage with comparable execution conditions and explicit local and user-wide consent.
+    identifier: learning_context
+    owner: contracts
+    decision: JD-031
+  - id: evidence_group
+    term: evidence group
+    definition: Observational task-group summary retaining source measurements and unknowns without whole-skill or causal claims.
+    identifier: evidence_group
+    owner: analysis
+    decision: JD-041
+  - id: objective_binding
+    term: objective binding
+    definition: Metadata-only host linkage between a stored discovery reference and independently constructed tasks and runs.
+    identifier: objective_binding
+    owner: contracts
+    decision: JD-027
+  - id: notice_inbox
+    term: notice inbox
+    definition: Read-only project and workspace collection of pending local notices; retrieval does not acknowledge a notice.
+    identifier: notice_inbox
+    owner: contracts
+    decision: JD-002
+  - id: work_objective
+    term: work objective
+    definition: Authorized user work to discover guidance for, distinct from the optimization objective used to compare execution plans.
+    identifier: work_objective
+    owner: contracts
+    decision: JD-002
+  - id: discovery_state
+    term: discovery state
+    definition: Bounded navigation queues, visited choices, supported resources, unresolved paths and reserved budget for one discovery attempt.
+    identifier: discovery_state
+    owner: discovery
+    decision: JD-002
+  - id: discovery_question
+    term: discovery question
+    definition: One digest-bound set of offered navigation or resource choices in a recorded discovery state.
+    identifier: discovery_question
+    owner: discovery
+    decision: JD-002
+  - id: discovery_result
+    term: discovery result
+    definition: Immutable selected guidance or an explicit no-guidance, context, constraint or failure outcome for a work objective.
+    identifier: discovery_result
+    owner: contracts
+    decision: JD-002
+  - id: discovery_trace
+    term: discovery trace
+    definition: Recorded transitions, reservations and selection facts sufficient to replay discovery without provider calls or a live catalog.
+    identifier: discovery_trace
+    owner: discovery
+    decision: JD-027
+  - id: discovery_ref
+    term: discovery reference
+    definition: Exact stored discovery identity, work objective identity and trace digest authorizing a linked task routing request.
+    identifier: discovery_ref
+    owner: contracts
+    decision: JD-027
   - id: settings
     term: settings
     definition: Persistent user, project, or machine preferences; mandatory constraints are evaluated separately.
@@ -186,16 +249,18 @@ import_rules:
   inventory: [contracts]
   context: [contracts]
   catalog: [contracts]
+  discovery: [contracts, catalog]
   costing: [contracts]
   guidance: [contracts]
   telemetry: [contracts, baml_sdk]
   routing: [contracts, costing]
   evaluation: [contracts]
-  analysis: [contracts, evaluation]
-  experiments: [contracts, evaluation, costing]
+  analysis: [contracts, evaluation, storage, routing]
+  maintenance: [contracts, storage, integrations]
+  experiments: [contracts, evaluation, costing, storage]
   storage: [contracts]
-  integrations: [contracts]
-  application: [contracts, settings, inventory, context, catalog, costing, guidance, telemetry, routing, evaluation, analysis, experiments, storage, integrations]
+  integrations: [contracts, baml_sdk, integrations, evaluation]
+  application: [contracts, settings, inventory, context, catalog, discovery, costing, guidance, telemetry, routing, evaluation, analysis, experiments, maintenance, storage, integrations]
   cli: [application, contracts]
   objectives: [contracts]
 usage_scope:

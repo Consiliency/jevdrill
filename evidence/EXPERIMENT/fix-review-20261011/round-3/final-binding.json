@@ -1,0 +1,15 @@
+{
+  "review_head_sha256": "d6277cc6e06151bbe8b7fe798f6b80150e3bda0211ca31edf17cec0fccb8eab8",
+  "final_head_sha256": "4fb3ed6538c603c1e7b1138923474666702da56894ada836512762de52c3fd6b",
+  "changed_paths": [
+    "tests/application/test_route_integration.py"
+  ],
+  "production_schema_sdk_unchanged": true,
+  "matrix_input_digest": "1aa527566ae49ee427019efa701c8234d6555fcd71ed0d9c829d219a324081bc",
+  "matrix_reducer_errors": [],
+  "native_tests_per_platform": 322,
+  "native_skipped": 0,
+  "inherited_index_unchanged": true,
+  "full_suite": "858 passed on review head; final delta is only the independent assertion; affected test controls separately verified",
+  "grok_delivery": "cancelled with substantive AGREE summary; not a completed governed seat"
+}

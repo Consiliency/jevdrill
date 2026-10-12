@@ -1,0 +1,84 @@
+{
+  "provenance": "captured_cli_receipt_reconstructed_under_synthetic_execution",
+  "original_result_sha256": "f6c4109014800e02841c3a241b0686d94e34e903d72d811f31ed9143750a1727",
+  "usage": {
+    "kind": "usage",
+    "measurements": [
+      {
+        "metric_id": "input_tokens",
+        "metric_version": "1",
+        "source": "host",
+        "method": "codex_exec_jsonl_0_159_2_v2",
+        "scope": "run",
+        "counting_semantics": "disjoint",
+        "parent_metric_id": null,
+        "measurement_value": {
+          "kind": "known",
+          "unit": "tokens",
+          "value": 19765
+        }
+      },
+      {
+        "metric_id": "output_tokens",
+        "metric_version": "1",
+        "source": "host",
+        "method": "codex_exec_jsonl_0_159_2_v2",
+        "scope": "run",
+        "counting_semantics": "disjoint",
+        "parent_metric_id": null,
+        "measurement_value": {
+          "kind": "known",
+          "unit": "tokens",
+          "value": 24
+        }
+      },
+      {
+        "metric_id": "cached_input_tokens",
+        "metric_version": "1",
+        "source": "host",
+        "method": "codex_exec_jsonl_0_159_2_v2",
+        "scope": "run",
+        "counting_semantics": "subset",
+        "parent_metric_id": "input_tokens",
+        "measurement_value": {
+          "kind": "known",
+          "unit": "tokens",
+          "value": 0
+        }
+      },
+      {
+        "metric_id": "reasoning_tokens",
+        "metric_version": "1",
+        "source": "host",
+        "method": "codex_exec_jsonl_0_159_2_v2",
+        "scope": "run",
+        "counting_semantics": "subset",
+        "parent_metric_id": "output_tokens",
+        "measurement_value": {
+          "kind": "known",
+          "unit": "tokens",
+          "value": 0
+        }
+      }
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "ids": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "duplicates": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "ids",
+      "duplicates"
+    ],
+    "additionalProperties": false
+  }
+}

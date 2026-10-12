@@ -18,7 +18,16 @@ function check(value) {
   if (typeof value === 'string' && !value.isWellFormed()) throw Error('unicode');
   if (!value || typeof value !== 'object') return;
   if (Array.isArray(value)) { value.forEach(check); return; }
-  if ('envelope' in value && value.envelope.operation !== ('event' in value ? 'report' : 'route')) throw Error('request_operation');
+  if ('envelope' in value && value.envelope.operation !== ('work_objective_id' in value ? 'discover' : 'event' in value ? 'report' : 'route')) throw Error('request_operation');
+  if (value.schema_version === '2' && 'route_inputs' in value && value.route_inputs.catalog_query != null) throw Error('linked_catalog_query');
+  if ('guidance_refs' in value) {
+    const ids = value.guidance_refs.map(x => JSON.stringify([x.resource_id, x.revision]));
+    if (ids.length > 2 || new Set(ids).size !== ids.length) throw Error('discovery_guidance_consistency');
+  }
+  if (value.details?.discovery_id) {
+    if ((value.status === 'selected_guidance') !== (value.details.guidance_refs.length > 0)) throw Error('discovery_result_consistency');
+    if (value.status === 'no_optional_guidance' && value.details.uncertainty.length) throw Error('incomplete_empty_discovery');
+  }
   if (value.code === 'capability_mismatch' && 'effective' in value &&
       value.effective.some(x => !value.declared.includes(x) || !value.runtime.includes(x))) throw Error('effective_capabilities');
   if ('optional_guidance' in value) {
@@ -28,6 +37,8 @@ function check(value) {
         (value.guidance_action === 'none') !== (value.optional_guidance.length === 0)) throw Error('guidance_consistency');
   }
   if (value.counting_semantics === 'subset' && value.parent_metric_id === null) throw Error('measurement_subset');
+  if ('share_user_wide' in value && value.share_user_wide && !value.local_analysis_enabled) throw Error('learning_consent');
+  if ('minimum_batch' in value && (value.action === 'record') !== (value.context !== null)) throw Error('learning_action');
   if ('experiment_state' in value) {
     if (['accepted','queued','running','completed','incomplete'].includes(value.experiment_state) &&
        (!value.authorization_revision || (value.execution_path === 'harness_assisted' && !value.host_accepted))) throw Error('experiment_authority');
@@ -55,7 +66,8 @@ function tag(value) {
   return ['object',Object.keys(value).sort(codepointCompare).map(k=>[k,tag(value[k])])];
 }
 const fixtureDir = path.resolve(process.argv[2] || path.join(root,'tests/contracts/fixtures'));
-const fixtures = JSON.parse(fs.readFileSync(path.join(fixtureDir,'boundary.json')));
+const fixtures = fs.readdirSync(fixtureDir).filter(name=>name.endsWith('.json')).sort()
+  .flatMap(name=>JSON.parse(fs.readFileSync(path.join(fixtureDir,name))));
 const results=fixtures.map(f=>{
   let accepted=false,digest=null;
   try {if(!validators.get(f.contract)?.(f.payload)) throw Error('schema');check(f.payload);accepted=true;

@@ -1,0 +1,432 @@
+{
+  "$defs": {
+    "DiscoveryBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "calls": {
+          "minimum": 0,
+          "title": "Calls",
+          "type": "integer"
+        },
+        "candidates": {
+          "minimum": 0,
+          "title": "Candidates",
+          "type": "integer"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Currency"
+        },
+        "input_tokens": {
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "reserved_spend": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reserved Spend"
+        },
+        "rounds": {
+          "minimum": 0,
+          "title": "Rounds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "calls",
+        "candidates",
+        "currency",
+        "input_tokens",
+        "output_tokens",
+        "reserved_spend",
+        "rounds"
+      ],
+      "title": "DiscoveryBudget",
+      "type": "object"
+    },
+    "DiscoveryCursor": {
+      "additionalProperties": false,
+      "properties": {
+        "enqueue_sequence": {
+          "title": "Enqueue Sequence",
+          "type": "integer"
+        },
+        "option_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Option Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "enqueue_sequence",
+        "option_ids"
+      ],
+      "title": "DiscoveryCursor",
+      "type": "object"
+    },
+    "DiscoveryGuidanceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "content_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "resource_id": {
+          "minLength": 1,
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "revision": {
+          "minLength": 1,
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content_hash",
+        "resource_id",
+        "revision"
+      ],
+      "title": "DiscoveryGuidanceRef",
+      "type": "object"
+    },
+    "DiscoveryLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "active_branch_width": {
+          "maximum": 32,
+          "minimum": 1,
+          "title": "Active Branch Width",
+          "type": "integer"
+        },
+        "hard_output_token_limit": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "minimum": 1,
+          "title": "Hard Output Token Limit"
+        },
+        "max_calls": {
+          "minimum": 0,
+          "title": "Max Calls",
+          "type": "integer"
+        },
+        "max_candidates": {
+          "minimum": 0,
+          "title": "Max Candidates",
+          "type": "integer"
+        },
+        "max_description_utf8_bytes": {
+          "maximum": 2048,
+          "minimum": 1,
+          "title": "Max Description Utf8 Bytes",
+          "type": "integer"
+        },
+        "max_input_tokens": {
+          "minimum": 0,
+          "title": "Max Input Tokens",
+          "type": "integer"
+        },
+        "max_rounds": {
+          "minimum": 0,
+          "title": "Max Rounds",
+          "type": "integer"
+        },
+        "output_planning_reservation": {
+          "minimum": 0,
+          "title": "Output Planning Reservation",
+          "type": "integer"
+        },
+        "spending_ceiling": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "active_branch_width",
+        "hard_output_token_limit",
+        "max_calls",
+        "max_candidates",
+        "max_description_utf8_bytes",
+        "max_input_tokens",
+        "max_rounds",
+        "output_planning_reservation",
+        "spending_ceiling"
+      ],
+      "title": "DiscoveryLimits",
+      "type": "object"
+    },
+    "DiscoveryOption": {
+      "additionalProperties": false,
+      "properties": {
+        "children": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Children",
+          "type": "array"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Description"
+        },
+        "description_digest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Description Digest"
+        },
+        "feasible": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Feasible"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Label"
+        },
+        "level": {
+          "anyOf": [
+            {
+              "const": "domain",
+              "type": "string"
+            },
+            {
+              "const": "specialty",
+              "type": "string"
+            },
+            {
+              "const": "task_family",
+              "type": "string"
+            },
+            {
+              "const": "resource",
+              "type": "string"
+            }
+          ],
+          "title": "Level"
+        },
+        "option_id": {
+          "minLength": 1,
+          "title": "Option Id",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiscoveryGuidanceRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "children",
+        "description",
+        "description_digest",
+        "feasible",
+        "label",
+        "level",
+        "option_id",
+        "reason",
+        "reference"
+      ],
+      "title": "DiscoveryOption",
+      "type": "object"
+    },
+    "Money": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Amount",
+          "type": "string"
+        },
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "currency"
+      ],
+      "title": "Money",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "budget": {
+      "$ref": "#/$defs/DiscoveryBudget"
+    },
+    "deferred": {
+      "items": {
+        "$ref": "#/$defs/DiscoveryCursor"
+      },
+      "title": "Deferred",
+      "type": "array"
+    },
+    "excluded": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Excluded",
+      "type": "array"
+    },
+    "limits": {
+      "$ref": "#/$defs/DiscoveryLimits"
+    },
+    "next_sequence": {
+      "title": "Next Sequence",
+      "type": "integer"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/DiscoveryOption"
+      },
+      "title": "Nodes",
+      "type": "array"
+    },
+    "prefer_next": {
+      "title": "Prefer Next",
+      "type": "boolean"
+    },
+    "preferred": {
+      "items": {
+        "$ref": "#/$defs/DiscoveryCursor"
+      },
+      "title": "Preferred",
+      "type": "array"
+    },
+    "rejected": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Rejected",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "supported": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Supported",
+      "type": "array"
+    },
+    "transition_policy": {
+      "const": "discovery-fifo-v1",
+      "title": "Transition Policy",
+      "type": "string"
+    },
+    "unresolved": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Unresolved",
+      "type": "array"
+    },
+    "visited": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Visited",
+      "type": "array"
+    }
+  },
+  "required": [
+    "budget",
+    "deferred",
+    "excluded",
+    "limits",
+    "next_sequence",
+    "nodes",
+    "prefer_next",
+    "preferred",
+    "rejected",
+    "schema_version",
+    "supported",
+    "transition_policy",
+    "unresolved",
+    "visited"
+  ],
+  "title": "DiscoveryState",
+  "type": "object"
+}

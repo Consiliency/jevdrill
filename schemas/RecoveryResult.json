@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "encrypted_bundle": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Encrypted Bundle"
+    },
+    "restored_count": {
+      "title": "Restored Count",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "anyOf": [
+        {
+          "const": "exported",
+          "type": "string"
+        },
+        {
+          "const": "imported",
+          "type": "string"
+        },
+        {
+          "const": "restored",
+          "type": "string"
+        }
+      ],
+      "title": "Status"
+    }
+  },
+  "required": [
+    "encrypted_bundle",
+    "restored_count",
+    "schema_version",
+    "status"
+  ],
+  "title": "RecoveryResult",
+  "type": "object"
+}

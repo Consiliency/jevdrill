@@ -1,0 +1,15 @@
+**R1 and R3 are closed. No new scoped blocker found. D1 remains pending.**
+
+- **R1/F1 — closed:** [development.py:350](/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/src/jevdrill/integrations/development.py:350) now emits contract-valid `not_reported`. The six [loopback cases](/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/tests/experiments/test_development_judge.py:148) pass for task and discovery records, preserving known/zero output, identical replay, exactly two dispatches, and retained reservations. An independent unknown-cost control also confirmed explicit rejection by [study validation](/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/scripts/verify_discovery_calibration.py:895).
+
+- **R3/F3 — closed:** [test_route_integration.py:239](/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/tests/application/test_route_integration.py:239) satisfies the requirement solely in synthetic data. The [Boolean assertions](/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/tests/application/test_route_integration.py:256) now discriminate: false produces exactly four exclusions containing only `quality_unknown_or_insufficient`; true becomes `ready`. The production [quality gate](/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/src/jevdrill/routing.py:145) remains intact.
+
+- **R2/R4 — routine corrections supported:** the explicit [candidate projection](/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/src/jevdrill/application.py:745), [baseline guidance checks](/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/scripts/verify_discovery_calibration.py:838), payload-identity controls, receipt-reuse assertions, and baseline mutation tests passed.
+
+**D1 — P2, FIX-4/source-freeze blocker, still upheld.** Changed judgment semantics retain [v1-only contracts](/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/baml_src/contracts.baml:154), while the [judge revision](/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/src/jevdrill/integrations/development.py:159) and [route cache identity](/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/src/jevdrill/application.py:604) omit template binding. New dispatches therefore share the historical label, and persistent caches can reuse decisions without distinguishing templates. Repair requires the owner-recorded version/template amendment; the [proposal remains pending](/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/evidence/EXPERIMENT/fix-review-20261011/round-1/judgment-version-amendment-proposal.json:2).
+
+Verification: **97 focused tests passed**; pinned BAML parity passed for **147 generated files and 78 schemas**, with `write=false`. All 11 frozen hashes matched before and after verification; the exact six-file delta and unchanged generated SDK hashes matched. Full suite not rerun.
+
+Review remained read-only, with no credentials or paid calls. These results confer no empirical acceptance or D1 waiver.
+
+PARTIALLY AGREE
