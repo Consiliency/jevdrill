@@ -7,8 +7,10 @@ from uuid import uuid4
 
 import pytest
 
+from jevdrill.application import Application
 from jevdrill.contracts import ContractError
 from jevdrill.integrations.development import DevelopmentJudge
+from jevdrill.storage import SQLiteStorage
 
 
 @pytest.fixture
@@ -95,6 +97,47 @@ def test_actual_baml_pinned_judge_reserves_all_discovery_and_task_calls(judge):
     with pytest.raises(ContractError, match="reservation_denied"):
         service.judge("third task", ({"candidate_id": "two"},), time.monotonic() + 2)
     assert len(state["requests"]) == 2
+
+
+@pytest.mark.parametrize(
+    "restriction",
+    ["allowed", "local_only", "allowlist", "disabled", "cloud", "provider", "hard_output"],
+)
+def test_application_checks_discovery_authority_before_actual_adapter_calls(
+    judge, discovery_inputs, tmp_path, restriction
+):
+    service, state, operations = judge
+    inputs = discovery_inputs
+    inputs["catalog"]["resources"] = inputs["catalog"]["resources"][:1]
+    inputs["descriptions"] = inputs["descriptions"][:1]
+    inputs["judgment_policy"].update(
+        model_revision="jev-1.13.0", max_input_tokens=200_000, output_planning_reservation=0
+    )
+    inputs["limits"]["max_input_tokens"] = 200_000
+    inputs["limits"]["output_planning_reservation"] = 0
+    inputs["hard_constraints"]["context_token_limit"] = 200_000
+    if restriction == "local_only":
+        inputs["hard_constraints"]["local_only"] = True
+    elif restriction == "allowlist":
+        inputs["hard_constraints"]["allowed_providers"] = ["local"]
+    elif restriction == "disabled":
+        inputs["judgment_policy"]["enabled"] = False
+    elif restriction == "cloud":
+        inputs["judgment_policy"]["cloud_allowed"] = False
+    elif restriction == "provider":
+        inputs["judgment_policy"]["provider"] = "local"
+        inputs["hard_constraints"]["allowed_providers"] = ["local"]
+    elif restriction == "hard_output":
+        inputs["judgment_policy"]["hard_output_token_limit"] = 1
+    app = Application(SQLiteStorage(tmp_path / "route.db"), discovery_judgments=service)
+    result = app.discover(inputs)
+    if restriction == "allowed":
+        assert result["status"] == "selected_guidance"
+        assert len(state["requests"]) == 1
+        assert operations
+    else:
+        assert result["status"] != "selected_guidance"
+        assert state["requests"] == [] and operations == []
 
 
 @pytest.mark.parametrize("fault", ["429", "wrong_model", "oversized", "timeout", "revoked"])

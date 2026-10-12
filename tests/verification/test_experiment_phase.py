@@ -31,6 +31,12 @@ def synthetic_experiment(synthetic_reducer_input):
             {"node_id": node, "outcome": "passed"} for node in nodes if node not in known
         )
     route = inherited["inherited_host"]["route_regressions"]
+    commands = checks.learn.host.route.commands_for(
+        "python", Path("temporary"), "Linux", extra_test_paths=checks.TEST_PATHS
+    )
+    for check in route["checks"]:
+        check["command"] = commands[check["name"]]
+        check["command_sha256"] = checks.learn.host.route.command_digest(check["command"])
     route["tests"]["total"] = len(assertions)
     route["assertions_sha256"] = checks.learn.host.route.command_digest(assertions)
     return {
@@ -63,7 +69,7 @@ def reduce(receipts):
 
 
 def test_native_static_timeout_is_preserved_as_failed_receipt(monkeypatch):
-    monkeypatch.setattr(checks.learn, "collect", lambda *_: {"preserved": True})
+    monkeypatch.setattr(checks.learn, "collect", lambda *_, **__: {"preserved": True})
 
     def timeout(*args, **kwargs):
         raise checks.subprocess.TimeoutExpired(args[0], kwargs["timeout"])
@@ -76,6 +82,19 @@ def test_native_static_timeout_is_preserved_as_failed_receipt(monkeypatch):
         receipt["experiment_static"]["output_sha256"]
         == hashlib.sha256(b"TimeoutExpired").hexdigest()
     )
+
+
+def test_reducer_accepts_executed_parameterized_control_and_rejects_omission(synthetic_experiment):
+    route = synthetic_experiment["inherited_learn"]["inherited_host"]["route_regressions"]
+    control = next(node for node in checks.CONTROLS["EC-EXPERIMENT-4"] if "guarded_driver" in node)
+    row = next(row for row in route["assertions"] if row["node_id"] == control)
+    row["node_id"] = control + "[0-None]"
+    route["assertions_sha256"] = checks.learn.host.route.command_digest(route["assertions"])
+    assert reduce([synthetic_experiment]) == []
+    route["assertions"].remove(row)
+    route["tests"]["total"] -= 1
+    route["assertions_sha256"] = checks.learn.host.route.command_digest(route["assertions"])
+    assert "missing EXPERIMENT assertion: " + control in reduce([synthetic_experiment])
 
 
 @pytest.mark.parametrize(

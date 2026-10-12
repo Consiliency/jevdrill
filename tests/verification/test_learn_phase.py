@@ -23,6 +23,12 @@ def synthetic_reducer_input(tmp_path, discovery_inputs):
     inherited = json.loads((ROOT / "evidence/HOST/platforms/Linux-3.13.json").read_text())
     inherited["input_digest"] = verifier.host.input_digest(ROOT)
     inherited["route_regressions"]["input_digest"] = verifier.host.route.input_digest(ROOT)
+    commands = verifier.host.route.commands_for(
+        "python", tmp_path, "Linux", extra_test_paths=verifier.TEST_PATHS
+    )
+    for check in inherited["route_regressions"]["checks"]:
+        check["command"] = commands[check["name"]]
+        check["command_sha256"] = verifier.host.route.command_digest(check["command"])
     assertions = inherited["route_regressions"]["assertions"]
     known = {row["node_id"] for row in assertions}
     for nodes in verifier.CONTROLS.values():

@@ -280,6 +280,13 @@ class Application:
                         reason = "deadline"
                         break
                     try:
+                        if (
+                            not policy["enabled"]
+                            or not policy["cloud_allowed"]
+                            or policy["provider"] != JUDGMENT_PROVIDER
+                            or policy["hard_output_token_limit"] is not None
+                        ):
+                            raise ContractError("discovery judgment not authorized")
                         # The production adapter validates authority and packing even for a synthetic observer.
                         prepare_option = (
                             getattr(adapter, "prepare_option", None)

@@ -13,8 +13,9 @@ from .contracts import ContractError
 
 EXCLUDED_COMPONENTS = frozenset({".env", ".ssh", ".gnupg", "credentials", "id_rsa", "id_ed25519"})
 CREDENTIAL = re.compile(
-    r"(?i)authorization\s*[:=]\s*(?:(?:bearer|basic)\s+)?[^\s,;]+"
-    r"|(?:api[_-]?key|access[_-]?token|password|secret)\s*[:=]\s*[^\s,;]+"
+    r"""(?i)["']?authorization["']?\s*[:=]\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\r\n]+)"""
+    r"""|["']?(?:api[_-]?key|access[_-]?token|password|secret)["']?\s*[:=]\s*"""
+    r"""(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,;}]+)"""
     r"|-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----"
 )
 

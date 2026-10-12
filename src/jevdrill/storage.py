@@ -1372,18 +1372,7 @@ class SQLiteStorage:
                 "SELECT task,deleted FROM tasks WHERE scope=?", (pair,)
             ).fetchall():
                 if deleted:
-                    for table in ("decisions_v1", "events_v1", "retries"):
-                        c.execute(
-                            f"DELETE FROM {table} WHERE task_scope=? AND task=?", (pair, task)
-                        )
-                    for table in (
-                        "learning_context",
-                        "lifecycle_notices",
-                        "task_learning_policy",
-                        "notices",
-                    ):
-                        c.execute(f"DELETE FROM {table} WHERE scope=? AND task=?", (pair, task))
-                    self._invalidate_learning(c, pair, task, purge=True)
+                    self._purge_task(c, pair, task)
             for record in discoveries.values():
                 linkage = record["discovery_ref"]
                 objective = linkage["work_objective_id"]
@@ -1527,6 +1516,8 @@ class SQLiteStorage:
                 restored += 1
             self._invalidate_learning(c, pair, purge=True)
         self.recover_artifacts()
+        with self._connect() as c:
+            c.execute("PRAGMA wal_checkpoint(TRUNCATE)")
         return restored
 
     @classmethod
@@ -2296,6 +2287,51 @@ class SQLiteStorage:
             for task, kind in rows
         ] + [json.loads(row[0]) for row in lifecycle]
 
+    def _purge_task(self, connection: sqlite3.Connection, pair: str, task_id: str) -> None:
+        for table in ("decisions_v1", "events_v1", "retries"):
+            connection.execute(
+                f"DELETE FROM {table} WHERE task_scope=? AND task=?", (pair, task_id)
+            )
+        for table in (
+            "notices",
+            "learning_context",
+            "task_learning_policy",
+            "lifecycle_notices",
+        ):
+            connection.execute(f"DELETE FROM {table} WHERE scope=? AND task=?", (pair, task_id))
+        connection.execute(
+            "INSERT INTO policy_validation VALUES (?,1) ON CONFLICT(scope) DO UPDATE SET stale=1",
+            (pair,),
+        )
+        self._invalidate_learning(connection, pair, task_id, purge=True)
+        identities = [
+            row[0]
+            for row in connection.execute(
+                "SELECT identity FROM experiment_occurrences WHERE scope=? AND task=?",
+                (pair, task_id),
+            )
+        ]
+        for identity in identities:
+            self._cancel_experiment(connection, pair, identity, deleted=True)
+            for table in (
+                "experiment_proposals",
+                "experiment_occurrences",
+                "experiment_requests",
+                "experiment_lineage",
+            ):
+                connection.execute(
+                    f"DELETE FROM {table} WHERE scope=? AND identity=?", (pair, identity)
+                )
+        for revision, payload in connection.execute(
+            "SELECT revision,payload FROM policy_studies WHERE scope=?", (pair,)
+        ).fetchall():
+            if any(
+                case["task_id"] == task_id for case in json.loads(payload)["definition"]["cases"]
+            ):
+                connection.execute(
+                    "DELETE FROM policy_studies WHERE scope=? AND revision=?", (pair, revision)
+                )
+
     def delete_task(self, scope: Mapping[str, str], task_id: str) -> Mapping[str, Any]:
         pair = self._task_scope(scope)
         if not task_id:
@@ -2305,50 +2341,7 @@ class SQLiteStorage:
                 "INSERT INTO tasks VALUES (?,?,1) ON CONFLICT(scope,task) DO UPDATE SET deleted=1",
                 (pair, task_id),
             )
-            for table in ("decisions_v1", "events_v1", "retries"):
-                connection.execute(
-                    f"DELETE FROM {table} WHERE task_scope=? AND task=?", (pair, task_id)
-                )
-            for table in (
-                "notices",
-                "learning_context",
-                "task_learning_policy",
-                "lifecycle_notices",
-            ):
-                connection.execute(f"DELETE FROM {table} WHERE scope=? AND task=?", (pair, task_id))
-            connection.execute(
-                "INSERT INTO policy_validation VALUES (?,1) ON CONFLICT(scope) DO UPDATE SET stale=1",
-                (pair,),
-            )
-            self._invalidate_learning(connection, pair, task_id, purge=True)
-            identities = [
-                row[0]
-                for row in connection.execute(
-                    "SELECT identity FROM experiment_occurrences WHERE scope=? AND task=?",
-                    (pair, task_id),
-                )
-            ]
-            for identity in identities:
-                self._cancel_experiment(connection, pair, identity, deleted=True)
-                for table in (
-                    "experiment_proposals",
-                    "experiment_occurrences",
-                    "experiment_requests",
-                    "experiment_lineage",
-                ):
-                    connection.execute(
-                        f"DELETE FROM {table} WHERE scope=? AND identity=?", (pair, identity)
-                    )
-            for revision, payload in connection.execute(
-                "SELECT revision,payload FROM policy_studies WHERE scope=?", (pair,)
-            ).fetchall():
-                if any(
-                    case["task_id"] == task_id
-                    for case in json.loads(payload)["definition"]["cases"]
-                ):
-                    connection.execute(
-                        "DELETE FROM policy_studies WHERE scope=? AND revision=?", (pair, revision)
-                    )
+            self._purge_task(connection, pair, task_id)
         self.recover_artifacts()
         with self._connect() as connection:
             connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")

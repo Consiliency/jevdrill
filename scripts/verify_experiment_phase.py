@@ -63,6 +63,12 @@ CONTROLS = {
         "tests/experiments/test_development_judge.py::test_slow_credential_lookup_cannot_dispatch_after_caller_deadline",
     ],
 }
+TEST_PATHS = tuple(
+    sorted(
+        set(learn.TEST_PATHS)
+        | {node.split("::")[0] for nodes in CONTROLS.values() for node in nodes}
+    )
+)
 STATIC = [
     "-m",
     "ruff",
@@ -116,7 +122,7 @@ def input_digest(root):
 def collect(root, companion):
     started = time.monotonic()
     before = input_digest(root)
-    inherited = learn.collect(root, companion)
+    inherited = learn.collect(root, companion, extra_test_paths=TEST_PATHS)
     try:
         result = subprocess.run(
             [sys.executable, *STATIC],
@@ -191,6 +197,7 @@ def reduce_manifests(manifests, expected, companion_digest, root=ROOT, required_
                 companion_digest,
                 root,
                 required_platforms={identity},
+                extra_test_paths=TEST_PATHS,
             )
         )
         assertions = (
@@ -199,7 +206,9 @@ def reduce_manifests(manifests, expected, companion_digest, root=ROOT, required_
         actual = {row.get("node_id") for row in assertions if row.get("outcome") == "passed"}
         for controls in CONTROLS.values():
             errors.extend(
-                "missing EXPERIMENT assertion: " + node for node in controls if node not in actual
+                "missing EXPERIMENT assertion: " + node
+                for node in controls
+                if not any(value == node or value.startswith(node + "[") for value in actual)
             )
         provenance = receipt.get("module_provenance", {})
         for name in MODULES:

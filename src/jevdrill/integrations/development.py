@@ -580,6 +580,7 @@ class DevelopmentRunner:
         self.lock_path = path.with_suffix(".worker.lock")
         path.parent.mkdir(parents=True, exist_ok=True)
         with self._db() as db:
+            db.execute("PRAGMA journal_mode = DELETE")
             db.execute(
                 "CREATE TABLE IF NOT EXISTS development_runs "
                 "(token TEXT PRIMARY KEY, payload TEXT NOT NULL)"
@@ -588,6 +589,7 @@ class DevelopmentRunner:
     @contextmanager
     def _db(self) -> Iterator[sqlite3.Connection]:
         with closing(sqlite3.connect(self.path, timeout=1)) as db, db:
+            db.execute("PRAGMA secure_delete = ON")
             yield db
 
     @staticmethod
@@ -876,6 +878,8 @@ class DevelopmentRunner:
             if job["cleanup"] and job["state"] in {"completed", "failed", "canceled"}:
                 job["state"] = "canceled"
             self._save(db, job)
+        with self._db() as db:
+            db.execute("VACUUM")
         return self.poll(record)
 
     def poll(self, record: Mapping[str, Any]) -> dict[str, Any]:

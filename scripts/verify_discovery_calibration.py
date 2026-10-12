@@ -453,11 +453,17 @@ def metric(measurements, name):
     return sum(row["value"] for row in values)
 
 
+def objective_duration(discovery, routing, execution, grading):
+    return sum((discovery, routing, execution, grading))
+
+
 def telemetry_errors(value):
     keys = {"discovery", "routing", "execution", "grading", "total", "raw_cost", "tokens"}
     if set(value) != keys or any(not finite(value[key]) for key in keys - {"tokens"}):
         return ["required objective telemetry unknown or invalid"]
-    if value["total"] < sum(value[key] for key in ("discovery", "routing", "execution", "grading")):
+    if value["total"] < objective_duration(
+        *(value[key] for key in ("discovery", "routing", "execution", "grading"))
+    ):
         return ["omitted overhead"]
     tokens = value["tokens"]
     if not isinstance(tokens, dict) or set(tokens) != {"input", "output", "cached_input"}:
@@ -904,8 +910,8 @@ def validate_study(study, protocol, authority=None, root=ROOT):
                     for key in ("discovery", "routing", "execution", "grading", "total", "raw_cost")
                 ):
                     errors.append("required objective telemetry unknown")
-                elif measurements["total"] < sum(
-                    measurements[key] for key in ("discovery", "routing", "execution", "grading")
+                elif measurements["total"] < objective_duration(
+                    *(measurements[key] for key in ("discovery", "routing", "execution", "grading"))
                 ):
                     errors.append("omitted overhead")
                 if name == "actual_discovery_route" and arm[
@@ -1464,7 +1470,7 @@ def run_authorized_study(authority_path, root=ROOT, *, candidate_credential, jud
                 total = (
                     None
                     if actual_execution is None
-                    else disc_ms + routing_ms + actual_execution + elapsed
+                    else objective_duration(disc_ms, routing_ms, actual_execution, elapsed)
                 )
                 arms[name] = {
                     "independent_grader_revision": protocol["evaluator_revision"],

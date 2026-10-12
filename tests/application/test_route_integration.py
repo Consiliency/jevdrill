@@ -82,10 +82,21 @@ def test_judgment_provider_allowlist_is_checked_before_dispatch(
     assert result["status"] == ("ready" if allowed else "no_compatible_plan")
 
 
-def test_bearer_credential_cannot_reach_judgment_or_raw_retention(tmp_path):
+@pytest.mark.parametrize(
+    "credential",
+    [
+        "Authorization: Bearer SYNTHETIC_SENTINEL",
+        'Authorization: "Bearer SYNTHETIC_SENTINEL"',
+        '"Authorization": "Bearer SYNTHETIC_SENTINEL"',
+        '{"api_key": "SYNTHETIC_SENTINEL"}',
+        "Authorization: Digest username=SYNTHETIC_SENTINEL, nonce=SYNTHETIC_SENTINEL",
+        "'password': 'SYNTHETIC_SENTINEL with spaces'",
+    ],
+)
+def test_bearer_credential_cannot_reach_judgment_or_raw_retention(tmp_path, credential):
     value = inputs()
     value["judgment_policy"] = policy()
-    value["request"]["task_representation"] = "Authorization: Bearer SYNTHETIC_SENTINEL"
+    value["request"]["task_representation"] = credential
     value["settings_layers"] = [{"source": "request", "values": {"retain_raw_tasks": True}}]
     value["inventory"]["candidates"][0]["quality_sufficient"] = None
     calls = []

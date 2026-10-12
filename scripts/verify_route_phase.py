@@ -103,7 +103,13 @@ def command_digest(command: list[str]) -> str:
     return hashlib.sha256(json.dumps(command, separators=(",", ":")).encode()).hexdigest()
 
 
-def commands_for(python: str, temporary: Path, os_name: str | None = None) -> dict[str, list[str]]:
+def commands_for(
+    python: str,
+    temporary: Path,
+    os_name: str | None = None,
+    *,
+    extra_test_paths: tuple[str, ...] = (),
+) -> dict[str, list[str]]:
     scoped_checks = [
         "src/jevdrill",
         "tests/contracts",
@@ -191,6 +197,10 @@ def commands_for(python: str, temporary: Path, os_name: str | None = None) -> di
             "-p",
             "test_catalog_*.py",
         ]
+    selected = [arg for arg in commands["tests"] if arg.startswith("tests/")]
+    for path in sorted(set(extra_test_paths)):
+        if not any(path == arg or path.startswith(arg + "/") for arg in selected):
+            commands["tests"].insert(-2, path)
     return commands
 
 
@@ -348,6 +358,7 @@ def reduce_manifests(
     root: Path = ROOT,
     *,
     required_platforms: set[tuple[str, str]] | None = None,
+    extra_test_paths: tuple[str, ...] = (),
 ) -> list[str]:
     errors: list[str] = []
     seen: set[tuple[object, object]] = set()
@@ -376,7 +387,9 @@ def reduce_manifests(
         if not manifest.get("runner_identity") or not manifest.get("architecture"):
             errors.append("missing runner identity")
         checks = manifest.get("checks", [])
-        expected = commands_for("<python>", Path("<temporary>"), str(identity[0]))
+        expected = commands_for(
+            "<python>", Path("<temporary>"), str(identity[0]), extra_test_paths=extra_test_paths
+        )
         if (
             not isinstance(checks, list)
             or len(checks) != len(expected)
@@ -476,13 +489,13 @@ def reduce_manifests(
     return errors
 
 
-def collect(root: Path) -> dict[str, object]:
+def collect(root: Path, *, extra_test_paths: tuple[str, ...] = ()) -> dict[str, object]:
     collection_started = time.monotonic()
     initial_digest = input_digest(root)
     with tempfile.TemporaryDirectory(prefix="jevdrill-route-", delete=False) as temporary:
         temporary_path = Path(temporary)
         junit = temporary_path / "tests.xml"
-        commands = commands_for(sys.executable, temporary_path)
+        commands = commands_for(sys.executable, temporary_path, extra_test_paths=extra_test_paths)
         checks: list[dict[str, object]] = []
         for name, command in commands.items():
             started = time.monotonic()

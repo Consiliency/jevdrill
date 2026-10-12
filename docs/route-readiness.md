@@ -1,6 +1,6 @@
 # ROUTE readiness
 
-The ROUTE verifier selects its phase-owned tests explicitly, including every required executed control. Installed HOST/LEARN companion conformance is verified by the downstream collectors and the separately configured full suite.
+The ROUTE verifier selects its phase-owned tests explicitly, including every required executed control. HOST, LEARN and EXPERIMENT collectors explicitly add their own required JEV test suites, and their reducers bind those commands and assertions. Installed companion conformance remains part of the downstream collectors and the separately configured full suite.
 
 ROUTE implements discovery, durable task routing/reporting and replay on the
 strict BAML boundary. Discovery advances its own questions through catalog
@@ -34,6 +34,8 @@ stdout. Use `--storage PATH` and the host's spawn-inclusive
 4 infrastructure/deadline failure. Native Windows verification uses the installed
 interpreter with `-m jevdrill.cli`, following the existing unsigned-launcher
 configuration; it does not change security policy.
+
+Request privacy and provider authority apply before each built-in or injected discovery adapter call.
 
 Discovery reserves provider work durably before dispatch. Each key has its own
 immutable allowance; interrupted same-key recovery makes no new provider call.

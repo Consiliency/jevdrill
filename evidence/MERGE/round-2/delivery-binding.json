@@ -1,0 +1,37 @@
+{
+  "head": "a92d65ca021672100d53ff50001f1a2a8f9d85ac",
+  "manifest_sha256": "542b6827ed820a553f8d7ff4fcd49d8db83e76ec9f7a396904f636759da600c7",
+  "all_seats_finished": true,
+  "standing_agree_votes": 0,
+  "opus_unavailable_backfilled": true,
+  "reports": {
+    "astra.md": {
+      "public_artifact_sha256": "b46a862880765c694d9a5d4579d41c7be40faf1ae9cc2a553f9851487f90b0c2",
+      "source_sha256": "aaba92a85327f41925abd6306239e210dfa1c3262fac448ac2c3aa158b3b0fa8"
+    },
+    "alternative.md": {
+      "public_artifact_sha256": "27a2a445a253123a3194746d63bc8ca5c096a9978ce449bd0e72e4c2cacba124",
+      "source_sha256": "27a2a445a253123a3194746d63bc8ca5c096a9978ce449bd0e72e4c2cacba124"
+    },
+    "grok.md": {
+      "public_artifact_sha256": "147453d1b77de3f41b33c2533075e7499cd7deabb8c8242c64e043cead91e4a0",
+      "source_sha256": "147453d1b77de3f41b33c2533075e7499cd7deabb8c8242c64e043cead91e4a0"
+    },
+    "correctness.md": {
+      "public_artifact_sha256": "0a8cda65e64c0e036943da595d23e43dc6d00c1b5af9c64463ab1ab1d6ced5f9",
+      "source_sha256": "23c68ff69bdc42f50b368850961a895086c3f80cfef2f8ecf1c3b1cc407a6d6b"
+    },
+    "grok-delivery.json": {
+      "public_artifact_sha256": "f58e5b932f790c4e46ca19598d53f631014c2be0d0f23bf6128af812f46ebc5d",
+      "source_sha256": "f58e5b932f790c4e46ca19598d53f631014c2be0d0f23bf6128af812f46ebc5d"
+    },
+    "correctness-delivery.json": {
+      "public_artifact_sha256": "2a0e1cb0dfb31c73c73e80a90f807f4af4e14bc6f60c94ba2755f32c746a0738",
+      "source_sha256": "2a0e1cb0dfb31c73c73e80a90f807f4af4e14bc6f60c94ba2755f32c746a0738"
+    },
+    "opus-delivery.json": {
+      "public_artifact_sha256": "dd303bf6554bb41133ffd631ffdff672d0e2f4c51672d8824fa006cf7a8d500d",
+      "source_sha256": "dd303bf6554bb41133ffd631ffdff672d0e2f4c51672d8824fa006cf7a8d500d"
+    }
+  }
+}

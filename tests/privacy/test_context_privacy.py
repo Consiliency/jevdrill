@@ -42,3 +42,21 @@ def test_authorization_credentials_are_removed_from_task_and_attachments(scheme)
         [],
     )
     assert "SYNTHETIC_SENTINEL" not in str(result)
+
+
+@pytest.mark.parametrize(
+    "credential",
+    [
+        '{"Authorization": "Bearer SYNTHETIC_SENTINEL"}',
+        '{"api_key": "SYNTHETIC_SENTINEL"}',
+        "'password': 'SYNTHETIC_SENTINEL with spaces'",
+        "Authorization: Digest username=SYNTHETIC_SENTINEL, nonce=SYNTHETIC_SENTINEL",
+    ],
+)
+def test_quoted_credentials_are_removed_from_task_and_attachments(credential):
+    result = collect_context(
+        credential,
+        [{"reference": "public", "authorized": True, "text_representation": credential}],
+        [],
+    )
+    assert "SYNTHETIC_SENTINEL" not in str(result)

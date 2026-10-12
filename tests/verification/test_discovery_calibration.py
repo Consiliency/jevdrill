@@ -23,6 +23,21 @@ def diagnostic():
     return checks.offline(ROOT)
 
 
+@pytest.mark.parametrize("durations", [(0.0, 0.1, 0.7, 1.0), (0.001, 0.001, 0.02, 0.003)])
+def test_produced_duration_accepts_complete_overhead_and_rejects_omission(durations):
+    measurements = dict(
+        zip(("discovery", "routing", "execution", "grading"), durations, strict=True)
+    )
+    measurements.update(
+        total=checks.objective_duration(*durations),
+        raw_cost=0.1,
+        tokens={key: {"value": 1} for key in ("input", "output", "cached_input")},
+    )
+    assert checks.telemetry_errors(measurements) == []
+    measurements["total"] -= durations[-1]
+    assert checks.telemetry_errors(measurements) == ["omitted overhead"]
+
+
 def test_actual_offline_navigation_and_task_configuration_reject_unsuitable_controls(diagnostic):
     assert diagnostic["status"] == "passed"
     assert all(diagnostic["controls"].values())

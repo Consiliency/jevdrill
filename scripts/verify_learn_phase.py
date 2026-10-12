@@ -61,6 +61,12 @@ CONTROLS = {
         "tests/analysis/test_observations.py::test_no_guidance_discoveries_keep_authoritative_boundaries_despite_forged_family_labels",
     ],
 }
+TEST_PATHS = tuple(
+    sorted(
+        set(host.TEST_PATHS)
+        | {node.split("::")[0] for nodes in CONTROLS.values() for node in nodes}
+    )
+)
 EXTRA_COMMAND = [
     "-m",
     "pytest",
@@ -279,7 +285,15 @@ def witness_errors(witness):
     return errors
 
 
-def reduce_manifests(manifests, expected, companion_digest, root=ROOT, required_platforms=None):
+def reduce_manifests(
+    manifests,
+    expected,
+    companion_digest,
+    root=ROOT,
+    required_platforms=None,
+    *,
+    extra_test_paths=(),
+):
     errors = []
     seen = set()
     for receipt in manifests:
@@ -311,6 +325,7 @@ def reduce_manifests(manifests, expected, companion_digest, root=ROOT, required_
                 companion_digest,
                 root,
                 required_platforms={identity},
+                extra_test_paths=(*TEST_PATHS, *extra_test_paths),
             )
         )
         assertions = inherited.get("route_regressions", {}).get("assertions", [])
@@ -392,7 +407,7 @@ def reduce_manifests(manifests, expected, companion_digest, root=ROOT, required_
     return sorted(set(errors))
 
 
-def collect(root, companion_root):
+def collect(root, companion_root, *, extra_test_paths=()):
     started = time.monotonic()
     before = input_digest(root)
     runtime = companion_root / "phase-loop-runtime"
@@ -439,7 +454,7 @@ def collect(root, companion_root):
         os.environ.update(
             JEVDRILL_EVALUATION_OUTPUT=str(host_witness), JEVDRILL_LEARN_WITNESS=str(learn_witness)
         )
-        inherited = host.route.collect(root)
+        inherited = host.route.collect(root, extra_test_paths=(*TEST_PATHS, *extra_test_paths))
 
         def run(command, cwd, junit=None):
             try:

@@ -124,6 +124,25 @@ def test_phase_test_command_covers_controls_without_downstream_companion(tmp_pat
             assert any(file == path or file.startswith(path + "/") for path in selected)
 
 
+@pytest.mark.parametrize("phase", ["host", "learn", "experiment"])
+def test_downstream_commands_cover_phase_controls_and_bind_extra_paths(tmp_path, phase):
+    spec = importlib.util.spec_from_file_location(
+        "downstream_" + phase, ROOT / "scripts" / f"verify_{phase}_phase.py"
+    )
+    downstream = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(downstream)
+    command = runner.commands_for("python", tmp_path, extra_test_paths=downstream.TEST_PATHS)[
+        "tests"
+    ]
+    selected = [arg for arg in command if arg.startswith("tests/")]
+    for controls in downstream.CONTROLS.values():
+        for control in controls:
+            file = control.split("::")[0]
+            assert any(file == path or file.startswith(path + "/") for path in selected)
+    assert len(selected) == len(set(selected))
+    assert command != runner.commands_for("python", tmp_path)["tests"]
+
+
 def test_reducer_requires_each_native_platform(evidence_root):
     assert runner.reduce_manifests([manifest("Linux")], "fixture", evidence_root)
     assert not runner.reduce_manifests(

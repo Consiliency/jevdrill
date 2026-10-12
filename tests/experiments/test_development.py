@@ -13,6 +13,7 @@ from uuid import uuid4
 
 import pytest
 
+from jevdrill.application import Application
 from jevdrill.contracts import ContractError, canonical_digest
 from jevdrill.experiments import Experiments
 from jevdrill.integrations.development import DevelopmentModel, DevelopmentRunner
@@ -221,22 +222,79 @@ def test_five_arm_cancellation_during_third_request_prevents_fourth_and_recovery
     assert len(observed["requests"]) == 3
 
 
-def test_deleting_completed_experiment_scrubs_terminal_worker_content(development):
+@pytest.mark.parametrize("imported", [False, True])
+def test_deleting_completed_experiment_scrubs_terminal_worker_content(
+    development, tmp_path, imported
+):
     service, runner, request, proposal, _, _, observed = development
+    output = "function solve(a, b) { return a + b; } // SYNTHETIC_WORKER_OUTPUT"
+    observed["body"]["choices"][0]["message"]["content"] = output
     record = dispatch(development)
     assert runner.run(record)["host_status"] == "completed"
     completed = service.execute(request | {"action": "advance"})["record"]
     assert completed["execution_status"] == "completed"
     assert runner.retained_observations(completed)["observations"]
     calls = len(observed["requests"])
-    service.storage.delete_task(request["scope"], proposal["proposal"]["experiment"]["task_id"])
-    canceled = service.execute(request | {"action": "cancel"})
+    task = proposal["proposal"]["experiment"]["task_id"]
+    with sqlite3.connect(runner.path) as db:
+        db.execute("PRAGMA secure_delete = OFF")
+        db.execute("CREATE TABLE legacy_content (payload TEXT)")
+        db.execute("INSERT INTO legacy_content VALUES (?)", ("SYNTHETIC_FREED_CONTENT" * 1000,))
+        db.execute("DELETE FROM legacy_content")
+    assert b"SYNTHETIC_FREED_CONTENT" in runner.path.read_bytes()
+    if imported:
+        from tests.application.test_route_integration import inputs
+
+        value = inputs()
+        value["request"]["task_id"] = task
+        envelope = value["request"]["envelope"]
+        envelope.update(
+            project_id=request["scope"]["project_id"],
+            workspace_id=request["scope"]["workspace_id"],
+            harness_id=request["scope"]["producer"],
+        )
+        replica = Application(SQLiteStorage(tmp_path / "replica.db"))
+        assert replica.route(value)["status"] == "ready"
+        replica.delete_task(request["scope"], task)
+        bundle = replica.storage.export_recovery(request["scope"])
+        service.storage.import_recovery(request["scope"], bundle, time.time())
+        service.storage = SQLiteStorage(service.storage.path)
+        with service.storage._connect() as db:
+            assert all(
+                db.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] == 0
+                for table in (
+                    "experiment_proposals",
+                    "experiment_occurrences",
+                    "experiment_requests",
+                    "experiment_lineage",
+                )
+            )
+        canceled = service.execute(request | {"action": "advance"})
+    else:
+        service.storage.delete_task(request["scope"], task)
+        canceled = service.execute(request | {"action": "cancel"})
     assert canceled["record"]["execution_status"] == "canceled"
     assert canceled["record"]["reserved_microusd"] == record["reserved_microusd"]
     with runner._db() as db:
         job = runner._load(db, record["dispatch_token"])
     assert "experiment" not in job and "frozen_inputs" not in job and "config" not in job
     assert job["observations"] == [] and job["results"] == []
+    for path in runner.path.parent.glob(runner.path.name + "*"):
+        content = path.read_bytes()
+        assert b"Define solve(a, b) returning their sum." not in content
+        assert b"SYNTHETIC_WORKER_OUTPUT" not in content
+        assert b"SYNTHETIC_FREED_CONTENT" not in content
+    restarted = DevelopmentRunner(
+        runner.path,
+        models=runner.models,
+        cases=runner.cases,
+        container=runner.container,
+        credential=runner.credential,
+        authorize=runner.authorize,
+        base_url=runner.base_url,
+        clock=runner.clock,
+    )
+    assert restarted.poll(record)["host_status"] == "canceled"
     with pytest.raises(ContractError, match="not_terminal"):
         runner.retained_observations(completed)
     assert runner.start(proposal["proposal"]["experiment"], record)["host_status"] == "canceled"

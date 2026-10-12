@@ -43,6 +43,7 @@ CONTROLS = {
     ],
     "IF-0-VC-2": ["tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts"],
 }
+TEST_PATHS = tuple(sorted({node.split("::")[0] for nodes in CONTROLS.values() for node in nodes}))
 COMPANION_TESTS = tuple(
     f"test_{name}.py"
     for name in (
@@ -253,7 +254,15 @@ def witness_errors(witness):
     return errors
 
 
-def reduce_manifests(manifests, expected, companion_digest, root=ROOT, required_platforms=None):
+def reduce_manifests(
+    manifests,
+    expected,
+    companion_digest,
+    root=ROOT,
+    required_platforms=None,
+    *,
+    extra_test_paths=(),
+):
     errors = []
     seen = set()
     for manifest in manifests:
@@ -277,7 +286,11 @@ def reduce_manifests(manifests, expected, companion_digest, root=ROOT, required_
         else:
             errors.extend(
                 route.reduce_manifests(
-                    [inherited], route.input_digest(root), root, required_platforms={identity}
+                    [inherited],
+                    route.input_digest(root),
+                    root,
+                    required_platforms={identity},
+                    extra_test_paths=(*TEST_PATHS, *extra_test_paths),
                 )
             )
             actual = {
@@ -440,7 +453,7 @@ def collect(root, companion_root):
         tmp = Path(temporary)
         witness_path = tmp / "witness.json"
         os.environ["JEVDRILL_EVALUATION_OUTPUT"] = str(witness_path)
-        inherited = route.collect(root)
+        inherited = route.collect(root, extra_test_paths=TEST_PATHS)
         history = root / "evidence/HOST/history"
         history.mkdir(parents=True, exist_ok=True)
         (history / f"latest-inherited-{platform.system()}.json").write_text(
