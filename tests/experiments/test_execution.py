@@ -193,6 +193,43 @@ def advance(service, request):
     return service.execute(request | {"action": "advance"})
 
 
+def test_portable_recovery_cannot_replenish_experiment_authority(setup, tmp_path):
+    from jevdrill.application import Application
+
+    service, request, authority, host, _, proposal = setup
+    service.storage = SQLiteStorage(tmp_path / "original.db")
+    value = json.loads(
+        (Path(__file__).parents[1] / "contracts/fixtures/route-application.json").read_text()
+    )[0]["payload"]
+    value["request"]["task_id"] = proposal["proposal"]["experiment"]["task_id"]
+    value["request"]["envelope"].update(
+        project_id=request["scope"]["project_id"],
+        workspace_id=request["scope"]["workspace_id"],
+        harness_id=request["scope"]["producer"],
+    )
+    value["settings_layers"].append(
+        {"source": "request", "values": {"local_analysis_enabled": True}}
+    )
+    assert Application(service.storage).route(value)["status"] == "ready"
+    service.handle(proposal)
+    authority["total_spend_microusd"] = 600_000
+    service.execute(request)
+    advance(service, request)
+    assert host.starts == 1
+    body = service.storage.export_recovery(request["scope"])
+    restored = SQLiteStorage(tmp_path / "restored.db")
+    restored.import_recovery(request["scope"], body, 100)
+    recovered = Experiments(
+        restored, lambda _: authority, host, lambda: 1_000_000, settings=enabled_settings
+    )
+    recovered.handle(proposal)
+    denied = recovered.execute(request)
+    assert denied["reasons"] == ["experiment_recovery_authority_unreconciled"]
+    assert host.starts == 1
+    assert SQLiteStorage(restored.path).experiment_recovery_blocked(request["scope"])
+    assert not restored.experiment_recovery_blocked(request["scope"] | {"project_id": str(uuid4())})
+
+
 def test_admission_reserves_whole_run_without_dispatch_and_retries_reuse(setup):
     service, request, _, host, _, _ = setup
     admitted = service.execute(request)

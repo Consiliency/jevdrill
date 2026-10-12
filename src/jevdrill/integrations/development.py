@@ -873,6 +873,8 @@ class DevelopmentRunner:
             job["canceled"] = True
             if job["state"] == "queued":
                 job.update(state="canceled", cleanup=True)
+            if job["cleanup"] and job["state"] in {"completed", "failed", "canceled"}:
+                job["state"] = "canceled"
             self._save(db, job)
         return self.poll(record)
 

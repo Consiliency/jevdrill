@@ -221,6 +221,28 @@ def test_five_arm_cancellation_during_third_request_prevents_fourth_and_recovery
     assert len(observed["requests"]) == 3
 
 
+def test_deleting_completed_experiment_scrubs_terminal_worker_content(development):
+    service, runner, request, proposal, _, _, observed = development
+    record = dispatch(development)
+    assert runner.run(record)["host_status"] == "completed"
+    completed = service.execute(request | {"action": "advance"})["record"]
+    assert completed["execution_status"] == "completed"
+    assert runner.retained_observations(completed)["observations"]
+    calls = len(observed["requests"])
+    service.storage.delete_task(request["scope"], proposal["proposal"]["experiment"]["task_id"])
+    canceled = service.execute(request | {"action": "cancel"})
+    assert canceled["record"]["execution_status"] == "canceled"
+    assert canceled["record"]["reserved_microusd"] == record["reserved_microusd"]
+    with runner._db() as db:
+        job = runner._load(db, record["dispatch_token"])
+    assert "experiment" not in job and "frozen_inputs" not in job and "config" not in job
+    assert job["observations"] == [] and job["results"] == []
+    with pytest.raises(ContractError, match="not_terminal"):
+        runner.retained_observations(completed)
+    assert runner.start(proposal["proposal"]["experiment"], record)["host_status"] == "canceled"
+    assert len(observed["requests"]) == calls
+
+
 def test_development_pair_uses_actual_baml_and_persistent_receipts(development):
     service, runner, request, _, _, _, observed = development
     record = dispatch(development)

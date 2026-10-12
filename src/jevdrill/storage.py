@@ -33,6 +33,7 @@ class SQLiteStorage:
                 "CREATE TABLE IF NOT EXISTS experiment_requests (scope TEXT, producer TEXT, key TEXT, digest TEXT NOT NULL, identity TEXT, PRIMARY KEY(scope,producer,key))",
                 "CREATE TABLE IF NOT EXISTS experiment_executions (scope TEXT, identity TEXT, task TEXT, harness TEXT, day INTEGER, reserved INTEGER, status TEXT, payload TEXT, PRIMARY KEY(scope,identity))",
                 "CREATE TABLE IF NOT EXISTS experiment_clock (scope TEXT PRIMARY KEY, observed_ms INTEGER NOT NULL)",
+                "CREATE TABLE IF NOT EXISTS experiment_recovery_blocks (scope TEXT PRIMARY KEY)",
                 "CREATE TABLE IF NOT EXISTS policy_records (scope TEXT, revision TEXT, task_group TEXT, status TEXT, payload TEXT, PRIMARY KEY(scope,revision))",
                 "CREATE TABLE IF NOT EXISTS policy_exposures (scope TEXT, dataset TEXT, related_group TEXT, revision TEXT, PRIMARY KEY(scope,dataset,related_group))",
                 "CREATE TABLE IF NOT EXISTS policy_uses (scope TEXT, revision TEXT, request_id TEXT, PRIMARY KEY(scope,revision,request_id))",
@@ -305,6 +306,16 @@ class SQLiteStorage:
             ).fetchone()
         return json.loads(row[0]) if row else None
 
+    def experiment_recovery_blocked(self, scope: Mapping[str, str]) -> bool:
+        with self._connect() as connection:
+            return (
+                connection.execute(
+                    "SELECT 1 FROM experiment_recovery_blocks WHERE scope=?",
+                    (self._task_scope(scope),),
+                ).fetchone()
+                is not None
+            )
+
     def admit_experiment(
         self,
         scope: Mapping[str, str],
@@ -324,6 +335,10 @@ class SQLiteStorage:
             ).fetchone()
             if previous:
                 return dict(json.loads(previous[0]))
+            if connection.execute(
+                "SELECT 1 FROM experiment_recovery_blocks WHERE scope=?", (pair,)
+            ).fetchone():
+                raise ContractError("experiment_recovery_authority_unreconciled")
             clock = connection.execute(
                 "SELECT observed_ms FROM experiment_clock WHERE scope=?", (pair,)
             ).fetchone()
@@ -418,7 +433,7 @@ class SQLiteStorage:
         if row is None:
             return
         job = json.loads(row[0])
-        if job["record"]["execution_status"] in {"accepted", "running", "cancel_pending"}:
+        if job["record"]["execution_status"] != "canceled":
             job["record"]["execution_status"] = "cancel_pending"
         if deleted:
             job["experiment"] = None
@@ -669,6 +684,7 @@ class SQLiteStorage:
                 "CREATE TABLE IF NOT EXISTS recovered_discovery_metadata (discovery_id TEXT PRIMARY KEY, domains TEXT NOT NULL)",
                 "CREATE TABLE IF NOT EXISTS maintenance_control (scope TEXT PRIMARY KEY, action TEXT NOT NULL, last_clock REAL NOT NULL, cursor TEXT)",
                 "CREATE TABLE IF NOT EXISTS artifact_lifecycle (scope TEXT, artifact_id TEXT, created REAL NOT NULL, prompted REAL, archived REAL, source_id TEXT, PRIMARY KEY(scope,artifact_id))",
+                "CREATE TABLE IF NOT EXISTS discovery_content_artifacts (scope TEXT, discovery_id TEXT, artifact_id TEXT, PRIMARY KEY(scope,artifact_id))",
                 "CREATE TABLE IF NOT EXISTS lifecycle_notices (scope TEXT, task TEXT, notice_id TEXT, payload TEXT NOT NULL, PRIMARY KEY(scope,notice_id))",
             ):
                 connection.execute(statement)
@@ -1149,7 +1165,7 @@ class SQLiteStorage:
                     }
                 )
             for task, identity, kind, digest, pending in c.execute(
-                "SELECT task,artifact_id,kind,digest,pending FROM artifacts WHERE scope=? AND retention!='retired' AND kind IN ('raw_task','raw_output','context','archive')",
+                "SELECT a.task,a.artifact_id,a.kind,a.digest,a.pending FROM artifacts a JOIN artifact_lifecycle l ON a.scope=l.scope AND a.artifact_id=l.artifact_id WHERE a.scope=? AND a.retention!='retired' AND a.kind IN ('raw_task','raw_output','context','archive') AND NOT EXISTS (SELECT 1 FROM discovery_content_artifacts d WHERE d.scope=a.scope AND (d.artifact_id=a.artifact_id OR d.artifact_id=l.source_id))",
                 (pair,),
             ):
                 content = (
@@ -1225,6 +1241,7 @@ class SQLiteStorage:
             ):
                 raise ContractError("portable artifact integrity failure")
         with self._connect(True) as c:
+            c.execute("INSERT OR IGNORE INTO experiment_recovery_blocks VALUES (?)", (pair,))
             for identity, record in decisions.items():
                 existing = c.execute(
                     "SELECT scope,bundle FROM decisions_v1 WHERE task_scope=? AND decision_id=?",
@@ -1337,6 +1354,10 @@ class SQLiteStorage:
                     for identity in ids:
                         c.execute("DELETE FROM discovery_calls WHERE discovery_id=?", (identity,))
                         c.execute("DELETE FROM discovery_rounds WHERE discovery_id=?", (identity,))
+                        c.execute(
+                            "UPDATE artifacts SET retention='retired' WHERE scope=? AND artifact_id IN (SELECT artifact_id FROM discovery_content_artifacts WHERE discovery_id=?)",
+                            (pair, identity),
+                        )
                     c.execute(
                         "UPDATE discoveries SET seed='{}',result=NULL,trace=NULL WHERE objective_scope=? AND objective=?",
                         (parent, objective),
@@ -1791,6 +1812,10 @@ class SQLiteStorage:
             for identity in identities:
                 connection.execute("DELETE FROM discovery_calls WHERE discovery_id=?", (identity,))
                 connection.execute("DELETE FROM discovery_rounds WHERE discovery_id=?", (identity,))
+                connection.execute(
+                    "UPDATE artifacts SET retention='retired' WHERE scope=? AND artifact_id IN (SELECT artifact_id FROM discovery_content_artifacts WHERE discovery_id=?)",
+                    (self._task_scope(scope), identity),
+                )
             connection.execute(
                 "UPDATE discoveries SET seed='{}',result=NULL,trace=NULL WHERE objective_scope=? AND objective=?",
                 (parent, objective),
@@ -1798,6 +1823,7 @@ class SQLiteStorage:
             self._invalidate_learning(
                 connection, self._task_scope(scope), objective=objective, purge=True
             )
+        self.recover_artifacts()
         return {"schema_version": "1", "status": "deleted", "work_objective_id": objective}
 
     @classmethod
@@ -2104,6 +2130,7 @@ class SQLiteStorage:
         encryption: str,
         retain_raw_tasks: bool = False,
         retain_raw_outputs: bool = False,
+        discovery_id: str | None = None,
         created_at: float | None = None,
         archive_source: str | None = None,
         archived_at: float | None = None,
@@ -2121,6 +2148,19 @@ class SQLiteStorage:
         digest = hashlib.sha256(content).hexdigest()
         identity = hashlib.sha256((pair + task + kind + digest).encode()).hexdigest()
         with self._connect(True) as connection:
+            linked = connection.execute(
+                "SELECT discovery_id FROM discovery_content_artifacts WHERE scope=? AND (artifact_id=? OR artifact_id=?)",
+                (pair, identity, archive_source),
+            ).fetchone()
+            discovery_id = discovery_id or (linked[0] if linked else None)
+            if discovery_id is not None:
+                owner = connection.execute(
+                    "SELECT scope FROM discoveries WHERE discovery_id=? AND objective_scope=?",
+                    (discovery_id, self._objective_scope(scope)),
+                ).fetchone()
+                if task != discovery_id or owner is None:
+                    raise ContractError("discovery content deleted or unavailable")
+                self._discovery_row(connection, json.loads(owner[0]), discovery_id)
             if not self._admit(connection, pair, task):
                 raise ContractError("task deleted")
             connection.execute(
@@ -2137,6 +2177,11 @@ class SQLiteStorage:
                     archive_source,
                 ),
             )
+            if discovery_id is not None:
+                connection.execute(
+                    "INSERT OR IGNORE INTO discovery_content_artifacts VALUES (?,?,?)",
+                    (pair, discovery_id, identity),
+                )
         self.recover_artifacts()
         return identity
 

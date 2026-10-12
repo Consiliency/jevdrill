@@ -1,9 +1,115 @@
 import json
 
 import pytest
+from cryptography.fernet import Fernet
 
 from jevdrill.application import Application
+from jevdrill.contracts import ContractError
+from jevdrill.maintenance import DAY, Maintenance
 from jevdrill.storage import SQLiteStorage
+from tests.retention.test_retention import request
+
+
+def test_retained_discovery_content_archives_expires_and_does_not_return_on_retry(
+    tmp_path, discovery_inputs, discovery_observer, monkeypatch
+):
+    monkeypatch.setattr("jevdrill.storage.time", lambda: 100)
+    discovery_inputs["work_objective_text"] += " discovery-private-sentinel"
+    discovery_inputs["settings_layers"].append(
+        {"source": "request", "values": {"retain_raw_tasks": True}}
+    )
+    app = Application(SQLiteStorage(tmp_path / "route.db"), discovery_judgments=discovery_observer)
+    result = app.discover(discovery_inputs)
+    envelope = discovery_inputs["envelope"]
+    scope = {
+        "project_id": envelope["project_id"],
+        "workspace_id": envelope["workspace_id"],
+        "producer": envelope["harness_id"],
+        "operation": "discover",
+    }
+    with app.storage._connect() as db:
+        identity = db.execute("SELECT artifact_id FROM artifacts WHERE kind='raw_task'").fetchone()[
+            0
+        ]
+        assert "discovery-private-sentinel" not in str(
+            db.execute("SELECT seed,trace FROM discoveries").fetchall()
+        )
+    directory = app.storage._artifact_directory(app.storage._task_scope(scope))
+    assert b"discovery-private-sentinel" in (directory / identity).read_bytes()
+    now = [100 + 30 * DAY]
+    key = Fernet.generate_key()
+    maintenance = Maintenance(app.storage, lambda _: key, lambda: now[0])
+    assert app.storage.export_recovery(scope)["artifacts"] == []
+    maintenance_scope = scope | {"operation": "route", "producer": "maintenance"}
+    assert maintenance.run(request(maintenance_scope))["notices"]
+    now[0] += 7 * DAY
+    assert maintenance.run(request(maintenance_scope))["processed"] == 1
+    assert not (directory / identity).exists()
+    assert app.storage.export_recovery(scope)["artifacts"] == []
+    now[0] += 365 * DAY
+    assert maintenance.run(request(maintenance_scope))["processed"] == 1
+    assert not list(directory.iterdir())
+    assert app.inspect_discovery(scope, result["details"]["discovery_id"], True) == result
+    assert app.discover(discovery_inputs) == result
+    assert not list(directory.iterdir())
+
+
+def test_objective_deletion_scrubs_retained_discovery_artifacts(
+    tmp_path, discovery_inputs, discovery_observer
+):
+    discovery_inputs["settings_layers"].append(
+        {"source": "request", "values": {"retain_raw_tasks": True}}
+    )
+    app = Application(SQLiteStorage(tmp_path / "route.db"), discovery_judgments=discovery_observer)
+    result = app.discover(discovery_inputs)
+    envelope = discovery_inputs["envelope"]
+    scope = {
+        "project_id": envelope["project_id"],
+        "workspace_id": envelope["workspace_id"],
+        "producer": envelope["harness_id"],
+        "operation": "discover",
+    }
+    independent = app.storage.stage_artifact(
+        scope,
+        result["details"]["discovery_id"],
+        b"independent task content",
+        kind="raw_task",
+        retention="active",
+        encryption="none",
+        retain_raw_tasks=True,
+    )
+    app.delete_discovery(scope, discovery_inputs["work_objective_id"])
+    with app.storage._connect() as db:
+        assert db.execute("SELECT artifact_id FROM artifacts").fetchall() == [(independent,)]
+    assert not app.storage.is_deleted(scope, result["details"]["discovery_id"])
+
+
+def test_objective_deletion_before_raw_staging_never_retains_content(
+    tmp_path, discovery_inputs, discovery_observer, monkeypatch
+):
+    discovery_inputs["settings_layers"].append(
+        {"source": "request", "values": {"retain_raw_tasks": True}}
+    )
+    app = Application(SQLiteStorage(tmp_path / "route.db"), discovery_judgments=discovery_observer)
+    envelope = discovery_inputs["envelope"]
+    scope = {
+        "project_id": envelope["project_id"],
+        "workspace_id": envelope["workspace_id"],
+        "producer": envelope["harness_id"],
+        "operation": "discover",
+    }
+    original = app.storage.stage_artifact
+
+    def delete_before_stage(*args, **kwargs):
+        app.delete_discovery(scope, discovery_inputs["work_objective_id"])
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(app.storage, "stage_artifact", delete_before_stage)
+    with pytest.raises(ContractError, match="deleted"):
+        app.discover(discovery_inputs)
+    assert not discovery_observer.calls
+    with app.storage._connect() as db:
+        assert not db.execute("SELECT 1 FROM artifacts").fetchall()
 
 
 def test_metadata_replay_has_no_raw_objective_description_or_provider_payload(

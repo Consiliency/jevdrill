@@ -1,5 +1,7 @@
 # ROUTE interfaces
 
+Task suitability dispatch is bound to the `typesafeai` provider and must satisfy `allowed_providers` as well as cloud/local constraints, including for injected judges. The provider identity is included in cache and development judge template bindings.
+
 ROUTE keeps external effects behind the protocols in `jevdrill.contracts`. Every
 method receives an immutable, already-validated input. `scope` contains the
 project, workspace, producer, and operation identities; project identity is

@@ -44,6 +44,7 @@ from .guidance import select_guidance
 from .integrations.jev import (
     JUDGMENT_CANDIDATE_FIELDS,
     JUDGMENT_FUNCTION_REVISION,
+    JUDGMENT_PROVIDER,
     DiscoveryJevAdapter,
     JevAdapter,
     judgment_template_binding,
@@ -204,10 +205,6 @@ class Application:
                 ),
             ),
         }
-        if settings["retain_raw_tasks"]:
-            seed["initial_state"] = copy.deepcopy(state)
-            seed["raw_objective"] = inputs["work_objective_text"]
-            seed["raw_context"] = inputs["authorized_context"]
         digest = canonical_digest([canonical_digest(dict(payload)), inputs, revisions, limits])
         reservation = self.storage.reserve_discovery(
             scope,
@@ -218,6 +215,25 @@ class Application:
             seed,
         )
         identity = reservation["discovery_id"]
+        if reservation["created"] and settings["retain_raw_tasks"]:
+            self.storage.stage_artifact(
+                scope,
+                identity,
+                json.dumps(
+                    {
+                        "objective": inputs["work_objective_text"],
+                        "context": inputs["authorized_context"],
+                        "attachments": inputs["attachment_refs"],
+                        "initial_state": state,
+                    },
+                    sort_keys=True,
+                ).encode(),
+                kind="raw_task",
+                retention="active",
+                encryption="none",
+                retain_raw_tasks=True,
+                discovery_id=identity,
+            )
         existing = self.storage.load_discovery(scope, identity)
         assert existing is not None
         if existing["result"] is not None:
@@ -250,9 +266,7 @@ class Application:
                 if monotonic() >= deadline - 0.1:
                     reason = "deadline"
                     break
-                saved_question = (
-                    question if settings["retain_raw_tasks"] else metadata_question(question)
-                )
+                saved_question = metadata_question(question)
                 round_number = self.storage.begin_discovery_round(
                     scope, identity, saved_question, state["budget"]
                 )
@@ -744,6 +758,10 @@ class Application:
                     and policy["enabled"]
                     and policy["cloud_allowed"]
                     and not request["hard_constraints"]["local_only"]
+                    and (
+                        not request["hard_constraints"]["allowed_providers"]
+                        or JUDGMENT_PROVIDER in request["hard_constraints"]["allowed_providers"]
+                    )
                     and not request["recursion_bypass"]
                 )
                 if can_judge and offered:

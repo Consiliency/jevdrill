@@ -48,6 +48,68 @@ def test_local_authority_bypasses_enabled_judgment_through_application(tmp_path)
     assert result["status"] == "no_compatible_plan"
 
 
+@pytest.mark.parametrize("injected", [False, True])
+@pytest.mark.parametrize("providers", [[], ["local"], ["local", "typesafeai"]])
+def test_judgment_provider_allowlist_is_checked_before_dispatch(
+    tmp_path, monkeypatch, injected, providers
+):
+    value = inputs()
+    value["judgment_policy"] = policy()
+    value["request"]["hard_constraints"]["allowed_providers"] = providers
+    value["inventory"]["candidates"][0].update(
+        provider="local", local=True, quality_sufficient=None
+    )
+    calls = []
+
+    class Judge:
+        def judge(self, task, candidates, deadline):
+            calls.append(task)
+            return {
+                "schema_version": "1",
+                "function_revision": "JudgeCandidate-v2",
+                "model_revision": "jev-latest",
+                "candidate_digest": canonical_digest(list(candidates)),
+                "judgments": {row["candidate_id"]: True for row in candidates},
+                "measurements": [],
+            }
+
+    monkeypatch.setattr("jevdrill.integrations.jev.JevAdapter.judge", Judge.judge)
+    result = Application(
+        SQLiteStorage(tmp_path / "route.db"), judgments=Judge() if injected else None
+    ).route(value)
+    allowed = not providers or "typesafeai" in providers
+    assert len(calls) == int(allowed)
+    assert result["status"] == ("ready" if allowed else "no_compatible_plan")
+
+
+def test_bearer_credential_cannot_reach_judgment_or_raw_retention(tmp_path):
+    value = inputs()
+    value["judgment_policy"] = policy()
+    value["request"]["task_representation"] = "Authorization: Bearer SYNTHETIC_SENTINEL"
+    value["settings_layers"] = [{"source": "request", "values": {"retain_raw_tasks": True}}]
+    value["inventory"]["candidates"][0]["quality_sufficient"] = None
+    calls = []
+
+    class Judge:
+        def judge(self, task, candidates, deadline):
+            calls.append(task)
+            return {
+                "schema_version": "1",
+                "function_revision": "JudgeCandidate-v2",
+                "model_revision": "jev-latest",
+                "candidate_digest": canonical_digest(list(candidates)),
+                "judgments": {row["candidate_id"]: True for row in candidates},
+                "measurements": [],
+            }
+
+    app = Application(SQLiteStorage(tmp_path / "route.db"), judgments=Judge())
+    assert app.route(value)["status"] == "ready"
+    assert calls and "SYNTHETIC_SENTINEL" not in json.dumps(calls)
+    artifacts = [p for p in (tmp_path / "artifacts").rglob("*") if p.is_file()]
+    assert artifacts
+    assert all(b"SYNTHETIC_SENTINEL" not in p.read_bytes() for p in artifacts)
+
+
 def test_recorded_judgments_are_replayed_without_a_new_call(tmp_path):
     value = inputs()
     value["judgment_policy"] = policy()

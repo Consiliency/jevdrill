@@ -200,6 +200,8 @@ class Experiments:
         try:
             if experiment["experiment_state"] != "proposed":
                 raise ContractError("experiment_not_proposed")
+            if self.storage.experiment_recovery_blocked(scope):
+                raise ContractError("experiment_recovery_authority_unreconciled")
             now = self.clock()
             deadline = now + experiment["limits"]["max_duration_ms"]
             authority = self._authorization(scope, experiment, request["background"], deadline)

@@ -1,0 +1,11 @@
+{
+  "github_initial_failure": "ModuleNotFoundError baml_sdk.typesafe_patch; generated output missing from committed tree",
+  "missing_generated_files": [
+    "src/baml_sdk/typesafe_patch/__init__.py",
+    "src/baml_sdk/typesafe_patch/__init__.pyi",
+    "src/baml_sdk/typesafe_patch/internal/__init__.py",
+    "src/baml_sdk/typesafe_patch/internal/__init__.pyi"
+  ],
+  "cause": "generated src/baml_sdk/.gitignore wildcard ignored the four newly added SDK package files during clean-worktree git add; original worktree had these force tracked in inherited index",
+  "repair": "after all review seats finish, force add exact four already-reviewed generated outputs; verify a clean checkout before push. No production source byte change required."
+}

@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from jevdrill.context import collect_context, workspace_id
 
 
@@ -29,3 +31,14 @@ def test_workspace_paths_are_distinct_and_symlinks_resolve(tmp_path):
     assert workspace_id(first) != workspace_id(second)
     assert workspace_id(first / ".." / "one") == workspace_id(first)
     assert workspace_id(Path(str(first))) == workspace_id(first)
+
+
+@pytest.mark.parametrize("scheme", ["Bearer", "Basic", "bearer"])
+def test_authorization_credentials_are_removed_from_task_and_attachments(scheme):
+    header = f"Authorization: {scheme} SYNTHETIC_SENTINEL"
+    result = collect_context(
+        header,
+        [{"reference": "public", "authorized": True, "text_representation": header}],
+        [],
+    )
+    assert "SYNTHETIC_SENTINEL" not in str(result)

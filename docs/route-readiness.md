@@ -1,5 +1,7 @@
 # ROUTE readiness
 
+The ROUTE verifier selects its phase-owned tests explicitly, including every required executed control. Installed HOST/LEARN companion conformance is verified by the downstream collectors and the separately configured full suite.
+
 ROUTE implements discovery, durable task routing/reporting and replay on the
 strict BAML boundary. Discovery advances its own questions through catalog
 metadata, records uncertainty and returns admitted instructions. A successful
@@ -40,7 +42,11 @@ Terminal observations are audit-only. Objective tombstones span producers in
 one project/workspace and invalidate all attempts, retries, replay and linked
 route commits. Existing task records keep their independent lifecycle.
 
-Raw objective/context/description retention is opt-in. Metadata replay validates
+Raw objective/context/description retention is opt-in. Retained discovery content uses the ordinary artifact lifecycle, keyed by its discovery ID: archive prompt, encrypted archival after the grace period, and expiry. Seeds, questions and replay traces remain metadata-only; retries do not recreate expired raw content. Objective deletion removes the associated artifacts.
+
+Portable v1 recovery preserves successful discovery metadata but omits raw discovery artifacts, whose objective-to-content lifecycle mapping is local. Local encrypted archival and restore remain available before expiry; portable recovery does not revive deleted objective content.
+
+Metadata replay validates
 questions, answers, FIFO transitions, budget deltas and deterministic selection
 from recorded admission/compatibility/context facts without regenerating prompts
 or using a live catalog. Credentials and excluded attachments are sanitized

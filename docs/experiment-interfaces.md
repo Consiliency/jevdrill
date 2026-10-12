@@ -1,5 +1,7 @@
 # EXPERIMENT interfaces
 
+Portable v1 recovery bundles do not carry the experiment reservation ledger or dispatch identities. Import therefore blocks new experiment admissions in the restored project/workspace, including after restart; existing execution records can still be inspected or canceled. Recovery does not replenish or reconcile a grant. New execution requires a separately reconciled authority and storage boundary.
+
 BAML owns the additive proposal, authorization, readiness, execution, calibration and policy contracts. Python and Node use the same generated strict schemas. A proposal cannot declare authority or host acceptance. Optional generated development calls require an explicitly configured credential callback; defaults dispatch no work.
 
 `Experiments` validates authoritative task/decision/discovery lineage before storing proposals or recurrence. Equivalent configurations deduplicate across fresh task/plan identities while preserving assignment probabilities and configuration changes. Versioned priority reflects recurrence and declared interests; default one background comparison/two candidates grants no execution authority. Resolved experiment settings and every declared grant scope field independently gate admission and dispatch. Project/workspace reservations aggregate across producers, survive daily rollover, deletion and uncertain acknowledgments, and never refund from small bills.

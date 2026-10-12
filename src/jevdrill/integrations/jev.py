@@ -23,6 +23,7 @@ from baml_sdk import ObserveCandidate as JudgeCandidate
 from ..contracts import ContractError, canonical_digest, jev_usage_measurements, parse_contract
 
 JUDGMENT_FUNCTION_REVISION = "JudgeCandidate-v2"
+JUDGMENT_PROVIDER = "typesafeai"
 JUDGMENT_PROJECTION_VERSION = "selected-execution-profile-v2"
 JUDGMENT_CANDIDATE_FIELDS = frozenset(
     {
@@ -59,6 +60,7 @@ JUDGMENT_CANDIDATE_FIELDS = frozenset(
 def judgment_template_binding() -> dict[str, Any]:
     return {
         "function_revision": JUDGMENT_FUNCTION_REVISION,
+        "provider": JUDGMENT_PROVIDER,
         "projection_version": JUDGMENT_PROJECTION_VERSION,
         "candidate_fields": sorted(JUDGMENT_CANDIDATE_FIELDS),
         "request_template_digest": canonical_digest(

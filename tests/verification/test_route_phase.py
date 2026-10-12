@@ -112,6 +112,18 @@ def evidence_root(tmp_path):
     return tmp_path
 
 
+def test_phase_test_command_covers_controls_without_downstream_companion(tmp_path):
+    command = runner.commands_for("python", tmp_path)["tests"]
+    selected = [arg for arg in command if arg.startswith("tests/")]
+    assert selected
+    assert "tests/conformance" not in selected
+    assert "tests/application" not in selected
+    for controls in runner.REQUIRED_CONTROLS.values():
+        for control in controls:
+            file = control.split("::")[0]
+            assert any(file == path or file.startswith(path + "/") for path in selected)
+
+
 def test_reducer_requires_each_native_platform(evidence_root):
     assert runner.reduce_manifests([manifest("Linux")], "fixture", evidence_root)
     assert not runner.reduce_manifests(
