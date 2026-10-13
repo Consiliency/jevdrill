@@ -285,6 +285,13 @@ class Application:
                             or not policy["cloud_allowed"]
                             or policy["provider"] != JUDGMENT_PROVIDER
                             or policy["hard_output_token_limit"] is not None
+                            or policy["model_revision"]
+                            != getattr(adapter, "model_revision", "jev-latest")
+                            or policy["token_counter_revision"] != "utf8-bytes-upper-bound-v1"
+                            or (
+                                self.discovery_judgments is not None
+                                and policy["spending_ceiling"] is not None
+                            )
                         ):
                             raise ContractError("discovery judgment not authorized")
                         # The production adapter validates authority and packing even for a synthetic observer.
@@ -792,6 +799,16 @@ class Application:
                     )
                     judge = self.judgments or JevAdapter(policy, observe)
                     try:
+                        if (
+                            policy["model_revision"]
+                            != getattr(judge, "model_revision", "jev-latest")
+                            or policy["token_counter_revision"] != "utf8-bytes-upper-bound-v1"
+                            or (
+                                self.judgments is not None
+                                and policy["spending_ceiling"] is not None
+                            )
+                        ):
+                            raise ContractError("unsupported judgment profile or spending bound")
                         task_text = json.dumps(
                             {
                                 "task": request["task_representation"],

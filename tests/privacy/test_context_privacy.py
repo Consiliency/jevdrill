@@ -51,6 +51,10 @@ def test_authorization_credentials_are_removed_from_task_and_attachments(scheme)
         '{"api_key": "SYNTHETIC_SENTINEL"}',
         "'password': 'SYNTHETIC_SENTINEL with spaces'",
         "Authorization: Digest username=SYNTHETIC_SENTINEL, nonce=SYNTHETIC_SENTINEL",
+        '{"name":"Authorization","value":"Bearer SYNTHETIC_SENTINEL"}',
+        "Authorization: >\n  Bearer SYNTHETIC_SENTINEL",
+        "Bearer SYNTHETIC_SENTINEL",
+        '{"name":"Authorization","value":"Basic SYNTHETIC_SENTINEL"}',
     ],
 )
 def test_quoted_credentials_are_removed_from_task_and_attachments(credential):
@@ -60,3 +64,8 @@ def test_quoted_credentials_are_removed_from_task_and_attachments(credential):
         [],
     )
     assert "SYNTHETIC_SENTINEL" not in str(result)
+
+
+def test_ordinary_context_keeps_basic_instructions():
+    text = "Use basic arithmetic and explain the result."
+    assert collect_context(text, [], [])["task_representation"] == text

@@ -37,6 +37,8 @@ configuration; it does not change security policy.
 
 Request privacy and provider authority apply before each built-in or injected discovery adapter call.
 
+Requests needing a new injected task or discovery judgment with an explicit spending ceiling fail before preparation or dispatch; that adapter mode is unsupported. Built-in adapters retain their verified pricing checks. The request model must match the configured adapter model, and the supported token counter is `utf8-bytes-upper-bound-v1`. DevelopmentJudge is pinned to `jev-1.13.0`; built-in and ordinary synthetic observers use `jev-latest`.
+
 Discovery reserves provider work durably before dispatch. Each key has its own
 immutable allowance; interrupted same-key recovery makes no new provider call.
 It atomically commits supported partial guidance or interrupted failure.

@@ -48,6 +48,34 @@ def test_local_authority_bypasses_enabled_judgment_through_application(tmp_path)
     assert result["status"] == "no_compatible_plan"
 
 
+@pytest.mark.parametrize("ceiling,allowed", [("0", False), ("1", True)])
+def test_builtin_task_judgment_keeps_verified_spending_bounds(
+    tmp_path, monkeypatch, ceiling, allowed
+):
+    value = inputs()
+    value["judgment_policy"] = policy() | {
+        "spending_ceiling": {"amount": ceiling, "currency": "USD"},
+        "rates": {
+            "revision": "synthetic-fixture",
+            "currency": "USD",
+            "input_rate": "0.000001",
+            "output_rate": "0",
+            "subscription_multiplier": None,
+            "verified_at": "2020-01-01T00:00:00Z",
+            "expires_at": "2100-01-01T00:00:00Z",
+        },
+    }
+    value["inventory"]["candidates"][0]["quality_sufficient"] = None
+    calls = []
+    monkeypatch.setattr(
+        "jevdrill.integrations.jev.JudgeCandidate",
+        lambda *args, **kwargs: calls.append(True) or True,
+    )
+    result = Application(SQLiteStorage(tmp_path / "route.db")).route(value)
+    assert result["status"] == ("ready" if allowed else "routing_failed")
+    assert len(calls) == int(allowed)
+
+
 @pytest.mark.parametrize("injected", [False, True])
 @pytest.mark.parametrize("providers", [[], ["local"], ["local", "typesafeai"]])
 def test_judgment_provider_allowlist_is_checked_before_dispatch(
@@ -91,6 +119,10 @@ def test_judgment_provider_allowlist_is_checked_before_dispatch(
         '{"api_key": "SYNTHETIC_SENTINEL"}',
         "Authorization: Digest username=SYNTHETIC_SENTINEL, nonce=SYNTHETIC_SENTINEL",
         "'password': 'SYNTHETIC_SENTINEL with spaces'",
+        '{"name":"Authorization","value":"Bearer SYNTHETIC_SENTINEL"}',
+        "Authorization: >\n  Bearer SYNTHETIC_SENTINEL",
+        "Bearer SYNTHETIC_SENTINEL",
+        '{"name":"Authorization","value":"Basic SYNTHETIC_SENTINEL"}',
     ],
 )
 def test_bearer_credential_cannot_reach_judgment_or_raw_retention(tmp_path, credential):

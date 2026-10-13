@@ -101,7 +101,25 @@ def test_actual_baml_pinned_judge_reserves_all_discovery_and_task_calls(judge):
 
 @pytest.mark.parametrize(
     "restriction",
-    ["allowed", "local_only", "allowlist", "disabled", "cloud", "provider", "hard_output"],
+    [
+        "allowed",
+        "local_only",
+        "allowlist",
+        "disabled",
+        "cloud",
+        "provider",
+        "hard_output",
+        "unsupported_model",
+        "wrong_model",
+        "unsupported_counter",
+        "ceiling_zero",
+        "ceiling_small",
+        "ceiling_funded",
+        "ceiling_unknown",
+        "ceiling_positive_output",
+        "ceiling_stale",
+        "ceiling_currency",
+    ],
 )
 def test_application_checks_discovery_authority_before_actual_adapter_calls(
     judge, discovery_inputs, tmp_path, restriction
@@ -129,6 +147,36 @@ def test_application_checks_discovery_authority_before_actual_adapter_calls(
         inputs["hard_constraints"]["allowed_providers"] = ["local"]
     elif restriction == "hard_output":
         inputs["judgment_policy"]["hard_output_token_limit"] = 1
+    elif restriction == "unsupported_model":
+        inputs["judgment_policy"]["model_revision"] = "unsupported-review-model"
+    elif restriction == "wrong_model":
+        inputs["judgment_policy"]["model_revision"] = "jev-latest"
+    elif restriction == "unsupported_counter":
+        inputs["judgment_policy"]["token_counter_revision"] = "unsupported-review-counter"
+    elif restriction.startswith("ceiling_"):
+        inputs["judgment_policy"]["spending_ceiling"] = {
+            "amount": "0"
+            if restriction == "ceiling_zero"
+            else "0.001"
+            if restriction == "ceiling_small"
+            else "1",
+            "currency": "EUR" if restriction == "ceiling_currency" else "USD",
+        }
+        inputs["judgment_policy"]["rates"] = {
+            "input_rate": "0.000001",
+            "output_rate": "0",
+            "subscription_multiplier": None,
+            "currency": "USD",
+            "revision": "synthetic-fixture",
+            "verified_at": "2020-01-01T00:00:00Z",
+            "expires_at": "2100-01-01T00:00:00Z",
+        }
+        if restriction == "ceiling_unknown":
+            inputs["judgment_policy"]["rates"] = None
+        elif restriction == "ceiling_positive_output":
+            inputs["judgment_policy"]["rates"]["output_rate"] = "0.01"
+        elif restriction == "ceiling_stale":
+            inputs["judgment_policy"]["rates"]["expires_at"] = "2021-01-01T00:00:00Z"
     app = Application(SQLiteStorage(tmp_path / "route.db"), discovery_judgments=service)
     result = app.discover(inputs)
     if restriction == "allowed":
@@ -138,6 +186,75 @@ def test_application_checks_discovery_authority_before_actual_adapter_calls(
     else:
         assert result["status"] != "selected_guidance"
         assert state["requests"] == [] and operations == []
+
+
+@pytest.mark.parametrize(
+    "restriction",
+    [
+        "allowed",
+        "unsupported_model",
+        "wrong_model",
+        "unsupported_counter",
+        "ceiling_zero",
+        "ceiling_small",
+        "ceiling_funded",
+        "ceiling_unknown",
+        "ceiling_positive_output",
+        "ceiling_stale",
+        "ceiling_currency",
+    ],
+)
+def test_injected_task_profile_binding_and_unsupported_ceiling_never_dispatch(
+    judge, tmp_path, restriction
+):
+    from tests.application.test_route_integration import inputs, policy
+
+    service, state, operations = judge
+    value = inputs()
+    value["judgment_policy"] = policy() | {"model_revision": service.model_revision}
+    value["inventory"]["candidates"][0]["quality_sufficient"] = None
+    if restriction == "unsupported_model":
+        value["judgment_policy"]["model_revision"] = "unsupported-review-model"
+    elif restriction == "wrong_model":
+        value["judgment_policy"]["model_revision"] = "jev-latest"
+    elif restriction == "unsupported_counter":
+        value["judgment_policy"]["token_counter_revision"] = "unsupported-review-counter"
+    elif restriction.startswith("ceiling_"):
+        value["judgment_policy"]["spending_ceiling"] = {
+            "amount": "0"
+            if restriction == "ceiling_zero"
+            else "0.001"
+            if restriction == "ceiling_small"
+            else "1",
+            "currency": "EUR" if restriction == "ceiling_currency" else "USD",
+        }
+        value["judgment_policy"]["rates"] = {
+            "input_rate": "0.000001",
+            "output_rate": "0",
+            "subscription_multiplier": None,
+            "currency": "USD",
+            "revision": "synthetic-fixture",
+            "verified_at": "2020-01-01T00:00:00Z",
+            "expires_at": "2100-01-01T00:00:00Z",
+        }
+        if restriction == "ceiling_unknown":
+            value["judgment_policy"]["rates"] = None
+        elif restriction == "ceiling_positive_output":
+            value["judgment_policy"]["rates"]["output_rate"] = "0.01"
+        elif restriction == "ceiling_stale":
+            value["judgment_policy"]["rates"]["expires_at"] = "2021-01-01T00:00:00Z"
+    app = Application(SQLiteStorage(tmp_path / "route.db"), judgments=service)
+    result = app.route(value)
+    if restriction == "allowed":
+        assert result["status"] == "ready"
+        assert len(state["requests"]) == 1 and operations
+    else:
+        assert result["status"] == "routing_failed"
+        assert state["requests"] == [] and operations == []
+    with sqlite3.connect(service.path) as db:
+        assert db.execute("SELECT COUNT(*) FROM judgment_calls").fetchone()[0] == int(
+            restriction == "allowed"
+        )
 
 
 @pytest.mark.parametrize("fault", ["429", "wrong_model", "oversized", "timeout", "revoked"])

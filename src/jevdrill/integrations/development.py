@@ -111,6 +111,8 @@ class DevelopmentJudge:
     This trusted configured port cannot be created from a public request.
     """
 
+    model_revision = "jev-1.13.0"
+
     def __init__(
         self,
         path: Path,
