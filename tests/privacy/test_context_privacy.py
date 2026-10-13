@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from jevdrill.context import collect_context, workspace_id
+from jevdrill.contracts import ContractError
 
 
 def test_credentials_and_excluded_path_descendants_are_removed():
@@ -73,3 +74,21 @@ def test_ordinary_context_keeps_basic_instructions():
 def test_noncredential_json_preserves_context_and_format():
     text = 'Headers: [{"name":"Content-Type", "value":"application/json"}]\nUse basic arithmetic.'
     assert collect_context(text, [], [])["task_representation"] == text
+
+
+def test_deep_context_fails_with_a_boundary_error():
+    with pytest.raises(ContractError, match="nesting"):
+        collect_context("[" * 1500 + "0" + "]" * 1500, [], [])
+
+
+def test_yaml_aliases_cannot_restore_credentials():
+    text = "header: &h\n  name: X-API-Key\n  value: SYNTHETIC_SENTINEL\ncopy: *h"
+    assert "SYNTHETIC_SENTINEL" not in str(collect_context(text, [], []))
+
+
+@pytest.mark.parametrize("label", ["Authorization", "api_key", "password"])
+def test_complete_credential_values_preserve_ordinary_next_line(label):
+    text = f'{label}: "prefix" \r\n\tSYNTHETIC_SENTINEL\nOrdinary context'
+    result = collect_context(text, [], [])["task_representation"]
+    assert "SYNTHETIC_SENTINEL" not in result
+    assert "Ordinary context" in result

@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from jevdrill.application import Application
-from jevdrill.contracts import canonical_digest, parse_contract
+from jevdrill.contracts import ContractError, canonical_digest, parse_contract
 from jevdrill.integrations.jev import JUDGMENT_CANDIDATE_FIELDS
 from jevdrill.storage import SQLiteStorage
 
@@ -112,7 +112,7 @@ def test_judgment_provider_allowlist_is_checked_before_dispatch(
 
 @pytest.mark.parametrize("attachment", [False, True])
 def test_bearer_credential_cannot_reach_judgment_or_raw_retention(
-    tmp_path, credential_text, attachment
+    tmp_path, credential_text, credential_may_reject, attachment
 ):
     value = inputs()
     value["judgment_policy"] = policy()
@@ -145,7 +145,15 @@ def test_bearer_credential_cannot_reach_judgment_or_raw_retention(
             }
 
     app = Application(SQLiteStorage(tmp_path / "route.db"), judgments=Judge())
-    assert app.route(value)["status"] == "ready"
+    try:
+        result = app.route(value)
+    except ContractError:
+        assert credential_may_reject
+        assert not calls
+        assert b"SYNTHETIC_SENTINEL" not in (tmp_path / "route.db").read_bytes()
+        assert not [p for p in (tmp_path / "artifacts").rglob("*") if p.is_file()]
+        return
+    assert result["status"] == "ready"
     assert calls and "SYNTHETIC_SENTINEL" not in json.dumps(calls)
     artifacts = [p for p in (tmp_path / "artifacts").rglob("*") if p.is_file()]
     assert artifacts

@@ -57,6 +57,14 @@ or using a live catalog. Credentials and excluded attachments are sanitized
 before submission/persistence. Selected catalog instructions remain local except
 for explicitly returned guidance. No hidden reasoning is retained.
 
+Supplied JSON, YAML and supported literal mappings retain member pairs during
+sanitization. Credential labels use the same authorization/API-key/access-token/
+password/secret rule, including prefixed labels. A labeled mapping or header-pair
+array masks sibling values; encoded string layers are sanitized recursively.
+Free-text credential assignments include their complete line and indented
+continuations. Unsupported credential representations and excessive nesting
+fail before judgment submission and raw retention.
+
 The pinned TypeSafe patch and attribution are preserved. Missing usage/prices
 remain unknown; conservative UTF-8 packing is a bound, not measured usage.
 Output planning reservations do not enforce provider output. A requested hard

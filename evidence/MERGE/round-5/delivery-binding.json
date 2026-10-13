@@ -1,0 +1,57 @@
+{
+  "head": "23192913282a8e3bcc10a9a262df346791789945",
+  "manifest_sha256": "250b0e2f30239bab4787a93c7bff65e64d02b7163a380b1c9ce1ae2e90b2ce51",
+  "seats": {
+    "astra": {
+      "taskId": "node:delegated-task:command%3Amcp%3A807310ac-a947-43c7-a293-2f8ee00ebe4f%3Adelegate-task%3Ajevdrill-merge-review-20261013-r5-astra",
+      "status": "completed",
+      "providerInstanceId": "codex",
+      "model": "gpt-6-astra",
+      "head": "23192913282a8e3bcc10a9a262df346791789945",
+      "manifest_sha256": "250b0e2f30239bab4787a93c7bff65e64d02b7163a380b1c9ce1ae2e90b2ce51",
+      "verdict": "DISAGREE"
+    },
+    "grok": {
+      "taskId": "node:delegated-task:command%3Amcp%3A807310ac-a947-43c7-a293-2f8ee00ebe4f%3Adelegate-task%3Ajevdrill-merge-review-20261013-r5-grok",
+      "status": "completed",
+      "providerInstanceId": "grok",
+      "model": "grok-4.7",
+      "head": "23192913282a8e3bcc10a9a262df346791789945",
+      "manifest_sha256": "250b0e2f30239bab4787a93c7bff65e64d02b7163a380b1c9ce1ae2e90b2ce51",
+      "verdict": "DISAGREE"
+    },
+    "correctness": {
+      "taskId": "node:delegated-task:command%3Amcp%3A807310ac-a947-43c7-a293-2f8ee00ebe4f%3Adelegate-task%3Ajevdrill-merge-review-20261013-r5-correctness",
+      "status": "completed",
+      "providerInstanceId": "codex",
+      "model": "gpt-6-astra",
+      "head": "23192913282a8e3bcc10a9a262df346791789945",
+      "manifest_sha256": "250b0e2f30239bab4787a93c7bff65e64d02b7163a380b1c9ce1ae2e90b2ce51",
+      "verdict": "DISAGREE"
+    },
+    "alternative": {
+      "taskId": "node:delegated-task:command%3Amcp%3A807310ac-a947-43c7-a293-2f8ee00ebe4f%3Adelegate-task%3Ajevdrill-merge-review-20261013-r5-alternative",
+      "status": "completed",
+      "providerInstanceId": "codex",
+      "model": "gpt-6-astra",
+      "head": "23192913282a8e3bcc10a9a262df346791789945",
+      "manifest_sha256": "250b0e2f30239bab4787a93c7bff65e64d02b7163a380b1c9ce1ae2e90b2ce51",
+      "verdict": "DISAGREE"
+    }
+  },
+  "president": {
+    "requested_model": "claude-opus-5-5",
+    "reported_models": [
+      "claude-opus-5-5"
+    ],
+    "completed": true,
+    "exit_code": 0,
+    "route": "owner_authorized_manual_cli",
+    "tools_enabled": "Read,Grep,Glob,Bash",
+    "permission_bypass_flags_used": false
+  },
+  "president_tool_uses": 84,
+  "president_ruling": "BLOCK_MERGE",
+  "all_seats_finished_before_repair": true,
+  "owner_authorized_continuation": true
+}

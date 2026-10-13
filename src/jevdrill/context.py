@@ -10,76 +10,118 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+import yaml
+from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
+
 from .contracts import ContractError
 
 EXCLUDED_COMPONENTS = frozenset({".env", ".ssh", ".gnupg", "credentials", "id_rsa", "id_ed25519"})
-CREDENTIAL_NAMES = frozenset(
-    {
-        "authorization",
-        "proxyauthorization",
-        "apikey",
-        "xapikey",
-        "accesstoken",
-        "password",
-        "secret",
-    }
-)
+CREDENTIAL_LABEL = r"authorization|api[\s_-]*key|access[\s_-]*token|password|secret"
 CONTINUATION = r"(?:\r\n|\n|\r)[^\S\r\n]+[^\r\n]*"
 CREDENTIAL = re.compile(
-    r"""(?i)["']?authorization["']?\s*[:=]\s*"""
-    r"""(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\r\n]+)"""
-    f"(?:{CONTINUATION})*"
+    rf"""(?i)(?:[\w.]+\s*\[\s*)?["']?[^\S\r\n]*[\w.-]*(?:{CREDENTIAL_LABEL})"""
+    r"""[\w.-]*[^\S\r\n]*["']?\s*\]?\s*[:=][^\r\n]*"""
+    rf"(?:{CONTINUATION})*"
     + r"""|(?<![^\r\n"'])[ \t]*(?:bearer|basic)\s+[^\s"',;}\]]+"""
-    + r"""|["']?(?:api[_-]?key|access[_-]?token|password|secret)["']?\s*[:=]\s*"""
-    r"""(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,;}]+)"""
-    f"(?:{CONTINUATION})*"
     + r"|-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----"
+)
+CONTEXT_PART = re.compile(
+    "(?P<credential>" + CREDENTIAL.pattern.removeprefix("(?i)") + r")|[\[{\"]",
+    re.IGNORECASE,
 )
 
 
-def _redact_json(value: Any) -> Any:
-    if isinstance(value, dict):
-        names = {key.casefold().replace("-", "").replace("_", ""): key for key in value}
-        name = value.get(names.get("name", ""))
-        sensitive = (
-            isinstance(name, str)
-            and name.casefold().replace("-", "").replace("_", "") in CREDENTIAL_NAMES
+def _credential_label(value: str) -> bool:
+    return re.search(CREDENTIAL_LABEL, value.strip(), re.IGNORECASE) is not None
+
+
+def _redact_node(node: Node, seen: set[int]) -> bool:
+    if id(node) in seen:
+        return False
+    seen.add(id(node))
+    changed = False
+    if isinstance(node, MappingNode):
+        sensitive = any(
+            isinstance(item, ScalarNode) and _credential_label(item.value)
+            for pair in node.value
+            for item in pair
         )
-        return {
-            key: "[redacted]"
-            if key.casefold().replace("-", "").replace("_", "") in CREDENTIAL_NAMES
-            or (sensitive and key.casefold() == "value")
-            else _redact_json(item)
-            for key, item in value.items()
-        }
-    if isinstance(value, list):
-        return [_redact_json(item) for item in value]
-    if isinstance(value, str):
-        return redact(value)
-    return value
+        for index, (key, value) in enumerate(node.value):
+            changed = _redact_node(key, seen) or changed
+            if sensitive:
+                node.value[index] = (key, ScalarNode("tag:yaml.org,2002:str", "[redacted]"))
+                changed = True
+            else:
+                changed = _redact_node(value, seen) or changed
+    elif isinstance(node, SequenceNode):
+        if any(
+            isinstance(item, ScalarNode) and _credential_label(item.value) for item in node.value
+        ):
+            node.value = [ScalarNode("tag:yaml.org,2002:str", "[redacted]") for _ in node.value]
+            return True
+        for item in node.value:
+            changed = _redact_node(item, seen) or changed
+    elif isinstance(node, ScalarNode):
+        cleaned = redact(node.value)
+        changed = cleaned != node.value
+        node.value = cleaned
+    return changed
+
+
+def _structured(text: str) -> str | None:
+    try:
+        node = yaml.compose(text)
+    except yaml.YAMLError:
+        return None
+    if isinstance(node, (MappingNode, SequenceNode)) or (
+        isinstance(node, ScalarNode) and node.style in ("'", '"')
+    ):
+        return yaml.serialize(node) if _redact_node(node, set()) else text
+    return None
+
+
+def _redact_plain(text: str) -> str:
+    cleaned = CREDENTIAL.sub("[redacted]", text)
+    references = re.findall(r"""["']([^"'\r\n]+)["']""", cleaned)
+    references += re.findall(r"(?im)^[ \t-]*(?:name|key)\s*[:=]\s*(.+)", cleaned)
+    if any(_credential_label(value) for value in references):
+        raise ContractError("unsupported credential representation")
+    return cleaned
 
 
 def redact(text: str) -> str:
-    decoder = json.JSONDecoder()
-    chunks = []
-    end = 0
-    for start in re.finditer(r"[\[{]", text):
-        if start.start() < end:
-            continue
-        try:
-            value, consumed = decoder.raw_decode(text[start.start() :])
-        except json.JSONDecodeError:
-            continue
-        cleaned = _redact_json(value)
-        chunks.append(text[end : start.start()])
-        chunks.append(
-            json.dumps(cleaned)
-            if cleaned != value
-            else start.string[start.start() : start.start() + consumed]
-        )
-        end = start.start() + consumed
-    text = "".join(chunks) + text[end:]
-    return CREDENTIAL.sub("[redacted]", text)
+    try:
+        structured = _structured(text)
+        if structured is not None:
+            return structured
+        decoder = json.JSONDecoder(object_pairs_hook=tuple)
+        chunks = []
+        end = 0
+        cursor = 0
+        while start := CONTEXT_PART.search(text, cursor):
+            cursor = start.end()
+            if start.group("credential") is not None:
+                chunks.append(_redact_plain(text[end : start.start()]))
+                chunks.append("[redacted]")
+                end = cursor
+                continue
+            try:
+                value, consumed = decoder.raw_decode(text, start.start())
+            except json.JSONDecodeError:
+                continue
+            fragment = text[start.start() : consumed]
+            cleaned = _structured(fragment)
+            if cleaned is None:
+                raise ContractError("unsupported structured context")
+            if isinstance(value, str) and _credential_label(value) and cleaned == fragment:
+                raise ContractError("unsupported credential representation")
+            chunks.append(_redact_plain(text[end : start.start()]))
+            chunks.append(cleaned)
+            end = consumed
+            cursor = end
+        return "".join(chunks) + _redact_plain(text[end:])
+    except RecursionError as error:
+        raise ContractError("context nesting exceeds sanitization limit") from error
 
 
 def workspace_id(path: Path) -> str:

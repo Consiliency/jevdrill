@@ -4,6 +4,39 @@ from pathlib import Path
 
 import pytest
 
+FORMATS = {
+    "json-name": lambda label: json.dumps({"name": label, "value": "SYNTHETIC_SENTINEL"}),
+    "json-key": lambda label: json.dumps({"key": label, "payload": "SYNTHETIC_SENTINEL"}),
+    "json-pairs": lambda label: json.dumps([[label, "SYNTHETIC_SENTINEL"]]),
+    "json-duplicate": lambda label: (
+        '{"name":' + json.dumps(label) + ',"value":"SYNTHETIC_SENTINEL","value":"[redacted]"}'
+    ),
+    "json-string": lambda label: json.dumps(
+        json.dumps({"name": label, "value": "SYNTHETIC_SENTINEL"})
+    ),
+    "nested-string": lambda label: json.dumps(
+        {"log": json.dumps(json.dumps({"name": label, "value": "SYNTHETIC_SENTINEL"}))}
+    ),
+    "yaml": lambda label: f'- name: "{label}"\n  value: SYNTHETIC_SENTINEL',
+    "python": lambda label: repr({"name": label, "value": "SYNTHETIC_SENTINEL"}),
+    "assignment": lambda label: f'headers[{json.dumps(label)}] = "SYNTHETIC_SENTINEL"',
+    "plain": lambda label: f"{label}: correct horse SYNTHETIC_SENTINEL \r\n\tcontinued",
+}
+LABELS = [
+    "Authorization",
+    "X-API-Key",
+    "client_secret",
+    "X-Goog-Api-Key",
+    " access_token ",
+    "PASSWORD",
+]
+UNSUPPORTED_CONTEXT = {
+    formatter(label)
+    for name, formatter in FORMATS.items()
+    for label in LABELS
+    if name in {"yaml", "python"}
+}
+
 
 @pytest.fixture(
     params=[
@@ -41,10 +74,28 @@ import pytest
         "password: prefix\r\n\tSYNTHETIC_SENTINEL",
         "secret: 'prefix'\n \n\tSYNTHETIC_SENTINEL",
         "access_token: prefix\r\tSYNTHETIC_SENTINEL",
+        'Authorization: "prefix" \r\n\tSYNTHETIC_SENTINEL',
+        "Authorization: 'prefix'\t\n\tSYNTHETIC_SENTINEL",
+        "api_key: prefix \r\n\tSYNTHETIC_SENTINEL",
+        "password: correct horse SYNTHETIC_SENTINEL",
+        '{"name":"Authorization","value":"SYNTHETIC_SENTINEL","name":"Content-Type"}',
+        '{"name":"Authorization","Name":"Content-Type","value":"SYNTHETIC_SENTINEL"}',
+        '{"name":"Authorization","na_me":"Content-Type","value":"SYNTHETIC_SENTINEL"}',
+        '{"name":"Authorization ","value":"SYNTHETIC_SENTINEL"}',
+    ]
+    + [
+        pytest.param(formatter(label), id=f"{label.strip()}-{name}")
+        for name, formatter in FORMATS.items()
+        for label in LABELS
     ]
 )
 def credential_text(request):
     return request.param
+
+
+@pytest.fixture
+def credential_may_reject(credential_text):
+    return credential_text in UNSUPPORTED_CONTEXT
 
 
 @pytest.fixture

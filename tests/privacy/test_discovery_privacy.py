@@ -14,7 +14,7 @@ from tests.retention.test_retention import request
     "field", ["work_objective_text", "authorized_context", "description", "attachment_refs"]
 )
 def test_folded_credentials_never_reach_discovery_judgment_or_retention(
-    tmp_path, discovery_inputs, discovery_observer, credential_text, field
+    tmp_path, discovery_inputs, discovery_observer, credential_text, credential_may_reject, field
 ):
     if field == "attachment_refs":
         discovery_inputs[field] = [
@@ -41,7 +41,14 @@ def test_folded_credentials_never_reach_discovery_judgment_or_retention(
 
     discovery_observer.answer = answer
     app = Application(SQLiteStorage(tmp_path / "route.db"), discovery_judgments=discovery_observer)
-    app.discover(discovery_inputs)
+    try:
+        app.discover(discovery_inputs)
+    except ContractError:
+        assert credential_may_reject
+        assert not calls and not discovery_observer.calls
+        assert b"SYNTHETIC_SENTINEL" not in (tmp_path / "route.db").read_bytes()
+        assert not [p for p in (tmp_path / "artifacts").rglob("*") if p.is_file()]
+        return
     assert calls and "SYNTHETIC_SENTINEL" not in json.dumps(calls)
     assert "SYNTHETIC_SENTINEL" not in json.dumps(discovery_observer.calls)
     artifacts = [p for p in (tmp_path / "artifacts").rglob("*") if p.is_file()]
