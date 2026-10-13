@@ -82,6 +82,12 @@ UNSUPPORTED_CONTEXT = {
         "continued-assignment",
     }
 }
+WHOLE_CONTEXT = {
+    formatter(label)
+    for name, formatter in FORMATS.items()
+    for label in LABELS
+    if name in {"encoded-label", "credential-key", "comment", "inline-comment", "comment-record"}
+}
 
 
 @pytest.fixture(
@@ -142,6 +148,11 @@ def credential_text(request):
 @pytest.fixture
 def credential_may_reject(credential_text):
     return credential_text in UNSUPPORTED_CONTEXT
+
+
+@pytest.fixture
+def credential_whole(credential_text):
+    return credential_text in WHOLE_CONTEXT
 
 
 @pytest.fixture

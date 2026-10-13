@@ -57,13 +57,15 @@ def test_authorization_removes_all_folded_continuations():
     assert "Ordinary context" in result["task_representation"]
 
 
+@pytest.mark.parametrize("mixed", [False, True])
 def test_quoted_credentials_are_removed_from_task_and_attachments(
-    credential_text, credential_may_reject
+    credential_text, credential_may_reject, mixed
 ):
+    text = "Ordinary context.\n" + credential_text if mixed else credential_text
     try:
         result = collect_context(
-            credential_text,
-            [{"reference": "public", "authorized": True, "text_representation": credential_text}],
+            text,
+            [{"reference": "public", "authorized": True, "text_representation": text}],
             [],
         )
     except ContractError:
