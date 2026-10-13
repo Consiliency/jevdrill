@@ -10,17 +10,26 @@ from jevdrill.storage import SQLiteStorage
 from tests.retention.test_retention import request
 
 
-@pytest.mark.parametrize("scheme", ["Bearer", "Basic"])
-@pytest.mark.parametrize("separator", ["\n  ", "\r\n\t"])
-@pytest.mark.parametrize("field", ["work_objective_text", "authorized_context", "description"])
+@pytest.mark.parametrize(
+    "field", ["work_objective_text", "authorized_context", "description", "attachment_refs"]
+)
 def test_folded_credentials_never_reach_discovery_judgment_or_retention(
-    tmp_path, discovery_inputs, discovery_observer, scheme, separator, field
+    tmp_path, discovery_inputs, discovery_observer, credential_text, field
 ):
-    credential = f"Authorization: {scheme}{separator}SYNTHETIC_FOLDED_SENTINEL"
-    if field == "description":
-        discovery_inputs["descriptions"][0][field] += "\n" + credential
+    if field == "attachment_refs":
+        discovery_inputs[field] = [
+            {
+                "reference": "public.txt",
+                "authorized": True,
+                "modality": "document",
+                "representation_source": "supplied",
+                "text_representation": credential_text,
+            }
+        ]
+    elif field == "description":
+        discovery_inputs["descriptions"][0][field] += "\n" + credential_text
     else:
-        discovery_inputs[field] += "\n" + credential
+        discovery_inputs[field] += "\n" + credential_text
     discovery_inputs["settings_layers"].append(
         {"source": "request", "values": {"retain_raw_tasks": True}}
     )
@@ -33,12 +42,12 @@ def test_folded_credentials_never_reach_discovery_judgment_or_retention(
     discovery_observer.answer = answer
     app = Application(SQLiteStorage(tmp_path / "route.db"), discovery_judgments=discovery_observer)
     app.discover(discovery_inputs)
-    assert calls and "SYNTHETIC_FOLDED_SENTINEL" not in json.dumps(calls)
-    assert "SYNTHETIC_FOLDED_SENTINEL" not in json.dumps(discovery_observer.calls)
+    assert calls and "SYNTHETIC_SENTINEL" not in json.dumps(calls)
+    assert "SYNTHETIC_SENTINEL" not in json.dumps(discovery_observer.calls)
     artifacts = [p for p in (tmp_path / "artifacts").rglob("*") if p.is_file()]
     assert artifacts
-    assert all(b"SYNTHETIC_FOLDED_SENTINEL" not in p.read_bytes() for p in artifacts)
-    assert b"SYNTHETIC_FOLDED_SENTINEL" not in (tmp_path / "route.db").read_bytes()
+    assert all(b"SYNTHETIC_SENTINEL" not in p.read_bytes() for p in artifacts)
+    assert b"SYNTHETIC_SENTINEL" not in (tmp_path / "route.db").read_bytes()
 
 
 def test_retained_discovery_content_archives_expires_and_does_not_return_on_retry(

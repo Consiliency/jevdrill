@@ -110,29 +110,24 @@ def test_judgment_provider_allowlist_is_checked_before_dispatch(
     assert result["status"] == ("ready" if allowed else "no_compatible_plan")
 
 
-@pytest.mark.parametrize(
-    "credential",
-    [
-        "Authorization: Bearer SYNTHETIC_SENTINEL",
-        'Authorization: "Bearer SYNTHETIC_SENTINEL"',
-        '"Authorization": "Bearer SYNTHETIC_SENTINEL"',
-        '{"api_key": "SYNTHETIC_SENTINEL"}',
-        "Authorization: Digest username=SYNTHETIC_SENTINEL, nonce=SYNTHETIC_SENTINEL",
-        "'password': 'SYNTHETIC_SENTINEL with spaces'",
-        '{"name":"Authorization","value":"Bearer SYNTHETIC_SENTINEL"}',
-        "Authorization: >\n  Bearer SYNTHETIC_SENTINEL",
-        "Bearer SYNTHETIC_SENTINEL",
-        '{"name":"Authorization","value":"Basic SYNTHETIC_SENTINEL"}',
-        "Authorization: Bearer\r\n\tSYNTHETIC_SENTINEL",
-        "Authorization: Basic\r\n\tSYNTHETIC_SENTINEL",
-        "Authorization: Bearer\n  SYNTHETIC_SENTINEL",
-        "Authorization: Basic\n  SYNTHETIC_SENTINEL",
-    ],
-)
-def test_bearer_credential_cannot_reach_judgment_or_raw_retention(tmp_path, credential):
+@pytest.mark.parametrize("attachment", [False, True])
+def test_bearer_credential_cannot_reach_judgment_or_raw_retention(
+    tmp_path, credential_text, attachment
+):
     value = inputs()
     value["judgment_policy"] = policy()
-    value["request"]["task_representation"] = credential
+    value["request"]["task_representation"] = credential_text
+    if attachment:
+        value["request"]["task_representation"] = "Ordinary task"
+        value["request"]["attachment_refs"] = [
+            {
+                "reference": "public.txt",
+                "authorized": True,
+                "modality": "document",
+                "representation_source": "supplied",
+                "text_representation": credential_text,
+            }
+        ]
     value["settings_layers"] = [{"source": "request", "values": {"retain_raw_tasks": True}}]
     value["inventory"]["candidates"][0]["quality_sufficient"] = None
     calls = []

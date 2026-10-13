@@ -1,6 +1,7 @@
 """Supplied context only; never follow attachment references or search user files."""
 
 import fnmatch
+import json
 import os
 import posixpath
 import re
@@ -12,17 +13,72 @@ from typing import Any
 from .contracts import ContractError
 
 EXCLUDED_COMPONENTS = frozenset({".env", ".ssh", ".gnupg", "credentials", "id_rsa", "id_ed25519"})
+CREDENTIAL_NAMES = frozenset(
+    {
+        "authorization",
+        "proxyauthorization",
+        "apikey",
+        "xapikey",
+        "accesstoken",
+        "password",
+        "secret",
+    }
+)
+CONTINUATION = r"(?:\r\n|\n|\r)[^\S\r\n]+[^\r\n]*"
 CREDENTIAL = re.compile(
     r"""(?i)["']?authorization["']?\s*[:=]\s*"""
-    r"""(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*)"""
-    r"""|(?<![^\r\n"'])[ \t]*(?:bearer|basic)\s+[^\s"',;}\]]+"""
-    r"""|["']?(?:api[_-]?key|access[_-]?token|password|secret)["']?\s*[:=]\s*"""
+    r"""(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\r\n]+)"""
+    f"(?:{CONTINUATION})*"
+    + r"""|(?<![^\r\n"'])[ \t]*(?:bearer|basic)\s+[^\s"',;}\]]+"""
+    + r"""|["']?(?:api[_-]?key|access[_-]?token|password|secret)["']?\s*[:=]\s*"""
     r"""(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,;}]+)"""
-    r"|-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----"
+    f"(?:{CONTINUATION})*"
+    + r"|-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----"
 )
 
 
+def _redact_json(value: Any) -> Any:
+    if isinstance(value, dict):
+        names = {key.casefold().replace("-", "").replace("_", ""): key for key in value}
+        name = value.get(names.get("name", ""))
+        sensitive = (
+            isinstance(name, str)
+            and name.casefold().replace("-", "").replace("_", "") in CREDENTIAL_NAMES
+        )
+        return {
+            key: "[redacted]"
+            if key.casefold().replace("-", "").replace("_", "") in CREDENTIAL_NAMES
+            or (sensitive and key.casefold() == "value")
+            else _redact_json(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_redact_json(item) for item in value]
+    if isinstance(value, str):
+        return redact(value)
+    return value
+
+
 def redact(text: str) -> str:
+    decoder = json.JSONDecoder()
+    chunks = []
+    end = 0
+    for start in re.finditer(r"[\[{]", text):
+        if start.start() < end:
+            continue
+        try:
+            value, consumed = decoder.raw_decode(text[start.start() :])
+        except json.JSONDecodeError:
+            continue
+        cleaned = _redact_json(value)
+        chunks.append(text[end : start.start()])
+        chunks.append(
+            json.dumps(cleaned)
+            if cleaned != value
+            else start.string[start.start() : start.start() + consumed]
+        )
+        end = start.start() + consumed
+    text = "".join(chunks) + text[end:]
     return CREDENTIAL.sub("[redacted]", text)
 
 
