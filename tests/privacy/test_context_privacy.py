@@ -34,14 +34,26 @@ def test_workspace_paths_are_distinct_and_symlinks_resolve(tmp_path):
 
 
 @pytest.mark.parametrize("scheme", ["Bearer", "Basic", "bearer"])
-def test_authorization_credentials_are_removed_from_task_and_attachments(scheme):
-    header = f"Authorization: {scheme} SYNTHETIC_SENTINEL"
+@pytest.mark.parametrize("separator", [" ", "\n  ", "\r\n\t"])
+def test_authorization_credentials_are_removed_from_task_and_attachments(scheme, separator):
+    header = f"Authorization: {scheme}{separator}SYNTHETIC_SENTINEL\nOrdinary context"
     result = collect_context(
         header,
         [{"reference": "public", "authorized": True, "text_representation": header}],
         [],
     )
     assert "SYNTHETIC_SENTINEL" not in str(result)
+    assert "Ordinary context" in result["task_representation"]
+
+
+def test_authorization_removes_all_folded_continuations():
+    header = (
+        "Authorization: Digest username=SYNTHETIC_SENTINEL\r\n"
+        "  nonce=SYNTHETIC_SENTINEL\r\n\tresponse=SYNTHETIC_SENTINEL\nOrdinary context"
+    )
+    result = collect_context(header, [], [])
+    assert "SYNTHETIC_SENTINEL" not in str(result)
+    assert "Ordinary context" in result["task_representation"]
 
 
 @pytest.mark.parametrize(

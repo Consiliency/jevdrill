@@ -123,6 +123,10 @@ def test_judgment_provider_allowlist_is_checked_before_dispatch(
         "Authorization: >\n  Bearer SYNTHETIC_SENTINEL",
         "Bearer SYNTHETIC_SENTINEL",
         '{"name":"Authorization","value":"Basic SYNTHETIC_SENTINEL"}',
+        "Authorization: Bearer\r\n\tSYNTHETIC_SENTINEL",
+        "Authorization: Basic\r\n\tSYNTHETIC_SENTINEL",
+        "Authorization: Bearer\n  SYNTHETIC_SENTINEL",
+        "Authorization: Basic\n  SYNTHETIC_SENTINEL",
     ],
 )
 def test_bearer_credential_cannot_reach_judgment_or_raw_retention(tmp_path, credential):
