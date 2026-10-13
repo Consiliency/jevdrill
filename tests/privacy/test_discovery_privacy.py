@@ -41,6 +41,7 @@ def test_folded_credentials_never_reach_discovery_judgment_or_retention(
     discovery_inputs["settings_layers"].append(
         {"source": "request", "values": {"retain_raw_tasks": True}}
     )
+    discovery_inputs["limits"]["max_rounds"] = 1
     calls = []
 
     def answer(task, option):
@@ -59,6 +60,8 @@ def test_folded_credentials_never_reach_discovery_judgment_or_retention(
         return
     assert calls and "SYNTHETIC_SENTINEL" not in json.dumps(calls)
     assert "SYNTHETIC_SENTINEL" not in json.dumps(discovery_observer.calls)
+    if field == "description":
+        assert any(option["level"] == "resource" for option in discovery_observer.calls)
     artifacts = [p for p in (tmp_path / "artifacts").rglob("*") if p.is_file()]
     assert artifacts
     assert all(b"SYNTHETIC_SENTINEL" not in p.read_bytes() for p in artifacts)
