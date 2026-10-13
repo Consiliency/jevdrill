@@ -57,12 +57,18 @@ def test_authorization_removes_all_folded_continuations():
     assert "Ordinary context" in result["task_representation"]
 
 
-def test_quoted_credentials_are_removed_from_task_and_attachments(credential_text):
-    result = collect_context(
-        credential_text,
-        [{"reference": "public", "authorized": True, "text_representation": credential_text}],
-        [],
-    )
+def test_quoted_credentials_are_removed_from_task_and_attachments(
+    credential_text, credential_may_reject
+):
+    try:
+        result = collect_context(
+            credential_text,
+            [{"reference": "public", "authorized": True, "text_representation": credential_text}],
+            [],
+        )
+    except ContractError:
+        assert credential_may_reject
+        return
     assert "SYNTHETIC_SENTINEL" not in str(result)
 
 
@@ -83,7 +89,15 @@ def test_deep_context_fails_with_a_boundary_error():
 
 def test_yaml_aliases_cannot_restore_credentials():
     text = "header: &h\n  name: X-API-Key\n  value: SYNTHETIC_SENTINEL\ncopy: *h"
-    assert "SYNTHETIC_SENTINEL" not in str(collect_context(text, [], []))
+    with pytest.raises(ContractError, match="YAML graph"):
+        collect_context(text, [], [])
+
+
+def test_sanitization_checks_deadline_during_processing(monkeypatch):
+    times = iter([0, 0, 0, 2])
+    monkeypatch.setattr("jevdrill.context.monotonic", lambda: next(times))
+    with pytest.raises(TimeoutError, match="sanitization deadline"):
+        collect_context('{"ordinary": ["context", "more context"]}', [], [], deadline=1)
 
 
 @pytest.mark.parametrize("label", ["Authorization", "api_key", "password"])

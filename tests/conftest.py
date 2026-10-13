@@ -21,6 +21,39 @@ FORMATS = {
     "python": lambda label: repr({"name": label, "value": "SYNTHETIC_SENTINEL"}),
     "assignment": lambda label: f'headers[{json.dumps(label)}] = "SYNTHETIC_SENTINEL"',
     "plain": lambda label: f"{label}: correct horse SYNTHETIC_SENTINEL \r\n\tcontinued",
+    "encoded-label": lambda label: json.dumps(
+        {
+            "header": json.dumps(label, ensure_ascii=True).replace("A", "\\u0041"),
+            "payload": "SYNTHETIC_SENTINEL",
+        }
+    ),
+    "credential-key": lambda label: json.dumps({label + " Bearer SYNTHETIC_SENTINEL": "x"}),
+    "comment": lambda label: f"ordinary: context\n# {label}: SYNTHETIC_SENTINEL",
+    "inline-comment": lambda label: f"ordinary: context # {label}: SYNTHETIC_SENTINEL",
+    "comment-record": lambda label: (
+        "ordinary: context\n# " + json.dumps({"header": label, "payload": "SYNTHETIC_SENTINEL"})
+    ),
+    "mixed-yaml": lambda label: f"Header for request.\nlabel: {label}\npayload: SYNTHETIC_SENTINEL",
+    "mixed-yaml-reversed": lambda label: (
+        f"Header for request.\npayload: SYNTHETIC_SENTINEL\nheader: {label}"
+    ),
+    "mixed-yaml-block": lambda label: (
+        f"Header for request.\nheader: >\n  {label}\npayload: SYNTHETIC_SENTINEL"
+    ),
+    "scalar-alias": lambda label: (
+        f"header:\n  name: {label}\n  value: &s SYNTHETIC_SENTINEL\ncopy: *s"
+    ),
+    "sequence-alias": lambda label: f"token: &s SYNTHETIC_SENTINEL\nheaders:\n  - {label}\n  - *s",
+    "merge": lambda label: (
+        f"defaults: &d\n  name: {label}\nheader:\n  <<: *d\n  value: SYNTHETIC_SENTINEL"
+    ),
+    "tag": lambda label: f'!!map {{"header": "{label}", "payload": "SYNTHETIC_SENTINEL"}}',
+    "multiline-assignment": lambda label: (
+        f'headers[{json.dumps(label)}] = """prefix\nSYNTHETIC_SENTINEL\n"""'
+    ),
+    "continued-assignment": lambda label: (
+        f'headers[{json.dumps(label)}] = \\\n"SYNTHETIC_SENTINEL"'
+    ),
 }
 LABELS = [
     "Authorization",
@@ -34,7 +67,20 @@ UNSUPPORTED_CONTEXT = {
     formatter(label)
     for name, formatter in FORMATS.items()
     for label in LABELS
-    if name in {"yaml", "python"}
+    if name
+    in {
+        "yaml",
+        "python",
+        "mixed-yaml",
+        "mixed-yaml-reversed",
+        "mixed-yaml-block",
+        "scalar-alias",
+        "sequence-alias",
+        "merge",
+        "tag",
+        "multiline-assignment",
+        "continued-assignment",
+    }
 }
 
 

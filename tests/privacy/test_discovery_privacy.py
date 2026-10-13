@@ -13,8 +13,15 @@ from tests.retention.test_retention import request
 @pytest.mark.parametrize(
     "field", ["work_objective_text", "authorized_context", "description", "attachment_refs"]
 )
+@pytest.mark.parametrize("mixed", [False, True])
 def test_folded_credentials_never_reach_discovery_judgment_or_retention(
-    tmp_path, discovery_inputs, discovery_observer, credential_text, credential_may_reject, field
+    tmp_path,
+    discovery_inputs,
+    discovery_observer,
+    credential_text,
+    credential_may_reject,
+    field,
+    mixed,
 ):
     if field == "attachment_refs":
         discovery_inputs[field] = [
@@ -27,9 +34,11 @@ def test_folded_credentials_never_reach_discovery_judgment_or_retention(
             }
         ]
     elif field == "description":
-        discovery_inputs["descriptions"][0][field] += "\n" + credential_text
+        prefix = discovery_inputs["descriptions"][0][field] + "\n" if mixed else ""
+        discovery_inputs["descriptions"][0][field] = prefix + credential_text
     else:
-        discovery_inputs[field] += "\n" + credential_text
+        prefix = discovery_inputs[field] + "\n" if mixed else ""
+        discovery_inputs[field] = prefix + credential_text
     discovery_inputs["settings_layers"].append(
         {"source": "request", "values": {"retain_raw_tasks": True}}
     )

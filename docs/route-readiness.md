@@ -64,6 +64,10 @@ array masks sibling values; encoded string layers are sanitized recursively.
 Free-text credential assignments include their complete line and indented
 continuations. Unsupported credential representations and excessive nesting
 fail before judgment submission and raw retention.
+YAML anchors, aliases, merge keys and explicit tags, mixed credential records
+that cannot be structurally parsed, and multiline code assignments are rejected.
+Parser-omitted comments are discarded; credential-bearing keys and decoded
+labels use the same rule as values. Sanitization shares the routing deadline.
 
 The pinned TypeSafe patch and attribution are preserved. Missing usage/prices
 remain unknown; conservative UTF-8 packing is a bound, not measured usage.

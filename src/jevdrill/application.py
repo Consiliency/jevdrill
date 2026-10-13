@@ -65,13 +65,13 @@ def _scope(envelope: Mapping[str, Any], operation: str) -> dict[str, str]:
     }
 
 
-def _sanitize(value: Any) -> Any:
+def _sanitize(value: Any, deadline: float | None = None) -> Any:
     if isinstance(value, str):
-        return redact(value)
+        return redact(value, deadline)
     if isinstance(value, list):
-        return [_sanitize(item) for item in value]
+        return [_sanitize(item, deadline) for item in value]
     if isinstance(value, dict):
-        return {key: _sanitize(item) for key, item in value.items()}
+        return {key: _sanitize(item, deadline) for key, item in value.items()}
     return value
 
 
@@ -101,7 +101,7 @@ class Application:
 
     def discover(self, payload: Mapping[str, Any], deadline: float | None = None) -> dict[str, Any]:
         started = monotonic()
-        inputs = _sanitize(parse_contract("DiscoveryInputs", payload).payload())
+        inputs = parse_contract("DiscoveryInputs", payload).payload()
         settings = resolve_settings(
             [(row["source"], row["values"]) for row in inputs["settings_layers"]]
         )
@@ -116,8 +116,12 @@ class Application:
             / 1000,
         )
         self.storage.deadline = deadline
+        inputs = _sanitize(inputs, deadline)
         context = collect_context(
-            inputs["work_objective_text"], inputs["attachment_refs"], settings["excluded_paths"]
+            inputs["work_objective_text"],
+            inputs["attachment_refs"],
+            settings["excluded_paths"],
+            deadline,
         )
         inputs["work_objective_text"] = context["task_representation"]
         inputs["attachment_refs"] = context["attachments"]
@@ -575,7 +579,7 @@ class Application:
             if linked is None
             else canonical_digest([dict(payload), linked["result"]["details"]["revisions"]])
         )
-        request = _sanitize(inputs["request"])
+        request = inputs["request"]
         settings = resolve_settings(
             [(row["source"], row["values"]) for row in inputs["settings_layers"]]
         )
@@ -592,6 +596,7 @@ class Application:
         if request["retry_context"] is not None:
             deadline = min(deadline, started + request["retry_context"]["remaining_time_ms"] / 1000)
         self.storage.deadline = deadline
+        request = _sanitize(request, deadline)
         scope = _scope(request["envelope"], "route")
         if self.storage.is_deleted(scope, request["task_id"]):
             raise ContractError("task deleted")
@@ -662,7 +667,10 @@ class Application:
             cached = None
         request["versions"]["settings_revision"] = settings["settings_revision"]
         context = collect_context(
-            request["task_representation"], request["attachment_refs"], settings["excluded_paths"]
+            request["task_representation"],
+            request["attachment_refs"],
+            settings["excluded_paths"],
+            deadline,
         )
         request["task_representation"] = context["task_representation"]
         request["attachment_refs"] = context["attachments"]
@@ -706,7 +714,7 @@ class Application:
                     )
                 if source is None:
                     raise ContractError("inventory unavailable")
-                if _sanitize(source) != source:
+                if _sanitize(source, deadline) != source:
                     raise ContractError("excluded inventory metadata")
                 snapshot = validate_snapshot(
                     source, request["envelope"]["execution_target_id"], deadline - 0.05
@@ -736,7 +744,7 @@ class Application:
                 catalog = inputs["catalog"]
                 resources = [] if catalog is None else catalog["resources"]
                 if catalog is not None:
-                    if _sanitize(catalog) != catalog:
+                    if _sanitize(catalog, deadline) != catalog:
                         raise ContractError("excluded catalog content")
                     catalog_digest(resources)
                     if catalog["revision"] != request["versions"]["catalog_revision"]:

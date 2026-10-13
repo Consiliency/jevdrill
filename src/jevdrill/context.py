@@ -1,5 +1,6 @@
 """Supplied context only; never follow attachment references or search user files."""
 
+import ast
 import fnmatch
 import json
 import os
@@ -8,10 +9,12 @@ import re
 import uuid
 from collections.abc import Mapping, Sequence
 from pathlib import Path
+from time import monotonic
 from typing import Any
 
 import yaml
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
+from yaml.tokens import AliasToken, AnchorToken, ScalarToken, TagToken
 
 from .contracts import ContractError
 
@@ -19,8 +22,8 @@ EXCLUDED_COMPONENTS = frozenset({".env", ".ssh", ".gnupg", "credentials", "id_rs
 CREDENTIAL_LABEL = r"authorization|api[\s_-]*key|access[\s_-]*token|password|secret"
 CONTINUATION = r"(?:\r\n|\n|\r)[^\S\r\n]+[^\r\n]*"
 CREDENTIAL = re.compile(
-    rf"""(?i)(?:[\w.]+\s*\[\s*)?["']?[^\S\r\n]*[\w.-]*(?:{CREDENTIAL_LABEL})"""
-    r"""[\w.-]*[^\S\r\n]*["']?\s*\]?\s*[:=][^\r\n]*"""
+    rf"""(?i)(?<![\w.-])(?:[\w.]+\s*+\[\s*+)?(?:["'][^\S\r\n]*+)?[\w.-]*(?:{CREDENTIAL_LABEL})"""
+    r"""[\w.-]*[^\S\r\n]*+["']?\s*+\]?\s*+[:=][^\r\n]*"""
     rf"(?:{CONTINUATION})*"
     + r"""|(?<![^\r\n"'])[ \t]*(?:bearer|basic)\s+[^\s"',;}\]]+"""
     + r"|-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----"
@@ -31,67 +34,128 @@ CONTEXT_PART = re.compile(
 )
 
 
-def _credential_label(value: str) -> bool:
+def _check_deadline(deadline: float | None) -> None:
+    if deadline is not None and monotonic() >= deadline:
+        raise TimeoutError("context sanitization deadline exceeded")
+
+
+def _credential_label(value: str, deadline: float | None = None) -> bool:
+    while value.strip().startswith('"'):
+        _check_deadline(deadline)
+        try:
+            decoded = json.loads(value)
+        except (ValueError, RecursionError):
+            break
+        if not isinstance(decoded, str) or decoded == value:
+            break
+        value = decoded
     return re.search(CREDENTIAL_LABEL, value.strip(), re.IGNORECASE) is not None
 
 
-def _redact_node(node: Node, seen: set[int]) -> bool:
+def _redact_node(node: Node, seen: set[int], deadline: float | None) -> bool:
+    _check_deadline(deadline)
     if id(node) in seen:
         return False
     seen.add(id(node))
     changed = False
     if isinstance(node, MappingNode):
         sensitive = any(
-            isinstance(item, ScalarNode) and _credential_label(item.value)
+            isinstance(item, ScalarNode) and _credential_label(item.value, deadline)
             for pair in node.value
             for item in pair
         )
         for index, (key, value) in enumerate(node.value):
-            changed = _redact_node(key, seen) or changed
+            _check_deadline(deadline)
+            if isinstance(key, ScalarNode) and _credential_label(key.value, deadline):
+                key.value = "[redacted]"
+                changed = True
+            else:
+                changed = _redact_node(key, seen, deadline) or changed
             if sensitive:
                 node.value[index] = (key, ScalarNode("tag:yaml.org,2002:str", "[redacted]"))
                 changed = True
             else:
-                changed = _redact_node(value, seen) or changed
+                changed = _redact_node(value, seen, deadline) or changed
     elif isinstance(node, SequenceNode):
         if any(
-            isinstance(item, ScalarNode) and _credential_label(item.value) for item in node.value
+            isinstance(item, ScalarNode) and _credential_label(item.value, deadline)
+            for item in node.value
         ):
             node.value = [ScalarNode("tag:yaml.org,2002:str", "[redacted]") for _ in node.value]
             return True
         for item in node.value:
-            changed = _redact_node(item, seen) or changed
+            changed = _redact_node(item, seen, deadline) or changed
     elif isinstance(node, ScalarNode):
-        cleaned = redact(node.value)
+        cleaned = redact(node.value, deadline)
         changed = cleaned != node.value
         node.value = cleaned
     return changed
 
 
-def _structured(text: str) -> str | None:
+def _structured(text: str, deadline: float | None) -> str | None:
+    spans = []
     try:
+        for token in yaml.scan(text):
+            _check_deadline(deadline)
+            if isinstance(token, (AliasToken, AnchorToken, TagToken)):
+                raise ContractError("unsupported YAML graph or tag")
+            if isinstance(token, ScalarToken):
+                if token.value == "<<":
+                    raise ContractError("unsupported YAML merge")
+                spans.append((token.start_mark.index, token.end_mark.index))
         node = yaml.compose(text)
     except yaml.YAMLError:
+        if re.search(r"(?:^|[\s:\[,])(?:[&*][\w-]+|![!\w])", text):
+            raise ContractError("unsupported YAML graph or tag")
         return None
+    _check_deadline(deadline)
+    span_index = 0
+    comments = False
+    for marker in re.finditer("#", text):
+        _check_deadline(deadline)
+        while span_index < len(spans) and spans[span_index][1] <= marker.start():
+            span_index += 1
+        if span_index == len(spans) or marker.start() < spans[span_index][0]:
+            comments = True
+            break
     if isinstance(node, (MappingNode, SequenceNode)) or (
         isinstance(node, ScalarNode) and node.style in ("'", '"')
     ):
-        return yaml.serialize(node) if _redact_node(node, set()) else text
+        changed = _redact_node(node, set(), deadline)
+        result = yaml.serialize(node) if changed or comments else text
+        _check_deadline(deadline)
+        return result
+    if comments:
+        return redact(node.value, deadline) if isinstance(node, ScalarNode) else ""
     return None
 
 
-def _redact_plain(text: str) -> str:
+def _redact_plain(text: str, deadline: float | None) -> str:
+    _check_deadline(deadline)
+    for match in CREDENTIAL.finditer(text):
+        _check_deadline(deadline)
+        first_line = match.group().splitlines()[0]
+        if "=" in first_line:
+            value = first_line.split("=", 1)[1].strip()
+            if value.startswith(('"', "'", "[", "{", "(")) or value.endswith("\\"):
+                try:
+                    ast.parse(value, mode="eval")
+                except (SyntaxError, ValueError):
+                    raise ContractError("unsupported multiline credential assignment") from None
     cleaned = CREDENTIAL.sub("[redacted]", text)
     references = re.findall(r"""["']([^"'\r\n]+)["']""", cleaned)
-    references += re.findall(r"(?im)^[ \t-]*(?:name|key)\s*[:=]\s*(.+)", cleaned)
-    if any(_credential_label(value) for value in references):
+    references += re.findall(r"(?m)^[ \t-]*[^\r\n:=]+[:=]\s*(.+)", cleaned)
+    references += re.findall(r"(?m)[:=][ \t]*[|>][^\r\n]*(?:\r?\n[ \t]+[^\r\n]*)+", cleaned)
+    if any(_credential_label(value, deadline) for value in references):
         raise ContractError("unsupported credential representation")
+    _check_deadline(deadline)
     return cleaned
 
 
-def redact(text: str) -> str:
+def redact(text: str, deadline: float | None = None) -> str:
     try:
-        structured = _structured(text)
+        _check_deadline(deadline)
+        structured = _structured(text, deadline)
         if structured is not None:
             return structured
         decoder = json.JSONDecoder(object_pairs_hook=tuple)
@@ -99,9 +163,11 @@ def redact(text: str) -> str:
         end = 0
         cursor = 0
         while start := CONTEXT_PART.search(text, cursor):
+            _check_deadline(deadline)
             cursor = start.end()
             if start.group("credential") is not None:
-                chunks.append(_redact_plain(text[end : start.start()]))
+                chunks.append(_redact_plain(text[end : start.start()], deadline))
+                _redact_plain(start.group(), deadline)
                 chunks.append("[redacted]")
                 end = cursor
                 continue
@@ -110,16 +176,20 @@ def redact(text: str) -> str:
             except json.JSONDecodeError:
                 continue
             fragment = text[start.start() : consumed]
-            cleaned = _structured(fragment)
+            cleaned = _structured(fragment, deadline)
             if cleaned is None:
                 raise ContractError("unsupported structured context")
-            if isinstance(value, str) and _credential_label(value) and cleaned == fragment:
+            if (
+                isinstance(value, str)
+                and _credential_label(value, deadline)
+                and cleaned == fragment
+            ):
                 raise ContractError("unsupported credential representation")
-            chunks.append(_redact_plain(text[end : start.start()]))
+            chunks.append(_redact_plain(text[end : start.start()], deadline))
             chunks.append(cleaned)
             end = consumed
             cursor = end
-        return "".join(chunks) + _redact_plain(text[end:])
+        return "".join(chunks) + _redact_plain(text[end:], deadline)
     except RecursionError as error:
         raise ContractError("context nesting exceeds sanitization limit") from error
 
@@ -144,6 +214,7 @@ def collect_context(
     task_representation: str,
     attachments: Sequence[Mapping[str, Any]],
     excluded_paths: Sequence[str],
+    deadline: float | None = None,
 ) -> dict[str, Any]:
     if not isinstance(task_representation, str):
         raise ContractError("invalid task context")
@@ -160,10 +231,10 @@ def collect_context(
             continue
         item = dict(attachment)
         if item.get("text_representation") is not None:
-            item["text_representation"] = redact(item["text_representation"])
+            item["text_representation"] = redact(item["text_representation"], deadline)
         retained.append(item)
     return {
-        "task_representation": redact(task_representation),
+        "task_representation": redact(task_representation, deadline),
         "attachments": retained,
         "unavailable": unavailable,
     }

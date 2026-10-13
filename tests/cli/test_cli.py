@@ -106,6 +106,36 @@ def test_report_acknowledgments_inspect_and_delete(tmp_path):
     assert json.loads(invoke(tmp_path, "report", report).stdout)["status"] == "rejected"
 
 
+def test_long_ordinary_context_keeps_the_five_second_deadline(tmp_path):
+    payload = json.loads((ROOT / "tests/contracts/fixtures/route-application.json").read_text())[0][
+        "payload"
+    ]
+    payload["request"]["task_representation"] = "a" * 20_000
+    payload["judgment_policy"] = None
+    started = time.monotonic()
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "jevdrill.cli",
+            "--storage",
+            str(tmp_path / "route.db"),
+            "--remaining-budget-ms",
+            "5000",
+            "route",
+        ],
+        input=json.dumps(payload),
+        text=True,
+        capture_output=True,
+        cwd=tmp_path,
+        timeout=6,
+        check=False,
+    )
+    assert time.monotonic() - started < 5
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["status"] == "ready"
+
+
 @pytest.mark.parametrize(
     "raw",
     ["{", "[]", '{"x":1,"x":2}', "x" * 1_000_001],
