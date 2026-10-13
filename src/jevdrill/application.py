@@ -117,6 +117,9 @@ class Application:
         )
         self.storage.deadline = deadline
         inputs = _sanitize(inputs, deadline)
+        settings = resolve_settings(
+            [(row["source"], row["values"]) for row in inputs["settings_layers"]]
+        )
         context = collect_context(
             inputs["work_objective_text"],
             inputs["attachment_refs"],

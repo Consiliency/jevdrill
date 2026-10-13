@@ -66,6 +66,18 @@ def test_folded_credentials_never_reach_discovery_judgment_or_retention(
     assert b"SYNTHETIC_SENTINEL" not in (tmp_path / "route.db").read_bytes()
 
 
+def test_discovery_settings_are_sanitized_before_seed_retention(
+    tmp_path, discovery_inputs, discovery_observer
+):
+    discovery_inputs["settings_layers"].append(
+        {"source": "request", "values": {"excluded_paths": ["api_key=SYNTHETIC_SENTINEL"]}}
+    )
+    app = Application(SQLiteStorage(tmp_path / "route.db"), discovery_judgments=discovery_observer)
+    app.discover(discovery_inputs)
+    assert discovery_observer.calls
+    assert b"SYNTHETIC_SENTINEL" not in (tmp_path / "route.db").read_bytes()
+
+
 def test_retained_discovery_content_archives_expires_and_does_not_return_on_retry(
     tmp_path, discovery_inputs, discovery_observer, monkeypatch
 ):
