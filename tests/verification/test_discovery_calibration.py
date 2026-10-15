@@ -329,6 +329,21 @@ def test_guarded_driver_records_five_distinct_arms_with_loopback_and_explicit_fi
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / "tests/contracts/fixtures" / name, destination)
     monkeypatch.setattr(checks, "read_protocol", lambda root=ROOT: copy.deepcopy(protocol))
+    original_preview = checks.authority_preview
+    expires_at = (
+        checks.datetime.fromtimestamp(time.time() + 3600, checks.UTC)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+
+    def synthetic_authority(root=ROOT):
+        return original_preview(root) | {
+            "authorization_revision": "synthetic-loopback-only",
+            "study_id": "synthetic-loopback-only",
+            "expires_at": expires_at,
+        }
+
+    monkeypatch.setattr(checks, "authority_preview", synthetic_authority)
     state = {"candidate_calls": 0, "judgment_calls": 0, "prompts": []}
 
     class Handler(BaseHTTPRequestHandler):
