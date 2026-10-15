@@ -141,7 +141,54 @@ def test_long_ordinary_context_keeps_the_five_second_deadline(tmp_path, text, ex
         timeout=6,
         check=False,
     )
-    assert time.monotonic() - started < 5
+    elapsed = time.monotonic() - started
+    if elapsed >= 5:
+        print(
+            "Failed CLI deadline:",
+            json.dumps(
+                {
+                    "elapsed_seconds": elapsed,
+                    "returncode": result.returncode,
+                    "response": result.stdout,
+                    "stderr": result.stderr,
+                    "database_created": (tmp_path / "route.db").exists(),
+                }
+            ),
+        )
+        profile_code = (
+            "import cProfile,pstats,runpy,sys\n"
+            "profile=cProfile.Profile()\n"
+            "profile.enable()\n"
+            "try:\n"
+            " runpy.run_module('jevdrill.cli',run_name='__main__')\n"
+            "finally:\n"
+            " profile.disable()\n"
+            " pstats.Stats(profile,stream=sys.stderr).sort_stats('cumulative').print_stats(30)\n"
+        )
+        try:
+            diagnostic = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    profile_code,
+                    "--storage",
+                    str(tmp_path / "profile-route.db"),
+                    "--remaining-budget-ms",
+                    "5000",
+                    "route",
+                ],
+                input=json.dumps(payload),
+                text=True,
+                capture_output=True,
+                cwd=tmp_path,
+                timeout=6,
+                check=False,
+            )
+            print("Diagnostic rerun only:", diagnostic.returncode, diagnostic.stdout)
+            print(diagnostic.stderr)
+        except subprocess.TimeoutExpired as error:
+            print("Diagnostic rerun timed out:", error.stdout, error.stderr)
+    assert elapsed < 5
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout)["status"] == expected_status
     assert result.stderr == ""

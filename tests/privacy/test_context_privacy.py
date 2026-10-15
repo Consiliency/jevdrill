@@ -79,6 +79,23 @@ def test_ordinary_context_keeps_basic_instructions():
     assert collect_context(text, [], [])["task_representation"] == text
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "ordinary\\\n" * 2_000,
+        "Basic\n  SYNTHETIC_SENTINEL",
+        "-----BEGIN PRIVATE KEY-----\nSYNTHETIC_SENTINEL\n-----END PRIVATE KEY-----",
+    ],
+    ids=["plain-continuations", "folded-basic", "private-key"],
+)
+def test_plain_context_preserves_ordinary_text_and_scrubs_credentials(text):
+    result = collect_context(text, [], [])["task_representation"]
+    if "SYNTHETIC_SENTINEL" in text:
+        assert "SYNTHETIC_SENTINEL" not in result
+    else:
+        assert result == text
+
+
 def test_noncredential_json_preserves_context_and_format():
     text = 'Headers: [{"name":"Content-Type", "value":"application/json"}]\nUse basic arithmetic.'
     assert collect_context(text, [], [])["task_representation"] == text

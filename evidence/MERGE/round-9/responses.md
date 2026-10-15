@@ -117,3 +117,37 @@ dumps diagnostics; it does not terminate or grant time to a test.
 Runtime files remain byte-identical to `2cd84c1bb`. Fresh exact-head configured
 verification and Windows collection are required; diagnostic evidence is not
 native acceptance and the timeout's cause remains open.
+
+## Plain-text deadline repair
+
+Candidate `0538011c64f3a37137e6e518529a049c9e6f0408` passed all **3,808 configured
+tests**, zero failures/errors/skips, in 522.937 seconds with unchanged clean HEAD
+and tracked hashes. JUnit SHA256:
+`db60daab0c1e5c35fcb858a8299ac6994deaa89758cc295fd6cfe55fa5aec662`.
+Windows completed 3,310 native tests in this attempt (446.426s total collection),
+but the two continuation CLI regressions exceeded five seconds: 5.116s for 2,000
+ordinary continuations and 5.166s for 20,000 short continuations. The other 3,308
+tests and every subsequent check passed. This establishes specific failing inputs,
+not the causes of earlier unrelated CLI failures or the prior whole-suite timeout.
+
+Local profiling identifies avoidable YAML scanning/composition and Python
+tokenization for these inputs. Text without structural punctuation cannot contain
+the supported mappings, literal strings, assignments, graph/tag/comment or block
+forms. It now uses the existing plain-text credential redactor directly; inputs
+with any such punctuation still follow the complete structural pipeline. Bare
+Basic/Bearer credentials and private-key blocks remain subject to plain redaction.
+
+Measured local redaction for the 2,000/20,000-line inputs decreased from about
+23.7/98.1ms to median 2.37/7.84ms, preserving the original text. These are local
+processing measurements, not proof of the Windows failure's underlying phase.
+If a CLI deadline still fails, its test prints the original return code/response
+and database-presence metadata, then performs a separate CPU-profile diagnostic
+rerun. The original measured invocation must still finish within five seconds;
+diagnostic success cannot satisfy that assertion. A synthetic forced failure
+confirmed the profile executes and the original assertion remains failed.
+
+**2,945 focused context/privacy/route/CLI tests pass**, as do changed-file Ruff
+and strict source mypy. All earlier cases/assertions remain, with three plain-text
+controls for unchanged continuations, folded Basic and private-key removal.
+Fresh full configured verification, actual six-boundary HTTP regressions, native
+CI and all review approvals remain pending for this repair at commit time.

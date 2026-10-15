@@ -361,6 +361,8 @@ def _redact_plain(text: str, deadline: float | None) -> str:
 def redact(text: str, deadline: float | None = None) -> str:
     try:
         _check_deadline(deadline)
+        if not any(marker in text for marker in "{}[]:=\"'&#*!|>?"):
+            return _redact_plain(text, deadline)
         structured = _structured(text, deadline)
         if structured is not None:
             return structured
