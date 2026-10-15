@@ -151,3 +151,28 @@ and strict source mypy. All earlier cases/assertions remain, with three plain-te
 controls for unchanged continuations, folded Basic and private-key removal.
 Fresh full configured verification, actual six-boundary HTTP regressions, native
 CI and all review approvals remain pending for this repair at commit time.
+
+### Fast-path YAML sequence correction
+
+During root's own review of `b78de2fc8aba85701b1135c85722e37d3dba5470`, the initial
+fast-path guard omitted YAML's block-sequence dash. The valid input
+`- Authorization\n- SYNTHETIC_SENTINEL` bypassed structural sibling masking.
+An actual six-boundary DevelopmentJudge probe reproduced **six submission
+disclosures and five raw-artifact disclosures**, with no database disclosures.
+Receipt SHA256:
+`d5cd177c2853b4a5b4a6f2906ecbf2abee1c85fdd812394ee0d640eb9ae6978f`.
+The separate 1,974-case run on that head passed its tested forms but omitted this
+representation; it does not close this finding. No configured full-suite pass or
+approval is claimed for that candidate.
+
+The corrected guard includes block-sequence/document/directive punctuation.
+Whole YAML header-pair sequences receive normal structural sibling masking;
+unparseable mixed credential sequences reject from the original source, including
+indented block labels, before fragment or assignment rewriting. The generated
+matrix adds unquoted YAML block pairs for every label and preserves all prior
+identities/assertions. Three additional pure-YAML controls require sanitization,
+so accepting a rejection cannot silently replace support for these valid pairs.
+
+**2,996 focused context/privacy/route/CLI tests pass**, with zero failures; Ruff
+and strict source mypy pass. Exact-head six-boundary HTTP checks, configured full
+verification and native CI must be collected for this correction before review.

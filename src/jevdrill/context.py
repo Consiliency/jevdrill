@@ -120,6 +120,12 @@ def _structured(text: str, deadline: float | None) -> str | None:
     spans = []
     depth = 0
     credential_block = False
+    credential_sequence = False
+    for sequence in re.finditer(
+        r"(?m)^[^\S\r\n]*-[^\S\r\n]+[^\r\n]*" + rf"(?:{CONTINUATION})*", text
+    ):
+        _check_deadline(deadline)
+        credential_sequence = credential_sequence or _credential_label(sequence.group(), deadline)
     try:
         for token in yaml.scan(text):
             _check_deadline(deadline)
@@ -160,6 +166,8 @@ def _structured(text: str, deadline: float | None) -> str | None:
                 depth -= 1
         node = yaml.compose(text)
     except yaml.YAMLError:
+        if credential_sequence:
+            raise ContractError("unsupported structured credential sequence") from None
         for block in re.finditer(r"[:=][^\S\r\n]*[|>][^\r\n]*" + rf"(?:{CONTINUATION})+", text):
             _check_deadline(deadline)
             credential_block = credential_block or _credential_label(block.group(), deadline)
@@ -187,6 +195,8 @@ def _structured(text: str, deadline: float | None) -> str | None:
         result = yaml.serialize(node) if changed or comments else text
         _check_deadline(deadline)
         return result
+    if credential_sequence:
+        raise ContractError("unsupported structured credential sequence")
     if comments:
         return redact(node.value, deadline) if isinstance(node, ScalarNode) else ""
     return None
@@ -361,7 +371,7 @@ def _redact_plain(text: str, deadline: float | None) -> str:
 def redact(text: str, deadline: float | None = None) -> str:
     try:
         _check_deadline(deadline)
-        if not any(marker in text for marker in "{}[]:=\"'&#*!|>?"):
+        if not any(marker in text for marker in "{}[]:=\"'&#*!|>?-%"):
             return _redact_plain(text, deadline)
         structured = _structured(text, deadline)
         if structured is not None:

@@ -101,6 +101,12 @@ def test_noncredential_json_preserves_context_and_format():
     assert collect_context(text, [], [])["task_representation"] == text
 
 
+@pytest.mark.parametrize("label", ["Authorization", "api_key", "password"])
+def test_yaml_block_header_pairs_mask_all_siblings(label):
+    text = f"- {label}\n- SYNTHETIC_SENTINEL"
+    assert "SYNTHETIC_SENTINEL" not in collect_context(text, [], [])["task_representation"]
+
+
 @pytest.mark.parametrize(
     "value",
     [

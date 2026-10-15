@@ -13,6 +13,7 @@ FORMATS = {
     "json-name": lambda label: json.dumps({"name": label, "value": "SYNTHETIC_SENTINEL"}),
     "json-key": lambda label: json.dumps({"key": label, "payload": "SYNTHETIC_SENTINEL"}),
     "json-pairs": lambda label: json.dumps([[label, "SYNTHETIC_SENTINEL"]]),
+    "yaml-block-pairs": lambda label: f"- {label.strip()}\n- SYNTHETIC_SENTINEL",
     "json-duplicate": lambda label: (
         '{"name":' + json.dumps(label) + ',"value":"SYNTHETIC_SENTINEL","value":"[redacted]"}'
     ),
@@ -187,6 +188,7 @@ UNSUPPORTED_CONTEXT = {
     if name
     in {
         "yaml",
+        "yaml-block-pairs",
         "python",
         "mixed-yaml",
         "mixed-yaml-reversed",
