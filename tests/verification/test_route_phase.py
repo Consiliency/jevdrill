@@ -306,6 +306,28 @@ def test_local_only_ignores_only_absent_other_platforms(evidence_root, monkeypat
     assert runner.main() == 0
 
 
+def test_collection_timeout_retains_progress_and_stack_trace(tmp_path, monkeypatch, capsys):
+    command = ["fixture-python", "-m", "pytest"]
+    monkeypatch.setattr(runner, "commands_for", lambda *args, **kwargs: {"tests": command})
+
+    def run(args, **kwargs):
+        if args == command:
+            raise runner.subprocess.TimeoutExpired(
+                args, 600, output=b"last-test-name\n", stderr=b"stalled-test-stack\n"
+            )
+        return runner.subprocess.CompletedProcess(args, 0, stdout="baml-cli 0.20.1\n")
+
+    monkeypatch.setattr(runner.subprocess, "run", run)
+    result = runner.collect(tmp_path)
+    check = result["checks"][0]
+    assert check["exit_code"] == 125
+    expected = b"TimeoutExpired\nlast-test-name\nstalled-test-stack\n"
+    assert check["output_sha256"] == runner.hashlib.sha256(expected).hexdigest()
+    output = capsys.readouterr().out
+    assert "last-test-name" in output and "stalled-test-stack" in output
+    assert result["tests"]["total"] == 0
+
+
 def test_reduce_only_reports_corrupt_json(evidence_root, monkeypatch):
     directory = evidence_root / "evidence/ROUTE/platforms"
     directory.mkdir()

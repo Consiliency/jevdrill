@@ -91,3 +91,29 @@ presence of an earlier aggregate report. Reducer identity/source/check validatio
 is unchanged. Runtime files and credential fixtures remain byte-identical to
 `2cd84c1bb`; fresh exact-head verification and review are still required for this
 workflow-only follow-up.
+
+## Windows timeout diagnostics
+
+Candidate `f4439a666025358a58daa8031b4cbfee5c4b2840` passed all **3,807 configured
+tests**, zero failures/errors/skips, in 442.928 seconds with unchanged clean HEAD
+and all tracked hashes. JUnit SHA256:
+`d55dd4feaf6ee3e93b08a2acd84b55db06fa7cbbf2e6f476e1a59c9ef4ff5be6`.
+Its Windows collector nevertheless exhausted the unchanged 600-second budget
+(600.254s total; first command 599.868s) and produced no completed JUnit report.
+The zero test count in that failed manifest does not prove that no tests ran.
+The collector discarded TimeoutExpired's partial stdout/stderr, so the last test
+and underlying cause cannot be established from that attempt. Its log and manifest
+are preserved externally; no failure is waived or claimed fixed.
+
+This diagnostic-only follow-up retains captured timeout stdout/stderr, including
+their bytes in the output digest while retaining exit code 125. The selected
+pytest command emits node names and requests a faulthandler stack dump after a
+test stalls for 30 seconds. Selected paths/assertions, the 600-second collector
+limit and five-second CLI limit are unchanged. A synthetic collector regression
+checks that both streams reach the failure log/hash and that a timeout remains a
+failed check with no fabricated completed test count. The 30-second timer only
+dumps diagnostics; it does not terminate or grant time to a test.
+
+Runtime files remain byte-identical to `2cd84c1bb`. Fresh exact-head configured
+verification and Windows collection are required; diagnostic evidence is not
+native acceptance and the timeout's cause remains open.

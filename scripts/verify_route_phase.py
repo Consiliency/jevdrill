@@ -135,7 +135,9 @@ def commands_for(
             python,
             "-m",
             "pytest",
-            "-q",
+            "-v",
+            "-o",
+            "faulthandler_timeout=30",
             *REQUIRED_TEST_PATHS,
             "tests/verification/test_route_phase.py",
             "tests/contracts/test_boundaries.py",
@@ -520,7 +522,10 @@ def collect(root: Path, *, extra_test_paths: tuple[str, ...] = ()) -> dict[str, 
                 )
                 output = result.stdout + result.stderr
                 code = result.returncode
-            except (OSError, subprocess.TimeoutExpired) as error:
+            except subprocess.TimeoutExpired as error:
+                output = b"TimeoutExpired\n" + (error.stdout or b"") + (error.stderr or b"")
+                code = 125
+            except OSError as error:
                 output = type(error).__name__.encode()
                 code = 125
             checks.append(
