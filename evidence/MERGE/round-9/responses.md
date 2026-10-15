@@ -61,3 +61,33 @@ The real disabled/expired study preview, stopped study, dirty composer checkout 
 companion worktree remain preserved. All new probes use synthetic inputs and local
 HTTP only. No real provider, study, grant, holdout, deployment, promotion or adoption
 is authorized or claimed.
+
+## CI aggregation follow-up
+
+Candidate `2cd84c1bbf39791d8c61080c546b2f6a0d6d7e46` passed all **3,803 configured
+tests**, zero failures/errors/skips, in 439.690 seconds, with its clean HEAD and
+all 796 tracked hashes unchanged. JUnit SHA256:
+`8f14b8dfa5c2bcbe8e5676a0f60aa5e6efabfef98ebfa269abd1420ddcac6431`.
+Its actual DevelopmentJudge loopback passed **1,962 executions**, 918 local HTTP
+requests and 1,044 pre-dispatch rejections, with zero disclosures. Receipt SHA256:
+`4f86b1d1293335ced4d586540d47f29b57fb5f8b02825f5cd0d0d04661effce4`.
+
+The first Windows attempt failed three CLI controls (two storage_failure responses
+and one six-second subprocess timeout), while 3,302 tests and all later checks
+passed. Its logs/manifest were preserved. One unchanged-head retry passed all
+3,305 selected tests. The first attempt's cause remains unestablished; it is not
+retroactively a pass. No timeout or assertion changed.
+
+The subsequent reducer failed because `route-*` also downloaded the previous
+`route-verification` summary into the platform directory. Independent reduction of
+the three latest native manifests on the unchanged candidate produces **zero errors**;
+adding the summary produces exactly `malformed platform identity`. Linux/Darwin/
+Windows each passed 3,305 tests, with collection durations 150.988/136.832/394.043s.
+
+Native artifact names and selectors now use a separate `*-native-*` namespace in
+ROUTE, CONTRACT, HOST and LEARN, excluding their aggregate summaries on retries.
+A four-workflow regression selects the declared three native producers in the
+presence of an earlier aggregate report. Reducer identity/source/check validation
+is unchanged. Runtime files and credential fixtures remain byte-identical to
+`2cd84c1bb`; fresh exact-head verification and review are still required for this
+workflow-only follow-up.

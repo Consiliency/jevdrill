@@ -35,7 +35,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: route-${{ matrix.os }}
+          name: route-native-${{ matrix.os }}
           path: evidence/ROUTE/platforms/${{ matrix.platform }}-3.13.json
           if-no-files-found: error
 
@@ -48,7 +48,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - uses: actions/download-artifact@v4
         with:
-          pattern: route-*
+          pattern: route-native-*
           path: evidence/ROUTE/platforms
           merge-multiple: true
       - run: uv run python scripts/verify_route_phase.py --reduce-only

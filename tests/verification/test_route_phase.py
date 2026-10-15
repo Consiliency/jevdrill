@@ -1,9 +1,11 @@
 import copy
 import importlib.util
 import json
+from fnmatch import fnmatchcase
 from pathlib import Path
 
 import pytest
+import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location(
@@ -110,6 +112,44 @@ def evidence_root(tmp_path):
         else:
             path.mkdir(parents=True, exist_ok=True)
     return tmp_path
+
+
+@pytest.mark.parametrize("phase", ["route", "contracts", "host", "learn"])
+def test_native_download_excludes_prior_reduction_reports(phase):
+    workflow = yaml.safe_load((ROOT / ".github/workflows" / f"{phase}.yml").read_text())
+    jobs = workflow["jobs"]
+    native = jobs.get("native", jobs.get("platform"))
+    matrix = native["strategy"]["matrix"]
+    rows = matrix.get("include") or [
+        {"os": os_name, "platform": platform}
+        for os_name, platform in zip(matrix["os"], ["Linux", "Darwin", "Windows"], strict=True)
+    ]
+    produced = next(
+        step["with"]["name"]
+        for step in native["steps"]
+        if step.get("uses") == "actions/upload-artifact@v4"
+    )
+    reduction = jobs["reduce"]["steps"]
+    summary = next(
+        step["with"]["name"]
+        for step in reduction
+        if step.get("uses") == "actions/upload-artifact@v4"
+    )
+    pattern = next(
+        step["with"]["pattern"]
+        for step in reduction
+        if step.get("uses") == "actions/download-artifact@v4"
+    )
+    artifacts = {
+        produced.replace("${{ matrix.os }}", row["os"]).replace(
+            "${{ matrix.platform }}", row["platform"]
+        ): {"os": row["platform"], "python_minor": "3.13"}
+        for row in rows
+    }
+    artifacts[summary] = {"phase": phase, "status": "blocked"}
+    selected = [value for name, value in artifacts.items() if fnmatchcase(name, pattern)]
+    assert len(selected) == 3
+    assert {value.get("os") for value in selected} == {"Linux", "Darwin", "Windows"}
 
 
 def test_phase_test_command_covers_controls_without_downstream_companion(tmp_path):
