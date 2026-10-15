@@ -111,7 +111,11 @@ def test_complete_single_line_assignments_keep_ordinary_next_line(target, value)
 
 
 def test_ordinary_assignments_and_escaped_literals_keep_content(recwarn):
-    for text in ('ordinary = "context"', r"{'path': 'C:\public', 'text': 'ordinary'}"):
+    for text in (
+        'ordinary = "context"',
+        'headers["Content" "-Type"] = "application/json"',
+        r"{'path': 'C:\public', 'text': 'ordinary'}",
+    ):
         assert collect_context(text, [], [])["task_representation"] == text
     assert not recwarn.list
 

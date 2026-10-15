@@ -202,18 +202,10 @@ def _redact_assignments(text: str, deadline: float | None) -> str:
                 tokens.append(token)
         except (tokenize.TokenError, IndentationError):
             incomplete = True
-        labeled = False
         for index, token in enumerate(tokens):
             _check_deadline(deadline)
-            if token.type == tokenize.NAME:
-                labeled = labeled or _credential_label(token.string, deadline)
-            elif token.type == tokenize.STRING:
-                with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
-                    literal = ast.literal_eval(token.string)
-                labeled = labeled or _credential_label(str(literal), deadline)
             if (
-                not labeled
-                or token.type != tokenize.OP
+                token.type != tokenize.OP
                 or not token.string.endswith("=")
                 or token.string in {"==", "!=", "<=", ">="}
             ):

@@ -86,6 +86,13 @@ FORMATS = {
         + "".join(f"\\x{ord(char):02x}" for char in label)
         + "'] \\\n = 'SYNTHETIC_SENTINEL'"
     ),
+    "concatenated-assignment-target": lambda label: (
+        "headers["
+        + json.dumps(label[: len(label) // 2])
+        + " "
+        + json.dumps(label[len(label) // 2 :])
+        + '] = "SYNTHETIC_SENTINEL"'
+    ),
     "mapping-key": lambda label: f"? {{name: {json.dumps(label)}}}\n: SYNTHETIC_SENTINEL",
     "escaped-literal-label": lambda label: (
         "{'name':'"
