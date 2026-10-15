@@ -15,6 +15,7 @@ from tests.retention.test_retention import request
 )
 def test_folded_credentials_never_reach_discovery_judgment_or_retention(
     tmp_path,
+    privacy_storage,
     discovery_inputs,
     discovery_observer,
     credential_text,
@@ -49,7 +50,7 @@ def test_folded_credentials_never_reach_discovery_judgment_or_retention(
         return True
 
     discovery_observer.answer = answer
-    app = Application(SQLiteStorage(tmp_path / "route.db"), discovery_judgments=discovery_observer)
+    app = Application(privacy_storage, discovery_judgments=discovery_observer)
     try:
         app.discover(discovery_inputs)
     except ContractError:

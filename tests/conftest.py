@@ -1,8 +1,11 @@
 import copy
 import json
+import shutil
 from pathlib import Path
 
 import pytest
+
+from jevdrill.storage import SQLiteStorage
 
 OPERATORS = ("+", "-", "*", "/", "%", "@", "&", "|", "^", ">>", "<<", "**", "//")
 
@@ -240,6 +243,20 @@ def credential_may_reject(credential_text):
 @pytest.fixture
 def credential_whole(credential_text):
     return credential_text in WHOLE_CONTEXT
+
+
+@pytest.fixture(scope="session")
+def privacy_database_template(tmp_path_factory):
+    path = tmp_path_factory.mktemp("privacy-schema") / "empty.db"
+    SQLiteStorage(path)
+    return path
+
+
+@pytest.fixture
+def privacy_storage(tmp_path, privacy_database_template):
+    path = tmp_path / "route.db"
+    shutil.copyfile(privacy_database_template, path)
+    return SQLiteStorage(path)
 
 
 @pytest.fixture
