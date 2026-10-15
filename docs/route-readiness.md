@@ -64,8 +64,11 @@ array masks sibling values; encoded string layers are sanitized recursively.
 Free-text credential assignments include their complete line and indented
 continuations. Unsupported credential representations and excessive nesting
 fail before judgment submission and raw retention.
-YAML anchors, aliases, merge keys and explicit tags, mixed credential records
-that cannot be structurally parsed, and multiline code assignments are rejected.
+YAML anchors, aliases, merge keys, explicit tags and non-scalar mapping keys,
+ambiguous escaped literal labels, mixed credential records that cannot be
+structurally parsed, and multiline code assignments are rejected. Assignment
+targets are interpreted before rewriting, including augmented operators and
+literal labels; incomplete expressions reject regardless of their first token.
 Parser-omitted comments are discarded; credential-bearing keys and decoded
 labels use the same rule as values. Sanitization shares the routing deadline.
 

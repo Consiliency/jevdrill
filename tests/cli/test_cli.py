@@ -106,11 +106,16 @@ def test_report_acknowledgments_inspect_and_delete(tmp_path):
     assert json.loads(invoke(tmp_path, "report", report).stdout)["status"] == "rejected"
 
 
-def test_long_ordinary_context_keeps_the_five_second_deadline(tmp_path):
+@pytest.mark.parametrize(
+    ("text", "expected_status"),
+    [("a" * 20_000, "ready"), (" " * 60_000 + "ordinary", "no_compatible_plan")],
+    ids=["ordinary-word", "leading-whitespace"],
+)
+def test_long_ordinary_context_keeps_the_five_second_deadline(tmp_path, text, expected_status):
     payload = json.loads((ROOT / "tests/contracts/fixtures/route-application.json").read_text())[0][
         "payload"
     ]
-    payload["request"]["task_representation"] = "a" * 20_000
+    payload["request"]["task_representation"] = text
     payload["judgment_policy"] = None
     started = time.monotonic()
     result = subprocess.run(
@@ -133,7 +138,22 @@ def test_long_ordinary_context_keeps_the_five_second_deadline(tmp_path):
     )
     assert time.monotonic() - started < 5
     assert result.returncode == 0, result.stderr
-    assert json.loads(result.stdout)["status"] == "ready"
+    assert json.loads(result.stdout)["status"] == expected_status
+    assert result.stderr == ""
+
+
+def test_deep_malformed_context_rejects_within_the_five_second_deadline(tmp_path):
+    payload = json.loads((ROOT / "tests/contracts/fixtures/route-application.json").read_text())[0][
+        "payload"
+    ]
+    payload["request"]["task_representation"] = "{" * 20_000
+    payload["judgment_policy"] = None
+    started = time.monotonic()
+    result = invoke(tmp_path, "route", payload)
+    assert time.monotonic() - started < 5
+    assert result.returncode == 2, result.stderr
+    assert json.loads(result.stdout)["status"] == "invalid"
+    assert result.stderr == ""
 
 
 @pytest.mark.parametrize(

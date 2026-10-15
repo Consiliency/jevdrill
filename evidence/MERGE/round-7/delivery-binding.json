@@ -1,0 +1,46 @@
+{
+  "head": "16202ed4e12b2da446c13221f095ae5cd49f2d5c",
+  "manifest_sha256": "bab25db406e206b60040072c3fcee09d180659eb304c0dbb95e6c8ef90d39432",
+  "tracked_files": 785,
+  "seats": {
+    "astra": {
+      "taskId": "node:delegated-task:command%3Amcp%3Ad98cf7ca-2c0c-4d10-8521-ebe2be21d197%3Adelegate-task%3Ajevdrill-merge-review-20261013-r7-16202-astra",
+      "childThreadId": "thread:delegated-task:command%3Amcp%3Ad98cf7ca-2c0c-4d10-8521-ebe2be21d197%3Adelegate-task%3Ajevdrill-merge-review-20261013-r7-16202-astra",
+      "providerInstanceId": "codex",
+      "model": "gpt-6-astra",
+      "status": "completed",
+      "verdict": "DISAGREE",
+      "report_sha256": "b073d04d92f715a9b820d66babb2b6510140a8ac26199aca95b4f4a556541c36"
+    },
+    "grok": {
+      "taskId": "node:delegated-task:command%3Amcp%3Ad98cf7ca-2c0c-4d10-8521-ebe2be21d197%3Adelegate-task%3Ajevdrill-merge-review-20261013-r7-16202-grok",
+      "childThreadId": "thread:delegated-task:command%3Amcp%3Ad98cf7ca-2c0c-4d10-8521-ebe2be21d197%3Adelegate-task%3Ajevdrill-merge-review-20261013-r7-16202-grok",
+      "providerInstanceId": "grok",
+      "model": "grok-4.7",
+      "status": "completed",
+      "verdict": "DISAGREE",
+      "report_sha256": "10146501c56b0ed8f35d849b0541d690c821068ae37fd70f8e8a3848d01559b6"
+    },
+    "correctness": {
+      "taskId": "node:delegated-task:command%3Amcp%3Ad98cf7ca-2c0c-4d10-8521-ebe2be21d197%3Adelegate-task%3Ajevdrill-merge-review-20261013-r7-16202-correctness",
+      "childThreadId": "thread:delegated-task:command%3Amcp%3Ad98cf7ca-2c0c-4d10-8521-ebe2be21d197%3Adelegate-task%3Ajevdrill-merge-review-20261013-r7-16202-correctness",
+      "providerInstanceId": "codex",
+      "model": "gpt-6-astra",
+      "status": "completed",
+      "verdict": "DISAGREE",
+      "report_sha256": "a7848a9a388ac2025391da4d36a67f325469612447c162c5e394c651d9b0137b"
+    },
+    "alternative": {
+      "taskId": "node:delegated-task:command%3Amcp%3Ad98cf7ca-2c0c-4d10-8521-ebe2be21d197%3Adelegate-task%3Ajevdrill-merge-review-20261013-r7-16202-alternative",
+      "childThreadId": "thread:delegated-task:command%3Amcp%3Ad98cf7ca-2c0c-4d10-8521-ebe2be21d197%3Adelegate-task%3Ajevdrill-merge-review-20261013-r7-16202-alternative",
+      "providerInstanceId": "codex",
+      "model": "gpt-6-astra",
+      "status": "completed",
+      "verdict": "DISAGREE",
+      "report_sha256": "b4ff853ef43712848569b4bcafc3e67451ab21d30ba35a07393965466a4c9d89"
+    }
+  },
+  "all_seats_finished_before_repair": true,
+  "board_unanimous": false,
+  "president": "separate final approval required; no new ruling claimed"
+}

@@ -84,6 +84,38 @@ def test_noncredential_json_preserves_context_and_format():
     assert collect_context(text, [], [])["task_representation"] == text
 
 
+@pytest.mark.parametrize(
+    "value",
+    [
+        'r"SYNTHETIC_SENTINEL"',
+        'b"SYNTHETIC_SENTINEL"',
+        'f"SYNTHETIC_SENTINEL"',
+        'str("SYNTHETIC_SENTINEL")',
+    ],
+)
+@pytest.mark.parametrize(
+    "target",
+    [
+        "password",
+        "headers['X-API-Key']",
+        "password: str",
+        "ordinary = password",
+        r"headers[b'\x61pi_key']",
+    ],
+)
+def test_complete_single_line_assignments_keep_ordinary_next_line(target, value):
+    text = f"{target} = {value}\nOrdinary context"
+    result = collect_context(text, [], [])["task_representation"]
+    assert "SYNTHETIC_SENTINEL" not in result
+    assert "Ordinary context" in result
+
+
+def test_ordinary_assignments_and_escaped_literals_keep_content(recwarn):
+    for text in ('ordinary = "context"', r"{'path': 'C:\public', 'text': 'ordinary'}"):
+        assert collect_context(text, [], [])["task_representation"] == text
+    assert not recwarn.list
+
+
 def test_deep_context_fails_with_a_boundary_error():
     with pytest.raises(ContractError, match="nesting"):
         collect_context("[" * 1500 + "0" + "]" * 1500, [], [])

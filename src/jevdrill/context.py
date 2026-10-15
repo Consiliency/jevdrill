@@ -6,15 +6,31 @@ import json
 import os
 import posixpath
 import re
+import sys
+import tokenize
 import uuid
+import warnings
 from collections.abc import Mapping, Sequence
+from io import StringIO
 from pathlib import Path
 from time import monotonic
 from typing import Any
 
 import yaml
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
-from yaml.tokens import AliasToken, AnchorToken, ScalarToken, TagToken
+from yaml.tokens import (
+    AliasToken,
+    AnchorToken,
+    BlockEndToken,
+    BlockMappingStartToken,
+    BlockSequenceStartToken,
+    FlowMappingEndToken,
+    FlowMappingStartToken,
+    FlowSequenceEndToken,
+    FlowSequenceStartToken,
+    ScalarToken,
+    TagToken,
+)
 
 from .contracts import ContractError
 
@@ -23,7 +39,7 @@ CREDENTIAL_LABEL = r"authorization|api[\s_-]*key|access[\s_-]*token|password|sec
 CONTINUATION = r"(?:\r\n|\n|\r)[^\S\r\n]+[^\r\n]*"
 CREDENTIAL = re.compile(
     rf"""(?i)(?<![\w.-])(?:[\w.]+\s*+\[\s*+)?(?:["'][^\S\r\n]*+)?[\w.-]*(?:{CREDENTIAL_LABEL})"""
-    r"""[\w.-]*[^\S\r\n]*+["']?\s*+\]?\s*+[:=][^\r\n]*"""
+    r"""[\w.-]*[^\S\r\n]*+["']?\s*+\]?\s*+(?::|(?:\*\*|//|<<|>>|[+\-*/%@&|^])?=)[^\r\n]*"""
     rf"(?:{CONTINUATION})*"
     + r"""|(?<![^\r\n"'])[ \t]*(?:bearer|basic)\s+[^\s"',;}\]]+"""
     + r"|-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----"
@@ -40,11 +56,17 @@ def _check_deadline(deadline: float | None) -> None:
 
 
 def _credential_label(value: str, deadline: float | None = None) -> bool:
-    while value.strip().startswith('"'):
+    while value.strip().startswith(('"', "'")):
         _check_deadline(deadline)
         try:
-            decoded = json.loads(value)
+            try:
+                decoded = json.loads(value)
+            except ValueError:
+                with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                    decoded = ast.literal_eval(value)
         except (ValueError, RecursionError):
+            break
+        except SyntaxError:
             break
         if not isinstance(decoded, str) or decoded == value:
             break
@@ -59,6 +81,8 @@ def _redact_node(node: Node, seen: set[int], deadline: float | None) -> bool:
     seen.add(id(node))
     changed = False
     if isinstance(node, MappingNode):
+        if any(not isinstance(key, ScalarNode) for key, _ in node.value):
+            raise ContractError("unsupported structured mapping key")
         sensitive = any(
             isinstance(item, ScalarNode) and _credential_label(item.value, deadline)
             for pair in node.value
@@ -94,6 +118,7 @@ def _redact_node(node: Node, seen: set[int], deadline: float | None) -> bool:
 
 def _structured(text: str, deadline: float | None) -> str | None:
     spans = []
+    depth = 0
     try:
         for token in yaml.scan(text):
             _check_deadline(deadline)
@@ -102,9 +127,39 @@ def _structured(text: str, deadline: float | None) -> str | None:
             if isinstance(token, ScalarToken):
                 if token.value == "<<":
                     raise ContractError("unsupported YAML merge")
+                if "\\" in token.value:
+                    try:
+                        with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                            literal = ast.literal_eval(
+                                text[token.start_mark.index : token.end_mark.index]
+                            )
+                    except (SyntaxError, ValueError):
+                        literal = None
+                    if (
+                        isinstance(literal, (str, bytes))
+                        and _credential_label(str(literal), deadline)
+                        and not _credential_label(token.value, deadline)
+                    ):
+                        raise ContractError("unsupported escaped literal credential")
                 spans.append((token.start_mark.index, token.end_mark.index))
+            if isinstance(
+                token,
+                (
+                    BlockMappingStartToken,
+                    BlockSequenceStartToken,
+                    FlowMappingStartToken,
+                    FlowSequenceStartToken,
+                ),
+            ):
+                depth += 1
+                if depth >= sys.getrecursionlimit():
+                    raise ContractError("context nesting exceeds sanitization limit")
+            elif isinstance(token, (BlockEndToken, FlowMappingEndToken, FlowSequenceEndToken)):
+                depth -= 1
         node = yaml.compose(text)
     except yaml.YAMLError:
+        if re.search(r"(?m)^[^\S\r\n]*\?[^\S\r\n]*[\[{]", text):
+            raise ContractError("unsupported structured mapping key") from None
         if re.search(r"(?:^|[\s:\[,])(?:[&*][\w-]+|![!\w])", text):
             raise ContractError("unsupported YAML graph or tag")
         return None
@@ -130,6 +185,83 @@ def _structured(text: str, deadline: float | None) -> str | None:
     return None
 
 
+def _redact_assignments(text: str, deadline: float | None) -> str:
+    chunks = []
+    end = 0
+    for match in re.finditer(
+        r"(?m)^(?:[^\r\n]*\\(?:\r\n|\n|\r))*[^\r\n]*=[^\r\n]*" + rf"(?:{CONTINUATION})*",
+        text,
+    ):
+        _check_deadline(deadline)
+        first_line = re.sub(r"\\(?:\r\n|\n|\r)", "", match.group()).splitlines()[0].strip()
+        tokens = []
+        incomplete = False
+        try:
+            for token in tokenize.generate_tokens(StringIO(first_line).readline):
+                _check_deadline(deadline)
+                tokens.append(token)
+        except (tokenize.TokenError, IndentationError):
+            incomplete = True
+        labeled = False
+        for index, token in enumerate(tokens):
+            _check_deadline(deadline)
+            if token.type == tokenize.NAME:
+                labeled = labeled or _credential_label(token.string, deadline)
+            elif token.type == tokenize.STRING:
+                with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                    literal = ast.literal_eval(token.string)
+                labeled = labeled or _credential_label(str(literal), deadline)
+            if (
+                not labeled
+                or token.type != tokenize.OP
+                or not token.string.endswith("=")
+                or token.string in {"==", "!=", "<=", ">="}
+            ):
+                continue
+            try:
+                with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                    statement = ast.parse(first_line[: token.start[1]].strip() + " = None").body[-1]
+            except (SyntaxError, ValueError):
+                if any(
+                    item.type == tokenize.STRING and _credential_label(item.string, deadline)
+                    for item in tokens[:index]
+                ):
+                    raise ContractError("unsupported credential assignment") from None
+                continue
+            targets = (
+                statement.targets
+                if isinstance(statement, ast.Assign)
+                else [statement.target]
+                if isinstance(statement, ast.AnnAssign)
+                else []
+            )
+            sensitive = False
+            for target in targets:
+                for node in ast.walk(target):
+                    _check_deadline(deadline)
+                    value = (
+                        node.id
+                        if isinstance(node, ast.Name)
+                        else node.attr
+                        if isinstance(node, ast.Attribute)
+                        else str(node.value)
+                        if isinstance(node, ast.Constant) and isinstance(node.value, (str, bytes))
+                        else ""
+                    )
+                    sensitive = sensitive or _credential_label(value, deadline)
+            if not sensitive:
+                continue
+            if incomplete or any(
+                item.type == tokenize.ERRORTOKEN and item.string in {"'", '"'} for item in tokens
+            ):
+                raise ContractError("unsupported multiline credential assignment")
+            chunks.append(text[end : match.start()])
+            chunks.append("[redacted]")
+            end = match.end()
+            break
+    return "".join(chunks) + text[end:]
+
+
 def _redact_plain(text: str, deadline: float | None) -> str:
     _check_deadline(deadline)
     for match in CREDENTIAL.finditer(text):
@@ -137,15 +269,17 @@ def _redact_plain(text: str, deadline: float | None) -> str:
         first_line = match.group().splitlines()[0]
         if "=" in first_line:
             value = first_line.split("=", 1)[1].strip()
-            if value.startswith(('"', "'", "[", "{", "(")) or value.endswith("\\"):
-                try:
-                    ast.parse(value, mode="eval")
-                except (SyntaxError, ValueError):
-                    raise ContractError("unsupported multiline credential assignment") from None
+            try:
+                for token in tokenize.generate_tokens(StringIO(value).readline):
+                    _check_deadline(deadline)
+                    if token.type == tokenize.ERRORTOKEN and token.string in {"'", '"'}:
+                        raise ContractError("unsupported multiline credential assignment")
+            except (tokenize.TokenError, IndentationError):
+                raise ContractError("unsupported multiline credential assignment") from None
     cleaned = CREDENTIAL.sub("[redacted]", text)
-    references = re.findall(r"""["']([^"'\r\n]+)["']""", cleaned)
-    references += re.findall(r"(?m)^[ \t-]*[^\r\n:=]+[:=]\s*(.+)", cleaned)
-    references += re.findall(r"(?m)[:=][ \t]*[|>][^\r\n]*(?:\r?\n[ \t]+[^\r\n]*)+", cleaned)
+    references = [match.group() for match in re.finditer(r"""["'][^"'\r\n]+["']""", cleaned)]
+    references += re.findall(r"(?m)^[^\r\n:=]+[:=][^\S\r\n]*(.+)", cleaned)
+    references += re.findall(r"[:=][^\S\r\n]*[|>][^\r\n]*" + rf"(?:{CONTINUATION})+", cleaned)
     if any(_credential_label(value, deadline) for value in references):
         raise ContractError("unsupported credential representation")
     _check_deadline(deadline)
@@ -155,6 +289,7 @@ def _redact_plain(text: str, deadline: float | None) -> str:
 def redact(text: str, deadline: float | None = None) -> str:
     try:
         _check_deadline(deadline)
+        text = _redact_assignments(text, deadline)
         structured = _structured(text, deadline)
         if structured is not None:
             return structured

@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+OPERATORS = ("+", "-", "*", "/", "%", "@", "&", "|", "^", ">>", "<<", "**", "//")
+
 FORMATS = {
     "json-name": lambda label: json.dumps({"name": label, "value": "SYNTHETIC_SENTINEL"}),
     "json-key": lambda label: json.dumps({"key": label, "payload": "SYNTHETIC_SENTINEL"}),
@@ -54,6 +56,59 @@ FORMATS = {
     "continued-assignment": lambda label: (
         f'headers[{json.dumps(label)}] = \\\n"SYNTHETIC_SENTINEL"'
     ),
+    "raw-multiline-assignment": lambda label: (
+        f'headers[{json.dumps(label)}] = r"""prefix\nSYNTHETIC_SENTINEL\n"""'
+    ),
+    "formatted-multiline-assignment": lambda label: (
+        f'headers[{json.dumps(label)}] = f"""prefix\nSYNTHETIC_SENTINEL\n"""'
+    ),
+    "bytes-multiline-assignment": lambda label: (
+        f'headers[{json.dumps(label)}] = b"""prefix\nSYNTHETIC_SENTINEL\n"""'
+    ),
+    "call-multiline-assignment": lambda label: (
+        f'headers[{json.dumps(label)}] = str(\n"SYNTHETIC_SENTINEL"\n)'
+    ),
+    "augmented-assignment": lambda label: "\n".join(
+        f'headers[{json.dumps(label)}] {operator}= "SYNTHETIC_SENTINEL"' for operator in OPERATORS
+    ),
+    "augmented-multiline-assignment": lambda label: (
+        f'headers[{json.dumps(label)}] += (\n    "SYNTHETIC_SENTINEL"\n)'
+    ),
+    "escaped-assignment-label": lambda label: (
+        "headers['" + "".join(f"\\x{ord(char):02x}" for char in label) + "'] = 'SYNTHETIC_SENTINEL'"
+    ),
+    "sequence-key": lambda label: f"? [{json.dumps(label)}]\n: SYNTHETIC_SENTINEL",
+    "continued-assignment-target": lambda label: (
+        f'headers[{json.dumps(label)}] \\\n += "SYNTHETIC_SENTINEL"'
+    ),
+    "continued-escaped-target": lambda label: (
+        "headers['"
+        + "".join(f"\\x{ord(char):02x}" for char in label)
+        + "'] \\\n = 'SYNTHETIC_SENTINEL'"
+    ),
+    "mapping-key": lambda label: f"? {{name: {json.dumps(label)}}}\n: SYNTHETIC_SENTINEL",
+    "escaped-literal-label": lambda label: (
+        "{'name':'"
+        + "".join(f"\\x{ord(char):02x}" for char in label)
+        + "','value':'SYNTHETIC_SENTINEL'}"
+    ),
+    "unicode-literal-label": lambda label: (
+        "{'name':'"
+        + "".join(f"\\u{ord(char):04x}" for char in label)
+        + "','value':'SYNTHETIC_SENTINEL'}"
+    ),
+    "escaped-literal-key": lambda label: (
+        "{'" + "".join(f"\\x{ord(char):02x}" for char in label) + "':'SYNTHETIC_SENTINEL'}"
+    ),
+    "nbsp-block": lambda label: (
+        f"Header for request.\nheader: |\n\u00a0\u00a0{label}\npayload: SYNTHETIC_SENTINEL"
+    ),
+    "vertical-tab-block": lambda label: (
+        f"Header for request.\nheader: |\n\v\v{label}\npayload: SYNTHETIC_SENTINEL"
+    ),
+    "form-feed-block": lambda label: (
+        f"Header for request.\nheader: |\n\f\f{label}\npayload: SYNTHETIC_SENTINEL"
+    ),
 }
 LABELS = [
     "Authorization",
@@ -80,13 +135,38 @@ UNSUPPORTED_CONTEXT = {
         "tag",
         "multiline-assignment",
         "continued-assignment",
+        "raw-multiline-assignment",
+        "formatted-multiline-assignment",
+        "bytes-multiline-assignment",
+        "call-multiline-assignment",
+        "augmented-multiline-assignment",
+        "sequence-key",
+        "mapping-key",
+        "escaped-literal-label",
+        "unicode-literal-label",
+        "escaped-literal-key",
+        "nbsp-block",
+        "vertical-tab-block",
+        "form-feed-block",
     }
 }
 WHOLE_CONTEXT = {
     formatter(label)
     for name, formatter in FORMATS.items()
     for label in LABELS
-    if name in {"encoded-label", "credential-key", "comment", "inline-comment", "comment-record"}
+    if name
+    in {
+        "encoded-label",
+        "credential-key",
+        "comment",
+        "inline-comment",
+        "comment-record",
+        "sequence-key",
+        "mapping-key",
+        "escaped-literal-label",
+        "unicode-literal-label",
+        "escaped-literal-key",
+    }
 }
 
 
