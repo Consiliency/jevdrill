@@ -96,6 +96,58 @@ FORMATS = {
         + json.dumps(label[len(label) // 2 :])
         + '] = "SYNTHETIC_SENTINEL"'
     ),
+    "concatenated-literal-label": lambda label: (
+        "{'name': "
+        + repr(label[: len(label) // 2])
+        + " "
+        + repr(label[len(label) // 2 :])
+        + ", 'value': 'SYNTHETIC_SENTINEL'}"
+    ),
+    "concatenated-literal-key": lambda label: (
+        "{"
+        + repr(label[: len(label) // 2])
+        + " "
+        + repr(label[len(label) // 2 :])
+        + ": 'SYNTHETIC_SENTINEL'}"
+    ),
+    "concatenated-literal-pairs": lambda label: (
+        "[["
+        + repr(label[: len(label) // 2])
+        + " "
+        + repr(label[len(label) // 2 :])
+        + ", 'SYNTHETIC_SENTINEL']]"
+    ),
+    "implicit-assignment-target": lambda label: (
+        f'headers[\n{json.dumps(label)}\n] = "SYNTHETIC_SENTINEL"'
+    ),
+    "tuple-assignment-target": lambda label: (
+        f'(ordinary,\nheaders[{json.dumps(label)}]\n) = ("x", "SYNTHETIC_SENTINEL")'
+    ),
+    "implicit-augmented-target": lambda label: (
+        "headers[\n"
+        + repr(label[: len(label) // 2])
+        + " "
+        + repr(label[len(label) // 2 :])
+        + '\n] += "SYNTHETIC_SENTINEL"'
+    ),
+    "cr-assignment-target": lambda label: (
+        "ordinary = 0\rheaders["
+        + repr(label[: len(label) // 2])
+        + " "
+        + repr(label[len(label) // 2 :])
+        + '] = "SYNTHETIC_SENTINEL"'
+    ),
+    "yaml-assignment-label": lambda label: (
+        f'header: |\n  {label.strip().replace("-", "_")} = "placeholder"'
+        "\npayload: SYNTHETIC_SENTINEL"
+    ),
+    "yaml-augmented-label": lambda label: (
+        f'header: >\n  {label.strip().replace("-", "_")} += "placeholder"'
+        "\npayload: SYNTHETIC_SENTINEL"
+    ),
+    "yaml-subscript-label": lambda label: (
+        f'header: |\n  headers[{json.dumps(label)}] = "placeholder"\npayload: SYNTHETIC_SENTINEL'
+    ),
     "mapping-key": lambda label: f"? {{name: {json.dumps(label)}}}\n: SYNTHETIC_SENTINEL",
     "escaped-literal-label": lambda label: (
         "{'name':'"
@@ -152,6 +204,15 @@ UNSUPPORTED_CONTEXT = {
         "augmented-multiline-assignment",
         "sequence-key",
         "mapping-key",
+        "concatenated-literal-label",
+        "concatenated-literal-key",
+        "concatenated-literal-pairs",
+        "implicit-assignment-target",
+        "tuple-assignment-target",
+        "implicit-augmented-target",
+        "yaml-assignment-label",
+        "yaml-augmented-label",
+        "yaml-subscript-label",
         "escaped-literal-label",
         "unicode-literal-label",
         "escaped-literal-key",

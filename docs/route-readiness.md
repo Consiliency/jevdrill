@@ -65,10 +65,13 @@ Free-text credential assignments include their complete line and indented
 continuations. Unsupported credential representations and excessive nesting
 fail before judgment submission and raw retention.
 YAML anchors, aliases, merge keys, explicit tags and non-scalar mapping keys,
-ambiguous escaped literal labels, mixed credential records that cannot be
+ambiguous escaped or concatenated literal labels, mixed credential records that cannot be
 structurally parsed, and multiline code assignments are rejected. Assignment
-targets are interpreted before rewriting, including augmented operators and
-literal labels; incomplete expressions reject regardless of their first token.
+targets are inspected as complete logical statements, including augmented operators,
+CR/LF/CRLF boundaries and literal labels; implicit multiline targets and incomplete
+expressions reject. Original structured labels are inspected before assignment
+rewriting so sibling sensitivity is preserved. Continuation scanning is linear;
+literal parser resource failures become boundary rejections.
 Parser-omitted comments are discarded; credential-bearing keys and decoded
 labels use the same rule as values. Sanitization shares the routing deadline.
 

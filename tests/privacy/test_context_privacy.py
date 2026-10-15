@@ -125,6 +125,39 @@ def test_deep_context_fails_with_a_boundary_error():
         collect_context("[" * 1500 + "0" + "]" * 1500, [], [])
 
 
+@pytest.mark.parametrize("target", ["password", "config.password"])
+@pytest.mark.parametrize("operator", ["=", "+="])
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+def test_implicit_assignment_targets_reject_before_collection(target, operator, newline):
+    text = newline.join(["(", target, f') {operator} "SYNTHETIC_SENTINEL"'])
+    with pytest.raises(ContractError, match="multiline credential assignment"):
+        collect_context(text, [], [])
+
+
+@pytest.mark.parametrize("style", ["|", ">"])
+@pytest.mark.parametrize(
+    "assignment",
+    [
+        'password = "placeholder"',
+        'password += "placeholder"',
+        'headers["X-API-Key"] = "placeholder"',
+    ],
+)
+def test_original_yaml_assignment_labels_mask_sibling_values(style, assignment):
+    text = f"header: {style}\n  {assignment}\npayload: SYNTHETIC_SENTINEL"
+    result = collect_context(text, [], [])["task_representation"]
+    assert "SYNTHETIC_SENTINEL" not in result
+
+
+def test_literal_parser_resource_failure_is_a_boundary_error(monkeypatch):
+    def exhausted(_):
+        raise MemoryError("synthetic parser resource limit")
+
+    monkeypatch.setattr("jevdrill.context.ast.literal_eval", exhausted)
+    with pytest.raises(ContractError, match="sanitization limit"):
+        collect_context(r"{'name': '\x61pi_key', 'value': 'SYNTHETIC_SENTINEL'}", [], [])
+
+
 def test_yaml_aliases_cannot_restore_credentials():
     text = "header: &h\n  name: X-API-Key\n  value: SYNTHETIC_SENTINEL\ncopy: *h"
     with pytest.raises(ContractError, match="YAML graph"):

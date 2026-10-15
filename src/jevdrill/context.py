@@ -119,20 +119,22 @@ def _redact_node(node: Node, seen: set[int], deadline: float | None) -> bool:
 def _structured(text: str, deadline: float | None) -> str | None:
     spans = []
     depth = 0
+    credential_block = False
     try:
         for token in yaml.scan(text):
             _check_deadline(deadline)
             if isinstance(token, (AliasToken, AnchorToken, TagToken)):
                 raise ContractError("unsupported YAML graph or tag")
             if isinstance(token, ScalarToken):
+                if token.style in {"|", ">"} and _credential_label(token.value, deadline):
+                    credential_block = True
                 if token.value == "<<":
                     raise ContractError("unsupported YAML merge")
-                if "\\" in token.value:
+                source = text[token.start_mark.index : token.end_mark.index]
+                if "\\" in token.value and re.match(r"[rRuUbB]*[\"']", source):
                     try:
                         with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
-                            literal = ast.literal_eval(
-                                text[token.start_mark.index : token.end_mark.index]
-                            )
+                            literal = ast.literal_eval(source)
                     except (SyntaxError, ValueError):
                         literal = None
                     if (
@@ -158,6 +160,11 @@ def _structured(text: str, deadline: float | None) -> str | None:
                 depth -= 1
         node = yaml.compose(text)
     except yaml.YAMLError:
+        for block in re.finditer(r"[:=][^\S\r\n]*[|>][^\r\n]*" + rf"(?:{CONTINUATION})+", text):
+            _check_deadline(deadline)
+            credential_block = credential_block or _credential_label(block.group(), deadline)
+        if credential_block:
+            raise ContractError("unsupported structured credential block") from None
         if re.search(r"(?m)^[^\S\r\n]*\?[^\S\r\n]*[\[{]", text):
             raise ContractError("unsupported structured mapping key") from None
         if re.search(r"(?:^|[\s:\[,])(?:[&*][\w-]+|![!\w])", text):
@@ -186,38 +193,92 @@ def _structured(text: str, deadline: float | None) -> str | None:
 
 
 def _redact_assignments(text: str, deadline: float | None) -> str:
-    chunks = []
-    end = 0
-    for match in re.finditer(
-        r"(?m)^(?:[^\r\n]*\\(?:\r\n|\n|\r))*[^\r\n]*=[^\r\n]*" + rf"(?:{CONTINUATION})*",
-        text,
-    ):
+    line_offsets = [0]
+    for marker in re.finditer(r"\r\n|[\r\n]", text):
         _check_deadline(deadline)
-        first_line = re.sub(r"\\(?:\r\n|\n|\r)", "", match.group()).splitlines()[0].strip()
+        line_offsets.append(marker.end())
+    groups = []
+    source = StringIO(text, newline=None)
+    rows = 0
+
+    def readline() -> str:
+        nonlocal rows
+        line = source.readline()
+        if line:
+            rows += 1
+        return line
+
+    while rows < len(line_offsets):
+        _check_deadline(deadline)
+        base = rows
+        begin = line_offsets[base]
+        finish = len(text)
         tokens = []
         incomplete = False
         try:
-            for token in tokenize.generate_tokens(StringIO(first_line).readline):
+            for token in tokenize.generate_tokens(readline):
                 _check_deadline(deadline)
+                token = token._replace(
+                    start=(token.start[0] + base, token.start[1]),
+                    end=(token.end[0] + base, token.end[1]),
+                )
                 tokens.append(token)
+                if token.type in {tokenize.NEWLINE, tokenize.ENDMARKER}:
+                    finish = (
+                        line_offsets[token.start[0] - 1] + token.start[1]
+                        if token.start[0] <= len(line_offsets)
+                        else len(text)
+                    )
+                    break
         except (tokenize.TokenError, IndentationError):
             incomplete = True
-        for index, token in enumerate(tokens):
+        groups.append((begin, finish, tokens, incomplete))
+        if rows == base:
+            break
+
+    chunks = []
+    end = 0
+    continuation = re.compile(rf"(?:{CONTINUATION})*")
+    for begin, finish, tokens, incomplete in groups:
+        _check_deadline(deadline)
+        literals = []
+        concatenated = False
+        for token in tokens:
             _check_deadline(deadline)
+            if token.type == tokenize.STRING:
+                literals.append(token.string)
+            elif token.type not in {tokenize.NL, tokenize.COMMENT}:
+                if len(literals) > 1:
+                    try:
+                        with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                            value = ast.literal_eval(" ".join(literals))
+                    except (SyntaxError, ValueError):
+                        value = None
+                    if isinstance(value, (str, bytes)) and _credential_label(str(value), deadline):
+                        concatenated = True
+                literals = []
+
+        target_start = begin
+        quoted_credential = False
+        for token in tokens:
+            _check_deadline(deadline)
+            if token.type == tokenize.STRING:
+                quoted_credential = quoted_credential or _credential_label(token.string, deadline)
             if (
                 token.type != tokenize.OP
                 or not token.string.endswith("=")
                 or token.string in {"==", "!=", "<=", ">="}
             ):
                 continue
+            operator_start = line_offsets[token.start[0] - 1] + token.start[1]
+            operator_end = line_offsets[token.end[0] - 1] + token.end[1]
+            prefix = re.sub(r"\\(?:\r\n|\n|\r)", "", text[target_start:operator_start]).strip()
+            target_start = operator_end
             try:
                 with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
-                    statement = ast.parse(first_line[: token.start[1]].strip() + " = None").body[-1]
+                    statement = ast.parse(prefix + " = None").body[-1]
             except (SyntaxError, ValueError):
-                if any(
-                    item.type == tokenize.STRING and _credential_label(item.string, deadline)
-                    for item in tokens[:index]
-                ):
+                if quoted_credential:
                     raise ContractError("unsupported credential assignment") from None
                 continue
             targets = (
@@ -243,14 +304,33 @@ def _redact_assignments(text: str, deadline: float | None) -> str:
                     sensitive = sensitive or _credential_label(value, deadline)
             if not sensitive:
                 continue
-            if incomplete or any(
-                item.type == tokenize.ERRORTOKEN and item.string in {"'", '"'} for item in tokens
+            logical = re.sub(r"\\(?:\r\n|\n|\r)", "", text[begin:finish])
+            if (
+                incomplete
+                or "\n" in logical
+                or "\r" in logical
+                or any(
+                    item.type == tokenize.ERRORTOKEN and item.string in {"'", '"'}
+                    for item in tokens
+                )
             ):
                 raise ContractError("unsupported multiline credential assignment")
-            chunks.append(text[end : match.start()])
+            if begin < end:
+                break
+            folded = continuation.match(text, finish)
+            chunks.append(text[end:begin])
             chunks.append("[redacted]")
-            end = match.end()
+            end = folded.end() if folded is not None else finish
             break
+        else:
+            if concatenated:
+                raise ContractError("unsupported concatenated literal credential")
+            if (
+                incomplete
+                and "=" in text[begin:finish]
+                and _credential_label(text[begin:finish], deadline)
+            ):
+                raise ContractError("unsupported credential assignment")
     return "".join(chunks) + text[end:]
 
 
@@ -281,10 +361,10 @@ def _redact_plain(text: str, deadline: float | None) -> str:
 def redact(text: str, deadline: float | None = None) -> str:
     try:
         _check_deadline(deadline)
-        text = _redact_assignments(text, deadline)
         structured = _structured(text, deadline)
         if structured is not None:
             return structured
+        text = _redact_assignments(text, deadline)
         decoder = json.JSONDecoder(object_pairs_hook=tuple)
         chunks = []
         end = 0
@@ -317,7 +397,7 @@ def redact(text: str, deadline: float | None = None) -> str:
             end = consumed
             cursor = end
         return "".join(chunks) + _redact_plain(text[end:], deadline)
-    except RecursionError as error:
+    except (RecursionError, MemoryError) as error:
         raise ContractError("context nesting exceeds sanitization limit") from error
 
 

@@ -108,8 +108,13 @@ def test_report_acknowledgments_inspect_and_delete(tmp_path):
 
 @pytest.mark.parametrize(
     ("text", "expected_status"),
-    [("a" * 20_000, "ready"), (" " * 60_000 + "ordinary", "no_compatible_plan")],
-    ids=["ordinary-word", "leading-whitespace"],
+    [
+        ("a" * 20_000, "ready"),
+        (" " * 60_000 + "ordinary", "no_compatible_plan"),
+        ("ordinary\\\n" * 2_000, "ready"),
+        ("x\\\n" * 20_000 + "ordinary", "no_compatible_plan"),
+    ],
+    ids=["ordinary-word", "leading-whitespace", "parser-continuations", "long-continuations"],
 )
 def test_long_ordinary_context_keeps_the_five_second_deadline(tmp_path, text, expected_status):
     payload = json.loads((ROOT / "tests/contracts/fixtures/route-application.json").read_text())[0][
