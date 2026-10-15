@@ -543,6 +543,8 @@ def collect(root: Path, *, extra_test_paths: tuple[str, ...] = ()) -> dict[str, 
                 except ValueError:
                     checks[-1]["response_status"] = "unavailable"
             print(f"{name}: {'passed' if code == 0 else 'FAILED'}", flush=True)
+            if code:
+                print(output.decode(errors="replace")[-20000:], flush=True)
         tests: dict[str, int] = {"total": 0, "skipped": 0, "failures": 0, "errors": 0}
         assertions = []
         if junit.exists():
