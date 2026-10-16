@@ -683,6 +683,73 @@ for indicator in ("name:", "?"):
                 )
             )
 FORMATS.update(MEMBER_VIEW_FORMATS)
+COMPLETE_MEMBER_FORMATS = {
+    "complete-member-quoted-add": lambda label: (
+        "Ordinary context.\nname: '''"
+        + label[:2]
+        + "'' + ''"
+        + label[2:]
+        + "'''\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "complete-member-quoted-str": lambda label: (
+        "Ordinary context.\nname: 'str(''"
+        + label[:2]
+        + "'') + str(''"
+        + label[2:]
+        + "'')'\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "complete-member-comment-quote": lambda label: (
+        "Ordinary context.\nname:\n# public\n '''"
+        + label[:2]
+        + "'' + ''"
+        + label[2:]
+        + "'''\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "complete-member-explicit-quote": lambda label: (
+        "Ordinary context.\n?\n# public\n '''"
+        + label[:2]
+        + "'' + ''"
+        + label[2:]
+        + "'''\n: SYNTHETIC_SENTINEL"
+    ),
+    "complete-member-sequence": lambda label: (
+        '- "' + label[:2] + '"\n "' + label[2:] + '"\n- SYNTHETIC_SENTINEL'
+    ),
+    "complete-member-prose-sequence": lambda label: (
+        'Ordinary context.\n- "' + label[:2] + '"\n "' + label[2:] + '"\n- SYNTHETIC_SENTINEL'
+    ),
+    "complete-member-vt-key": lambda label: (
+        "? \vstr('" + label[:2] + "')+str('" + label[2:] + "')\n: SYNTHETIC_SENTINEL"
+    ),
+    "complete-member-prose-vt-key": lambda label: (
+        "Ordinary context.\n? \v'" + label[:2] + "' + '" + label[2:] + "'\n: SYNTHETIC_SENTINEL"
+    ),
+}
+for ending, separator in (("ls", "\u2028"), ("ps", "\u2029")):
+    for indicator in ("name:", "?"):
+        COMPLETE_MEMBER_FORMATS[f"complete-member-{ending}-{indicator}"] = (
+            lambda label, separator=separator, indicator=indicator: (
+                indicator
+                + " str(chr("
+                + str(ord(label[0]))
+                + "))"
+                + separator
+                + ' +"'
+                + label[1:]
+                + '"'
+                + separator
+                + ("value:" if indicator == "name:" else ":")
+                + " SYNTHETIC_SENTINEL"
+            )
+        )
+for name, formatter in list(COMPLETE_MEMBER_FORMATS.items()):
+    COMPLETE_MEMBER_FORMATS[name + "-json"] = lambda label, formatter=formatter: json.dumps(
+        formatter(label)
+    )
+    COMPLETE_MEMBER_FORMATS[name + "-log"] = lambda label, formatter=formatter: (
+        "LOG " + json.dumps(formatter(label))
+    )
+FORMATS.update(COMPLETE_MEMBER_FORMATS)
 SCHEME_FOLDS = {
     f"{scheme}-{ending}-{blank}": (
         "  "
@@ -725,6 +792,7 @@ UNSUPPORTED_CONTEXT = {
     or name in BOUNDARY_FORMATS
     or name in CONTINUITY_FORMATS
     or name in MEMBER_VIEW_FORMATS
+    or name in COMPLETE_MEMBER_FORMATS
     or name.startswith(
         (
             "mixed-fields-",

@@ -355,3 +355,41 @@ def test_ordinary_comment_indentation_and_unclosed_quotes_preserve_text(text):
 )
 def test_ordinary_decoded_and_markdown_members_preserve_source(text):
     assert collect_context(text, [], [])["task_representation"] == text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Ordinary context.\nname: '''Content'' + ''-Type'''\nvalue: application/json",
+        "Ordinary context.\nname: 'str(''Content'') + str(''-Type'')'\nvalue: application/json",
+        "Ordinary context.\nname:\n# public\n '''Content'' + ''-Type'''\nvalue: application/json",
+        "Ordinary context.\n?\n# public\n '''Content'' + ''-Type'''\n: application/json",
+        '- "Content"\n "-Type"\n- application/json',
+        'Ordinary context.\n- "Content"\n "-Type"\n- application/json',
+        "? \vstr('Content')+str('-Type')\n: application/json",
+        "Ordinary context.\n? \v'Content' + '-Type'\n: application/json",
+        "name: str('Content')\u2028 +str('-Type')\u2028value: application/json",
+        "? str('Content')\u2029 +str('-Type')\u2029: application/json",
+    ],
+)
+@pytest.mark.parametrize("presentation", ["plain", "json", "log"])
+def test_complete_public_members_preserve_original_source(text, presentation):
+    # These unsupported presentations already reject on the preceding head;
+    # preserve that boundary as well as its accepted public representations.
+    unsupported = (
+        "\u2028" in text
+        or "\u2029" in text
+        or presentation != "plain"
+        and (text.startswith('- "') or '\n- "' in text)
+        or presentation != "plain"
+        and text.startswith("? \vstr(")
+        or presentation == "log"
+        and "name: 'str(" in text
+    )
+    if presentation != "plain":
+        text = ("LOG " if presentation == "log" else "") + json.dumps(text)
+    if unsupported:
+        with pytest.raises(ContractError):
+            collect_context(text, [], [])
+        return
+    assert collect_context(text, [], [])["task_representation"] == text

@@ -193,6 +193,12 @@ def _redact_node(node: Node, seen: set[int], deadline: float | None) -> bool:
         for item in node.value:
             changed = _redact_node(item, seen, deadline) or changed
     elif isinstance(node, ScalarNode):
+        if re.search(LINE_BREAK, node.value) is not None and node.style is None:
+            _redact_assignments(
+                "(" + _validation_view(node.value, deadline) + "\n)",
+                deadline,
+                record_member=True,
+            )
         if (
             not _credential_label(node.value, deadline)
             and _redact_assignments(node.value, deadline, record_member=True) != node.value
@@ -235,7 +241,19 @@ def _structured(text: str, deadline: float | None) -> str | None:
         quoted_work += (quoted.end() if quoted is not None else len(text)) - opening.start()
         if quoted_work > 16 * len(text) + 100_000:
             raise ContractError("context fragment work exceeds sanitization limit")
-        if quoted is not None and re.search(LINE_BREAK, quoted.group()) is not None:
+        if quoted is not None and quoted.group().startswith('"') and "\\" in quoted.group():
+            try:
+                decoded = json.loads(quoted.group())
+            except ValueError:
+                pass
+            else:
+                # Validate the complete decoded record before YAML can split its
+                # original spelling across a key and its sibling value.
+                if re.search(LINE_BREAK, decoded) is not None:
+                    redact(decoded, deadline)
+        if quoted is not None and (
+            re.search(LINE_BREAK, quoted.group()) is not None or "''" in quoted.group()[1:-1]
+        ):
             _redact_assignments(quoted.group(), deadline, record_member=True)
             if quoted.group().startswith("'"):
                 for escaped in re.compile("''").finditer(
@@ -250,6 +268,10 @@ def _structured(text: str, deadline: float | None) -> str | None:
     ):
         _check_deadline(deadline)
         sequence_text = sequence.group()
+        sequence_member = re.sub(rf"^{INDENT}*-{INDENT}*", "", sequence_text)
+        _redact_assignments(
+            "(" + _validation_view(sequence_member, deadline) + "\n)", deadline, record_member=True
+        )
         credential_sequence = (
             credential_sequence
             or _credential_label(sequence_text, deadline)
@@ -347,6 +369,8 @@ def _structured(text: str, deadline: float | None) -> str | None:
                 _redact_assignments(
                     quoted.group()
                     if re.search(LINE_BREAK, quoted.group()) is not None
+                    or quoted.group().startswith("'")
+                    and "''" in quoted.group()[1:-1]
                     else "(" + _validation_view(quoted.group()[1:-1], deadline) + "\n)",
                     deadline,
                     record_member=True,
@@ -360,7 +384,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
         for member in re.finditer(
             rf"{LINE_START}(?:[^\r\n\x85\u2028\u2029:=]+:{INDENT}*|"
             rf"{INDENT}*\?(?:{INDENT}+|(?={LINE_BREAK}|$)))"
-            rf"(?P<value>{LINE_TEXT}*(?:{STRUCTURED_CONTINUATION})+)",
+            rf"(?P<value>{LINE_TEXT}*(?:{STRUCTURED_CONTINUATION})*)",
             text,
         ):
             _check_deadline(deadline)
@@ -429,7 +453,7 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
         record_member
         and text[:1] in {"'", '"'}
         and text[-1:] == text[:1]
-        and re.search(LINE_BREAK, text) is not None
+        and (re.search(LINE_BREAK, text) is not None or "''" in text[1:-1])
     ):
         original = text[1:-1]
         if text.startswith("'"):
