@@ -293,6 +293,29 @@ COMPUTED_FORMATS.update(
         "computed-names": lambda label: "{'name': prefix + suffix, 'value': 'SYNTHETIC_SENTINEL'}",
         "computed-names-target": lambda label: "headers[prefix + suffix] = 'SYNTHETIC_SENTINEL'",
         "computed-slice": lambda label: "{'name': header_name[:], 'value': 'SYNTHETIC_SENTINEL'}",
+        "computed-lookup": lambda label: "{'name': config['field'], 'value': 'SYNTHETIC_SENTINEL'}",
+        "computed-json-association": lambda label: json.dumps(
+            {
+                "name": "headers[" + repr(label[:2]) + "+" + repr(label[2:]) + "] = 'placeholder'",
+                "value": "SYNTHETIC_SENTINEL",
+            }
+        ),
+        "computed-yaml-association": lambda label: (
+            "header: |\n  headers["
+            + repr(label[:2])
+            + "+"
+            + repr(label[2:])
+            + "] = 'placeholder'\npayload: SYNTHETIC_SENTINEL"
+        ),
+        "computed-attribute": lambda label: (
+            "{'name': config.header, 'value': 'SYNTHETIC_SENTINEL'}"
+        ),
+        "computed-conditional": lambda label: (
+            "{'name': first if selected else second, 'value': 'SYNTHETIC_SENTINEL'}"
+        ),
+        "computed-boolean": lambda label: (
+            "{'name': first or second, 'value': 'SYNTHETIC_SENTINEL'}"
+        ),
     }
 )
 INLINE_FORMATS = {

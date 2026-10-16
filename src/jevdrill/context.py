@@ -170,6 +170,11 @@ def _redact_node(node: Node, seen: set[int], deadline: float | None) -> bool:
         for item in node.value:
             changed = _redact_node(item, seen, deadline) or changed
     elif isinstance(node, ScalarNode):
+        if (
+            not _credential_label(node.value, deadline)
+            and _redact_assignments(node.value, deadline) != node.value
+        ):
+            raise ContractError("unsupported embedded credential assignment")
         cleaned = redact(node.value, deadline)
         changed = cleaned != node.value
         node.value = cleaned
@@ -188,7 +193,11 @@ def _structured(text: str, deadline: float | None) -> str | None:
         text,
     ):
         _check_deadline(deadline)
-        credential_sequence = credential_sequence or _credential_label(sequence.group(), deadline)
+        credential_sequence = (
+            credential_sequence
+            or _credential_label(sequence.group(), deadline)
+            or _redact_assignments(sequence.group(), deadline) != sequence.group()
+        )
     try:
         for token in yaml.scan(text):
             _check_deadline(deadline)
@@ -250,7 +259,11 @@ def _structured(text: str, deadline: float | None) -> str | None:
             raise ContractError("unsupported structured credential sequence") from None
         for block in re.finditer(r"[:=][^\S\r\n]*[|>][^\r\n]*" + rf"(?:{CONTINUATION})+", text):
             _check_deadline(deadline)
-            credential_block = credential_block or _credential_label(block.group(), deadline)
+            credential_block = (
+                credential_block
+                or _credential_label(block.group(), deadline)
+                or _redact_assignments(block.group(), deadline) != block.group()
+            )
         if credential_block:
             raise ContractError("unsupported structured credential block") from None
         if re.search(rf"{LINE_START}{INDENT}*\?{INDENT}*[\[{{]", text):
@@ -381,28 +394,48 @@ def _redact_assignments(text: str, deadline: float | None) -> str:
             except (SyntaxError, ValueError):
                 continue
             parsed_end = closing
-            literal_record = any(
-                isinstance(node, (ast.Dict, ast.List, ast.Tuple, ast.Subscript))
-                for node in ast.walk(expression)
-            )
-            pending: list[ast.AST] = [expression]
+            pending: list[tuple[ast.AST, bool]] = [(expression, False)]
             while pending:
                 _check_deadline(deadline)
-                node = pending.pop()
+                node, literal_record = pending.pop()
+                literal_record = literal_record or isinstance(
+                    node,
+                    (
+                        ast.Dict,
+                        ast.List,
+                        ast.Tuple,
+                        ast.Set,
+                        ast.Subscript,
+                        ast.DictComp,
+                        ast.ListComp,
+                        ast.SetComp,
+                        ast.GeneratorExp,
+                    ),
+                )
                 if (
                     isinstance(node, ast.Subscript)
+                    and isinstance(node.ctx, ast.Store)
                     and _literal_string(node.slice, deadline) is not None
                 ):
-                    pending.extend(ast.iter_child_nodes(node))
+                    pending.append((node.slice, literal_record))
                     continue
-                if isinstance(node, (ast.BinOp, ast.JoinedStr, ast.Call, ast.Subscript)):
+                if (
+                    isinstance(node, ast.UnaryOp)
+                    and isinstance(node.op, (ast.UAdd, ast.USub))
+                    and isinstance(node.operand, ast.Constant)
+                    and isinstance(node.operand.value, (int, float, complex))
+                ):
+                    continue
+                if isinstance(node, ast.expr) and not isinstance(
+                    node, (ast.Constant, ast.Name, ast.Dict, ast.List, ast.Tuple, ast.Set)
+                ):
                     literal = _literal_string(node, deadline)
                     if literal is not None:
                         concatenated = concatenated or _credential_label(literal, deadline)
                         continue
                     if literal_record:
                         unresolved = True
-                pending.extend(ast.iter_child_nodes(node))
+                pending.extend((child, literal_record) for child in ast.iter_child_nodes(node))
 
         target_start = begin
         quoted_credential = False

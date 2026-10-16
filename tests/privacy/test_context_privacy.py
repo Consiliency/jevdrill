@@ -188,6 +188,10 @@ def test_ordinary_assignments_and_escaped_literals_keep_content(recwarn):
         "Please inspect: {'name': 'Content' + '-Type', 'value': 'application/json'} End notes.",
         "`{'name': f'Content' f'-Type', 'value': 'application/json'}`",
         '`headers["Content" + "-Type"] = "application/json"`',
+        'config.headers["Content" + "-Type"] = "application/json"',
+        '- {"name": "Content-Type", "value": "application/json"}',
+        'Inspect({"name": "Content-Type", "value": "application/json"})',
+        '{"number": -1, "values": [-2, 3]}',
         "Please [note {'name': f'Content' f'-Type', 'value': 'application/json'}]",
         r"{'path': 'C:\public', 'text': 'ordinary'}",
     ):

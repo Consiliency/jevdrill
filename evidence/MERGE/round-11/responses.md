@@ -71,11 +71,45 @@ A preservation comparison caught a new fixture name-prefix rule unintentionally
 permitting rejection of six historical inline-comment inputs. The rule was narrowed
 to explicit new-format membership. All 95 prior formats, six labels and 570 exact
 format/label strings and prior permitted-rejection classifications are unchanged.
-There are now 155 formats. Changed-file lint/format checks and strict mypy over all
+There are now 173 formats. Changed-file lint/format checks and strict mypy over all
 23 source modules pass. The final context/privacy run after restoring those fixture
 classifications passed 2,106 tests, zero failures/errors/skips, in 1.54 seconds.
 Final exact-head full, actual HTTP and native evidence must
 be produced after this response and the reports are committed.
+
+The first committed candidate `7f90306312a271bd4d288dd7607d5b46de43245f`
+was superseded after root directly reproduced attribute, conditional and Boolean
+computed-label bypasses. Its full-suite and HTTP processes were interrupted by
+root (exit 143), and no acceptance pass is claimed. The guard now inspects all
+computed expression kinds in records, rather than enumerating selected operators.
+Static subscript labels remain supported independently of their container path.
+The three additional forms and prose/Markdown placements join the generated matrix.
+These outcomes do not erase the preceding successful development checks.
+The next development selection passed 6,612 tests in 121.05 seconds. Further root
+probes then found that a value lookup with a static index could be confused with
+a static assignment target, and that an encoded computed assignment could be
+rewritten before its enclosing sibling association was recognized. Static-index
+support is now restricted to assignment targets; computed value lookups reject.
+Scalar structural members whose computed assignment would lose a label association
+reject before rewriting unless the common label predicate already recognizes the
+credential and permits normal sibling masking. JSON/YAML association regressions
+join the generated matrix; existing plain-label association controls remain.
+The first added association run passed 1,465 tests before a mixed YAML computed
+association failed. Original-source block and sequence guards now also recognize
+assignments whose computed label requires masking, so a failed YAML parse cannot
+fall back to destructive rewriting and disclose a sibling. That failing invocation
+remains a development failure, not an acceptance pass.
+The repaired association selection passed 6,936 tests in 131.54 seconds. A root
+ordinary-input check then caught that treating a YAML sequence dash as a Python
+operation could reject a noncredential mapping. Computed-expression rejection is
+now scoped within records/targets instead of their presentation operators. Literal
+signed numbers retain support. Ordinary YAML flow records, enclosing calls,
+negative JSON numbers and static noncredential container paths have explicit
+preservation controls. This corrects overrejection without permitting unresolved
+computed record members.
+The final targeted selection passed 6,936 tests, zero failures/errors/skips, in
+130.13 seconds after that correction. Final lint/format and strict mypy checks
+also pass. All 570 prior generated inputs and rejection permissions remain intact.
 
 The next complete HTTP matrix carries the prior 238 reviewer IDs plus all 210
 round-10 correctness/Astra/alternative inputs and Grok's eight exact blocker cases:
