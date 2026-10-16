@@ -87,6 +87,45 @@ unchanged narrow reruns that passed. The original failures remain in its report;
 no definite timing cause or second M5 blocker was established, and no limit or
 assertion was relaxed. All current verification must retain failures honestly.
 
+## Candidate-1 CI corrections
+
+Candidate `d4cfebacddaee7dcfb6f145acda2e1cf3002264f` failed native Windows
+with six application assertions: a standalone computed credential comment was
+discarded by the empty-YAML path and produced `needs_context` instead of rejecting.
+The comment-only path now validates the original text before discarding it, just
+as mapping/sequence paths do. No test assertion or fixture was weakened.
+
+The offline job passed 224 tests but had 19 setup errors because the scalar guard
+mistook the public identifier `public-array-bounds-spec-v1` for subtraction.
+Plain word/hyphen/slash scalar text now uses the same preservation rule at every
+scalar inspection path, including longer public revision identifiers. Calls,
+addition and other unresolved computed record forms still reject. JSON and YAML
+revision controls cover the concrete regression.
+
+Root reproduced the identifier rejection. Before editing, root stopped both
+candidate-1 full-suite and HTTP runs and the full suite's own companion child;
+full receipt records exit -15 after 278.571 seconds with clean unchanged bindings,
+and the HTTP command exited 143. Neither run is accepted as a pass. CI failure
+logs and all partial artifacts remain in the external candidate-1 directory;
+the successor requires new full/HTTP/native verification on its own frozen head.
+
+After correction, 5,017 context/routing tests passed (247.38 seconds), all 46
+discovery-calibration tests passed (22.26 seconds), and 62 focused controls passed.
+Direct replay of all 680 saved reviewer inputs found no disclosures; scoped lint,
+format, types, vocabulary and import checks passed. All 191 generated formats and
+their rejection permissions remain unchanged from candidate 1.
+
+The broader local offline workflow had 242 passes and one timeout-control failure
+in 440.24 seconds: the 100 ms timeout case recorded its full reservation, rejected
+the retry, but observed zero HTTP requests where its assertion expected one.
+The adapter checks the caller deadline after durable reservation and also bounds
+transport startup/response; no late dispatch is authorized. Filesystem I/O pressure
+was observed during the concurrent run, but a definite timing cause was not
+instrumented. An unchanged isolated rerun passed in 2.71 seconds. The original
+failure remains evidence; it is not relabeled as a 243-test pass. No timeout,
+assertion or runtime authority was relaxed. The successor's full and HTTP runs
+will execute sequentially, with fresh native CI independently required.
+
 The stopped real study, actual grants, unrelated dirty main/companion worktrees,
 and empirical acceptance remain outside this repair. No real credential/provider
 calls, deployment, adoption or promotion are authorized by synthetic proof.

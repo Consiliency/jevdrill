@@ -200,6 +200,8 @@ def test_ordinary_assignments_and_escaped_literals_keep_content(recwarn):
         "dict(name='Content-Type', value='application/json')",
         "{count: -2, label: notes}",
         "name: Content-Type\nvalue: application/json",
+        '{"revision": "public-array-bounds-spec-v1"}',
+        "revision: public-array-bounds-spec-v1",
         "-\n  ordinary context\n- ordinary value",
     ):
         assert collect_context(text, [], [])["task_representation"] == text

@@ -292,6 +292,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
     if credential_sequence:
         raise ContractError("unsupported structured credential sequence")
     if comments:
+        _redact_assignments(text, deadline)
         return redact(node.value, deadline) if isinstance(node, ScalarNode) else ""
     return None
 
@@ -468,6 +469,14 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                 and isinstance(expression.body[0], ast.Expr)
                 else None
             )
+            plain_scalar = (
+                scalar is not None
+                and re.fullmatch(
+                    r"[+-]?\w+(?:[-/]\w+)*",
+                    ast.get_source_segment(text[opening:closing].strip(), scalar) or "",
+                )
+                is not None
+            )
             literal_lines: list[bytes] | None = None
             pending: list[tuple[ast.AST, bool]] = [(expression, scalar is not None)]
             while pending:
@@ -487,12 +496,7 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                         ast.GeneratorExp,
                     ),
                 )
-                if (
-                    node is scalar
-                    and isinstance(node, ast.UnaryOp)
-                    and isinstance(node.op, (ast.UAdd, ast.USub))
-                    and isinstance(node.operand, ast.Name)
-                ):
+                if node is scalar and plain_scalar:
                     continue
                 if (
                     isinstance(node, ast.Constant)
@@ -536,14 +540,6 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                         > 1
                     ):
                         concatenated = True
-                if (
-                    node is scalar
-                    and isinstance(node, ast.BinOp)
-                    and isinstance(node.op, (ast.Sub, ast.Div))
-                    and isinstance(node.left, ast.Name)
-                    and isinstance(node.right, ast.Name)
-                ):
-                    continue
                 if isinstance(node, ast.Call) and node.keywords:
                     for keyword in node.keywords:
                         literal = _literal_string(keyword.value, deadline)
