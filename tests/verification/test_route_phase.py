@@ -306,9 +306,22 @@ def test_local_only_ignores_only_absent_other_platforms(evidence_root, monkeypat
     assert runner.main() == 0
 
 
-def test_collection_timeout_retains_progress_and_stack_trace(tmp_path, monkeypatch, capsys):
+@pytest.mark.parametrize("runner_temp", [False, True], ids=["local-temp", "runner-temp"])
+def test_collection_timeout_retains_progress_and_stack_trace(
+    tmp_path, monkeypatch, capsys, runner_temp
+):
+    if runner_temp:
+        monkeypatch.setenv("RUNNER_TEMP", str(tmp_path))
+    else:
+        monkeypatch.delenv("RUNNER_TEMP", raising=False)
     command = ["fixture-python", "-m", "pytest"]
-    monkeypatch.setattr(runner, "commands_for", lambda *args, **kwargs: {"tests": command})
+    locations = []
+
+    def commands_for(python, temporary, **kwargs):
+        locations.append(temporary)
+        return {"tests": command}
+
+    monkeypatch.setattr(runner, "commands_for", commands_for)
 
     def run(args, **kwargs):
         if args == command:
@@ -319,6 +332,8 @@ def test_collection_timeout_retains_progress_and_stack_trace(tmp_path, monkeypat
 
     monkeypatch.setattr(runner.subprocess, "run", run)
     result = runner.collect(tmp_path)
+    expected_parent = tmp_path if runner_temp else Path(runner.tempfile.gettempdir())
+    assert len(locations) == 1 and locations[0].parent == expected_parent
     check = result["checks"][0]
     assert check["exit_code"] == 125
     expected = b"TimeoutExpired\nlast-test-name\nstalled-test-stack\n"

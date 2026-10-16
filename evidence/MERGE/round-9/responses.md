@@ -215,3 +215,43 @@ real wheel, forced only the original CLI failure, and confirmed the diagnostic
 child emitted import timings and CPU profile while the original TimeoutExpired
 or AssertionError still propagated. These probes validate failure diagnostics,
 not the cause or repair of the Windows deadline failures.
+
+### Native temporary-directory placement
+
+Candidate `14b7e80f83c71c2791a1c6df57df1a511d3d63ec` passed all **3,862 configured
+tests**, zero failures/errors/skips, in 475.978 seconds with clean unchanged HEAD
+and all tracked hashes. JUnit SHA256:
+`6512c31ac2a6d5c1a1a0a20858ac22b57144637575e54dacf417858d83c6afa4`.
+Its complete exact-head actual HTTP probe passed **2,082 checks**, 966 requests and
+1,116 pre-effect rejections, with zero violations. Receipt SHA256:
+`f008b3fd159a5c50f89e6435b2226f5cfe309c22efb95a2db85c5b5c1f095182`.
+
+Windows exhausted the collector's unchanged 600-second budget at 79% of the selected
+tests, during the credential-retention application matrix. The test command took
+600.060 seconds and total collection took 600.347 seconds. No completed JUnit was
+available; its zero completed-report count does not mean no tests ran. All later
+commands had no budget left and timed out. The installed-wheel check was not reached
+normally, so its new diagnostic cannot identify the slow phase from this attempt.
+The reducer correctly blocked the failed checks, missing proof and excessive cost.
+
+The logs place temporary databases, artifacts and installed environments under the
+Windows user-temp directory on `C:`, while the runner's checkout/compiler scratch
+directory uses `D:`. The collector now uses the runner-provided `RUNNER_TEMP` when
+present, falling back to Python's normal temporary-directory choice locally.
+GitHub documents this variable in its [variables reference](https://docs.github.com/en/actions/reference/workflows-and-actions/variables).
+The runner-images maintainers have acknowledged drive I/O performance differences
+in [actions/runner-images#8755](https://github.com/actions/runner-images/issues/8755).
+This is a plausible environment contribution, not a confirmed explanation of all
+prior failures; fresh Windows execution must establish whether placement resolves
+the observed failures. No drive letter is hardcoded, no runtime file changes, and
+all test paths/assertions and five-/600-second limits remain unchanged.
+
+A local profile of 2,160 discovery/application privacy cases found 6.626 seconds in
+their database fixture setup, including 6.346 seconds of storage initialization.
+This establishes repeated file-backed setup cost locally, not its Windows cost.
+The existing timeout/progress regression now covers runner-provided and local-temp
+placement, while still requiring exit 125 and the captured-stream digest on timeout.
+
+All **168 verification tests** pass, including 44 ROUTE verifier tests; changed-file
+lint/format checks and diff validation pass. Exact-head configured and native
+verification remain pending for this placement change.

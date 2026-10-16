@@ -494,7 +494,9 @@ def reduce_manifests(
 def collect(root: Path, *, extra_test_paths: tuple[str, ...] = ()) -> dict[str, object]:
     collection_started = time.monotonic()
     initial_digest = input_digest(root)
-    with tempfile.TemporaryDirectory(prefix="jevdrill-route-", delete=False) as temporary:
+    with tempfile.TemporaryDirectory(
+        prefix="jevdrill-route-", dir=os.environ.get("RUNNER_TEMP"), delete=False
+    ) as temporary:
         temporary_path = Path(temporary)
         junit = temporary_path / "tests.xml"
         commands = commands_for(sys.executable, temporary_path, extra_test_paths=extra_test_paths)
