@@ -84,6 +84,10 @@ records, YAML scalar members and keyword-based records reject even when their
 expressions contain no string constants. Scan and parse work have input-relative
 bounds as well as the shared deadline. Ordinary assignments, Content-Type records,
 MIME values and signed numeric literals retain their content.
+Original quoted scalar line boundaries are inspected before YAML folding.
+Mixed sequence members and folded plain scalar members receive the same computed
+record checks as parsed YAML. Keyword associations are inspected independently of
+callable spacing or parentheses; invalid computed assignment targets reject.
 Structured parsing validates these records without rewriting the original label
 associations. A supplied document may contain at most 10,000 scalar/container nodes;
 excessive structural work rejects during scanning, and composition also checks the

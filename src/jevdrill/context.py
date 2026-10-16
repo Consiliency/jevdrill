@@ -187,17 +187,43 @@ def _structured(text: str, deadline: float | None) -> str | None:
     nodes = 0
     credential_block = False
     credential_sequence = False
+    sequence_count = 0
+    for quoted in re.finditer(
+        rf"{LINE_START}{INDENT}*" + r"""(?:'(?:[^']|'')*'|"(?:[^"\\]|\\[\s\S])*")""",
+        text,
+    ):
+        _check_deadline(deadline)
+        _redact_assignments(quoted.group().lstrip(), deadline, record_member=True)
     for sequence in re.finditer(
         rf"{LINE_START}{INDENT}*-(?:{INDENT}+{LINE_TEXT}*|(?={LINE_BREAK}|$))"
         rf"(?:{CONTINUATION})*",
         text,
     ):
         _check_deadline(deadline)
+        sequence_text = sequence.group()
         credential_sequence = (
             credential_sequence
-            or _credential_label(sequence.group(), deadline)
-            or _redact_assignments(sequence.group(), deadline) != sequence.group()
+            or _credential_label(sequence_text, deadline)
+            or _redact_assignments(sequence_text, deadline) != sequence_text
         )
+        try:
+            for token in yaml.scan(sequence_text):
+                _check_deadline(deadline)
+                if isinstance(token, ScalarToken):
+                    sequence_count += 1
+                    if sequence_count > 10_000:
+                        raise ContractError("context structure exceeds sanitization limit")
+                    source = sequence_text[token.start_mark.index : token.end_mark.index]
+                    if token.style in {"'", '"'}:
+                        _redact_assignments(source, deadline, record_member=True)
+                    credential_sequence = (
+                        credential_sequence
+                        or _credential_label(token.value, deadline)
+                        or _redact_assignments(token.value, deadline, record_member=True)
+                        != token.value
+                    )
+        except yaml.YAMLError:
+            pass
     try:
         for token in yaml.scan(text):
             _check_deadline(deadline)
@@ -222,6 +248,8 @@ def _structured(text: str, deadline: float | None) -> str | None:
                 if token.value == "<<":
                     raise ContractError("unsupported YAML merge")
                 source = text[token.start_mark.index : token.end_mark.index]
+                if token.style in {"'", '"'}:
+                    _redact_assignments(source, deadline, record_member=True)
                 if "\\" in token.value and re.match(r"[rRuUbB]*[\"']", source):
                     try:
                         with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
@@ -298,6 +326,16 @@ def _structured(text: str, deadline: float | None) -> str | None:
 
 
 def _redact_assignments(text: str, deadline: float | None, *, record_member: bool = False) -> str:
+    _check_deadline(deadline)
+    if (
+        record_member
+        and text[:1] in {"'", '"'}
+        and text[-1:] == text[:1]
+        and re.search(LINE_BREAK, text) is not None
+    ):
+        original = text[1:-1]
+        if redact(original, deadline) != original:
+            raise ContractError("unsupported multiline quoted credential record")
     line_offsets = [0]
     for marker in re.finditer(r"\r\n|[\r\n]", text):
         _check_deadline(deadline)
@@ -434,6 +472,8 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                         expressions.append((opening, cursor + 1))
                         if text[opening] == "(":
                             caller = opening
+                            while caller > begin and text[caller - 1] in " \t":
+                                caller -= 1
                             while caller > begin and (
                                 text[caller - 1].isalnum() or text[caller - 1] in "_."
                             ):
@@ -448,11 +488,19 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
             parse_work += closing - opening
             if parse_work > 16 * (finish - begin) + 100_000:
                 raise ContractError("context fragment work exceeds sanitization limit")
+            expression_source = text[opening:closing].strip()
             try:
                 with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
-                    expression = ast.parse(text[opening:closing].strip())
+                    expression = ast.parse(expression_source)
             except (SyntaxError, ValueError):
-                continue
+                if text[opening : opening + 1] != "(":
+                    continue
+                try:
+                    with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                        expression_source = "_context_record" + text[opening:closing]
+                        expression = ast.parse(expression_source)
+                except (SyntaxError, ValueError):
+                    continue
             scalar = (
                 expression.body[0].annotation
                 if len(expression.body) == 1
@@ -473,7 +521,7 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                 scalar is not None
                 and re.fullmatch(
                     r"[+-]?\w+(?:[-/]\w+)*",
-                    ast.get_source_segment(text[opening:closing].strip(), scalar) or "",
+                    ast.get_source_segment(expression_source, scalar) or "",
                 )
                 is not None
             )
@@ -510,9 +558,7 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                 ):
                     if literal_lines is None:
                         literal_lines = (
-                            text[opening:closing]
-                            .strip()
-                            .replace("\r\n", "\n")
+                            expression_source.replace("\r\n", "\n")
                             .replace("\r", "\n")
                             .encode()
                             .split(b"\n")
@@ -591,6 +637,7 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                 continue
             operator_start = line_offsets[token.start[0] - 1] + token.start[1]
             operator_end = line_offsets[token.end[0] - 1] + token.end[1]
+            target_begin = target_start
             prefix = re.sub(r"\\(?:\r\n|\n|\r)", "", text[target_start:operator_start]).strip()
             target_start = operator_end
             try:
@@ -599,6 +646,34 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
             except (SyntaxError, ValueError):
                 if quoted_credential:
                     raise ContractError("unsupported credential assignment") from None
+                for opening in sorted(
+                    {target_begin}
+                    | {
+                        opening
+                        for opening, closing in expressions
+                        if target_begin <= opening < closing <= operator_start
+                    }
+                ):
+                    _check_deadline(deadline)
+                    parse_work += operator_start - opening
+                    if parse_work > 16 * (finish - begin) + 100_000:
+                        raise ContractError("context fragment work exceeds sanitization limit")
+                    try:
+                        with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                            target_expression = ast.parse(
+                                text[opening:operator_start].strip(), mode="eval"
+                            ).body
+                    except (SyntaxError, ValueError):
+                        continue
+                    literal = _literal_string(target_expression, deadline)
+                    if literal is not None:
+                        if _credential_label(literal, deadline):
+                            raise ContractError("unsupported credential assignment")
+                    elif isinstance(
+                        target_expression,
+                        (ast.Call, ast.BinOp, ast.BoolOp, ast.IfExp, ast.NamedExpr),
+                    ):
+                        raise ContractError("unsupported computed assignment target")
                 continue
             targets = (
                 statement.targets
@@ -677,9 +752,14 @@ def _redact_plain(text: str, deadline: float | None) -> str:
         for match in re.finditer(r"""["'][^"'\r\n\x85\u2028\u2029]+["']""", cleaned)
     ]
     references += [
-        (match.group(2), match.group(1) == ":")
+        (
+            re.sub(rf"{LINE_BREAK}{INDENT}+", " ", match.group(2)),
+            match.group(1) == ":",
+        )
         for match in re.finditer(
-            rf"{LINE_START}[^\r\n\x85\u2028\u2029:=]+([:=]){INDENT}*({LINE_TEXT}+)", cleaned
+            rf"{LINE_START}[^\r\n\x85\u2028\u2029:=]+([:=]){INDENT}*"
+            rf"({LINE_TEXT}+(?:{CONTINUATION})*)",
+            cleaned,
         )
     ]
     references += [

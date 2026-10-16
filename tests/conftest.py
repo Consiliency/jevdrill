@@ -418,6 +418,73 @@ PRESENTATION_FORMATS = {
     "dict-keywords-names": lambda label: "dict(name=prefix+suffix, value='SYNTHETIC_SENTINEL')",
 }
 FORMATS.update(PRESENTATION_FORMATS)
+RECORD_FORMATS = {
+    "record-quoted-yaml-add": lambda label: (
+        f'"name: {label[:2]!r}+{label[2:]!r}\nvalue: SYNTHETIC_SENTINEL"'
+    ),
+    "record-quoted-yaml-call": lambda label: (
+        f'"name: str({label[:2]!r})+str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"'
+    ),
+    "record-quoted-yaml-unresolved": lambda label: (
+        '"name: header_name()\nvalue: SYNTHETIC_SENTINEL"'
+    ),
+    "record-single-quoted-yaml": lambda label: (
+        "'name: "
+        + json.dumps(label[:2])
+        + "+"
+        + json.dumps(label[2:])
+        + "\nvalue: SYNTHETIC_SENTINEL'"
+    ),
+    "record-mixed-dash-call": lambda label: (
+        f"Ordinary context.\n-\n  str({label[:2]!r})+str({label[2:]!r})\n- SYNTHETIC_SENTINEL"
+    ),
+    "record-mixed-sequence-call": lambda label: (
+        f"Ordinary context.\n- str({label[:2]!r})+str({label[2:]!r})\n- SYNTHETIC_SENTINEL"
+    ),
+    "record-mixed-dash-unresolved": lambda label: (
+        "Ordinary context.\n-\n  header_name()\n- SYNTHETIC_SENTINEL"
+    ),
+    "record-mixed-sequence-names": lambda label: (
+        "Ordinary context.\n- prefix + suffix\n- SYNTHETIC_SENTINEL"
+    ),
+    "record-folded-scalar": lambda label: (
+        f"name: str({label[:2]!r})+\n  str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "record-mixed-folded-scalar": lambda label: (
+        f"Ordinary context.\nname: str({label[:2]!r})+\n  str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "record-spaced-keywords": lambda label: (
+        f"Here's dict (name={label[:2]!r}+{label[2:]!r}, value='SYNTHETIC_SENTINEL')"
+    ),
+    "record-parenthesized-keywords": lambda label: (
+        f"Here's (dict)(name={label[:2]!r}+{label[2:]!r}, value='SYNTHETIC_SENTINEL')"
+    ),
+    "record-tab-keywords": lambda label: (
+        f"`dict\t(name={label[:2]!r}+{label[2:]!r}, value='SYNTHETIC_SENTINEL')`"
+    ),
+    "record-comment-keywords": lambda label: (
+        f"Ordinary context.\n# dict (name={label[:2]!r}+{label[2:]!r}, value='SYNTHETIC_SENTINEL')\nEnd notes."
+    ),
+    "record-spaced-unresolved-keywords": lambda label: (
+        "Here's dict (name=header_name(), value='SYNTHETIC_SENTINEL')"
+    ),
+    "record-invalid-target": lambda label: (
+        f"str({label[:2]!r})+str({label[2:]!r}) = 'SYNTHETIC_SENTINEL'"
+    ),
+    "record-parenthesized-invalid-target": lambda label: (
+        f"(str({label[:2]!r})+str({label[2:]!r})) = 'SYNTHETIC_SENTINEL'"
+    ),
+    "record-prose-invalid-target": lambda label: (
+        f"Please record str({label[:2]!r})+str({label[2:]!r}) = 'SYNTHETIC_SENTINEL' for notes."
+    ),
+    "record-formatted-invalid-target": lambda label: (
+        f"'{{}}{{}}'.format({label[:2]!r}, {label[2:]!r}) = 'SYNTHETIC_SENTINEL'"
+    ),
+    "record-walrus-invalid-target": lambda label: (
+        f"str({label[:2]!r})+str({label[2:]!r}) := 'SYNTHETIC_SENTINEL'"
+    ),
+}
+FORMATS.update(RECORD_FORMATS)
 SCHEME_FOLDS = {
     f"{scheme}-{ending}-{blank}": (
         "  "
@@ -456,6 +523,7 @@ UNSUPPORTED_CONTEXT = {
     if name in COMPUTED_FORMATS
     or name in INLINE_FORMATS
     or name in PRESENTATION_FORMATS
+    or name in RECORD_FORMATS
     or name.startswith(
         (
             "mixed-fields-",

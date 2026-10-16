@@ -204,6 +204,13 @@ def test_ordinary_assignments_and_escaped_literals_keep_content(recwarn):
         '{"revision": "public-array-bounds-spec-v1"}',
         "revision: public-array-bounds-spec-v1",
         "-\n  ordinary context\n- ordinary value",
+        '"Ordinary context\nMore ordinary context"',
+        '"name: Content-Type\nvalue: application/json"',
+        "Here's dict (name='Content-Type', value='application/json')",
+        "Here's (dict)(name='Content-Type', value='application/json')",
+        "`dict\t(name='Content-Type', value='application/json')`",
+        "Ordinary context.\n-\n  Content-Type\n- application/json",
+        "name: ordinary public\n  context\nvalue: notes",
     ):
         assert collect_context(text, [], [])["task_representation"] == text
     assert not recwarn.list
