@@ -485,6 +485,77 @@ RECORD_FORMATS = {
     ),
 }
 FORMATS.update(RECORD_FORMATS)
+BOUNDARY_FORMATS = {
+    "boundary-single-escaped-add": lambda label: (
+        "'"
+        + f"name: {label[:2]!r}+{label[2:]!r}\nvalue: SYNTHETIC_SENTINEL".replace("'", "''")
+        + "'"
+    ),
+    "boundary-single-escaped-call": lambda label: (
+        "'"
+        + f"name: str({label[:2]!r})+str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL".replace(
+            "'", "''"
+        )
+        + "'"
+    ),
+    "boundary-double-escaped-add": lambda label: json.dumps(
+        f"name: {json.dumps(label[:2])}+{json.dumps(label[2:])}\nvalue: SYNTHETIC_SENTINEL"
+    ).replace("\\n", "\n"),
+    "boundary-double-escaped-call": lambda label: json.dumps(
+        f"name: str({json.dumps(label[:2])})+str({json.dumps(label[2:])})\nvalue: SYNTHETIC_SENTINEL"
+    ).replace("\\n", "\n"),
+    "boundary-midline-double-quote": lambda label: (
+        f'Ordinary context.\nnote: "name: str({label[:2]!r})+str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"'
+    ),
+    "boundary-adjacent-double-quote": lambda label: (
+        f'Ordinary context.\nnote"name: str({label[:2]!r})+str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"'
+    ),
+    "boundary-midline-single-quote": lambda label: (
+        f"Ordinary context.\nnote: 'name: str({json.dumps(label[:2])})+str({json.dumps(label[2:])})\nvalue: SYNTHETIC_SENTINEL'"
+    ),
+    "boundary-indented-quote": lambda label: (
+        f'  Ordinary context.\n  note: "name: str({label[:2]!r})+str({label[2:]!r})\n  value: SYNTHETIC_SENTINEL"'
+    ),
+    "boundary-explicit-next-line": lambda label: (
+        f"Ordinary context.\n?\n  str({label[:2]!r})+str({label[2:]!r})\n: SYNTHETIC_SENTINEL"
+    ),
+    "boundary-explicit-unresolved": lambda label: (
+        "Ordinary context.\n?\n  header_name()\n: SYNTHETIC_SENTINEL"
+    ),
+    "boundary-folded-comment": lambda label: (
+        f"name: str({label[:2]!r})+ # keep\n  str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "boundary-folded-comment-line": lambda label: (
+        f"name: str({label[:2]!r})+\n  # keep\n  str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "boundary-quoted-key-fold": lambda label: (
+        f'Ordinary context.\n"name": str({label[:2]!r})+\n  str({label[2:]!r})\n"value": SYNTHETIC_SENTINEL'
+    ),
+    "boundary-fstring-target": lambda label: (
+        'f"{' + repr(label[:2]) + "}{" + repr(label[2:]) + '}" = "SYNTHETIC_SENTINEL"'
+    ),
+    "boundary-computed-attribute": lambda label: (
+        f"(str({label[:2]!r})+str({label[2:]!r})).lower = 'SYNTHETIC_SENTINEL'"
+    ),
+    "boundary-formatted-attribute": lambda label: (
+        'f"{' + repr(label[:2]) + "}" + label[2:] + '".lower = "SYNTHETIC_SENTINEL"'
+    ),
+}
+BOUNDARY_FORMATS.update(
+    {
+        f"boundary-next-line-{index}": lambda label, separator=separator: separator.join(
+            [
+                "Ordinary context.",
+                "name:",
+                f"  str({label[:2]!r})+",
+                f"  str({label[2:]!r})",
+                "value: SYNTHETIC_SENTINEL",
+            ]
+        )
+        for index, separator in enumerate(("\n", "\r\n", "\r", "\x85", "\u2028", "\u2029"))
+    }
+)
+FORMATS.update(BOUNDARY_FORMATS)
 SCHEME_FOLDS = {
     f"{scheme}-{ending}-{blank}": (
         "  "
@@ -524,6 +595,7 @@ UNSUPPORTED_CONTEXT = {
     or name in INLINE_FORMATS
     or name in PRESENTATION_FORMATS
     or name in RECORD_FORMATS
+    or name in BOUNDARY_FORMATS
     or name.startswith(
         (
             "mixed-fields-",

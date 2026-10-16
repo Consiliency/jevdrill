@@ -88,6 +88,11 @@ Original quoted scalar line boundaries are inspected before YAML folding.
 Mixed sequence members and folded plain scalar members receive the same computed
 record checks as parsed YAML. Keyword associations are inspected independently of
 callable spacing or parentheses; invalid computed assignment targets reject.
+Quoted records are checked at their original placements with YAML quote escapes
+decoded while physical line boundaries remain intact. Fallback scalar checks keep
+indented first lines, explicit-key indicators and comments before flattening or
+JSON extraction. Assignment targets require static name, attribute and subscript
+bases; unresolved formatted targets reject without executing supplied expressions.
 Structured parsing validates these records without rewriting the original label
 associations. A supplied document may contain at most 10,000 scalar/container nodes;
 excessive structural work rejects during scanning, and composition also checks the

@@ -188,12 +188,16 @@ def _structured(text: str, deadline: float | None) -> str | None:
     credential_block = False
     credential_sequence = False
     sequence_count = 0
-    for quoted in re.finditer(
-        rf"{LINE_START}{INDENT}*" + r"""(?:'(?:[^']|'')*'|"(?:[^"\\]|\\[\s\S])*")""",
-        text,
-    ):
+    quoted_pattern = re.compile(r"""(?:'(?:[^']|'')*'|"(?:[^"\\]|\\[\s\S])*")""")
+    quoted_work = 0
+    for opening in re.finditer(r"""['"]""", text):
         _check_deadline(deadline)
-        _redact_assignments(quoted.group().lstrip(), deadline, record_member=True)
+        quoted = quoted_pattern.match(text, opening.start())
+        quoted_work += (quoted.end() if quoted is not None else len(text)) - opening.start()
+        if quoted_work > 16 * len(text) + 100_000:
+            raise ContractError("context fragment work exceeds sanitization limit")
+        if quoted is not None and re.search(LINE_BREAK, quoted.group()) is not None:
+            _redact_assignments(quoted.group(), deadline, record_member=True)
     for sequence in re.finditer(
         rf"{LINE_START}{INDENT}*-(?:{INDENT}+{LINE_TEXT}*|(?={LINE_BREAK}|$))"
         rf"(?:{CONTINUATION})*",
@@ -283,6 +287,15 @@ def _structured(text: str, deadline: float | None) -> str | None:
         finally:
             loader.dispose()
     except yaml.YAMLError:
+        for member in re.finditer(
+            rf"{LINE_START}(?:[^\r\n\x85\u2028\u2029:=]+:{INDENT}*|"
+            rf"{INDENT}*\?(?:{INDENT}+|(?={LINE_BREAK}|$)))"
+            rf"(?P<value>{LINE_TEXT}*(?:{CONTINUATION})+)",
+            text,
+        ):
+            _check_deadline(deadline)
+            original = re.sub(LINE_BREAK, "\n", member.group("value"))
+            _redact_assignments("(" + original + "\n)", deadline, record_member=True)
         if credential_sequence:
             raise ContractError("unsupported structured credential sequence") from None
         for block in re.finditer(r"[:=][^\S\r\n]*[|>][^\r\n]*" + rf"(?:{CONTINUATION})+", text):
@@ -334,6 +347,16 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
         and re.search(LINE_BREAK, text) is not None
     ):
         original = text[1:-1]
+        if text.startswith("'"):
+            original = original.replace("''", "'")
+        else:
+            try:
+                for token in yaml.scan(re.sub(LINE_BREAK, r"\\n", text)):
+                    _check_deadline(deadline)
+                    if isinstance(token, ScalarToken):
+                        original = token.value
+            except yaml.YAMLError:
+                pass
         if redact(original, deadline) != original:
             raise ContractError("unsupported multiline quoted credential record")
     line_offsets = [0]
@@ -671,7 +694,16 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                             raise ContractError("unsupported credential assignment")
                     elif isinstance(
                         target_expression,
-                        (ast.Call, ast.BinOp, ast.BoolOp, ast.IfExp, ast.NamedExpr),
+                        (
+                            ast.Call,
+                            ast.BinOp,
+                            ast.BoolOp,
+                            ast.IfExp,
+                            ast.NamedExpr,
+                            ast.JoinedStr,
+                            ast.Attribute,
+                            ast.Subscript,
+                        ),
                     ):
                         raise ContractError("unsupported computed assignment target")
                 continue
@@ -686,6 +718,10 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
             for target in targets:
                 for node in ast.walk(target):
                     _check_deadline(deadline)
+                    if isinstance(node, (ast.Attribute, ast.Subscript)) and not isinstance(
+                        node.value, (ast.Name, ast.Attribute, ast.Subscript)
+                    ):
+                        raise ContractError("unsupported computed assignment target")
                     value = (
                         node.id
                         if isinstance(node, ast.Name)

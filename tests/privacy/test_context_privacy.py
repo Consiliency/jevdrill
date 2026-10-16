@@ -211,6 +211,14 @@ def test_ordinary_assignments_and_escaped_literals_keep_content(recwarn):
         "`dict\t(name='Content-Type', value='application/json')`",
         "Ordinary context.\n-\n  Content-Type\n- application/json",
         "name: ordinary public\n  context\nvalue: notes",
+        "'name: ''Content-Type''\nvalue: application/json'",
+        '"name: \\"Content-Type\\"\nvalue: application/json"',
+        'Ordinary context.\nnote: "name: Content-Type\nvalue: application/json"',
+        "Ordinary context.\n?\n  Content-Type\n: application/json",
+        "Ordinary context.\nname:\n  Content-Type\nvalue: application/json",
+        "Ordinary context.\nname: ordinary public # keep\n  context\nvalue: notes",
+        "config.headers['Content-Type'] = mime()\nOrdinary context",
+        "headers['Content-Type'] = mime(\n  public\n)\nOrdinary context",
     ):
         assert collect_context(text, [], [])["task_representation"] == text
     assert not recwarn.list
