@@ -126,6 +126,37 @@ failure remains evidence; it is not relabeled as a 243-test pass. No timeout,
 assertion or runtime authority was relaxed. The successor's full and HTTP runs
 will execute sequentially, with fresh native CI independently required.
 
+## Candidate-2 ordinary assignment correction
+
+Candidate `bcfef154df1009aa2fb1a8a5005617631fbbc5d3` passed 10,765 full tests
+with clean unchanged bindings and all nine CI checks/14 instances. Its current
+downloaded native artifacts independently reduced without errors: ROUTE 10,267
+tests per platform and CONTRACT 322 per platform. macOS and Windows flagged the
+published 300-second proof-cost target, while actual collection times remained
+below the unchanged 600-second limit. No flag was hidden or relabeled.
+
+The following actual HTTP replay executed 11,334 boundary checks and reported no
+disclosures or rejection-side effects, but the process exited 1: its required
+ordinary-input assertion failed for `headers['Content-Type'] = mime()` at all six
+boundaries. Only 60 of 66 mandatory positive checks dispatched; the other six
+rejected. This is a current usability regression, not a passing complete proof.
+The receipt SHA256 is
+`346479e5883465527197cb6328e289649321e8d679d1d995b23ddf013a904aaa`.
+
+Fallback reference inspection had discarded the distinction between `:` scalar
+members and `=` assignment values, then treated the call-valued assignment RHS as
+an unresolved record member. References now retain that delimiter distinction:
+YAML member values retain strict record validation, while code assignments retain
+their complete target/record inspection. Credential-label checks still apply to
+every reference; computed targets and keyword records retain their guards. The
+exact unwrapped call-valued Content-Type assignment joins the existing ordinary
+preservation controls. No positive assertion, fixture, deadline or privacy rule is
+removed. The successor requires fresh full/native/HTTP evidence on its own head.
+After correction, all 2,575 context tests passed, all 680 saved reviewer inputs
+remained disclosure-free, and all 11 direct ordinary controls succeeded (including
+the formerly rejected assignment). These development checks do not replace the
+required 66 ordinary positive checks in the complete six-boundary HTTP replay.
+
 The stopped real study, actual grants, unrelated dirty main/companion worktrees,
 and empirical acceptance remain outside this repair. No real credential/provider
 calls, deployment, adoption or promotion are authorized by synthetic proof.

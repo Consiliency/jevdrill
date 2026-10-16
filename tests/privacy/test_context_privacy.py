@@ -196,6 +196,7 @@ def test_ordinary_assignments_and_escaped_literals_keep_content(recwarn):
         r"{'path': 'C:\public', 'text': 'ordinary'}",
         "Here's {'name': 'Content' + '-Type', 'value': 'application/json'}",
         "Here's `headers['Content-Type'] = mime()`\nOrdinary context",
+        "headers['Content-Type'] = mime()\nOrdinary context",
         "\"{'name': 'Content-Type', 'value': 'application/json'}\"",
         "dict(name='Content-Type', value='application/json')",
         "{count: -2, label: notes}",

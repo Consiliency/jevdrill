@@ -673,16 +673,23 @@ def _redact_plain(text: str, deadline: float | None) -> str:
                 raise ContractError("unsupported multiline credential assignment") from None
     cleaned = CREDENTIAL.sub("[redacted]", text)
     references = [
-        match.group() for match in re.finditer(r"""["'][^"'\r\n\x85\u2028\u2029]+["']""", cleaned)
+        (match.group(), True)
+        for match in re.finditer(r"""["'][^"'\r\n\x85\u2028\u2029]+["']""", cleaned)
     ]
-    references += re.findall(
-        rf"{LINE_START}[^\r\n\x85\u2028\u2029:=]+[:=]{INDENT}*({LINE_TEXT}+)", cleaned
-    )
-    references += re.findall(r"[:=][^\S\r\n]*[|>][^\r\n]*" + rf"(?:{CONTINUATION})+", cleaned)
-    for value in references:
+    references += [
+        (match.group(2), match.group(1) == ":")
+        for match in re.finditer(
+            rf"{LINE_START}[^\r\n\x85\u2028\u2029:=]+([:=]){INDENT}*({LINE_TEXT}+)", cleaned
+        )
+    ]
+    references += [
+        (value, True)
+        for value in re.findall(r"[:=][^\S\r\n]*[|>][^\r\n]*" + rf"(?:{CONTINUATION})+", cleaned)
+    ]
+    for value, record_member in references:
         if (
             _credential_label(value, deadline)
-            or _redact_assignments(value, deadline, record_member=True) != value
+            or _redact_assignments(value, deadline, record_member=record_member) != value
         ):
             raise ContractError("unsupported credential representation")
     _check_deadline(deadline)
