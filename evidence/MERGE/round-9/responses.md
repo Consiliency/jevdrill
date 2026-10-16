@@ -176,3 +176,42 @@ so accepting a rejection cannot silently replace support for these valid pairs.
 **2,996 focused context/privacy/route/CLI tests pass**, with zero failures; Ruff
 and strict source mypy pass. Exact-head six-boundary HTTP checks, configured full
 verification and native CI must be collected for this correction before review.
+
+### Installed-wheel deadline diagnostics
+
+Candidate `94b54eb01f0b6d484535a90d25067e9658fbca00` passed all **3,862 configured
+tests**, zero failures/errors/skips, in 468.030 seconds with clean unchanged HEAD
+and all 796 tracked hashes. JUnit SHA256:
+`3d09f1b6f4ce405b7cb1ba6e7ebc1ed62ab695e38a6a2ebeb076368521129c2a`.
+The complete actual HTTP probe passed **2,082 checks**, 347 distinct inputs across
+six boundaries, with 966 requests, 1,116 pre-effect rejections and zero detected
+disclosures. Receipt SHA256:
+`4002a137f904c885b9ce688c65b4f43023df65a0ec5b8b7c06ca32560260ed58`.
+An earlier 2,046-case probe had colliding mixed-YAML case IDs and is not the complete
+matrix receipt; the corrected probe asserts distinct IDs/count and binds its inputs.
+
+Windows passed the prior continuation controls but failed a discovery privacy case
+at its storage deadline and the installed-wheel CLI at its five-second subprocess
+limit. The separate installed-package check also failed the same CLI timeout.
+The main run completed 3,364 tests (3,362 passed, two failed), and collection took
+511.610 seconds. Cold CLI passed in 4.314 seconds. The reducer correctly blocked
+failed checks/assertions with all three platform identities present. This is not
+an artifact-selection failure, and neither failed check is waived. Their underlying
+slow phase remains unestablished; local import timing is not a Windows diagnosis.
+
+On an installed-wheel timeout or nonzero return, its test now prints the original
+failure and runs a separate diagnostic child using that same installed interpreter
+and dependency environment, a separate database, import timings, cumulative CPU
+profile and a three-second repeating stack dump. The original command, five-second
+timeout and ready-result assertion remain unchanged. The diagnostic has a separate
+six-second process bound; it cannot satisfy the original assertion or turn a timeout
+into a pass. No runtime file or authority changed in this diagnostic follow-up.
+Fresh exact-head verification and Windows evidence remain required.
+
+All eight selected package/continuation tests and 24 explicit escaped-target
+discovery privacy cases pass locally; changed-file lint/format checks pass.
+Separate synthetic timeout and nonzero-return probes each built and installed the
+real wheel, forced only the original CLI failure, and confirmed the diagnostic
+child emitted import timings and CPU profile while the original TimeoutExpired
+or AssertionError still propagated. These probes validate failure diagnostics,
+not the cause or repair of the Windows deadline failures.
