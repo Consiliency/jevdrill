@@ -208,6 +208,21 @@ def test_incomplete_private_keys_reject_within_the_five_second_deadline(tmp_path
     assert result.stderr == ""
 
 
+def test_large_yaml_sequence_rejects_within_the_five_second_deadline(tmp_path):
+    payload = json.loads((ROOT / "tests/contracts/fixtures/route-application.json").read_text())[0][
+        "payload"
+    ]
+    payload["request"]["task_representation"] = "[" + ",".join(["x"] * 400_000) + "]"
+    payload["judgment_policy"] = None
+    assert len(json.dumps(payload).encode()) < 1_000_000
+    started = time.monotonic()
+    result = invoke(tmp_path, "route", payload)
+    assert time.monotonic() - started < 5
+    assert result.returncode == 2, result.stderr
+    assert json.loads(result.stdout)["status"] == "invalid"
+    assert result.stderr == ""
+
+
 def test_deep_malformed_context_rejects_within_the_five_second_deadline(tmp_path):
     payload = json.loads((ROOT / "tests/contracts/fixtures/route-application.json").read_text())[0][
         "payload"

@@ -62,6 +62,16 @@ def _check_deadline(deadline: float | None) -> None:
         raise TimeoutError("context sanitization deadline exceeded")
 
 
+class _DeadlineLoader(yaml.SafeLoader):
+    def __init__(self, stream: str, deadline: float | None):
+        super().__init__(stream)
+        self.deadline = deadline
+
+    def compose_node(self, parent: Node | None, index: Any) -> Node | None:
+        _check_deadline(self.deadline)
+        return super().compose_node(parent, index)
+
+
 def _literal_string(node: ast.AST, deadline: float | None) -> str | None:
     pending = [node]
     parts = []
@@ -169,6 +179,7 @@ def _redact_node(node: Node, seen: set[int], deadline: float | None) -> bool:
 def _structured(text: str, deadline: float | None) -> str | None:
     spans = []
     depth = 0
+    nodes = 0
     credential_block = False
     credential_sequence = False
     for sequence in re.finditer(
@@ -181,6 +192,19 @@ def _structured(text: str, deadline: float | None) -> str | None:
     try:
         for token in yaml.scan(text):
             _check_deadline(deadline)
+            if isinstance(
+                token,
+                (
+                    ScalarToken,
+                    BlockMappingStartToken,
+                    BlockSequenceStartToken,
+                    FlowMappingStartToken,
+                    FlowSequenceStartToken,
+                ),
+            ):
+                nodes += 1
+                if nodes > 10_000:
+                    raise ContractError("context structure exceeds sanitization limit")
             if isinstance(token, (AliasToken, AnchorToken, TagToken)):
                 raise ContractError("unsupported YAML graph or tag")
             if isinstance(token, ScalarToken):
@@ -216,7 +240,11 @@ def _structured(text: str, deadline: float | None) -> str | None:
                     raise ContractError("context nesting exceeds sanitization limit")
             elif isinstance(token, (BlockEndToken, FlowMappingEndToken, FlowSequenceEndToken)):
                 depth -= 1
-        node = yaml.compose(text)
+        loader = _DeadlineLoader(text, deadline)
+        try:
+            node = loader.get_single_node()
+        finally:
+            loader.dispose()
     except yaml.YAMLError:
         if credential_sequence:
             raise ContractError("unsupported structured credential sequence") from None
@@ -243,6 +271,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
     if isinstance(node, (MappingNode, SequenceNode)) or (
         isinstance(node, ScalarNode) and node.style in ("'", '"')
     ):
+        _redact_assignments(text, deadline)
         changed = _redact_node(node, set(), deadline)
         result = yaml.serialize(node) if changed or comments else text
         _check_deadline(deadline)
@@ -321,11 +350,37 @@ def _redact_assignments(text: str, deadline: float | None) -> str:
                         concatenated = True
                 literals = []
 
-        try:
-            expression = ast.parse(text[begin:finish].strip())
-        except (SyntaxError, ValueError):
-            expression = None
-        if expression is not None:
+        expressions = [(begin, finish)]
+        brackets: list[tuple[str, int]] = []
+        for token in tokens:
+            _check_deadline(deadline)
+            if token.type != tokenize.OP:
+                continue
+            if token.string in {"(", "[", "{"}:
+                opening = line_offsets[token.start[0] - 1] + token.start[1]
+                brackets.append((token.string, opening))
+            elif token.string in {")", "]", "}"} and brackets:
+                if brackets[-1][0] != {")": "(", "]": "[", "}": "{"}[token.string]:
+                    brackets.clear()
+                    continue
+                _, opening = brackets.pop()
+                closing = line_offsets[token.end[0] - 1] + token.end[1]
+                expressions.append((opening, closing))
+        parsed_end = begin
+        parse_work = 0
+        for opening, closing in sorted(set(expressions), key=lambda span: (span[0], -span[1])):
+            _check_deadline(deadline)
+            if opening < parsed_end:
+                continue
+            parse_work += closing - opening
+            if parse_work > 4 * (finish - begin) + 10_000:
+                raise ContractError("context fragment work exceeds sanitization limit")
+            try:
+                with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                    expression = ast.parse(text[opening:closing].strip())
+            except (SyntaxError, ValueError):
+                continue
+            parsed_end = closing
             literal_record = any(
                 isinstance(node, (ast.Dict, ast.List, ast.Tuple, ast.Subscript))
                 for node in ast.walk(expression)
@@ -334,18 +389,18 @@ def _redact_assignments(text: str, deadline: float | None) -> str:
             while pending:
                 _check_deadline(deadline)
                 node = pending.pop()
-                if isinstance(node, (ast.BinOp, ast.JoinedStr, ast.Call)):
+                if (
+                    isinstance(node, ast.Subscript)
+                    and _literal_string(node.slice, deadline) is not None
+                ):
+                    pending.extend(ast.iter_child_nodes(node))
+                    continue
+                if isinstance(node, (ast.BinOp, ast.JoinedStr, ast.Call, ast.Subscript)):
                     literal = _literal_string(node, deadline)
                     if literal is not None:
                         concatenated = concatenated or _credential_label(literal, deadline)
                         continue
-                    if literal_record and (
-                        isinstance(node, ast.JoinedStr)
-                        or any(
-                            isinstance(part, ast.Constant) and isinstance(part.value, (str, bytes))
-                            for part in ast.walk(node)
-                        )
-                    ):
+                    if literal_record:
                         unresolved = True
                 pending.extend(ast.iter_child_nodes(node))
 

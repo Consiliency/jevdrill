@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -184,6 +185,10 @@ def test_ordinary_assignments_and_escaped_literals_keep_content(recwarn):
         'headers["Content" + "-Type"] = "application/json"',
         'headers[f"Content" f"-Type"] = "application/json"',
         '{"name": f"Content" f"-Type", "value": "application/json"}',
+        "Please inspect: {'name': 'Content' + '-Type', 'value': 'application/json'} End notes.",
+        "`{'name': f'Content' f'-Type', 'value': 'application/json'}`",
+        '`headers["Content" + "-Type"] = "application/json"`',
+        "Please [note {'name': f'Content' f'-Type', 'value': 'application/json'}]",
         r"{'path': 'C:\public', 'text': 'ordinary'}",
     ):
         assert collect_context(text, [], [])["task_representation"] == text
@@ -199,6 +204,23 @@ def test_computed_literal_records_reject_without_executing_expressions():
 def test_deep_context_fails_with_a_boundary_error():
     with pytest.raises(ContractError, match="nesting"):
         collect_context("[" * 1500 + "0" + "]" * 1500, [], [])
+
+
+def test_ordinary_structured_context_remains_usable():
+    text = json.dumps({"items": ["ordinary"] * 200})
+    assert collect_context(text, [], [])["task_representation"] == text
+
+
+def test_composition_checks_the_deadline(monkeypatch):
+    from jevdrill.context import _DeadlineLoader
+
+    loader = _DeadlineLoader("[ordinary]", deadline=1)
+    monkeypatch.setattr("jevdrill.context.monotonic", lambda: 2)
+    try:
+        with pytest.raises(TimeoutError, match="sanitization deadline"):
+            loader.get_single_node()
+    finally:
+        loader.dispose()
 
 
 @pytest.mark.parametrize("target", ["password", "config.password"])

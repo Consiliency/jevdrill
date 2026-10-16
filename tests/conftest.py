@@ -266,6 +266,75 @@ FORMATS = {
         )
     },
 }
+COMPUTED_FORMATS = {
+    f"computed-{shape}-{expression}": lambda label, template=template, expression=expression: (
+        template.format(
+            label=(
+                "+".join(f"chr({ord(char)})" for char in label)
+                if expression == "numeric"
+                else "str(" + repr(label[:2]) + ") + str(" + repr(label[2:]) + ")"
+            )
+        )
+    )
+    for expression in ("numeric", "calls")
+    for shape, template in (
+        ("mapping", "{{'name': {label}, 'value': 'SYNTHETIC_SENTINEL'}}"),
+        ("key", "{{{label}: 'SYNTHETIC_SENTINEL'}}"),
+        ("pair", "[[{label}, 'SYNTHETIC_SENTINEL']]"),
+        ("target", "headers[{label}] = 'SYNTHETIC_SENTINEL'"),
+    )
+}
+COMPUTED_FORMATS.update(
+    {
+        "computed-bare-call": lambda label: (
+            "{'name': header_name(), 'value': 'SYNTHETIC_SENTINEL'}"
+        ),
+        "computed-bare-target": lambda label: "headers[header_name()] = 'SYNTHETIC_SENTINEL'",
+        "computed-names": lambda label: "{'name': prefix + suffix, 'value': 'SYNTHETIC_SENTINEL'}",
+        "computed-names-target": lambda label: "headers[prefix + suffix] = 'SYNTHETIC_SENTINEL'",
+        "computed-slice": lambda label: "{'name': header_name[:], 'value': 'SYNTHETIC_SENTINEL'}",
+    }
+)
+INLINE_FORMATS = {
+    f"inline-{placement}-{name}": lambda label, formatter=formatter, prefix=prefix, suffix=suffix: (
+        prefix + formatter(label) + suffix
+    )
+    for placement, prefix, suffix in (
+        ("prose", "Please inspect: ", " End notes."),
+        ("markdown", "`", "`"),
+    )
+    for name, formatter in (
+        list(COMPUTED_FORMATS.items())
+        + [
+            (name, FORMATS[name])
+            for name in (
+                "constant-literal-label",
+                "constant-literal-key",
+                "constant-assignment-target",
+                "formatted-literal-label",
+                "formatted-literal-key",
+                "formatted-literal-pairs",
+                "formatted-assignment-target",
+                "formatted-replacement-label",
+                "call-literal-label",
+            )
+        ]
+    )
+}
+INLINE_FORMATS.update(
+    {
+        f"inline-nested-{name}": lambda label, formatter=formatter: (
+            "Please [note " + formatter(label) + "]"
+        )
+        for name, formatter in (
+            ("constant", FORMATS["constant-literal-label"]),
+            ("formatted", FORMATS["formatted-literal-label"]),
+            ("numeric", COMPUTED_FORMATS["computed-mapping-numeric"]),
+        )
+    }
+)
+FORMATS.update(COMPUTED_FORMATS)
+FORMATS.update(INLINE_FORMATS)
 SCHEME_FOLDS = {
     f"{scheme}-{ending}-{blank}": (
         "  "
@@ -301,7 +370,9 @@ UNSUPPORTED_CONTEXT = {
     formatter(label)
     for name, formatter in FORMATS.items()
     for label in LABELS
-    if name.startswith(
+    if name in COMPUTED_FORMATS
+    or name in INLINE_FORMATS
+    or name.startswith(
         (
             "mixed-fields-",
             "mixed-reversed-",

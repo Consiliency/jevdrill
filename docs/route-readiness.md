@@ -76,8 +76,13 @@ Original-source mixed records recognize CR, LF, CRLF, NEL and Unicode line/parag
 separators, including dash-only YAML items with indented labels. Standalone
 Basic/Bearer values include all indented continuations and retain ordinary
 unindented following text. Constant string addition and expression-free formatted
-fragments are inspected without executing supplied code; unresolved computed
-literal records reject. Private-key delimiters are scanned without overlapping
+fragments are inspected without executing supplied code; complete bracketed records
+are inspected independently of surrounding prose or Markdown. Unresolved computed
+literal records reject even when their expressions contain no string constants.
+Structured parsing validates these records without rewriting the original label
+associations. A supplied document may contain at most 10,000 scalar/container nodes;
+excessive structural work rejects during scanning, and composition also checks the
+shared deadline at each node. Private-key delimiters are scanned without overlapping
 suffix searches; incomplete blocks reject before structural parsing, while complete
 blocks retain original structural label associations until sanitization.
 Parser-omitted comments are discarded; credential-bearing keys and decoded
