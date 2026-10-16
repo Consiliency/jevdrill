@@ -96,6 +96,40 @@ def test_plain_context_preserves_ordinary_text_and_scrubs_credentials(text):
         assert result == text
 
 
+@pytest.mark.parametrize("scheme", ["Basic", "Bearer"])
+@pytest.mark.parametrize("separator", ["\n", "\r\n", "\r", "\x85", "\u2028", "\u2029"])
+def test_standalone_credentials_remove_folds_and_keep_ordinary_following_text(scheme, separator):
+    text = (
+        scheme
+        + " prefix"
+        + separator
+        + " "
+        + separator
+        + "\tSYNTHETIC_SENTINEL"
+        + separator
+        + "Ordinary context"
+    )
+    result = collect_context(text, [], [])["task_representation"]
+    assert "SYNTHETIC_SENTINEL" not in result
+    assert "Ordinary context" in result
+
+
+def test_private_key_redaction_keeps_original_structured_label_associations():
+    text = "header: |\n  -----BEGIN PRIVATE KEY-----\n  Authorization\n  -----END PRIVATE KEY-----\npayload: SYNTHETIC_SENTINEL"
+    assert "SYNTHETIC_SENTINEL" not in collect_context(text, [], [])["task_representation"]
+
+
+@pytest.mark.parametrize("count", [1, 20])
+def test_complete_private_key_blocks_preserve_following_context(count):
+    text = (
+        "-----BEGIN EC PRIVATE KEY-----\nSYNTHETIC_SENTINEL\n-----END EC PRIVATE KEY-----\n" * count
+        + "Ordinary context"
+    )
+    result = collect_context(text, [], [])["task_representation"]
+    assert "SYNTHETIC_SENTINEL" not in result
+    assert "Ordinary context" in result
+
+
 def test_noncredential_json_preserves_context_and_format():
     text = 'Headers: [{"name":"Content-Type", "value":"application/json"}]\nUse basic arithmetic.'
     assert collect_context(text, [], [])["task_representation"] == text
@@ -104,6 +138,13 @@ def test_noncredential_json_preserves_context_and_format():
 @pytest.mark.parametrize("label", ["Authorization", "api_key", "password"])
 def test_yaml_block_header_pairs_mask_all_siblings(label):
     text = f"- {label}\n- SYNTHETIC_SENTINEL"
+    assert "SYNTHETIC_SENTINEL" not in collect_context(text, [], [])["task_representation"]
+
+
+@pytest.mark.parametrize("label", ["Authorization", "api_key", "password"])
+@pytest.mark.parametrize("separator", ["\n", "\r\n", "\r", "\x85", "\u2028", "\u2029"])
+def test_whole_dash_only_yaml_header_pairs_still_sanitize(label, separator):
+    text = separator.join(["-", "  " + label, "- SYNTHETIC_SENTINEL"])
     assert "SYNTHETIC_SENTINEL" not in collect_context(text, [], [])["task_representation"]
 
 
@@ -124,6 +165,9 @@ def test_yaml_block_header_pairs_mask_all_siblings(label):
         "password: str",
         "ordinary = password",
         r"headers[b'\x61pi_key']",
+        'headers["Author" + "ization"]',
+        'headers[f"Author" f"ization"]',
+        r'headers["\x41uthor" + "ization"]',
     ],
 )
 def test_complete_single_line_assignments_keep_ordinary_next_line(target, value):
@@ -137,10 +181,19 @@ def test_ordinary_assignments_and_escaped_literals_keep_content(recwarn):
     for text in (
         'ordinary = "context"',
         'headers["Content" "-Type"] = "application/json"',
+        'headers["Content" + "-Type"] = "application/json"',
+        'headers[f"Content" f"-Type"] = "application/json"',
+        '{"name": f"Content" f"-Type", "value": "application/json"}',
         r"{'path': 'C:\public', 'text': 'ordinary'}",
     ):
         assert collect_context(text, [], [])["task_representation"] == text
     assert not recwarn.list
+
+
+def test_computed_literal_records_reject_without_executing_expressions():
+    text = """{"name": f"{must_not_execute()}", "value": "SYNTHETIC_SENTINEL"}"""
+    with pytest.raises(ContractError, match="computed"):
+        collect_context(text, [], [])
 
 
 def test_deep_context_fails_with_a_boundary_error():

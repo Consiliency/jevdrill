@@ -172,6 +172,122 @@ FORMATS = {
     "form-feed-block": lambda label: (
         f"Header for request.\nheader: |\n\f\f{label}\npayload: SYNTHETIC_SENTINEL"
     ),
+    "formatted-literal-label": lambda label: (
+        "{'name': f" + repr(label[:2]) + " f" + repr(label[2:]) + ", 'value': 'SYNTHETIC_SENTINEL'}"
+    ),
+    "formatted-literal-key": lambda label: (
+        "{f" + repr(label[:2]) + " f" + repr(label[2:]) + ": 'SYNTHETIC_SENTINEL'}"
+    ),
+    "formatted-literal-pairs": lambda label: (
+        "[[f" + repr(label[:2]) + " f" + repr(label[2:]) + ", 'SYNTHETIC_SENTINEL']]"
+    ),
+    "mixed-formatted-label": lambda label: (
+        "{'name': " + repr(label[:2]) + " f" + repr(label[2:]) + ", 'value': 'SYNTHETIC_SENTINEL'}"
+    ),
+    "constant-literal-label": lambda label: (
+        "{'name': " + repr(label[:2]) + " + " + repr(label[2:]) + ", 'value': 'SYNTHETIC_SENTINEL'}"
+    ),
+    "constant-literal-key": lambda label: (
+        "{" + repr(label[:2]) + " + " + repr(label[2:]) + ": 'SYNTHETIC_SENTINEL'}"
+    ),
+    "constant-assignment-target": lambda label: (
+        "headers[" + repr(label[:2]) + " + " + repr(label[2:]) + "] = 'SYNTHETIC_SENTINEL'"
+    ),
+    "bytes-constant-target": lambda label: (
+        "headers[b" + repr(label[:2]) + " + b" + repr(label[2:]) + "] = 'SYNTHETIC_SENTINEL'"
+    ),
+    "formatted-assignment-target": lambda label: (
+        "headers[f" + repr(label[:2]) + " f" + repr(label[2:]) + "] = 'SYNTHETIC_SENTINEL'"
+    ),
+    "formatted-replacement-label": lambda label: (
+        "{'name': f\"{"
+        + repr(label[:2])
+        + "}{"
+        + repr(label[2:])
+        + "}\", 'value': 'SYNTHETIC_SENTINEL'}"
+    ),
+    "call-assignment-target": lambda label: (
+        "headers[''.join(("
+        + repr(label[:2])
+        + ", "
+        + repr(label[2:])
+        + "))] = 'SYNTHETIC_SENTINEL'"
+    ),
+    "call-literal-label": lambda label: (
+        "{'name': ''.join(("
+        + repr(label[:2])
+        + ", "
+        + repr(label[2:])
+        + ")), 'value': 'SYNTHETIC_SENTINEL'}"
+    ),
+    **{
+        f"{name}-{ending}": lambda label, separator=separator, shape=shape: separator.join(
+            shape(label)
+        )
+        for ending, separator in (
+            ("lf", "\n"),
+            ("crlf", "\r\n"),
+            ("cr", "\r"),
+            ("nel", "\x85"),
+            ("ls", "\u2028"),
+            ("ps", "\u2029"),
+        )
+        for name, shape in (
+            (
+                "mixed-fields",
+                lambda label: [
+                    "Ordinary context.",
+                    "header: " + label,
+                    "payload: SYNTHETIC_SENTINEL",
+                ],
+            ),
+            (
+                "mixed-reversed",
+                lambda label: [
+                    "Ordinary context.",
+                    "payload: SYNTHETIC_SENTINEL",
+                    "header: " + label,
+                ],
+            ),
+            (
+                "mixed-sequence",
+                lambda label: ["Ordinary context.", "- " + label.strip(), "- SYNTHETIC_SENTINEL"],
+            ),
+            (
+                "mixed-dash-only",
+                lambda label: [
+                    "Ordinary context.",
+                    "-",
+                    "  " + label.strip(),
+                    "- SYNTHETIC_SENTINEL",
+                ],
+            ),
+            ("tab-dash-only", lambda label: ["-", "\t" + label.strip(), "- SYNTHETIC_SENTINEL"]),
+        )
+    },
+}
+SCHEME_FOLDS = {
+    f"{scheme}-{ending}-{blank}": (
+        "  "
+        + scheme
+        + separator
+        + "  prefix"
+        + (separator + " " if blank else "")
+        + separator
+        + "\tSYNTHETIC_SENTINEL"
+        + separator
+        + "Ordinary context"
+    )
+    for scheme in ("Basic", "Bearer")
+    for ending, separator in (
+        ("lf", "\n"),
+        ("crlf", "\r\n"),
+        ("cr", "\r"),
+        ("nel", "\x85"),
+        ("ls", "\u2028"),
+        ("ps", "\u2029"),
+    )
+    for blank in (False, True)
 }
 LABELS = [
     "Authorization",
@@ -185,7 +301,16 @@ UNSUPPORTED_CONTEXT = {
     formatter(label)
     for name, formatter in FORMATS.items()
     for label in LABELS
-    if name
+    if name.startswith(
+        (
+            "mixed-fields-",
+            "mixed-reversed-",
+            "mixed-sequence-",
+            "mixed-dash-only-",
+            "tab-dash-only-",
+        )
+    )
+    or name
     in {
         "yaml",
         "yaml-block-pairs",
@@ -221,6 +346,15 @@ UNSUPPORTED_CONTEXT = {
         "nbsp-block",
         "vertical-tab-block",
         "form-feed-block",
+        "formatted-literal-label",
+        "formatted-literal-key",
+        "formatted-literal-pairs",
+        "mixed-formatted-label",
+        "constant-literal-label",
+        "constant-literal-key",
+        "formatted-replacement-label",
+        "call-assignment-target",
+        "call-literal-label",
     }
 }
 WHOLE_CONTEXT = {
@@ -288,6 +422,7 @@ WHOLE_CONTEXT = {
         '{"name":"Authorization","na_me":"Content-Type","value":"SYNTHETIC_SENTINEL"}',
         '{"name":"Authorization ","value":"SYNTHETIC_SENTINEL"}',
     ]
+    + [pytest.param(text, id=f"scheme-fold-{name}") for name, text in SCHEME_FOLDS.items()]
     + [
         pytest.param(formatter(label), id=f"{label.strip()}-{name}")
         for name, formatter in FORMATS.items()

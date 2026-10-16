@@ -72,6 +72,14 @@ CR/LF/CRLF boundaries and literal labels; implicit multiline targets and incompl
 expressions reject. Original structured labels are inspected before assignment
 rewriting so sibling sensitivity is preserved. Continuation scanning is linear;
 literal parser resource failures become boundary rejections.
+Original-source mixed records recognize CR, LF, CRLF, NEL and Unicode line/paragraph
+separators, including dash-only YAML items with indented labels. Standalone
+Basic/Bearer values include all indented continuations and retain ordinary
+unindented following text. Constant string addition and expression-free formatted
+fragments are inspected without executing supplied code; unresolved computed
+literal records reject. Private-key delimiters are scanned without overlapping
+suffix searches; incomplete blocks reject before structural parsing, while complete
+blocks retain original structural label associations until sanitization.
 Parser-omitted comments are discarded; credential-bearing keys and decoded
 labels use the same rule as values. Sanitization shares the routing deadline.
 

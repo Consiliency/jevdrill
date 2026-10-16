@@ -36,13 +36,20 @@ from .contracts import ContractError
 
 EXCLUDED_COMPONENTS = frozenset({".env", ".ssh", ".gnupg", "credentials", "id_rsa", "id_ed25519"})
 CREDENTIAL_LABEL = r"authorization|api[\s_-]*key|access[\s_-]*token|password|secret"
-CONTINUATION = r"(?:\r\n|\n|\r)[^\S\r\n]+[^\r\n]*"
+LINE_BREAK = r"(?:\r\n|[\r\n\x85\u2028\u2029])"
+LINE_START = r"(?<![^\r\n\x85\u2028\u2029])"
+INDENT = r"[^\S\r\n\x85\u2028\u2029]"
+LINE_TEXT = r"[^\r\n\x85\u2028\u2029]"
+CONTINUATION = rf"{LINE_BREAK}{INDENT}+{LINE_TEXT}*"
+PRIVATE_KEY_BEGIN = re.compile(r"-----BEGIN [^-]*PRIVATE KEY-----", re.IGNORECASE)
+PRIVATE_KEY_END = re.compile(r"-----END [^-]*PRIVATE KEY-----", re.IGNORECASE)
 CREDENTIAL = re.compile(
     rf"""(?i)(?<![\w.-])(?:[\w.]+\s*+\[\s*+)?(?:["'][^\S\r\n]*+)?[\w.-]*(?:{CREDENTIAL_LABEL})"""
-    r"""[\w.-]*[^\S\r\n]*+["']?\s*+\]?\s*+(?::|(?:\*\*|//|<<|>>|[+\-*/%@&|^])?=)[^\r\n]*"""
+    r"""[\w.-]*[^\S\r\n]*+["']?\s*+\]?\s*+(?::|(?:\*\*|//|<<|>>|[+\-*/%@&|^])?=)"""
+    rf"{LINE_TEXT}*"
     rf"(?:{CONTINUATION})*"
-    + r"""|(?<![^\r\n"'])[ \t]*(?:bearer|basic)\s+[^\s"',;}\]]+"""
-    + r"|-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----"
+    + rf"""|(?<![^\r\n\x85\u2028\u2029"']){INDENT}*(?:bearer|basic)\s+[^\s"',;}}\]]+"""
+    + rf"""[^\r\n\x85\u2028\u2029"',;}}\]]*(?:{CONTINUATION})*"""
 )
 CONTEXT_PART = re.compile(
     "(?P<credential>" + CREDENTIAL.pattern.removeprefix("(?i)") + r")|[\[{\"]",
@@ -55,8 +62,46 @@ def _check_deadline(deadline: float | None) -> None:
         raise TimeoutError("context sanitization deadline exceeded")
 
 
+def _literal_string(node: ast.AST, deadline: float | None) -> str | None:
+    pending = [node]
+    parts = []
+    kind = None
+    while pending:
+        _check_deadline(deadline)
+        item = pending.pop()
+        if isinstance(item, ast.Constant) and isinstance(item.value, (str, bytes)):
+            if kind is not None and type(item.value) is not kind:
+                return None
+            kind = type(item.value)
+            parts.append(
+                item.value.decode("latin1") if isinstance(item.value, bytes) else item.value
+            )
+        elif isinstance(item, ast.JoinedStr):
+            pending.extend(reversed(item.values))
+        elif isinstance(item, ast.BinOp) and isinstance(item.op, ast.Add):
+            pending.extend((item.right, item.left))
+        else:
+            return None
+    return "".join(parts)
+
+
+def _redact_private_keys(text: str, deadline: float | None) -> str:
+    chunks: list[str] = []
+    end = 0
+    for begin in PRIVATE_KEY_BEGIN.finditer(text):
+        _check_deadline(deadline)
+        if begin.start() < end:
+            continue
+        closing = PRIVATE_KEY_END.search(text, begin.end())
+        if closing is None:
+            raise ContractError("incomplete private-key block")
+        chunks.extend((text[end : begin.start()], "[redacted]"))
+        end = closing.end()
+    return "".join(chunks) + text[end:]
+
+
 def _credential_label(value: str, deadline: float | None = None) -> bool:
-    while value.strip().startswith(('"', "'")):
+    while re.match(r"(?:\(\s*)*[rRuUbBfF]{0,2}[\"']", value.strip()):
         _check_deadline(deadline)
         try:
             try:
@@ -64,10 +109,15 @@ def _credential_label(value: str, deadline: float | None = None) -> bool:
             except ValueError:
                 with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                     decoded = ast.literal_eval(value)
-        except (ValueError, RecursionError):
-            break
-        except SyntaxError:
-            break
+        except (ValueError, SyntaxError):
+            try:
+                decoded = _literal_string(ast.parse(value.strip(), mode="eval").body, deadline)
+            except (ValueError, SyntaxError):
+                break
+            if decoded is None:
+                raise ContractError("unsupported computed string literal")
+        if isinstance(decoded, bytes):
+            decoded = decoded.decode("latin1")
         if not isinstance(decoded, str) or decoded == value:
             break
         value = decoded
@@ -122,7 +172,9 @@ def _structured(text: str, deadline: float | None) -> str | None:
     credential_block = False
     credential_sequence = False
     for sequence in re.finditer(
-        r"(?m)^[^\S\r\n]*-[^\S\r\n]+[^\r\n]*" + rf"(?:{CONTINUATION})*", text
+        rf"{LINE_START}{INDENT}*-(?:{INDENT}+{LINE_TEXT}*|(?={LINE_BREAK}|$))"
+        rf"(?:{CONTINUATION})*",
+        text,
     ):
         _check_deadline(deadline)
         credential_sequence = credential_sequence or _credential_label(sequence.group(), deadline)
@@ -173,7 +225,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
             credential_block = credential_block or _credential_label(block.group(), deadline)
         if credential_block:
             raise ContractError("unsupported structured credential block") from None
-        if re.search(r"(?m)^[^\S\r\n]*\?[^\S\r\n]*[\[{]", text):
+        if re.search(rf"{LINE_START}{INDENT}*\?{INDENT}*[\[{{]", text):
             raise ContractError("unsupported structured mapping key") from None
         if re.search(r"(?:^|[\s:\[,])(?:[&*][\w-]+|![!\w])", text):
             raise ContractError("unsupported YAML graph or tag")
@@ -253,6 +305,7 @@ def _redact_assignments(text: str, deadline: float | None) -> str:
         _check_deadline(deadline)
         literals = []
         concatenated = False
+        unresolved = False
         for token in tokens:
             _check_deadline(deadline)
             if token.type == tokenize.STRING:
@@ -267,6 +320,34 @@ def _redact_assignments(text: str, deadline: float | None) -> str:
                     if isinstance(value, (str, bytes)) and _credential_label(str(value), deadline):
                         concatenated = True
                 literals = []
+
+        try:
+            expression = ast.parse(text[begin:finish].strip())
+        except (SyntaxError, ValueError):
+            expression = None
+        if expression is not None:
+            literal_record = any(
+                isinstance(node, (ast.Dict, ast.List, ast.Tuple, ast.Subscript))
+                for node in ast.walk(expression)
+            )
+            pending: list[ast.AST] = [expression]
+            while pending:
+                _check_deadline(deadline)
+                node = pending.pop()
+                if isinstance(node, (ast.BinOp, ast.JoinedStr, ast.Call)):
+                    literal = _literal_string(node, deadline)
+                    if literal is not None:
+                        concatenated = concatenated or _credential_label(literal, deadline)
+                        continue
+                    if literal_record and (
+                        isinstance(node, ast.JoinedStr)
+                        or any(
+                            isinstance(part, ast.Constant) and isinstance(part.value, (str, bytes))
+                            for part in ast.walk(node)
+                        )
+                    ):
+                        unresolved = True
+                pending.extend(ast.iter_child_nodes(node))
 
         target_start = begin
         quoted_credential = False
@@ -309,6 +390,8 @@ def _redact_assignments(text: str, deadline: float | None) -> str:
                         if isinstance(node, ast.Attribute)
                         else str(node.value)
                         if isinstance(node, ast.Constant) and isinstance(node.value, (str, bytes))
+                        else _literal_string(node, deadline) or ""
+                        if isinstance(node, (ast.BinOp, ast.JoinedStr))
                         else ""
                     )
                     sensitive = sensitive or _credential_label(value, deadline)
@@ -333,6 +416,8 @@ def _redact_assignments(text: str, deadline: float | None) -> str:
             end = folded.end() if folded is not None else finish
             break
         else:
+            if unresolved:
+                raise ContractError("unsupported computed literal record")
             if concatenated:
                 raise ContractError("unsupported concatenated literal credential")
             if (
@@ -359,18 +444,24 @@ def _redact_plain(text: str, deadline: float | None) -> str:
             except (tokenize.TokenError, IndentationError):
                 raise ContractError("unsupported multiline credential assignment") from None
     cleaned = CREDENTIAL.sub("[redacted]", text)
-    references = [match.group() for match in re.finditer(r"""["'][^"'\r\n]+["']""", cleaned)]
-    references += re.findall(r"(?m)^[^\r\n:=]+[:=][^\S\r\n]*(.+)", cleaned)
+    references = [
+        match.group() for match in re.finditer(r"""["'][^"'\r\n\x85\u2028\u2029]+["']""", cleaned)
+    ]
+    references += re.findall(
+        rf"{LINE_START}[^\r\n\x85\u2028\u2029:=]+[:=]{INDENT}*({LINE_TEXT}+)", cleaned
+    )
     references += re.findall(r"[:=][^\S\r\n]*[|>][^\r\n]*" + rf"(?:{CONTINUATION})+", cleaned)
     if any(_credential_label(value, deadline) for value in references):
         raise ContractError("unsupported credential representation")
     _check_deadline(deadline)
-    return cleaned
+    return _redact_private_keys(cleaned, deadline)
 
 
 def redact(text: str, deadline: float | None = None) -> str:
     try:
         _check_deadline(deadline)
+        if PRIVATE_KEY_BEGIN.search(text) is not None:
+            _redact_private_keys(text, deadline)
         if not any(marker in text for marker in "{}[]:=\"'&#*!|>?-%"):
             return _redact_plain(text, deadline)
         structured = _structured(text, deadline)
