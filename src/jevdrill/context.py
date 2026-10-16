@@ -172,7 +172,7 @@ def _redact_node(node: Node, seen: set[int], deadline: float | None) -> bool:
     elif isinstance(node, ScalarNode):
         if (
             not _credential_label(node.value, deadline)
-            and _redact_assignments(node.value, deadline) != node.value
+            and _redact_assignments(node.value, deadline, record_member=True) != node.value
         ):
             raise ContractError("unsupported embedded credential assignment")
         cleaned = redact(node.value, deadline)
@@ -296,7 +296,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
     return None
 
 
-def _redact_assignments(text: str, deadline: float | None) -> str:
+def _redact_assignments(text: str, deadline: float | None, *, record_member: bool = False) -> str:
     line_offsets = [0]
     for marker in re.finditer(r"\r\n|[\r\n]", text):
         _check_deadline(deadline)
@@ -364,37 +364,112 @@ def _redact_assignments(text: str, deadline: float | None) -> str:
                 literals = []
 
         expressions = [(begin, finish)]
-        brackets: list[tuple[str, int]] = []
+        scalar_spans: set[tuple[int, int]] = set()
+        bracket_depth = 0
         for token in tokens:
             _check_deadline(deadline)
             if token.type != tokenize.OP:
                 continue
-            if token.string in {"(", "[", "{"}:
-                opening = line_offsets[token.start[0] - 1] + token.start[1]
-                brackets.append((token.string, opening))
-            elif token.string in {")", "]", "}"} and brackets:
-                if brackets[-1][0] != {")": "(", "]": "[", "}": "{"}[token.string]:
-                    brackets.clear()
+            if token.string in "([{":
+                bracket_depth += 1
+            elif token.string in ")]}":
+                bracket_depth -= 1
+            elif token.string == ":" and bracket_depth == 0:
+                colon = line_offsets[token.start[0] - 1] + token.start[1]
+                scalar_spans.update(((begin, colon), (colon + 1, finish)))
+        explicit_key = re.match(r"[^\S\r\n]*\?[^\S\r\n]+", text[begin:finish])
+        if explicit_key is not None:
+            scalar_spans.add((begin + explicit_key.end(), finish))
+        expressions.extend(
+            span
+            for span in scalar_spans
+            if re.fullmatch(r"[+-]?\w+(?:[-/]\w+)*", text[span[0] : span[1]].strip()) is None
+        )
+        scan_work = 0
+        for marker in re.compile(r"[\[({]").finditer(text, begin, finish):
+            opening = marker.start()
+            cursor = opening
+            brackets: list[str] = []
+            quote = ""
+            formatted = False
+            comment = False
+            while cursor < finish:
+                _check_deadline(deadline)
+                scan_work += 1
+                if scan_work > 16 * (finish - begin) + 100_000:
+                    raise ContractError("context fragment work exceeds sanitization limit")
+                char = text[cursor]
+                if comment:
+                    comment = char not in "\r\n\x85\u2028\u2029"
+                elif quote:
+                    if char == "\\":
+                        cursor += 2
+                        continue
+                    if text.startswith(quote, cursor):
+                        cursor += len(quote)
+                        quote = ""
+                        continue
+                    if formatted and char == "{":
+                        if text.startswith("{{", cursor):
+                            cursor += 2
+                            continue
+                        unresolved = True
+                elif char in "\"'":
+                    quote = char * 3 if text.startswith(char * 3, cursor) else char
+                    quote_prefix = re.search(
+                        r"(?<!\w)[rRuUbBfF]{1,2}$", text[max(begin, cursor - 3) : cursor]
+                    )
+                    formatted = quote_prefix is not None and "f" in quote_prefix.group().lower()
+                    cursor += len(quote)
                     continue
-                _, opening = brackets.pop()
-                closing = line_offsets[token.end[0] - 1] + token.end[1]
-                expressions.append((opening, closing))
-        parsed_end = begin
+                elif char == "#":
+                    comment = True
+                elif char in "([{":
+                    brackets.append(char)
+                elif char in ")]}":
+                    if not brackets or brackets.pop() != {")": "(", "]": "[", "}": "{"}[char]:
+                        break
+                    if not brackets:
+                        expressions.append((opening, cursor + 1))
+                        if text[opening] == "(":
+                            caller = opening
+                            while caller > begin and (
+                                text[caller - 1].isalnum() or text[caller - 1] in "_."
+                            ):
+                                caller -= 1
+                            if caller < opening:
+                                expressions.append((caller, cursor + 1))
+                        break
+                cursor += 1
         parse_work = 0
         for opening, closing in sorted(set(expressions), key=lambda span: (span[0], -span[1])):
             _check_deadline(deadline)
-            if opening < parsed_end:
-                continue
             parse_work += closing - opening
-            if parse_work > 4 * (finish - begin) + 10_000:
+            if parse_work > 16 * (finish - begin) + 100_000:
                 raise ContractError("context fragment work exceeds sanitization limit")
             try:
                 with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                     expression = ast.parse(text[opening:closing].strip())
             except (SyntaxError, ValueError):
                 continue
-            parsed_end = closing
-            pending: list[tuple[ast.AST, bool]] = [(expression, False)]
+            scalar = (
+                expression.body[0].annotation
+                if len(expression.body) == 1
+                and isinstance(expression.body[0], ast.AnnAssign)
+                and expression.body[0].value is None
+                else expression.body[0].value
+                if (
+                    record_member
+                    and opening == begin
+                    and closing == finish
+                    or (opening, closing) in scalar_spans
+                )
+                and len(expression.body) == 1
+                and isinstance(expression.body[0], ast.Expr)
+                else None
+            )
+            literal_lines: list[bytes] | None = None
+            pending: list[tuple[ast.AST, bool]] = [(expression, scalar is not None)]
             while pending:
                 _check_deadline(deadline)
                 node, literal_record = pending.pop()
@@ -412,6 +487,75 @@ def _redact_assignments(text: str, deadline: float | None) -> str:
                         ast.GeneratorExp,
                     ),
                 )
+                if (
+                    node is scalar
+                    and isinstance(node, ast.UnaryOp)
+                    and isinstance(node.op, (ast.UAdd, ast.USub))
+                    and isinstance(node.operand, ast.Name)
+                ):
+                    continue
+                if (
+                    isinstance(node, ast.Constant)
+                    and isinstance(node.value, (str, bytes))
+                    and _credential_label(
+                        node.value.decode("latin1")
+                        if isinstance(node.value, bytes)
+                        else node.value,
+                        deadline,
+                    )
+                ):
+                    if literal_lines is None:
+                        literal_lines = (
+                            text[opening:closing]
+                            .strip()
+                            .replace("\r\n", "\n")
+                            .replace("\r", "\n")
+                            .encode()
+                            .split(b"\n")
+                        )
+                    assert node.end_lineno is not None and node.end_col_offset is not None
+                    if node.lineno == node.end_lineno:
+                        fragment = literal_lines[node.lineno - 1][
+                            node.col_offset : node.end_col_offset
+                        ]
+                    else:
+                        fragment = b"\n".join(
+                            [
+                                literal_lines[node.lineno - 1][node.col_offset :],
+                                *literal_lines[node.lineno : node.end_lineno - 1],
+                                literal_lines[node.end_lineno - 1][: node.end_col_offset],
+                            ]
+                        )
+                    if (
+                        sum(
+                            token.type == tokenize.STRING
+                            for token in tokenize.generate_tokens(
+                                StringIO(fragment.decode()).readline
+                            )
+                        )
+                        > 1
+                    ):
+                        concatenated = True
+                if (
+                    node is scalar
+                    and isinstance(node, ast.BinOp)
+                    and isinstance(node.op, (ast.Sub, ast.Div))
+                    and isinstance(node.left, ast.Name)
+                    and isinstance(node.right, ast.Name)
+                ):
+                    continue
+                if isinstance(node, ast.Call) and node.keywords:
+                    for keyword in node.keywords:
+                        literal = _literal_string(keyword.value, deadline)
+                        if keyword.arg is None:
+                            unresolved = True
+                        elif _credential_label(keyword.arg, deadline):
+                            concatenated = True
+                        if literal is not None and _credential_label(literal, deadline):
+                            concatenated = True
+                    pending.extend((item, True) for item in node.args)
+                    pending.extend((item.value, True) for item in node.keywords)
+                    continue
                 if (
                     isinstance(node, ast.Subscript)
                     and isinstance(node.ctx, ast.Store)
@@ -539,8 +683,12 @@ def _redact_plain(text: str, deadline: float | None) -> str:
         rf"{LINE_START}[^\r\n\x85\u2028\u2029:=]+[:=]{INDENT}*({LINE_TEXT}+)", cleaned
     )
     references += re.findall(r"[:=][^\S\r\n]*[|>][^\r\n]*" + rf"(?:{CONTINUATION})+", cleaned)
-    if any(_credential_label(value, deadline) for value in references):
-        raise ContractError("unsupported credential representation")
+    for value in references:
+        if (
+            _credential_label(value, deadline)
+            or _redact_assignments(value, deadline, record_member=True) != value
+        ):
+            raise ContractError("unsupported credential representation")
     _check_deadline(deadline)
     return _redact_private_keys(cleaned, deadline)
 

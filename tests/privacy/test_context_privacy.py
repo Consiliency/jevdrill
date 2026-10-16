@@ -194,9 +194,28 @@ def test_ordinary_assignments_and_escaped_literals_keep_content(recwarn):
         '{"number": -1, "values": [-2, 3]}',
         "Please [note {'name': f'Content' f'-Type', 'value': 'application/json'}]",
         r"{'path': 'C:\public', 'text': 'ordinary'}",
+        "Here's {'name': 'Content' + '-Type', 'value': 'application/json'}",
+        "Here's `headers['Content-Type'] = mime()`\nOrdinary context",
+        "\"{'name': 'Content-Type', 'value': 'application/json'}\"",
+        "dict(name='Content-Type', value='application/json')",
+        "{count: -2, label: notes}",
+        "name: Content-Type\nvalue: application/json",
+        "-\n  ordinary context\n- ordinary value",
     ):
         assert collect_context(text, [], [])["task_representation"] == text
     assert not recwarn.list
+
+
+@pytest.mark.parametrize("prefix", ["Here's ", "It's ", "'", '"', "# ", "```\n# "])
+@pytest.mark.parametrize("separator", ["\n", "\r\n", "\r", "\x85", "\u2028", "\u2029"])
+def test_presentation_does_not_hide_adjacent_literal_records(prefix, separator):
+    text = prefix + "{'name': 'Author' 'ization', 'value': 'SYNTHETIC_SENTINEL'}"
+    text += separator + "Ordinary context"
+    try:
+        result = collect_context(text, [], [])
+    except ContractError:
+        return
+    assert "SYNTHETIC_SENTINEL" not in str(result)
 
 
 def test_computed_literal_records_reject_without_executing_expressions():

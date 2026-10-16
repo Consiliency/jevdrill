@@ -358,6 +358,66 @@ INLINE_FORMATS.update(
 )
 FORMATS.update(COMPUTED_FORMATS)
 FORMATS.update(INLINE_FORMATS)
+PRESENTATION_FORMATS = {
+    "apostrophe-mapping": lambda label: "Here's " + FORMATS["constant-literal-label"](label),
+    "quoted-numeric-mapping": lambda label: (
+        "'" + COMPUTED_FORMATS["computed-mapping-numeric"](label) + "'"
+    ),
+    "apostrophe-formatted-target": lambda label: (
+        "Here's " + FORMATS["formatted-assignment-target"](label)
+    ),
+    "comment-constant-mapping": lambda label: (
+        "Ordinary context.\n# " + FORMATS["constant-literal-label"](label) + "\nEnd notes."
+    ),
+    "comment-adjacent-target": lambda label: (
+        "# " + FORMATS["concatenated-assignment-target"](label)
+    ),
+    "fenced-comment-target": lambda label: (
+        "```python\n# " + FORMATS["formatted-assignment-target"](label) + "\n```"
+    ),
+    "json-comment-association": lambda label: json.dumps(
+        {
+            "header": "# " + FORMATS["concatenated-assignment-target"](label),
+            "payload": "SYNTHETIC_SENTINEL",
+        }
+    ),
+    "yaml-comment-association": lambda label: (
+        "header: |\n  # headers["
+        + repr(label[:2])
+        + "+"
+        + repr(label[2:])
+        + "] = 'placeholder'\npayload: SYNTHETIC_SENTINEL"
+    ),
+    "yaml-scalar-call": lambda label: (
+        f"name: str({label[:2]!r})+str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "yaml-scalar-names": lambda label: "name: prefix + suffix\nvalue: SYNTHETIC_SENTINEL",
+    "yaml-scalar-method": lambda label: (
+        f"name: '{{}}{{}}'.format({label[:2]!r}, {label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "yaml-scalar-plain-key": lambda label: (
+        f"str({label[:2]!r})+str({label[2:]!r}): SYNTHETIC_SENTINEL"
+    ),
+    "yaml-scalar-explicit-key": lambda label: (
+        f"? str({label[:2]!r})+str({label[2:]!r})\n: SYNTHETIC_SENTINEL"
+    ),
+    "yaml-scalar-mixed": lambda label: (
+        f"Please inspect.\nname: str({label[:2]!r})+str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "yaml-scalar-sequence": lambda label: (
+        f"- name: str({label[:2]!r})+str({label[2:]!r})\n  value: SYNTHETIC_SENTINEL"
+    ),
+    "dict-keywords-call": lambda label: (
+        f"dict(name=str({label[:2]!r})+str({label[2:]!r}), value='SYNTHETIC_SENTINEL')"
+    ),
+    "dict-keywords-numeric": lambda label: (
+        "dict(name="
+        + "+".join(f"chr({ord(char)})" for char in label)
+        + ", value='SYNTHETIC_SENTINEL')"
+    ),
+    "dict-keywords-names": lambda label: "dict(name=prefix+suffix, value='SYNTHETIC_SENTINEL')",
+}
+FORMATS.update(PRESENTATION_FORMATS)
 SCHEME_FOLDS = {
     f"{scheme}-{ending}-{blank}": (
         "  "
@@ -395,6 +455,7 @@ UNSUPPORTED_CONTEXT = {
     for label in LABELS
     if name in COMPUTED_FORMATS
     or name in INLINE_FORMATS
+    or name in PRESENTATION_FORMATS
     or name.startswith(
         (
             "mixed-fields-",

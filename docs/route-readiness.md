@@ -77,8 +77,13 @@ separators, including dash-only YAML items with indented labels. Standalone
 Basic/Bearer values include all indented continuations and retain ordinary
 unindented following text. Constant string addition and expression-free formatted
 fragments are inspected without executing supplied code; complete bracketed records
-are inspected independently of surrounding prose or Markdown. Unresolved computed
-literal records reject even when their expressions contain no string constants.
+are inspected independently of surrounding prose, quotation, comments or Markdown.
+Fragment discovery uses local quote/comment state, so a prose apostrophe or outer
+quoted presentation cannot hide an embedded record. Unresolved computed literal
+records, YAML scalar members and keyword-based records reject even when their
+expressions contain no string constants. Scan and parse work have input-relative
+bounds as well as the shared deadline. Ordinary assignments, Content-Type records,
+MIME values and signed numeric literals retain their content.
 Structured parsing validates these records without rewriting the original label
 associations. A supplied document may contain at most 10,000 scalar/container nodes;
 excessive structural work rejects during scanning, and composition also checks the
