@@ -316,3 +316,21 @@ def test_complete_credential_values_preserve_ordinary_next_line(label):
     result = collect_context(text, [], [])["task_representation"]
     assert "SYNTHETIC_SENTINEL" not in result
     assert "Ordinary context" in result
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        'Review the quote "public text\nMore public text',
+        "Review the quote 'public text\nMore public text",
+        'Ordinary context.\nnote: "name: Content-Type\nvalue: application/json',
+        "Ordinary context.\nnote: 'name: Content-Type\nvalue: application/json",
+        "Ordinary context.\nname:\n# public note\n  Content-Type\nvalue: application/json",
+        "Ordinary context.\n?\n# public note\n  Content-Type\n: application/json",
+        "Ordinary context.\nname:\n\vContent-Type\nvalue: application/json",
+        "Ordinary context.\u2028?\u2028\u00a0Content-Type\u2028: application/json",
+        "'name: ''Content''+''-Type''\nvalue: application/json'",
+    ],
+)
+def test_ordinary_comment_indentation_and_unclosed_quotes_preserve_text(text):
+    assert collect_context(text, [], [])["task_representation"] == text

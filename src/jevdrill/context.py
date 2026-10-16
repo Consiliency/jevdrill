@@ -41,6 +41,7 @@ LINE_START = r"(?<![^\r\n\x85\u2028\u2029])"
 INDENT = r"[^\S\r\n\x85\u2028\u2029]"
 LINE_TEXT = r"[^\r\n\x85\u2028\u2029]"
 CONTINUATION = rf"{LINE_BREAK}{INDENT}+{LINE_TEXT}*"
+STRUCTURED_CONTINUATION = rf"{LINE_BREAK}(?:{INDENT}+{LINE_TEXT}*|{INDENT}*\#{LINE_TEXT}*)"
 PRIVATE_KEY_BEGIN = re.compile(r"-----BEGIN [^-]*PRIVATE KEY-----", re.IGNORECASE)
 PRIVATE_KEY_END = re.compile(r"-----END [^-]*PRIVATE KEY-----", re.IGNORECASE)
 CREDENTIAL = re.compile(
@@ -200,7 +201,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
             _redact_assignments(quoted.group(), deadline, record_member=True)
     for sequence in re.finditer(
         rf"{LINE_START}{INDENT}*-(?:{INDENT}+{LINE_TEXT}*|(?={LINE_BREAK}|$))"
-        rf"(?:{CONTINUATION})*",
+        rf"(?:{STRUCTURED_CONTINUATION})*",
         text,
     ):
         _check_deadline(deadline)
@@ -211,13 +212,18 @@ def _structured(text: str, deadline: float | None) -> str | None:
             or _redact_assignments(sequence_text, deadline) != sequence_text
         )
         try:
-            for token in yaml.scan(sequence_text):
+            sequence_view = re.sub(
+                rf"{LINE_START}{INDENT}+",
+                lambda match: " " * len(match.group()),
+                sequence_text,
+            )
+            for token in yaml.scan(sequence_view):
                 _check_deadline(deadline)
                 if isinstance(token, ScalarToken):
                     sequence_count += 1
                     if sequence_count > 10_000:
                         raise ContractError("context structure exceeds sanitization limit")
-                    source = sequence_text[token.start_mark.index : token.end_mark.index]
+                    source = sequence_view[token.start_mark.index : token.end_mark.index]
                     if token.style in {"'", '"'}:
                         _redact_assignments(source, deadline, record_member=True)
                     credential_sequence = (
@@ -288,13 +294,35 @@ def _structured(text: str, deadline: float | None) -> str | None:
             loader.dispose()
     except yaml.YAMLError:
         for member in re.finditer(
+            rf"[:?]{INDENT}*(?P<quote>['\"])(?P<value>{LINE_TEXT}*"
+            rf"(?:{STRUCTURED_CONTINUATION})*)",
+            text,
+        ):
+            _check_deadline(deadline)
+            quoted = quoted_pattern.match(text, member.start("quote"))
+            if quoted is not None and re.compile(rf"{INDENT}*(?:[,}}\];#]|{LINE_BREAK}|$)").match(
+                text, quoted.end()
+            ):
+                continue
+            original = re.sub(LINE_BREAK, "\n", member.group("value"))
+            original = re.sub(
+                rf"{LINE_START}{INDENT}+", lambda match: " " * len(match.group()), original
+            )
+            _redact_assignments(original, deadline, record_member=True)
+            if quoted is None:
+                quote = member.group("quote")
+                _redact_assignments(quote + original + "\n" + quote, deadline, record_member=True)
+        for member in re.finditer(
             rf"{LINE_START}(?:[^\r\n\x85\u2028\u2029:=]+:{INDENT}*|"
             rf"{INDENT}*\?(?:{INDENT}+|(?={LINE_BREAK}|$)))"
-            rf"(?P<value>{LINE_TEXT}*(?:{CONTINUATION})+)",
+            rf"(?P<value>{LINE_TEXT}*(?:{STRUCTURED_CONTINUATION})+)",
             text,
         ):
             _check_deadline(deadline)
             original = re.sub(LINE_BREAK, "\n", member.group("value"))
+            original = re.sub(
+                rf"{LINE_START}{INDENT}+", lambda match: " " * len(match.group()), original
+            )
             _redact_assignments("(" + original + "\n)", deadline, record_member=True)
         if credential_sequence:
             raise ContractError("unsupported structured credential sequence") from None
@@ -357,7 +385,11 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                         original = token.value
             except yaml.YAMLError:
                 pass
-        if redact(original, deadline) != original:
+        if (
+            _redact_assignments("(" + original + "\n)", deadline, record_member=True)
+            != "(" + original + "\n)"
+            or redact(original, deadline) != original
+        ):
             raise ContractError("unsupported multiline quoted credential record")
     line_offsets = [0]
     for marker in re.finditer(r"\r\n|[\r\n]", text):

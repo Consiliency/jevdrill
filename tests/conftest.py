@@ -556,6 +556,70 @@ BOUNDARY_FORMATS.update(
     }
 )
 FORMATS.update(BOUNDARY_FORMATS)
+CONTINUITY_FORMATS = {
+    "continuity-comment-name": lambda label: (
+        f"Ordinary context.\nname:\n# public note\n  str({label[:2]!r})+str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "continuity-comment-key": lambda label: (
+        f"Ordinary context.\n?\n# public note\n  str({label[:2]!r})+str({label[2:]!r})\n: SYNTHETIC_SENTINEL"
+    ),
+    "continuity-comment-add": lambda label: (
+        f"Ordinary context.\nname:\n# public note\n  {label[:2]!r}+{label[2:]!r}\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "continuity-comment-formatted": lambda label: (
+        f"Ordinary context.\nname:\n# public note\n  f{label[:2]!r} f{label[2:]!r}\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "continuity-comment-between": lambda label: (
+        f"Ordinary context.\nname: str({label[:2]!r})+\n# public note\n  str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"
+    ),
+}
+for ending, separator, indent in (
+    ("vt", "\n", "\v"),
+    ("nbsp-nel", "\x85", "\u00a0"),
+    ("nbsp-ls", "\u2028", "\u00a0"),
+):
+    CONTINUITY_FORMATS[f"continuity-{ending}-key"] = (
+        lambda label, separator=separator, indent=indent: separator.join(
+            [
+                "Ordinary context.",
+                "?",
+                f"{indent}{label[:2]!r}+{label[2:]!r}",
+                ": SYNTHETIC_SENTINEL",
+            ]
+        )
+    )
+    CONTINUITY_FORMATS[f"continuity-{ending}-comment"] = (
+        lambda label, separator=separator, indent=indent: separator.join(
+            [
+                "Ordinary context.",
+                "name:",
+                f"{indent}{label[:2]!r} # ordinary",
+                f"{indent}+{label[2:]!r}",
+                "value: SYNTHETIC_SENTINEL",
+            ]
+        )
+    )
+UNCLOSED_FORMATS = {
+    "double": lambda label: (
+        f'Ordinary context.\nnote: "name: str({label[:2]!r})+str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL'
+    ),
+    "single": lambda label: (
+        f"Ordinary context.\nnote: 'name: str({label[:2]!r})+str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "escaped-closer": lambda label: (
+        f'Ordinary context.\nnote: "name: str({label[:2]!r})+str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL\\"'
+    ),
+    "explicit-key": lambda label: f'? "str({label[:2]!r})+str({label[2:]!r})\n: SYNTHETIC_SENTINEL',
+}
+for name, formatter in UNCLOSED_FORMATS.items():
+    CONTINUITY_FORMATS[f"continuity-unclosed-{name}"] = formatter
+    CONTINUITY_FORMATS[f"continuity-unclosed-json-{name}"] = lambda label, formatter=formatter: (
+        json.dumps(formatter(label))
+    )
+    CONTINUITY_FORMATS[f"continuity-unclosed-log-{name}"] = lambda label, formatter=formatter: (
+        json.dumps({"message": formatter(label)})
+    )
+FORMATS.update(CONTINUITY_FORMATS)
 SCHEME_FOLDS = {
     f"{scheme}-{ending}-{blank}": (
         "  "
@@ -596,6 +660,7 @@ UNSUPPORTED_CONTEXT = {
     or name in PRESENTATION_FORMATS
     or name in RECORD_FORMATS
     or name in BOUNDARY_FORMATS
+    or name in CONTINUITY_FORMATS
     or name.startswith(
         (
             "mixed-fields-",
