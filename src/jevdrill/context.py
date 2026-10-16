@@ -44,6 +44,7 @@ CONTINUATION = rf"{LINE_BREAK}{INDENT}+{LINE_TEXT}*"
 STRUCTURED_CONTINUATION = rf"{LINE_BREAK}(?:{INDENT}+{LINE_TEXT}*|{INDENT}*\#{LINE_TEXT}*)"
 PRIVATE_KEY_BEGIN = re.compile(r"-----BEGIN [^-]*PRIVATE KEY-----", re.IGNORECASE)
 PRIVATE_KEY_END = re.compile(r"-----END [^-]*PRIVATE KEY-----", re.IGNORECASE)
+QUOTED_SCALAR = re.compile(r"""(?:'(?:[^']|'')*'|"(?:[^"\\]|\\[\s\S])*")""")
 CREDENTIAL = re.compile(
     rf"""(?i)(?<![\w.-])(?:[\w.]+\s*+\[\s*+)?(?:["'][^\S\r\n]*+)?[\w.-]*(?:{CREDENTIAL_LABEL})"""
     r"""[\w.-]*[^\S\r\n]*+["']?\s*+\]?\s*+(?::|(?:\*\*|//|<<|>>|[+\-*/%@&|^])?=)"""
@@ -61,6 +62,14 @@ CONTEXT_PART = re.compile(
 def _check_deadline(deadline: float | None) -> None:
     if deadline is not None and monotonic() >= deadline:
         raise TimeoutError("context sanitization deadline exceeded")
+
+
+def _validation_view(text: str, deadline: float | None) -> str:
+    _check_deadline(deadline)
+    text = re.sub(LINE_BREAK, "\n", text)
+    text = re.sub(INDENT, " ", text)
+    _check_deadline(deadline)
+    return text
 
 
 class _DeadlineLoader(yaml.SafeLoader):
@@ -91,6 +100,19 @@ def _literal_string(node: ast.AST, deadline: float | None) -> str | None:
             pending.extend(reversed(item.values))
         elif isinstance(item, ast.BinOp) and isinstance(item.op, ast.Add):
             pending.extend((item.right, item.left))
+        elif (
+            isinstance(item, ast.Call)
+            and isinstance(item.func, ast.Name)
+            and item.func.id == "str"
+            and len(item.args) == 1
+            and not item.keywords
+            and isinstance(item.args[0], ast.Constant)
+            and isinstance(item.args[0].value, str)
+        ):
+            if kind is not None and kind is not str:
+                return None
+            kind = str
+            parts.append(item.args[0].value)
         else:
             return None
     return "".join(parts)
@@ -176,6 +198,20 @@ def _redact_node(node: Node, seen: set[int], deadline: float | None) -> bool:
             and _redact_assignments(node.value, deadline, record_member=True) != node.value
         ):
             raise ContractError("unsupported embedded credential assignment")
+        if re.match(r"\s*str\s*\(", node.value) and "#" not in node.value:
+            try:
+                literal = _literal_string(
+                    ast.parse(
+                        "(" + _validation_view(node.value, deadline) + "\n)", mode="eval"
+                    ).body,
+                    deadline,
+                )
+            except (SyntaxError, ValueError):
+                literal = None
+            if literal is not None:
+                if _credential_label(literal, deadline) or redact(literal, deadline) != literal:
+                    raise ContractError("unsupported computed credential record")
+                return False
         cleaned = redact(node.value, deadline)
         changed = cleaned != node.value
         node.value = cleaned
@@ -189,16 +225,24 @@ def _structured(text: str, deadline: float | None) -> str | None:
     credential_block = False
     credential_sequence = False
     sequence_count = 0
-    quoted_pattern = re.compile(r"""(?:'(?:[^']|'')*'|"(?:[^"\\]|\\[\s\S])*")""")
     quoted_work = 0
+    escaped_quotes: set[int] = set()
     for opening in re.finditer(r"""['"]""", text):
         _check_deadline(deadline)
-        quoted = quoted_pattern.match(text, opening.start())
+        if opening.start() in escaped_quotes:
+            continue
+        quoted = QUOTED_SCALAR.match(text, opening.start())
         quoted_work += (quoted.end() if quoted is not None else len(text)) - opening.start()
         if quoted_work > 16 * len(text) + 100_000:
             raise ContractError("context fragment work exceeds sanitization limit")
         if quoted is not None and re.search(LINE_BREAK, quoted.group()) is not None:
             _redact_assignments(quoted.group(), deadline, record_member=True)
+            if quoted.group().startswith("'"):
+                for escaped in re.compile("''").finditer(
+                    text, opening.start() + 1, quoted.end() - 1
+                ):
+                    _check_deadline(deadline)
+                    escaped_quotes.update((escaped.start(), escaped.start() + 1))
     for sequence in re.finditer(
         rf"{LINE_START}{INDENT}*-(?:{INDENT}+{LINE_TEXT}*|(?={LINE_BREAK}|$))"
         rf"(?:{STRUCTURED_CONTINUATION})*",
@@ -212,11 +256,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
             or _redact_assignments(sequence_text, deadline) != sequence_text
         )
         try:
-            sequence_view = re.sub(
-                rf"{LINE_START}{INDENT}+",
-                lambda match: " " * len(match.group()),
-                sequence_text,
-            )
+            sequence_view = _validation_view(sequence_text, deadline)
             for token in yaml.scan(sequence_view):
                 _check_deadline(deadline)
                 if isinstance(token, ScalarToken):
@@ -294,20 +334,25 @@ def _structured(text: str, deadline: float | None) -> str | None:
             loader.dispose()
     except yaml.YAMLError:
         for member in re.finditer(
-            rf"[:?]{INDENT}*(?P<quote>['\"])(?P<value>{LINE_TEXT}*"
+            rf"[:?]\s*(?:\#{LINE_TEXT}*{LINE_BREAK}\s*)*"
+            rf"(?P<quote>['\"])(?P<value>{LINE_TEXT}*"
             rf"(?:{STRUCTURED_CONTINUATION})*)",
             text,
         ):
             _check_deadline(deadline)
-            quoted = quoted_pattern.match(text, member.start("quote"))
+            quoted = QUOTED_SCALAR.match(text, member.start("quote"))
             if quoted is not None and re.compile(rf"{INDENT}*(?:[,}}\];#]|{LINE_BREAK}|$)").match(
                 text, quoted.end()
             ):
+                _redact_assignments(
+                    quoted.group()
+                    if re.search(LINE_BREAK, quoted.group()) is not None
+                    else "(" + _validation_view(quoted.group()[1:-1], deadline) + "\n)",
+                    deadline,
+                    record_member=True,
+                )
                 continue
-            original = re.sub(LINE_BREAK, "\n", member.group("value"))
-            original = re.sub(
-                rf"{LINE_START}{INDENT}+", lambda match: " " * len(match.group()), original
-            )
+            original = _validation_view(member.group("value"), deadline)
             _redact_assignments(original, deadline, record_member=True)
             if quoted is None:
                 quote = member.group("quote")
@@ -319,11 +364,14 @@ def _structured(text: str, deadline: float | None) -> str | None:
             text,
         ):
             _check_deadline(deadline)
-            original = re.sub(LINE_BREAK, "\n", member.group("value"))
-            original = re.sub(
-                rf"{LINE_START}{INDENT}+", lambda match: " " * len(match.group()), original
+            original = _validation_view(member.group("value"), deadline)
+            _redact_assignments(
+                original.strip()
+                if QUOTED_SCALAR.fullmatch(original.strip()) is not None
+                else "(" + original + "\n)",
+                deadline,
+                record_member=True,
             )
-            _redact_assignments("(" + original + "\n)", deadline, record_member=True)
         if credential_sequence:
             raise ContractError("unsupported structured credential sequence") from None
         for block in re.finditer(r"[:=][^\S\r\n]*[|>][^\r\n]*" + rf"(?:{CONTINUATION})+", text):
@@ -368,6 +416,15 @@ def _structured(text: str, deadline: float | None) -> str | None:
 
 def _redact_assignments(text: str, deadline: float | None, *, record_member: bool = False) -> str:
     _check_deadline(deadline)
+    if record_member:
+        for member in re.finditer(r"`+([^`]+)", text):
+            original = _validation_view(member.group(1), deadline)
+            enclosed = "(" + original + "\n)"
+            if (
+                _redact_assignments(enclosed, deadline, record_member=True) != enclosed
+                or redact(original, deadline) != original
+            ):
+                raise ContractError("unsupported Markdown credential record")
     if (
         record_member
         and text[:1] in {"'", '"'}
@@ -385,12 +442,26 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                         original = token.value
             except yaml.YAMLError:
                 pass
+        original = _validation_view(original, deadline)
+        if QUOTED_SCALAR.fullmatch(text) is not None:
+            try:
+                literal = _literal_string(
+                    ast.parse("(" + original + "\n)", mode="eval").body, deadline
+                )
+            except (SyntaxError, ValueError):
+                literal = None
+            if literal is not None:
+                if _credential_label(literal, deadline) or redact(literal, deadline) != literal:
+                    raise ContractError("unsupported multiline quoted credential record")
+                return text
         if (
             _redact_assignments("(" + original + "\n)", deadline, record_member=True)
             != "(" + original + "\n)"
             or redact(original, deadline) != original
         ):
             raise ContractError("unsupported multiline quoted credential record")
+        if QUOTED_SCALAR.fullmatch(text) is not None:
+            return text
     line_offsets = [0]
     for marker in re.finditer(r"\r\n|[\r\n]", text):
         _check_deadline(deadline)
@@ -439,6 +510,8 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
     continuation = re.compile(rf"(?:{CONTINUATION})*")
     for begin, finish, tokens, incomplete in groups:
         _check_deadline(deadline)
+        if record_member and incomplete and re.search(r"\b\w+\s*\(", text[begin:finish]):
+            raise ContractError("unsupported incomplete computed member")
         literals = []
         concatenated = False
         unresolved = False
@@ -543,7 +616,7 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
             parse_work += closing - opening
             if parse_work > 16 * (finish - begin) + 100_000:
                 raise ContractError("context fragment work exceeds sanitization limit")
-            expression_source = text[opening:closing].strip()
+            expression_source = _validation_view(text[opening:closing].strip(), deadline)
             try:
                 with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                     expression = ast.parse(expression_source)
@@ -552,7 +625,9 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                     continue
                 try:
                     with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
-                        expression_source = "_context_record" + text[opening:closing]
+                        expression_source = "_context_record" + _validation_view(
+                            text[opening:closing], deadline
+                        )
                         expression = ast.parse(expression_source)
                 except (SyntaxError, ValueError):
                     continue
@@ -697,7 +772,7 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
             target_start = operator_end
             try:
                 with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
-                    statement = ast.parse(prefix + " = None").body[-1]
+                    statement = ast.parse(_validation_view(prefix, deadline) + " = None").body[-1]
             except (SyntaxError, ValueError):
                 if quoted_credential:
                     raise ContractError("unsupported credential assignment") from None

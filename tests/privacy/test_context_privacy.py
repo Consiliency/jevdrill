@@ -334,3 +334,24 @@ def test_complete_credential_values_preserve_ordinary_next_line(label):
 )
 def test_ordinary_comment_indentation_and_unclosed_quotes_preserve_text(text):
     assert collect_context(text, [], [])["task_representation"] == text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Ordinary context.\nname:\n  'Content'\u00a0+\u00a0'-Type'\nvalue: application/json",
+        "Ordinary context.\nname:\n  'Content'\v+\v'-Type'\nvalue: application/json",
+        "Ordinary context.\nname: \"'Content'\n\u00a0+'-Type'\"\nvalue: application/json",
+        "Ordinary context.\nname: 'Content-Type\u2028 application/json'\nvalue: public",
+        'Ordinary context.\nname:\n  "public value\nvalue: application/json',
+        "Ordinary context.\n?\n# public note\n  'Content-Type\n: application/json",
+        "Ordinary context.\nname: `Content-Type`\nvalue: application/json",
+        "Ordinary context.\nname: `'Content'+'-Type'`\nvalue: application/json",
+        "headers['Content-Type'] = mime('\u00a0')\nOrdinary context",
+        "Ordinary context.\nname: `Content-Type\nvalue: application/json",
+        "name: 'str(''Content'')\u2028 +str(''-Type'')'\u2028value: application/json",
+        "Ordinary context.\x85? 'str(''Content'')\x85 +str(''-Type'')'\x85: application/json",
+    ],
+)
+def test_ordinary_decoded_and_markdown_members_preserve_source(text):
+    assert collect_context(text, [], [])["task_representation"] == text

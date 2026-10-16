@@ -98,6 +98,9 @@ Recognized continuation whitespace is normalized only in the validation view;
 retained ordinary source text keeps its original characters. Incomplete quoted
 members receive original-source checks before extraction, while complete quoted
 values retain their structured sanitization path.
+Decoded quoted members and AST expressions use the same recognized whitespace
+and physical-line validation view. Inline Markdown members are inspected before
+extraction; an apparent quote closer cannot conceal an incomplete computation.
 Structured parsing validates these records without rewriting the original label
 associations. A supplied document may contain at most 10,000 scalar/container nodes;
 excessive structural work rejects during scanning, and composition also checks the

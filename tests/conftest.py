@@ -620,6 +620,69 @@ for name, formatter in UNCLOSED_FORMATS.items():
         json.dumps({"message": formatter(label)})
     )
 FORMATS.update(CONTINUITY_FORMATS)
+QUOTED_VIEW_FORMATS = {
+    "memberview-double-nbsp": lambda label: (
+        f'name: "{label[:2]!r}\n\u00a0+{label[2:]!r}"\nvalue: SYNTHETIC_SENTINEL'
+    ),
+    "memberview-double-vt-key": lambda label: (
+        f'Ordinary context.\n? "{label[:2]!r}\n\v+{label[2:]!r}"\n: SYNTHETIC_SENTINEL'
+    ),
+    "memberview-single-ls": lambda label: (
+        "name: '"
+        + f"str({label[:2]!r})\u2028 +str({label[2:]!r})".replace("'", "''")
+        + "'\u2028value: SYNTHETIC_SENTINEL"
+    ),
+    "memberview-single-nel-key": lambda label: (
+        "Ordinary context.\x85? '"
+        + f"str({label[:2]!r})\x85 +str({label[2:]!r})".replace("'", "''")
+        + "'\x85: SYNTHETIC_SENTINEL"
+    ),
+}
+MEMBER_VIEW_FORMATS = {
+    **QUOTED_VIEW_FORMATS,
+    "memberview-interior-nbsp": lambda label: (
+        f"Ordinary context.\nname:\n  {label[:2]!r}\u00a0+\u00a0{label[2:]!r}\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "memberview-interior-vt": lambda label: (
+        f"Ordinary context.\nname:\n  {label[:2]!r}\v+\v{label[2:]!r}\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "memberview-false-single-closer": lambda label: (
+        f"Ordinary context.\nnote: 'name: str('\n{label[:2]}')+str({label[2:]!r})\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "memberview-false-double-closer": lambda label: (
+        f'Ordinary context.\nnote: "name: str("\n{label[:2]}")+str({json.dumps(label[2:])})\nvalue: SYNTHETIC_SENTINEL'
+    ),
+    "memberview-inline-call": lambda label: (
+        f"Ordinary context.\nname: `str({label[:2]!r})+str({label[2:]!r})`\nvalue: SYNTHETIC_SENTINEL"
+    ),
+    "memberview-inline-add": lambda label: (
+        f"Ordinary context.\nname: `{label[:2]!r}+{label[2:]!r}`\nvalue: SYNTHETIC_SENTINEL"
+    ),
+}
+for name, formatter in QUOTED_VIEW_FORMATS.items():
+    MEMBER_VIEW_FORMATS[f"{name}-json"] = lambda label, formatter=formatter: json.dumps(
+        formatter(label)
+    )
+    MEMBER_VIEW_FORMATS[f"{name}-log"] = lambda label, formatter=formatter: json.dumps(
+        {"log": formatter(label)}
+    )
+for indicator in ("name:", "?"):
+    for quote in ("'", '"'):
+        for comment in (False, True):
+            MEMBER_VIEW_FORMATS[f"memberview-next-quote-{indicator}-{quote}-{comment}"] = (
+                lambda label, indicator=indicator, quote=quote, comment=comment: (
+                    "Ordinary context.\n"
+                    + indicator
+                    + ("\n# ordinary comment" if comment else "")
+                    + "\n  "
+                    + quote
+                    + "+".join(f"chr({ord(char)})" for char in label)
+                    + "\n"
+                    + ("value:" if indicator == "name:" else ":")
+                    + " SYNTHETIC_SENTINEL"
+                )
+            )
+FORMATS.update(MEMBER_VIEW_FORMATS)
 SCHEME_FOLDS = {
     f"{scheme}-{ending}-{blank}": (
         "  "
@@ -661,6 +724,7 @@ UNSUPPORTED_CONTEXT = {
     or name in RECORD_FORMATS
     or name in BOUNDARY_FORMATS
     or name in CONTINUITY_FORMATS
+    or name in MEMBER_VIEW_FORMATS
     or name.startswith(
         (
             "mixed-fields-",
