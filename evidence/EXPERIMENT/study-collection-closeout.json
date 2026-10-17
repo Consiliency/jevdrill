@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-09T23:38:09.824772+00:00",
+  "study_id": "discovery-development-proposed-20261009-v1",
+  "status": "blocked_before_paid_dispatch",
+  "blocker": "Approved shared OpenAI OPENAI_API_KEY rejected with HTTP401 by metadata-only exact-snapshot availability endpoint. No unrelated key substitution.",
+  "approval_record": "study-owner-approval.json",
+  "grant_sha256": "8aec81743df5a95af900b40983b9c559829d4d764d63a389d566b4cd765567f2",
+  "grant_canonical_digest": "3222d0ff55a48afdb44a21ef912855c9e7d8a61e443ba875d3265d07c5e9b994",
+  "source_digest": "1b55174c7c906276e17708ba9edf337d0a8aee24d3690b8e8ae083be70a17ea3",
+  "protocol_digest": "b7bf60057cf3861ec285c22ba859b0f8081651c28b30d450fcf11e491c302bb6",
+  "authority_errors": [],
+  "grant_consumed": false,
+  "runner_invoked": false,
+  "study_directory_exists": false,
+  "counts": {
+    "expected_public_cases": 12,
+    "recorded_cases": 0,
+    "candidate_paid_calls": 0,
+    "judgment_paid_calls": 0,
+    "candidate_reservations": 0,
+    "judgment_reservations": 0,
+    "candidate_reserved_microusd": 0,
+    "judgment_reserved_microusd": 0,
+    "total_reserved_microusd": 0,
+    "observed_paid_cost_microusd": 0,
+    "provider_completion_retries": 0,
+    "study_duration_ms": 0
+  },
+  "families": {
+    "implementation": {
+      "expected_cases": 4,
+      "completed_cases": 0,
+      "completed_pairs": 0,
+      "guidance_acceptability": "unknown_not_collected",
+      "quality": "unknown_not_collected",
+      "cost": "unknown_not_collected",
+      "time": "unknown_not_collected",
+      "uncertainty": "insufficient_evidence",
+      "critical_observations": "none_no_empirical_execution"
+    },
+    "review": {
+      "expected_cases": 4,
+      "completed_cases": 0,
+      "completed_pairs": 0,
+      "guidance_acceptability": "unknown_not_collected",
+      "quality": "unknown_not_collected",
+      "cost": "unknown_not_collected",
+      "time": "unknown_not_collected",
+      "uncertainty": "insufficient_evidence",
+      "critical_observations": "none_no_empirical_execution"
+    },
+    "documentation": {
+      "expected_cases": 4,
+      "completed_cases": 0,
+      "completed_pairs": 0,
+      "guidance_acceptability": "unknown_not_collected",
+      "quality": "unknown_not_collected",
+      "cost": "unknown_not_collected",
+      "time": "unknown_not_collected",
+      "uncertainty": "insufficient_evidence",
+      "critical_observations": "none_no_empirical_execution"
+    }
+  },
+  "verification": {
+    "independent_preflight": true,
+    "source_bound_authority": true,
+    "preserved_disabled_preview_sha256": "f9ac1cd3931442e69239fb48898fee73b96bf5031ac11c1f702a854e93fa0c07",
+    "preserved_original_closeout_sha256": "5d2132ee2cec589e2585d383b4d0afba634fe0338983e87307d55b523654114a",
+    "preserved_index_sha256": "ef71c6571d634dde8560293cf8e5e46746bfb8db2ed91e7132985e50a785dbb7",
+    "existing_study_validation": "not_applicable_no_study_created",
+    "baml_cache": {
+      "new_import_cache_present": true,
+      "preserved_outside_review_tree": true,
+      "path": "/mnt/workspace/users/viperjuice/tmp/jevdrill-calibration-cache-20261009-preflight"
+    }
+  },
+  "artifacts": {
+    "study-authorization.json": "8aec81743df5a95af900b40983b9c559829d4d764d63a389d566b4cd765567f2",
+    "study-owner-approval.json": "469d7a8d021a4958aab51f2dbef5d462da868404affb60e25542ec087af18123",
+    "study-access-preflight.json": "cd3970dca50fa349b078a8b8c048499b39078af1ca2bff0b2f6e627e412b395d",
+    "study-access-preflight-v2.json": "f2903adf72a130e2719f1c0ed3745c81ce72753b9bb1f6ea93baa177d2553c7c",
+    "study-access-preflight-v3.json": "e3b68457a3d7e0e5378f521e10e92477141f0be83d39d232494302ce68c84783",
+    "study-access-preflight-v4.json": "b9c6bb28fef2cb98cec788e049b869e531e4be9c1b18566d04b8a22cb504361c",
+    "study-access-diagnostic.json": "da7b8775a79ff64470b13f9d963d1030d84af84bf64b32ee57db08e9be63ba22"
+  },
+  "access_attempts_reference": "study-access-diagnostic.json",
+  "promotion_authorized": false,
+  "holdouts_opened": false,
+  "phase_acceptance": "blocked; development data uncollected and Q12/Q13 family tolerances unresolved; no PREPARE progression",
+  "historical_evidence_or_old_grants_modified": false,
+  "source_or_companion_modified": false,
+  "next_requirement": "Restore or provide a valid shared OpenAI credential suitable for this already-approved calibration scope; independently recheck authority/source/protocol/expiry/study-path before any runner invocation."
+}

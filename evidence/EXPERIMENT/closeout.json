@@ -1,0 +1,367 @@
+{
+  "schema_version": 1,
+  "phase": "EXPERIMENT",
+  "closed_at": "2026-10-09T23:14:24.818931+00:00",
+  "status": "blocked",
+  "software_status": "passed",
+  "human_required": true,
+  "blocker_class": "product_decision_missing",
+  "blocker_summary": [
+    "Q12/Q13 family-specific empirical calibration unresolved",
+    "authorized preregistered linked discovery/routing development study missing"
+  ],
+  "implemented_lanes": [
+    "SL-0",
+    "SL-1",
+    "SL-2",
+    "SL-3"
+  ],
+  "acceptance_criteria_count": 4,
+  "produced_if_gates": [],
+  "next_phase": "EXPERIMENT",
+  "prepare_authorized": false,
+  "source_freeze": {
+    "schema_version": 1,
+    "frozen_at": "2026-10-09T22:54:14.985525+00:00",
+    "input_digest": "57b0f33454d6d5c0d993c5bc038f99f2a229b231a63d0b93b9b156f7a476806f",
+    "study_source_digest": "1b55174c7c906276e17708ba9edf337d0a8aee24d3690b8e8ae083be70a17ea3",
+    "companion_digest": "da6662580a4aa7a7e3ea4716348eb01d3cef0718d1c4088ce2fd90ffa2f9ef5f",
+    "bundle_path": "/mnt/workspace/users/viperjuice/tmp/jevdrill-experiment-public-source-20261009-preserved-final.tar.gz",
+    "bundle_sha256": "a9296e694492ba4f365202d3a018d90e9bb4442e51b19624c60c2b3ed7ff6fd3",
+    "bundle_files": 527,
+    "repairs": [
+      "format latest protocol signature",
+      "preserve static timeout as failed receipt",
+      "include unchanged inherited public case input",
+      "install locked Node dependencies on isolated native hosts",
+      "encode readonly SQLite URI path and explicitly close connection",
+      "native Windows extended-path private temp preparation",
+      "bounded amendment: preserve public native verification TemporaryDirectory(delete=False); ordinary Windows paths"
+    ],
+    "phase_plan_sha256": "4a472a92320d1181c4ad0d5066e2bd56b2ea7c571c828f2f01de4c45f1038084"
+  },
+  "native": [
+    {
+      "os": "Linux",
+      "receipt_path": "evidence/EXPERIMENT/platforms/Linux-3.13.json",
+      "receipt_sha256": "763d1bd02007e90c58d41de6a91f72e1df9bc7f353666bc3f0b25319287dad5b",
+      "runner_identity": "ViperJuice-Display-Server-01",
+      "python_version": "3.13.12",
+      "JEV": {
+        "total": 821,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0
+      },
+      "companion_assertions": 266,
+      "installed_discovery_assertions": 14,
+      "native_extra_assertions": 23,
+      "duration_seconds": 416.632,
+      "component_duration_seconds": {
+        "JEV_tests": 362.303,
+        "ROUTE": 370.997,
+        "HOST": 410.48,
+        "LEARN": 416.531,
+        "companion_separately": "not_recorded",
+        "extras_separately": "not_recorded"
+      },
+      "proof_cost_target_exceeded": true,
+      "source_stable": true
+    },
+    {
+      "os": "Darwin",
+      "receipt_path": "evidence/EXPERIMENT/platforms/Darwin-3.13.json",
+      "receipt_sha256": "472de67b71407c541704187cf8f27594c1be8a8994e455806ac7b6067792ba6f",
+      "runner_identity": "macmini",
+      "python_version": "3.13.7",
+      "JEV": {
+        "total": 821,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0
+      },
+      "companion_assertions": 130,
+      "installed_discovery_assertions": 14,
+      "native_extra_assertions": 23,
+      "duration_seconds": 321.166,
+      "component_duration_seconds": {
+        "JEV_tests": 286.995,
+        "ROUTE": 293.78,
+        "HOST": 314.714,
+        "LEARN": 321.081,
+        "companion_separately": "not_recorded",
+        "extras_separately": "not_recorded"
+      },
+      "proof_cost_target_exceeded": true,
+      "source_stable": true
+    },
+    {
+      "os": "Windows",
+      "receipt_path": "evidence/EXPERIMENT/platforms/Windows-3.13.json",
+      "receipt_sha256": "9277e645227be21a9db6035e28ede47435d0e0a646da16bb1f481eb3bdf101f3",
+      "runner_identity": "win",
+      "python_version": "3.13.15",
+      "JEV": {
+        "total": 821,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0
+      },
+      "companion_assertions": 130,
+      "installed_discovery_assertions": 14,
+      "native_extra_assertions": 59,
+      "duration_seconds": 482.039,
+      "component_duration_seconds": {
+        "JEV_tests": 421.458,
+        "ROUTE": 431.015,
+        "HOST": 463.755,
+        "LEARN": 481.855,
+        "companion_separately": "not_recorded",
+        "extras_separately": "not_recorded"
+      },
+      "proof_cost_target_exceeded": true,
+      "source_stable": true
+    }
+  ],
+  "software_diagnostic": {
+    "schema_version": 1,
+    "phase": "EXPERIMENT",
+    "status": "passed",
+    "scope": "software_only_diagnostic",
+    "input_digest": "57b0f33454d6d5c0d993c5bc038f99f2a229b231a63d0b93b9b156f7a476806f",
+    "companion_digest": "da6662580a4aa7a7e3ea4716348eb01d3cef0718d1c4088ce2fd90ffa2f9ef5f",
+    "errors": [],
+    "native_errors": [],
+    "operational_errors": [],
+    "empirical_errors": [],
+    "produced_if_gates": []
+  },
+  "whole_phase": {
+    "schema_version": 1,
+    "phase": "EXPERIMENT",
+    "status": "blocked",
+    "scope": "whole_phase",
+    "input_digest": "57b0f33454d6d5c0d993c5bc038f99f2a229b231a63d0b93b9b156f7a476806f",
+    "companion_digest": "da6662580a4aa7a7e3ea4716348eb01d3cef0718d1c4088ce2fd90ffa2f9ef5f",
+    "errors": [
+      "Q12/Q13 family-specific empirical calibration unresolved",
+      "authorized preregistered linked discovery/routing development study missing"
+    ],
+    "native_errors": [],
+    "operational_errors": [],
+    "empirical_errors": [
+      "Q12/Q13 family-specific empirical calibration unresolved",
+      "authorized preregistered linked discovery/routing development study missing"
+    ],
+    "produced_if_gates": []
+  },
+  "operational": {
+    "path": "evidence/EXPERIMENT/development-runtime.json",
+    "sha256": "06077ccf07e1daa0ee027610e6fe08eb4b0d4e662c615ceed1928732ef936403",
+    "run_directory": ".phase-loop/runs/EXPERIMENT-development-20261009-5fd40d0423b84a86b691cd467f9770eb",
+    "status": "passed",
+    "exact_named_checks": {
+      "actual_baml_local_provider_and_restricted_evaluation": true,
+      "recorded_comparisons_use_independent_restricted_grader": true,
+      "unavailable_image_observed": true,
+      "unavailable_image_rejected_by_runtime_probe": true,
+      "independent_grader_uses_restricted_runtime_and_external_answers": true,
+      "detached_child_observed": true,
+      "restricted_container_limits": true,
+      "container_client_retains_worker_custody": true,
+      "container_and_detached_child_removed_after_worker_death": true,
+      "custody_released_after_container_exit": true,
+      "source_unchanged": true
+    },
+    "runtime_assertions": 12,
+    "independent_recorded_assertions": 2,
+    "paid_calls": 0,
+    "image_id": "sha256:70af8b01bcbd3a008522f36ea07b679f14f9ad3fb721868cf0cc3f80b7e3f958",
+    "image_provenance": {
+      "Id": "sha256:70af8b01bcbd3a008522f36ea07b679f14f9ad3fb721868cf0cc3f80b7e3f958",
+      "Os": "linux",
+      "Architecture": "amd64"
+    },
+    "scope": "synthetic restricted Linux software proof only"
+  },
+  "original_runner": {
+    "artifact": ".phase-loop/runs/experiment-drill-execute-20261009-verified/verification.json",
+    "schema_version": 2,
+    "validation_code": "nonzero_exit",
+    "exit_summary": {
+      "commands": [
+        0
+      ],
+      "env_refresh": 0,
+      "suite": 1
+    },
+    "summary_line": "commands=[0], env_refresh=0, suite=1; nonzero_exit: suite.exit_code=1",
+    "findings": [
+      "suite.exit_code=1"
+    ],
+    "authentic_log_and_artifact_seal": true
+  },
+  "independent_parent_review": {
+    "input_study_companion_digests_match": true,
+    "native_errors": [],
+    "operational_errors": [],
+    "empirical_errors": [
+      "Q12/Q13 family-specific empirical calibration unresolved",
+      "authorized preregistered linked discovery/routing development study missing"
+    ],
+    "v2_validation_code": "nonzero_exit"
+  },
+  "audits": {
+    "owned": ".phase-loop/runs/experiment-drill-execute-20261009/owned-audit-final.json",
+    "ignored": ".phase-loop/runs/experiment-drill-execute-20261009/ignored-audit-final.log",
+    "ignored_exit_code": 0,
+    "baseline": ".phase-loop/runs/experiment-drill-execute-20261009/baseline.json",
+    "full_baseline_preimages": ".phase-loop/runs/experiment-drill-execute-20261009/baseline-content-recovery.json",
+    "baseline_content_count": 663,
+    "baseline_index_count": 542,
+    "initial_capture": "content SHA hashes, full index and worktree classifications; full preimages later recovered and verified against all initial hashes",
+    "historical_evidence_count": 55,
+    "historical_evidence_changes": [],
+    "inherited_source_index_changes": [],
+    "unowned_changes": [],
+    "cache_preservation": {
+      "schema_version": 1,
+      "preserved_at": "2026-10-09T23:13:04.689489+00:00",
+      "source": "/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/.baml",
+      "destination": "/mnt/workspace/users/viperjuice/tmp/jevdrill-experiment-baml-generation-final-20261009",
+      "files": 4889,
+      "bytes": 131196207,
+      "deleted": false,
+      "root_independent_reduction_complete": true
+    }
+  },
+  "ownership_amendment": {
+    "plan_sha256": "4a472a92320d1181c4ad0d5066e2bd56b2ea7c571c828f2f01de4c45f1038084",
+    "file": "scripts/verify_route_phase.py",
+    "lane": "SL-3",
+    "change": "TemporaryDirectory(delete=False) only; preserve public verification generation outside review tree",
+    "original_assertions_and_production_cleanup_unchanged": true,
+    "new_execution_authority": false,
+    "root_owned_controls": [
+      "plans/phase-plan-v1-EXPERIMENT.md",
+      "plans/manifest.json",
+      ".dev-skills/handoffs/codex-plan-phase/experiment-drill-replan-20261009.md",
+      ".dev-skills/handoffs/codex-plan-phase/latest.md"
+    ]
+  },
+  "study_proposal": {
+    "path": "evidence/EXPERIMENT/study-proposal.json",
+    "authority_preview_path": "evidence/EXPERIMENT/study-authority-preview.json",
+    "authority_preview_sha256": "f9ac1cd3931442e69239fb48898fee73b96bf5031ac11c1f702a854e93fa0c07",
+    "expected_study_source_digest": "1b55174c7c906276e17708ba9edf337d0a8aee24d3690b8e8ae083be70a17ea3",
+    "enabled": false,
+    "calibration_collection_only": true,
+    "new_candidate_budget_USD": "26.00",
+    "new_judgment_budget_USD": "2.20",
+    "new_total_budget_USD": "28.20",
+    "worst_case_candidate_reservation_USD": "25.191000",
+    "worst_case_judgment_reservation_USD": "2.114304",
+    "candidate_calls": 60,
+    "judgment_calls": 768,
+    "cases": 12,
+    "groups": 4,
+    "families": 3,
+    "max_arms": 5,
+    "attempts": 1,
+    "retries": 0,
+    "concurrency": 1,
+    "whole_deadline_minutes": 40,
+    "comparison_deadline_seconds": 120,
+    "case_deadline_seconds": 180,
+    "candidate_revisions": [
+      "gpt-4.1-mini-2025-04-14",
+      "gpt-4.1-nano-2025-04-14"
+    ],
+    "judgment_revision": "jev-1.13.0",
+    "expiry": "2026-10-15T00:00:00Z",
+    "candidate_input_context_reserved": 1047576,
+    "judgment_input_context_reserved": 65536,
+    "candidate_output_tokens": 512,
+    "request_bytes": 8192,
+    "receive_bytes": 65536,
+    "cpu": 2,
+    "memory_bytes": 2147483648,
+    "pids": 64,
+    "owner_inputs": [
+      "A new explicit development allowance for exact candidate snapshots expiring Oct15: at most 60 one-attempt calls, verified full provider context reservations of419850 microusd per mini call (nano104963), at most25.191000 USD reserved candidate spend under a26 USD whole/daily cap, and40-minute whole-run limit; or a bounded alternative.",
+      "A new separate pinned jev-1.13.0 navigation/task-judgment allowance: at most768 calls,5s/request,8KiB requests,64KiB responses,2.114304USD maximum reserved under2.20USD cap, same40-minute aggregate study deadline; total candidate+JEV grant28.20USD. Account availability/credential lookup occurs only after this new grant.",
+      "Q-12/Q-13 family-specific empirical quality floor/loss/equivalence/sample/confidence settings, or approval to collect this development study first and decide them from its exposed results; no additional critical failures remains mandatory."
+    ],
+    "fresh_validation_required_after_calibration": true,
+    "exposed_results_cannot_validate": true,
+    "groups_may_remain_insufficient": true,
+    "credentials_read": false,
+    "account_availability": "unknown"
+  },
+  "preserved_diagnostics": [
+    "evidence/EXPERIMENT/history",
+    ".phase-loop/runs/experiment-drill-execute-20261009/native-Linux.log",
+    ".phase-loop/runs/experiment-drill-execute-20261009/native-Linux-repaired.log",
+    ".phase-loop/runs/experiment-drill-execute-20261009/native-Linux-preserved-final.log",
+    ".phase-loop/runs/experiment-drill-execute-20261009/native-Windows-repaired.log",
+    ".phase-loop/runs/experiment-drill-execute-20261009/native-Windows-uri-final.log"
+  ],
+  "final_repairs": [
+    "authoritative task/privacy binding before proposal recurrence",
+    "scope-complete authority and aggregate conservative reservations",
+    "identity-independent configuration-sensitive dedup",
+    "missing observations remain unknown",
+    "current LEARN policy staleness and nullable routes preserved",
+    "full-provider-context spend ceiling",
+    "immutable receipt/configuration/guidance membership and finite telemetry/calibration gates",
+    "exact operational checks/commands/artifact identities",
+    "five-arm bounded execution/cancel/restart",
+    "public named input and locked Node prerequisites",
+    "explicit failed timeout receipts",
+    "readonly SQLite URI escaping and connection closure",
+    "bounded public verification generation preservation",
+    "Linux launcher normal certificate environment"
+  ],
+  "closeout_paths": {
+    "handoff": ".dev-skills/handoffs/codex-execute-phase/experiment-drill-execute-20261009.md",
+    "latest_handoff": ".dev-skills/handoffs/codex-execute-phase/latest.md",
+    "reflection": "/home/viperjuice/.codex/skills/codex-execute-phase/reflections/626cf486eb665885/codex--route-discovery/experiment-drill-execute-20261009.md",
+    "manifest": "plans/manifest.json",
+    "manifest_slug": "experiment-drill-replan-20261009",
+    "manifest_status": "failed"
+  },
+  "doc_delta_decision": "docs_updated",
+  "spec_delta_decision": "no_spec_delta",
+  "frozen_roadmap_status_docs": "execution snapshot retained to preserve proof digest; terminal state is this closeout/handoff/manifest",
+  "review_ratified": false,
+  "issue_inventory": [],
+  "issue_dispositions": [],
+  "access_attempts": [
+    {
+      "commands": [
+        "op availability",
+        "gh availability",
+        "op account list --format json"
+      ],
+      "status": "metadata_only_success",
+      "configured_accounts": 2,
+      "secret_values_read": false,
+      "provider_availability": "unknown"
+    }
+  ],
+  "authorization_preserved": {
+    "commits": 0,
+    "pushes": 0,
+    "publication": false,
+    "service_changes": false,
+    "security_policy_changes": false,
+    "runtime_adoption": false,
+    "scheduler_installation": false,
+    "paid_calls": 0,
+    "holdouts_opened": false,
+    "policy_promotion": false,
+    "old_grants_replenished": false,
+    "original_main_untouched": true,
+    "companion_source_untouched": true
+  }
+}

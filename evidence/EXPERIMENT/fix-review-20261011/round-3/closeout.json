@@ -1,0 +1,55 @@
+{
+  "status": "APPROVE_SCOPED_FIXES",
+  "review_kind": "manual scoped implementation review, not governed phase or empirical acceptance",
+  "president": "Opus5.5 manual subscription CLI, tools enabled",
+  "president_report": "president.md",
+  "president_report_sha256": "aa29942b4623da56232eefd2af4f79e61046008f0b65bfddf7c3a4b6f2f1ac81",
+  "final_manifest_sha256": "4fb3ed6538c603c1e7b1138923474666702da56894ada836512762de52c3fd6b",
+  "source_mismatches_after_president": [],
+  "closed": [
+    "D1",
+    "fixture source binding",
+    "isolated optional guidance test",
+    "O1",
+    "O2"
+  ],
+  "preserved": [
+    "R1",
+    "R2",
+    "R3",
+    "R4"
+  ],
+  "president_checks": {
+    "focused_tests": 130,
+    "affected_controls": 2,
+    "contracts_evaluation": 322,
+    "generation_files": 147,
+    "schemas": 78
+  },
+  "full_configured_tests": {
+    "passed": 858,
+    "source": "original round3 reviewed head; before assertion-only supplement"
+  },
+  "native_matrix": {
+    "input_digest": "1aa527566ae49ee427019efa701c8234d6555fcd71ed0d9c829d219a324081bc",
+    "reducer_errors": [],
+    "platforms": [
+      "Linux",
+      "Darwin",
+      "Windows"
+    ],
+    "tests_each": 322,
+    "skipped": 0
+  },
+  "grok": "Substantive AGREE retained; terminal cancelled, standing vote excluded; president ruling does not depend on this seat",
+  "review_rounds": 3,
+  "round4": false,
+  "staged_index_unchanged": true,
+  "staged_index_sha256": "ef71c6571d634dde8560293cf8e5e46746bfb8db2ed91e7132985e50a785dbb7",
+  "commits_or_pushes": false,
+  "study_restarted": false,
+  "study_candidate_or_judge_calls": 0,
+  "empirical_tolerances_or_quality_accepted": false,
+  "merge_or_deployment": false,
+  "broader_study_questions": "F6/F7/D2-D6 unchanged out of bounded scope; future collection and tolerances need separate owner action"
+}

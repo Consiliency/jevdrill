@@ -1,0 +1,175 @@
+{
+  "$defs": {
+    "SettingsOverride": {
+      "additionalProperties": false,
+      "properties": {
+        "default_plan_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Default Plan Id"
+        },
+        "excluded_paths": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Excluded Paths"
+        },
+        "experiment_enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Experiment Enabled"
+        },
+        "local_analysis_enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Local Analysis Enabled"
+        },
+        "max_description_utf8_bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "maximum": 2048,
+          "minimum": 1,
+          "title": "Max Description Utf8 Bytes"
+        },
+        "model_analysis_enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Model Analysis Enabled"
+        },
+        "retain_raw_outputs": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Retain Raw Outputs"
+        },
+        "retain_raw_tasks": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Retain Raw Tasks"
+        },
+        "routing_cost_basis": {
+          "anyOf": [
+            {
+              "const": "raw",
+              "type": "string"
+            },
+            {
+              "const": "adjusted",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Routing Cost Basis"
+        },
+        "routing_deadline_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "minimum": 1,
+          "title": "Routing Deadline Ms"
+        }
+      },
+      "required": [],
+      "title": "SettingsOverride",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "source": {
+      "anyOf": [
+        {
+          "const": "product",
+          "type": "string"
+        },
+        {
+          "const": "user",
+          "type": "string"
+        },
+        {
+          "const": "project",
+          "type": "string"
+        },
+        {
+          "const": "directory",
+          "type": "string"
+        },
+        {
+          "const": "personal_project",
+          "type": "string"
+        },
+        {
+          "const": "request",
+          "type": "string"
+        }
+      ],
+      "title": "Source"
+    },
+    "values": {
+      "$ref": "#/$defs/SettingsOverride"
+    }
+  },
+  "required": [
+    "source",
+    "values"
+  ],
+  "title": "SettingsLayer",
+  "type": "object"
+}

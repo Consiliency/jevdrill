@@ -154,7 +154,10 @@ answers bound to that question digest; duplicate, unknown or stale IDs fail.
 Use BAML Boolean judgments per offered option through a distinct
 `ObserveDiscoveryOption` function and the existing patched observation path.
 Add DiscoveryJudgmentPolicy and DiscoveryJudgmentRecord with function_revision
-"ObserveDiscoveryOption-v1"; preserve JudgeCandidate-v1-only contracts. Shared
+"ObserveDiscoveryOption-v1"; preserve historical JudgeCandidate-v1 parsing/replay.
+The owner-approved October 12 amendment authorizes JudgeCandidate-v2 for new calls
+and template/projection bindings; see
+`evidence/EXPERIMENT/fix-review-20261011/round-3/version-amendment.json`. Shared
 fixtures reject route policies as discovery policies and vice versa.
 Drill aggregates those bound answers into navigation choices; do not assume a
 new multi-select provider feature. Missing/failed answers remain unknown.
@@ -292,7 +295,7 @@ plus independent new-key limits and unchanged same-key limits after a crash.
 ### SL-0 — Contracts and vocabulary
 
 - **Scope**: Freeze additive discovery/link contracts, canonical names and strict validation.
-- **Owned files**: `baml_src/**`, `src/baml_sdk/**`, `schemas/**`, `src/jevdrill/contracts.py`, `docs/vocabulary.yaml`, `docs/vocabulary.md`, `docs/contracts.md`, `docs/route-interfaces.md`, `tests/contracts/**`, `scripts/contract_consumer.mjs`
+- **Owned files**: `baml_src/**`, `src/baml_sdk/**`, `schemas/**`, `src/jevdrill/contracts.py`, `docs/vocabulary.yaml`, `docs/vocabulary.md`, `docs/contracts.md`, `docs/route-interfaces.md`, `tests/contracts/**`, `scripts/contract_consumer.mjs`, `scripts/check_generated_contracts.py`, `pyproject.toml`, `uv.lock`, `.phase-loop-generated-outputs.json`, `.github/workflows/route.yml`, `src/jevdrill/BAML_TYPESAFE_LICENSE`, `src/jevdrill/BAML_TYPESAFE_NOTICE.md`, `src/jevdrill/context.py`, `src/jevdrill/costing.py`, `src/jevdrill/guidance.py`, `src/jevdrill/inventory.py`, `src/jevdrill/routing.py`, `src/jevdrill/settings.py`, `src/jevdrill/telemetry.py`, `src/jevdrill/integrations/__init__.py`, `tests/context/**`, `tests/costing/**`, `tests/guidance/**`, `tests/inventory/**`, `tests/routing/**`, `tests/settings/**`, `tests/privacy/test_context_privacy.py`, `tests/privacy/test_jev_privacy.py`, `tests/privacy/test_storage_privacy.py`
 - **Interfaces provided**: `discovery_contracts`
 - **Interfaces consumed**: existing strict parsing, canonical digests, generated schemas and usage contracts
 - **Parallel-safe**: no
@@ -359,6 +362,28 @@ If one becomes necessary, amend SL-0 ownership for manifests/locks before edits.
 Only the final reducer writes synthesized readiness and phase evidence.
 Native-platform unavailability permits partial local evidence, not gate closure.
 Broad existing dirty changes must be inventoried and preserved before execution.
+
+October 8 execution preflight: planning-only main does not contain the routing
+baseline described above. Recover public ROUTE source and synthetic tests from
+the committed `9a1a94f81` tree into an isolated feature worktree; recover only the
+pinned TypeSafe patch, attribution, usage projection and parity tests from the
+preserved `codex/v0-linux` worktree. Its unfinished HOST/LEARN/EXPERIMENT code
+and all research inputs remain untouched. SL-0 additionally owns the baseline
+bootstrap paths and generation script listed above; other recovered files stay
+in their existing owning lanes. No dependency version change is authorized.
+Read allowlist: `.baml/**` compiler/toolchain metadata and executables only,
+excluding profiles and payloads. Generated outputs are regenerated normally.
+SL-0 also owns `tests/conftest.py` for shared synthetic fixtures. A baseline
+verification found that the planning merge changed six CONTRACT coverage source
+bindings (including JD-083/084). SL-0 may reconcile only
+`evidence/CONTRACT/coverage.json` source bindings and mapping entries, retaining
+the original bytes under `evidence/ROUTE/history/`; platform reports and every
+other CONTRACT evidence file remain read-only. This refresh claims no CONTRACT
+gate and changes no accepted product decision.
+SL-0 may also recover `research/evaluation/cases.json`, the committed public
+synthetic development fixture required by the retained catalog checks. This
+exact path is an allowed read input; no other research corpus or holdout is
+authorized. It remains synthetic regression evidence, not quality evidence.
 
 ## Verification
 

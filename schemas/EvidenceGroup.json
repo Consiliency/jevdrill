@@ -1,0 +1,471 @@
+{
+  "$defs": {
+    "DiscoveryRef": {
+      "additionalProperties": false,
+      "properties": {
+        "discovery_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Discovery Id",
+          "type": "string"
+        },
+        "trace_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Trace Digest",
+          "type": "string"
+        },
+        "work_objective_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Work Objective Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "discovery_id",
+        "trace_digest",
+        "work_objective_id"
+      ],
+      "title": "DiscoveryRef",
+      "type": "object"
+    },
+    "EvidenceMetric": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Maximum"
+        },
+        "mean": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean"
+        },
+        "median": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Median"
+        },
+        "metric_definition": {
+          "$ref": "#/$defs/Measurement"
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Minimum"
+        },
+        "missing_count": {
+          "title": "Missing Count",
+          "type": "integer"
+        },
+        "p95": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "P95"
+        },
+        "sample_count": {
+          "title": "Sample Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "maximum",
+        "mean",
+        "median",
+        "metric_definition",
+        "minimum",
+        "missing_count",
+        "p95",
+        "sample_count"
+      ],
+      "title": "EvidenceMetric",
+      "type": "object"
+    },
+    "KnownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "known",
+          "title": "Kind",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "unit",
+        "value"
+      ],
+      "title": "KnownMeasurement",
+      "type": "object"
+    },
+    "Measurement": {
+      "additionalProperties": false,
+      "properties": {
+        "counting_semantics": {
+          "anyOf": [
+            {
+              "const": "disjoint",
+              "type": "string"
+            },
+            {
+              "const": "subset",
+              "type": "string"
+            },
+            {
+              "const": "not_applicable",
+              "type": "string"
+            }
+          ],
+          "title": "Counting Semantics"
+        },
+        "measurement_value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/KnownMeasurement"
+            },
+            {
+              "$ref": "#/$defs/UnknownMeasurement"
+            }
+          ],
+          "title": "Measurement Value"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "metric_version": {
+          "title": "Metric Version",
+          "type": "string"
+        },
+        "parent_metric_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Metric Id"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "const": "call",
+              "type": "string"
+            },
+            {
+              "const": "run",
+              "type": "string"
+            },
+            {
+              "const": "task",
+              "type": "string"
+            },
+            {
+              "const": "experiment",
+              "type": "string"
+            }
+          ],
+          "title": "Scope"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "direct",
+              "type": "string"
+            },
+            {
+              "const": "provider",
+              "type": "string"
+            },
+            {
+              "const": "host",
+              "type": "string"
+            },
+            {
+              "const": "evaluator",
+              "type": "string"
+            },
+            {
+              "const": "estimate",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "counting_semantics",
+        "measurement_value",
+        "method",
+        "metric_id",
+        "metric_version",
+        "parent_metric_id",
+        "scope",
+        "source"
+      ],
+      "title": "Measurement",
+      "type": "object"
+    },
+    "MissingReason": {
+      "enum": [
+        "unsupported",
+        "not_reported",
+        "not_applicable",
+        "redacted",
+        "expired",
+        "incomplete"
+      ],
+      "title": "MissingReason",
+      "type": "string"
+    },
+    "ObservationSource": {
+      "additionalProperties": false,
+      "properties": {
+        "discovery_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiscoveryRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "execution_run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Execution Run Id"
+        },
+        "origin": {
+          "anyOf": [
+            {
+              "const": "local",
+              "type": "string"
+            },
+            {
+              "const": "user_wide_redacted",
+              "type": "string"
+            }
+          ],
+          "title": "Origin"
+        },
+        "routing_decision_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Routing Decision Id"
+        },
+        "task_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Task Id"
+        }
+      },
+      "required": [
+        "discovery_ref",
+        "execution_run_id",
+        "origin",
+        "routing_decision_id",
+        "task_id"
+      ],
+      "title": "ObservationSource",
+      "type": "object"
+    },
+    "UnknownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/MissingReason"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "UnknownMeasurement",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "acceptance_unknown_count": {
+      "title": "Acceptance Unknown Count",
+      "type": "integer"
+    },
+    "accepted_count": {
+      "title": "Accepted Count",
+      "type": "integer"
+    },
+    "applied_unknown_count": {
+      "title": "Applied Unknown Count",
+      "type": "integer"
+    },
+    "canceled_count": {
+      "title": "Canceled Count",
+      "type": "integer"
+    },
+    "completed_count": {
+      "title": "Completed Count",
+      "type": "integer"
+    },
+    "conditions": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Conditions",
+      "type": "object"
+    },
+    "declined_count": {
+      "title": "Declined Count",
+      "type": "integer"
+    },
+    "evidence_scope": {
+      "const": "observed_task_group",
+      "title": "Evidence Scope",
+      "type": "string"
+    },
+    "failed_count": {
+      "title": "Failed Count",
+      "type": "integer"
+    },
+    "group_id": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Group Id",
+      "type": "string"
+    },
+    "incomplete_count": {
+      "title": "Incomplete Count",
+      "type": "integer"
+    },
+    "metrics": {
+      "items": {
+        "$ref": "#/$defs/EvidenceMetric"
+      },
+      "title": "Metrics",
+      "type": "array"
+    },
+    "observation_refs": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Observation Refs",
+      "type": "array"
+    },
+    "preference_unknown_count": {
+      "title": "Preference Unknown Count",
+      "type": "integer"
+    },
+    "rejected_count": {
+      "title": "Rejected Count",
+      "type": "integer"
+    },
+    "retained_count": {
+      "title": "Retained Count",
+      "type": "integer"
+    },
+    "run_count": {
+      "title": "Run Count",
+      "type": "integer"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/ObservationSource"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "substituted_count": {
+      "title": "Substituted Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "acceptance_unknown_count",
+    "accepted_count",
+    "applied_unknown_count",
+    "canceled_count",
+    "completed_count",
+    "conditions",
+    "declined_count",
+    "evidence_scope",
+    "failed_count",
+    "group_id",
+    "incomplete_count",
+    "metrics",
+    "observation_refs",
+    "preference_unknown_count",
+    "rejected_count",
+    "retained_count",
+    "run_count",
+    "sources",
+    "substituted_count"
+  ],
+  "title": "EvidenceGroup",
+  "type": "object"
+}

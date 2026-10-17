@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "authorization_digest": {
+      "title": "Authorization Digest",
+      "type": "string"
+    },
+    "catalog_digest": {
+      "title": "Catalog Digest",
+      "type": "string"
+    },
+    "catalog_revision": {
+      "title": "Catalog Revision",
+      "type": "string"
+    },
+    "content_revision": {
+      "title": "Content Revision",
+      "type": "string"
+    },
+    "descriptions_digest": {
+      "title": "Descriptions Digest",
+      "type": "string"
+    },
+    "policy_digest": {
+      "title": "Policy Digest",
+      "type": "string"
+    },
+    "settings_revision": {
+      "title": "Settings Revision",
+      "type": "string"
+    },
+    "taxonomy_revision": {
+      "title": "Taxonomy Revision",
+      "type": "string"
+    }
+  },
+  "required": [
+    "authorization_digest",
+    "catalog_digest",
+    "catalog_revision",
+    "content_revision",
+    "descriptions_digest",
+    "policy_digest",
+    "settings_revision",
+    "taxonomy_revision"
+  ],
+  "title": "DiscoveryRevisions",
+  "type": "object"
+}

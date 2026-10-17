@@ -1,0 +1,15 @@
+{
+  "status": "owner_approved_v2_amendment",
+  "decision": "D1",
+  "owner_answer": "Approve v2 amendment (Recommended) — Give new semantics a distinct label; preserve historical v1 records, with a reviewed schema update.",
+  "proposal": "../round-1/judgment-version-amendment-proposal.json",
+  "authority": "Implementation and offline verification only; no paid study calls, grant reuse, promotion, merge or deployment",
+  "contract_amendment": "JudgmentPolicy and JudgmentRecord accept historical JudgeCandidate-v1 and current JudgeCandidate-v2; only v2 may dispatch current suitability requests. Existing v1 records and storage replay remain valid.",
+  "freeze_exception": "Explicit owner amendment supersedes the JudgeCandidate-v1-only freeze in phase-plan-v1-ROUTE.md for these seven derived schemas and their new-call guards.",
+  "affected_schemas": ["JudgmentPolicy", "JudgmentRecord", "RouteInputs", "DiscoveryRouteInputs", "ReplayBundle", "RecoveryDecision", "RecoveryBundle"],
+  "required_bindings": ["rendered request template", "selected execution profile projection version and fields", "development judge configuration", "study validator expectation", "product route cache identity"],
+  "historical_replay": "Stored parsing and replay without dispatch; existing stopped-study artifacts and grant remain immutable. Legacy development worker profiles are not reopened for new calls.",
+  "carried_repairs": ["fixture source digest binding", "isolated optional-guidance clause coverage", "shared fully covered projection field constant"],
+  "round_cap": 3,
+  "empirical_acceptance": false
+}

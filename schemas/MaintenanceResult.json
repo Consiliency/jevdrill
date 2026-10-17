@@ -1,0 +1,136 @@
+{
+  "$defs": {
+    "LocalNotice": {
+      "additionalProperties": false,
+      "properties": {
+        "automatic_action": {
+          "anyOf": [
+            {
+              "const": "archive",
+              "type": "string"
+            },
+            {
+              "const": "none",
+              "type": "string"
+            }
+          ],
+          "title": "Automatic Action"
+        },
+        "deadline": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Deadline"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "const": "archive_prompt",
+              "type": "string"
+            },
+            {
+              "const": "failure",
+              "type": "string"
+            },
+            {
+              "const": "decision_required",
+              "type": "string"
+            }
+          ],
+          "title": "Kind"
+        },
+        "notice_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Notice Id",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "automatic_action",
+        "deadline",
+        "kind",
+        "notice_id",
+        "summary"
+      ],
+      "title": "LocalNotice",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "notices": {
+      "items": {
+        "$ref": "#/$defs/LocalNotice"
+      },
+      "title": "Notices",
+      "type": "array"
+    },
+    "pending": {
+      "title": "Pending",
+      "type": "integer"
+    },
+    "processed": {
+      "title": "Processed",
+      "type": "integer"
+    },
+    "scheduler_instructions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Scheduler Instructions",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "anyOf": [
+        {
+          "const": "completed",
+          "type": "string"
+        },
+        {
+          "const": "paused",
+          "type": "string"
+        },
+        {
+          "const": "canceled",
+          "type": "string"
+        },
+        {
+          "const": "busy",
+          "type": "string"
+        },
+        {
+          "const": "schedule_proposed",
+          "type": "string"
+        }
+      ],
+      "title": "Status"
+    }
+  },
+  "required": [
+    "notices",
+    "pending",
+    "processed",
+    "scheduler_instructions",
+    "schema_version",
+    "status"
+  ],
+  "title": "MaintenanceResult",
+  "type": "object"
+}

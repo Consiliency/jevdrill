@@ -1,0 +1,19 @@
+{
+  "head": "ff858a3eb0da2b710fb38897c6040072224ea0f9",
+  "full_configured_suite": {
+    "tests": 858,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "duration_seconds": 495.45,
+  "junit": "/tmp/jevdrill-merge-full.xml",
+  "junit_sha256": "f261b1dedc30b33ec586162f91aec49a45688c2fd508ece04dd55d77b626d0ee",
+  "physical_sdk_outputs": "all147 including4currentlyignoredoutputs; cleanpublicationrequiresaddingexactfour",
+  "clean_four_file_repair": {
+    "sdk_import": "passed",
+    "contract_evaluation_tests": 322,
+    "generation": "147outputs/78schemaspassed"
+  },
+  "candidate_production_bytes_match_approved_final_manifest": true
+}

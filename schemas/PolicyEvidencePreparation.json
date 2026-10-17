@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "definition_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Definition Digest",
+      "type": "string"
+    },
+    "evaluator_identity": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Evaluator Identity",
+      "type": "string"
+    },
+    "evidence_ref": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Evidence Ref",
+      "type": "string"
+    },
+    "independent": {
+      "title": "Independent",
+      "type": "boolean"
+    },
+    "input_revision": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Input Revision",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "anyOf": [
+        {
+          "const": "current",
+          "type": "string"
+        },
+        {
+          "const": "critical_regression",
+          "type": "string"
+        },
+        {
+          "const": "quality_regression",
+          "type": "string"
+        },
+        {
+          "const": "stale",
+          "type": "string"
+        }
+      ],
+      "title": "Status"
+    },
+    "valid_until": {
+      "format": "date-time",
+      "pattern": "Z$",
+      "title": "Valid Until",
+      "type": "string"
+    }
+  },
+  "required": [
+    "definition_digest",
+    "evaluator_identity",
+    "evidence_ref",
+    "independent",
+    "input_revision",
+    "schema_version",
+    "status",
+    "valid_until"
+  ],
+  "title": "PolicyEvidencePreparation",
+  "type": "object"
+}

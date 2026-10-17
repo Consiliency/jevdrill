@@ -1,0 +1,95 @@
+{
+  "$defs": {
+    "CommandScope": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "anyOf": [
+            {
+              "const": "route",
+              "type": "string"
+            },
+            {
+              "const": "report",
+              "type": "string"
+            }
+          ],
+          "title": "Operation"
+        },
+        "producer": {
+          "title": "Producer",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "workspace_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation",
+        "producer",
+        "project_id",
+        "workspace_id"
+      ],
+      "title": "CommandScope",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "anyOf": [
+        {
+          "const": "admit",
+          "type": "string"
+        },
+        {
+          "const": "inspect",
+          "type": "string"
+        },
+        {
+          "const": "advance",
+          "type": "string"
+        },
+        {
+          "const": "cancel",
+          "type": "string"
+        }
+      ],
+      "title": "Action"
+    },
+    "background": {
+      "title": "Background",
+      "type": "boolean"
+    },
+    "comparison_experiment_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Comparison Experiment Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/CommandScope"
+    }
+  },
+  "required": [
+    "action",
+    "background",
+    "comparison_experiment_id",
+    "schema_version",
+    "scope"
+  ],
+  "title": "ExperimentExecutionRequest",
+  "type": "object"
+}

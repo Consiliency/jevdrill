@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "study_id": "discovery-development-proposed-20261009-v1",
+  "status": "disabled_pending_new_authority_calibration_collection_only",
+  "protocol_revision": "discovery-development-v1-20261009",
+  "scope": "new isolated public development project/workspace; operation discover/route/experiment scopes granted separately; no private tasks or settings",
+  "candidate_revisions": [
+    "gpt-4.1-mini-2025-04-14",
+    "gpt-4.1-nano-2025-04-14"
+  ],
+  "effort": "provider_default only; optional guidance comes from independently admitted corpus resources",
+  "candidate_expiry": "2026-10-15T00:00:00Z; nano shutdown scheduled 2026-10-23; expiry cannot be extended silently",
+  "rates": {
+    "verified_at": "2026-10-09",
+    "unit": "USD per 1000000 text tokens",
+    "mini": {
+      "input": "0.40",
+      "output": "1.60"
+    },
+    "nano": {
+      "input": "0.10",
+      "output": "0.40"
+    },
+    "sources": [
+      "https://developers.openai.com/api/docs/models/gpt-4.1-mini",
+      "https://developers.openai.com/api/docs/models/gpt-4.1-nano",
+      "https://developers.openai.com/api/docs/deprecations"
+    ],
+    "account_available": "unknown; metadata-only verification precedes credential lookup under a future grant"
+  },
+  "limits": {
+    "case_count": 12,
+    "max_applicable_arms_per_case": 5,
+    "max_candidate_calls": 60,
+    "max_attempts_per_arm": 1,
+    "automatic_retries": 0,
+    "concurrency": 1,
+    "input_utf8_bytes_upper_bound": 8192,
+    "max_output_tokens": 512,
+    "candidate_request_deadline_ms": 30000,
+    "case_deadline_ms": 180000,
+    "whole_study_deadline_ms": 2400000,
+    "restricted_execution_cpu": 2,
+    "restricted_execution_memory_bytes": 2147483648,
+    "restricted_execution_pids": 64,
+    "artifact_output_bytes": 65536,
+    "maximum_candidate_cost_microusd": 25191000,
+    "proposed_candidate_budget_microusd": 26000000,
+    "daily_candidate_budget_microusd": 26000000,
+    "verified_provider_context_tokens": 1047576,
+    "per_candidate_reservation_microusd": 419850,
+    "proposed_whole_study_budget_microusd": 28200000,
+    "comparison_deadline_ms": 120000,
+    "mini_request_deadline_ms": 8000,
+    "nano_request_deadline_ms": 30000
+  },
+  "arms": {
+    "actual_discovery_route": "Actual navigation produces optional guidance; actual task routing chooses model/effort under independently declared feasibility.",
+    "fixed_default": "mini/provider_default with task-required guidance only",
+    "cheapest_feasible": "lowest verified raw-cost feasible model/provider_default with task-required guidance only",
+    "no_guidance": "same selected model/effort as actual, with optional guidance removed",
+    "simple_retrieval": "deterministic lexical resource retrieval, actual feasible task routing",
+    "previous_policy": "Inapplicable for these new groups unless a separately verified frozen policy exists before exposure; then replace an applicable arm within the unchanged five-arm limit, never add calls."
+  },
+  "navigation_authority": {
+    "status": "disabled_pending_new_paid_JEV_authority",
+    "max_calls_per_objective": 32,
+    "max_calls_total": 768,
+    "max_input_utf8_bytes_per_call": 8192,
+    "whole_navigation_deadline_ms": 2400000,
+    "provider_spend_authorized_microusd": 0,
+    "requirement": "A new separately scoped pinned paid JEV allowance reserves65536 full-context tokens per call with ceiling microdollar rounding, at most768 discovery+task judgment calls=2.114304USD under2.20USD. The configured bounded transport is executable; actual response.model must equal jev-1.13.0. No prior allowance or credential is reused.",
+    "max_calls_per_task": 32,
+    "included_calls": "All discovery judgments and downstream task-routing judgments share this aggregate call/compute allowance; none can consume candidate budget or an old grant.",
+    "model_revision": "jev-1.13.0",
+    "provider": "typesafeai",
+    "endpoint": "https://api.typesafe.ai/v1/systemone",
+    "verified_at": "2026-10-09",
+    "source": "https://docs.typesafe.ai/models",
+    "input_rate_usd_per_million": "0.042",
+    "output_rate_usd_per_million": "0",
+    "reserved_context_tokens_per_call": 65536,
+    "reservation_microusd_per_call": 2753,
+    "maximum_reserved_microusd": 2114304,
+    "proposed_budget_microusd": 2200000,
+    "request_deadline_ms": 5000,
+    "receive_bytes": 65536,
+    "automatic_retries": 0,
+    "hard_output_token_control": "unavailable and not claimed; closed Boolean response plus free output permits conservative spending bound"
+  },
+  "reservation": "Reserve all fixed candidate snapshots at their full verified1047576-token context plus hard512-token output with ceiling microusd rounding. At most60 candidate dispatches reserve at most25191000 microusd under a new26 USD cap. Separately reserve2753 microusd before every pinned JEV discovery/task call:768 calls reserve2114304 microusd under a new2.20 USD cap. Combined new authority28.20 USD; no current spending authority. Uncertain/failed/canceled/deleted reservations are never refunded.",
+  "exposure": "Record protocol/corpus/source/evaluator revisions and identities before first dispatch; all twelve public tasks are explicitly development-exposed; policy and release holdouts stay untouched. Anonymous artifact identities are passed to the independent grader.",
+  "stopping_rules": [
+    "Pause and require new review immediately on an additional measured critical failure.",
+    "Stop on expired model/profile/grant, changed lineage or guidance, clock rollback, unverified cleanup, unavailable isolation, interactive contention, missing durable reservation, or uncertain dispatch.",
+    "Cancel stops later requests and descendants, preserves partial evidence/unknown telemetry and conservative reservations.",
+    "Never retry an uncertain provider request or replace a failed arm without a new grant.",
+    "Stop at any whole-study call/time/resource/cost bound; incomplete pairs stay incomplete."
+  ],
+  "analysis": "Produce paired per-family guidance acceptability and downstream quality/cost/time with total navigation/routing/grading overhead, group-level uncertainty, denominators and unknown telemetry. Distinguish critical observations from missing execution. This development study calibrates proposed tolerances; it cannot promote a policy.",
+  "required_owner_inputs": [
+    "A new explicit development allowance for exact candidate snapshots expiring Oct15: at most 60 one-attempt calls, verified full provider context reservations of419850 microusd per mini call (nano104963), at most25.191000 USD reserved candidate spend under a26 USD whole/daily cap, and40-minute whole-run limit; or a bounded alternative.",
+    "A new separate pinned jev-1.13.0 navigation/task-judgment allowance: at most768 calls,5s/request,8KiB requests,64KiB responses,2.114304USD maximum reserved under2.20USD cap, same40-minute aggregate study deadline; total candidate+JEV grant28.20USD. Account availability/credential lookup occurs only after this new grant.",
+    "Q-12/Q-13 family-specific empirical quality floor/loss/equivalence/sample/confidence settings, or approval to collect this development study first and decide them from its exposed results; no additional critical failures remains mandatory."
+  ],
+  "prior_authority": "All prior paid and Gemma grants and conservative reservations remain unchanged; no replenishment or replay.",
+  "local_alternative_metadata": {
+    "host": "ai",
+    "endpoint": "loopback:8002/v1/models",
+    "observed_at": "2026-10-09",
+    "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+    "max_model_len": 131072,
+    "immutable_weights_revision": "unknown",
+    "remote_cancellation": "unverified",
+    "selected": false,
+    "reason": "Existing local service metadata does not establish pinned JEV semantics or whole-run compute/cancellation guarantees."
+  },
+  "calibration_collection_only": true,
+  "phase_acceptance": "This exposed calibration collection cannot close EXPERIMENT. Owner-derived tolerances must be frozen before a separately authorized fresh evaluation; exposed results cannot be reused as validation. Four related groups may leave conservative intervals/sample floors insufficient.",
+  "dispatcher": "python scripts/verify_discovery_calibration.py --authority-preview; after explicit new owner grant only, --run-authorized-study <source-bound-grant.json>. The driver reads configured credential callbacks only after exact grant/expiry/source/protocol checks. Its isolated study directory cannot be resumed or overwritten.",
+  "execution": "Each case records up to five distinct authoritative plans in one durable comparison. Anonymous output pairs are independently graded; an odd missing pad is never an executed arm. Provider call deadlines obey the earlier call,120s comparison,180s case or40min study deadline. No candidate is retried; incomplete arms stay incomplete. Distinct preregistered context revisions prevent route-cache identity reuse between arms."
+}

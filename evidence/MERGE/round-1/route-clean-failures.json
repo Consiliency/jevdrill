@@ -1,0 +1,24 @@
+{
+  "junit": "/mnt/workspace/users/viperjuice/tmp/jevdrill-route-9m_nez8o/tests.xml",
+  "failed_controls": [
+    "tests.application.test_learning::test_installed_discovery_host_tasks_reports_analysis_and_entered_denials",
+    "tests.conformance.test_discovery_handoff::test_installed_discovery_harness_planning_two_independent_tasks",
+    "tests.conformance.test_discovery_handoff::test_entered_reference_deletion_revision_and_policy_controls",
+    "tests.conformance.test_launch_paths::test_real_main_delegated_lane_constructors",
+    "tests.conformance.test_launch_paths::test_entered_permission_expansion_denials",
+    "tests.conformance.test_launch_paths::test_independent_checks_reject_entered_routed_artifacts",
+    "tests.conformance.test_notices::test_every_report_connection_queries_notices",
+    "tests.conformance.test_transport_queue::test_entered_ack_loss_and_cross_producer_deletion",
+    "tests.conformance.test_usage_reporting::test_installed_usage_persistence[known]",
+    "tests.conformance.test_usage_reporting::test_installed_usage_persistence[missing]",
+    "tests.conformance.test_usage_reporting::test_installed_usage_persistence[lagged]",
+    "tests.conformance.test_usage_reporting::test_installed_usage_persistence[unsupported]",
+    "tests.conformance.test_usage_reporting::test_installed_usage_persistence[nonzero]",
+    "tests.conformance.test_usage_reporting::test_installed_usage_persistence[timeout]",
+    "tests.conformance.test_usage_reporting::test_installed_usage_persistence[stall]",
+    "tests.conformance.test_usage_reporting::test_installed_usage_persistence[abrupt]",
+    "tests.conformance.test_usage_reporting::test_installed_usage_persistence[startup_warning]",
+    "tests.conformance.test_usage_reporting::test_installed_usage_persistence[startup_loss]",
+    "tests.conformance.test_usage_reporting::test_installed_usage_persistence[recorded_usage]"
+  ]
+}

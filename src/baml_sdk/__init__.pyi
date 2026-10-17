@@ -26,6 +26,7 @@ def get_baml_source_files() -> dict[str, str]: ...
 from . import ai
 from . import baml
 from . import reflect
+from . import typesafe_patch
 from . import vendor
 
 from .ai.stream import Done as _BamlStreamDone
@@ -38,6 +39,8 @@ import pydantic
 
 if typing.TYPE_CHECKING:
     from . import ai
+    from . import typesafe_patch
+    from . import vendor
     from .baml import UNSET as UNSET
 
 
@@ -163,6 +166,11 @@ class AttachmentReference(pydantic.BaseModel):
     representation_source: typing.Optional[str] = None
 
 
+class ExecutionTokenLimits(pydantic.BaseModel):
+    input_tokens: int
+    output_tokens: int
+
+
 class HardConstraints(pydantic.BaseModel):
     local_only: bool
     allowed_providers: typing.List[str]
@@ -171,6 +179,7 @@ class HardConstraints(pydantic.BaseModel):
     context_token_limit: int
     max_attempts: int
     governing_instruction_refs: typing.List[str]
+    execution_token_limits: typing.Optional[ExecutionTokenLimits] = None
 
 
 class RetryContext(pydantic.BaseModel):
@@ -240,6 +249,16 @@ class LocalNotice(pydantic.BaseModel):
     automatic_action: typing.Union[typing.Literal["archive"], typing.Literal["none"]]
 
 
+class NoticeRequest(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    scope: CommandScope
+
+
+class NoticeInbox(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    notices: typing.List[LocalNotice]
+
+
 class CandidateExclusion(pydantic.BaseModel):
     candidate_id: str
     reasons: typing.List[str]
@@ -280,6 +299,9 @@ class DecisionDetails(pydantic.BaseModel):
     cost_estimate: CostEstimate
     measurements: typing.List[Measurement]
     reused_decision_id: typing.Optional[str] = None
+    discovery_ref: typing.Optional[DiscoveryRef] = None
+    discovery_termination: typing.Optional[str] = None
+    discovery_uncertainty: typing.Optional[typing.List[str]] = None
 
 
 class ReadinessEvidence(pydantic.BaseModel):
@@ -419,6 +441,7 @@ class Settings(pydantic.BaseModel):
     routing_deadline_ms: int
     excluded_paths: typing.List[str]
     setting_sources: typing.Dict[str, str]
+    max_description_utf8_bytes: typing.Optional[int] = None
 
 
 class ExperimentLimits(pydantic.BaseModel):
@@ -455,6 +478,1054 @@ def echo_decision(value: RoutingDecision) -> RoutingDecision: ...
 async def echo_decision_async(value: RoutingDecision) -> RoutingDecision: ...
 
 
+class RateCard(pydantic.BaseModel):
+    revision: str
+    currency: str
+    input_rate: typing.Optional[str] = None
+    output_rate: typing.Optional[str] = None
+    verified_at: str
+    expires_at: str
+    subscription_multiplier: typing.Optional[str] = None
+
+
+class CandidateSnapshot(pydantic.BaseModel):
+    candidate_id: str
+    model_id: str
+    resolved_model_revision: str
+    provider: str
+    access_route: str
+    local: bool
+    native_effort: NativeEffort
+    supported_efforts: typing.List[str]
+    declared_capabilities: typing.List[str]
+    runtime_capabilities: typing.List[str]
+    required_capabilities: typing.List[str]
+    verified_at: str
+    expires_at: str
+    source: str
+    context_token_limit: int
+    output_token_limit: int
+    token_counter_revision: str
+    quality_sufficient: typing.Optional[bool] = None
+    satisfied_requirements: typing.List[str]
+    completion_time_ms: typing.Optional[int] = None
+    evidence_strength: typing.Union[typing.Literal["measured"], typing.Literal["judgment"], typing.Literal["unknown"]]
+    evidence_refs: typing.List[str]
+    rates: typing.Optional[RateCard] = None
+    default: bool
+    guidance_options: typing.List[GuidanceRevision]
+    addresses_failures: typing.List[str]
+    execution_token_limits: typing.Optional[ExecutionTokenLimits] = None
+
+
+class InventorySnapshot(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    revision: str
+    target: str
+    source_version: str
+    verified_at: str
+    expires_at: str
+    candidates: typing.List[CandidateSnapshot]
+
+
+class CatalogResource(pydantic.BaseModel):
+    resource_id: str
+    revision: str
+    content_hash: str
+    rights: str
+    admission: typing.Union[typing.Literal["policy_admitted"], typing.Literal["explicitly_enabled"], typing.Literal["unadmitted"]]
+    source_occurrences: typing.List[str]
+    aliases: typing.List[str]
+    domain: str
+    specialty: str
+    task_family: str
+    facets: typing.List[str]
+    benchmark_protocol: typing.Optional[str] = None
+    benchmark_split: typing.Optional[str] = None
+    benchmark_effort: typing.Optional[str] = None
+    instructions: str
+    conflicts: typing.List[str]
+
+
+class CatalogSnapshot(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    revision: str
+    resources: typing.List[CatalogResource]
+
+
+class CatalogQuery(pydantic.BaseModel):
+    domain: str
+    specialty: str
+    task_family: str
+    facets: typing.List[str]
+    max_branches: int
+
+
+class SettingsOverride(pydantic.BaseModel):
+    routing_cost_basis: typing.Union[typing.Literal["raw"], typing.Literal["adjusted"], None] = None
+    retain_raw_tasks: typing.Optional[bool] = None
+    retain_raw_outputs: typing.Optional[bool] = None
+    local_analysis_enabled: typing.Optional[bool] = None
+    experiment_enabled: typing.Optional[bool] = None
+    model_analysis_enabled: typing.Optional[bool] = None
+    default_plan_id: typing.Optional[str] = None
+    routing_deadline_ms: typing.Optional[int] = None
+    excluded_paths: typing.Optional[typing.List[str]] = None
+    max_description_utf8_bytes: typing.Optional[int] = None
+
+
+class SettingsLayer(pydantic.BaseModel):
+    source: typing.Union[typing.Literal["product"], typing.Literal["user"], typing.Literal["project"], typing.Literal["directory"], typing.Literal["personal_project"], typing.Literal["request"]]
+    values: SettingsOverride
+
+
+class JudgmentPolicy(pydantic.BaseModel):
+    enabled: bool
+    cloud_allowed: bool
+    max_calls: int
+    max_candidates: int
+    max_input_tokens: int
+    max_output_tokens: int
+    spending_ceiling: typing.Optional[Money] = None
+    rates: typing.Optional[RateCard] = None
+    model_revision: str
+    function_revision: typing.Union[typing.Literal["JudgeCandidate-v1"], typing.Literal["JudgeCandidate-v2"]]
+    token_counter_revision: str
+
+
+class RouteInputs(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    request: RouteRequest
+    inventory: typing.Optional[InventorySnapshot] = None
+    catalog: typing.Optional[CatalogSnapshot] = None
+    settings_layers: typing.List[SettingsLayer]
+    judgment_policy: typing.Optional[JudgmentPolicy] = None
+    completion_time_limit_ms: typing.Optional[int] = None
+    catalog_query: typing.Optional[CatalogQuery] = None
+
+
+class JudgmentRecord(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    function_revision: typing.Union[typing.Literal["JudgeCandidate-v1"], typing.Literal["JudgeCandidate-v2"]]
+    model_revision: str
+    candidate_digest: str
+    judgments: typing.Dict[str, bool]
+    measurements: typing.List[Measurement]
+
+
+class CommandScope(pydantic.BaseModel):
+    project_id: str
+    workspace_id: str
+    producer: str
+    operation: typing.Union[typing.Literal["route"], typing.Literal["report"]]
+
+
+class InspectRequest(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    scope: CommandScope
+    decision_id: str
+    replay: bool
+
+
+class DeleteRequest(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    scope: CommandScope
+    task_id: str
+
+
+class ReplayBundle(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    routing_decision_id: str
+    task_id: str
+    request_digest: str
+    cache_digest: str
+    decision: RoutingDecision
+    judgments: typing.Optional[JudgmentRecord] = None
+
+
+class LearningContext(pydantic.BaseModel):
+    task_id: str
+    routing_decision_id: str
+    discovery_ref: typing.Optional[DiscoveryRef] = None
+    task_family: str
+    task_group: str
+    environment_revision: str
+    isolation_revision: str
+    evaluator_ref: str
+    rubric_revision: str
+    local_analysis_enabled: bool
+    share_user_wide: bool
+
+
+class AnalysisRequest(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    scope: CommandScope
+    action: typing.Union[typing.Literal["record"], typing.Literal["analyze"], typing.Literal["inspect"]]
+    context: typing.Optional[LearningContext] = None
+    objectives: typing.List[OptimizationObjective]
+    minimum_batch: int
+    interval_seconds: int
+    include_user_wide: bool
+    settings_layers: typing.List[SettingsLayer]
+
+
+class EvidenceMetric(pydantic.BaseModel):
+    metric_definition: Measurement
+    sample_count: int
+    missing_count: int
+    mean: typing.Optional[float] = None
+    median: typing.Optional[float] = None
+    p95: typing.Optional[float] = None
+    minimum: typing.Optional[float] = None
+    maximum: typing.Optional[float] = None
+
+
+class EvidenceGroup(pydantic.BaseModel):
+    group_id: str
+    evidence_scope: typing.Literal["observed_task_group"]
+    conditions: typing.Dict[str, str]
+    run_count: int
+    completed_count: int
+    failed_count: int
+    canceled_count: int
+    incomplete_count: int
+    accepted_count: int
+    rejected_count: int
+    acceptance_unknown_count: int
+    retained_count: int
+    declined_count: int
+    preference_unknown_count: int
+    substituted_count: int
+    applied_unknown_count: int
+    metrics: typing.List[EvidenceMetric]
+    observation_refs: typing.List[str]
+    sources: typing.List[ObservationSource]
+
+
+class ObservationSource(pydantic.BaseModel):
+    origin: typing.Union[typing.Literal["local"], typing.Literal["user_wide_redacted"]]
+    task_id: typing.Optional[str] = None
+    routing_decision_id: typing.Optional[str] = None
+    execution_run_id: typing.Optional[str] = None
+    discovery_ref: typing.Optional[DiscoveryRef] = None
+
+
+class ObjectiveAssessment(pydantic.BaseModel):
+    objective: OptimizationObjective
+    classification: typing.Union[typing.Literal["insufficient_evidence"], typing.Literal["non_comparable"], typing.Literal["observed"]]
+    group_ids: typing.List[str]
+    reason: str
+
+
+class AnalysisResult(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    status: typing.Union[typing.Literal["recorded"], typing.Literal["updated"], typing.Literal["not_due"], typing.Literal["inspected"], typing.Literal["denied"]]
+    evidence_revision: str
+    source_digest: str
+    groups: typing.List[EvidenceGroup]
+    assessments: typing.List[ObjectiveAssessment]
+    objective_history: typing.List[OptimizationObjective]
+
+
+class MaintenanceRequest(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    scope: CommandScope
+    action: typing.Union[typing.Literal["run"], typing.Literal["pause"], typing.Literal["resume"], typing.Literal["cancel"], typing.Literal["schedule"]]
+    interactive_busy: bool
+    max_items: int
+    archive_retention_days: int
+    request_path: typing.Optional[str] = None
+
+
+class MaintenanceResult(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    status: typing.Union[typing.Literal["completed"], typing.Literal["paused"], typing.Literal["canceled"], typing.Literal["busy"], typing.Literal["schedule_proposed"]]
+    processed: int
+    pending: int
+    notices: typing.List[LocalNotice]
+    scheduler_instructions: typing.List[str]
+
+
+class RecoveryRequest(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    scope: CommandScope
+    action: typing.Union[typing.Literal["export"], typing.Literal["backup"], typing.Literal["import"], typing.Literal["restore"]]
+    artifact_id: typing.Optional[str] = None
+    encrypted_bundle: typing.Optional[str] = None
+    recovery_key: typing.Optional[str] = None
+
+
+class RecoveryResult(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    status: typing.Union[typing.Literal["exported"], typing.Literal["imported"], typing.Literal["restored"]]
+    encrypted_bundle: typing.Optional[str] = None
+    restored_count: int
+
+
+class RecoveryArtifact(pydantic.BaseModel):
+    task: str
+    kind: typing.Union[typing.Literal["raw_task"], typing.Literal["raw_output"], typing.Literal["context"]]
+    content: str
+    digest: str
+
+
+class RecoveryDecision(pydantic.BaseModel):
+    scope: CommandScope
+    bundle: ReplayBundle
+
+
+class RecoveryEvent(pydantic.BaseModel):
+    scope: CommandScope
+    event: ExecutionEvent
+
+
+class RecoveryDiscovery(pydantic.BaseModel):
+    scope: CommandScope
+    discovery_ref: DiscoveryRef
+    status: typing.Union[typing.Literal["selected_guidance"], typing.Literal["no_optional_guidance"]]
+    revisions: DiscoveryRevisions
+    guidance_refs: typing.List[DiscoveryGuidanceRef]
+    domains: typing.List[str]
+
+
+class RecoveryBundle(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    scope: str
+    tasks: typing.Dict[str, bool]
+    objectives: typing.Dict[str, bool]
+    learning_policy: typing.Dict[str, bool]
+    decisions: typing.List[RecoveryDecision]
+    events: typing.List[RecoveryEvent]
+    contexts: typing.List[LearningContext]
+    discoveries: typing.List[RecoveryDiscovery]
+    artifacts: typing.List[RecoveryArtifact]
+
+
+class ExperimentProposal(pydantic.BaseModel):
+    experiment: ComparisonExperiment
+    task_group: str
+    uncertainty_rank: int
+    benefit_rank: int
+    estimated_cost_microusd: typing.Optional[int] = None
+
+
+class ExperimentRequest(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    scope: CommandScope
+    idempotency_key: str
+    action: typing.Union[typing.Literal["propose"], typing.Literal["inspect"], typing.Literal["cancel"]]
+    proposal: typing.Optional[ExperimentProposal] = None
+    comparison_experiment_id: typing.Optional[str] = None
+
+
+class ExperimentQueueEntry(pydantic.BaseModel):
+    proposal: ExperimentProposal
+    occurrence_count: int
+    priority_revision: typing.Literal["recurrence-benefit-cost-v1"]
+    priority_score: str
+
+
+class ExperimentResult(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    status: typing.Union[typing.Literal["recorded"], typing.Literal["duplicate"], typing.Literal["listed"], typing.Literal["canceled"], typing.Literal["not_found"]]
+    experiments: typing.List[ExperimentQueueEntry]
+    execution_authorized: typing.Literal[False]
+
+
+class ExperimentAuthorization(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    authorization_revision: str
+    scope: CommandScope
+    enabled: bool
+    task_ids: typing.List[str]
+    allowed_providers: typing.List[str]
+    allowed_harnesses: typing.List[str]
+    allowed_execution_paths: typing.List[str]
+    allowed_isolation_refs: typing.List[str]
+    background_allowed: bool
+    local_only: bool
+    expires_at: str
+    limits: ExperimentLimits
+    total_spend_microusd: int
+
+
+class ExperimentReadiness(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    harness_id: str
+    execution_target_id: str
+    context_hash: str
+    context_available: bool
+    local_execution: bool
+    isolation_ref: str
+    declared_capabilities: typing.List[str]
+    runtime_capabilities: typing.List[str]
+    candidate_plan_digests: typing.List[str]
+    spend_bound_verified: bool
+    upper_cost_microusd: int
+    available_cpu: int
+    available_memory_bytes: int
+    max_concurrency: int
+    expires_at: str
+
+
+class ExperimentExecutionRequest(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    scope: CommandScope
+    comparison_experiment_id: str
+    action: typing.Union[typing.Literal["admit"], typing.Literal["inspect"], typing.Literal["advance"], typing.Literal["cancel"]]
+    background: bool
+
+
+class ExperimentCandidateResult(pydantic.BaseModel):
+    execution_plan_id: str
+    status: typing.Union[typing.Literal["completed"], typing.Literal["failed"], typing.Literal["canceled"], typing.Literal["timeout"]]
+    measurements: typing.List[Measurement]
+    acceptance_checks: typing.Dict[str, bool]
+    evaluator_ref: str
+    rubric_revision: str
+
+
+class ExperimentHostReceipt(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    dispatch_token: str
+    experiment_digest: str
+    host_status: typing.Union[typing.Literal["absent"], typing.Literal["running"], typing.Literal["completed"], typing.Literal["failed"], typing.Literal["canceled"]]
+    cleanup_verified: bool
+    candidates: typing.List[ExperimentCandidateResult]
+    preferred_plan_id: typing.Optional[str] = None
+    preference_reason: typing.Optional[str] = None
+
+
+class ExperimentExecutionRecord(pydantic.BaseModel):
+    comparison_experiment_id: str
+    task_id: str
+    experiment_digest: str
+    authorization_revision: str
+    authorization_digest: str
+    dispatch_token: str
+    harness_id: str
+    reserved_microusd: int
+    admitted_at_ms: int
+    observed_at_ms: int
+    deadline_ms: int
+    execution_status: typing.Union[typing.Literal["accepted"], typing.Literal["running"], typing.Literal["completed"], typing.Literal["incomplete"], typing.Literal["cancel_pending"], typing.Literal["canceled"]]
+    receipt: typing.Optional[ExperimentHostReceipt] = None
+
+
+class ExperimentExecutionResult(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    status: typing.Union[typing.Literal["denied"], typing.Literal["not_found"], typing.Literal["recorded"]]
+    reasons: typing.List[str]
+    record: typing.Optional[ExperimentExecutionRecord] = None
+
+
+class QualityCalibration(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    calibration_revision: str
+    task_family: typing.Union[typing.Literal["implementation"], typing.Literal["review"], typing.Literal["documentation"]]
+    evaluator_ref: str
+    rubric_revision: str
+    dataset_revision: str
+    calibration_source: str
+    frozen_at: str
+    critical_requirements: typing.List[str]
+    quality_floor: float
+    maximum_quality_loss: float
+    minimum_pairs: int
+    confidence: float
+
+
+class PolicyCase(pydantic.BaseModel):
+    case_id: str
+    related_group: str
+    split: typing.Union[typing.Literal["development"], typing.Literal["validation"], typing.Literal["policy_holdout"], typing.Literal["policy_regression"], typing.Literal["release_holdout"]]
+    exposed_at: str
+    baseline_quality: typing.Optional[float] = None
+    candidate_quality: typing.Optional[float] = None
+    baseline_critical: typing.Dict[str, bool]
+    candidate_critical: typing.Dict[str, bool]
+    baseline_measurements: typing.List[Measurement]
+    candidate_measurements: typing.List[Measurement]
+
+
+class PolicyEvaluation(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    task_family: typing.Union[typing.Literal["implementation"], typing.Literal["review"], typing.Literal["documentation"]]
+    evaluator_ref: str
+    rubric_revision: str
+    dataset_revision: str
+    identities_blinded: bool
+    evidence_origin: typing.Union[typing.Literal["controlled"], typing.Literal["observational"], typing.Literal["synthetic"]]
+    calibration: typing.Optional[QualityCalibration] = None
+    cases: typing.List[PolicyCase]
+
+
+class PolicyAssessment(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    classification: typing.Union[typing.Literal["quality_gate_passed"], typing.Literal["critical_regression"], typing.Literal["quality_regression"], typing.Literal["insufficient_evidence"], typing.Literal["non_comparable"]]
+    calibration_revision: typing.Optional[str] = None
+    evidence_digest: str
+    pair_count: int
+    critical_regressions: typing.List[str]
+    reasons: typing.List[str]
+    candidate_quality_lower_bound: typing.Optional[float] = None
+    quality_loss_upper_bound: typing.Optional[float] = None
+    promotion_authorized: typing.Literal[False]
+
+
+class PolicyCandidate(pydantic.BaseModel):
+    candidate_id: str
+    candidate_fingerprint: str
+
+
+class PolicyCaseAssignment(pydantic.BaseModel):
+    case_id: str
+    related_group: str
+    task_id: str
+    split: typing.Union[typing.Literal["policy_holdout"], typing.Literal["policy_regression"]]
+
+
+class PolicyDefinition(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    policy_revision: str
+    task_group: str
+    baseline_policy_revision: str
+    objective: OptimizationObjective
+    candidate_order: typing.List[PolicyCandidate]
+    calibration: QualityCalibration
+    cases: typing.List[PolicyCaseAssignment]
+    objective_value_ceiling: float
+    minimum_improvement: float
+
+
+class PolicyAuthorization(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    authorization_revision: str
+    scope: CommandScope
+    enabled: bool
+    allowed_task_groups: typing.List[str]
+    allowed_policy_revisions: typing.List[str]
+    max_routes: int
+    rollout_basis_points: int
+    expires_at: str
+
+
+class PolicyEvidencePreparation(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    definition_digest: str
+    evaluator_identity: str
+    independent: bool
+    input_revision: str
+    valid_until: str
+    evidence_ref: str
+    status: typing.Union[typing.Literal["current"], typing.Literal["critical_regression"], typing.Literal["quality_regression"], typing.Literal["stale"]]
+
+
+class PolicyRequest(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    scope: CommandScope
+    policy_revision: str
+    action: typing.Union[typing.Literal["register"], typing.Literal["evaluate"], typing.Literal["promote"], typing.Literal["inspect"], typing.Literal["suspend"]]
+    definition: typing.Optional[PolicyDefinition] = None
+
+
+class PolicyRecord(pydantic.BaseModel):
+    definition: PolicyDefinition
+    definition_digest: str
+    registered_at: str
+    observed_at: str
+    exposed_at: typing.Optional[str] = None
+    policy_status: typing.Union[typing.Literal["registered"], typing.Literal["exposed"], typing.Literal["evaluated"], typing.Literal["active"], typing.Literal["suspended"], typing.Literal["stale"]]
+    preparation: typing.Optional[PolicyEvidencePreparation] = None
+    evaluation: typing.Optional[PolicyEvaluation] = None
+    assessment: typing.Optional[PolicyAssessment] = None
+    objective_improvement_lower_bound: typing.Optional[float] = None
+    reasons: typing.List[str]
+    authorization: typing.Optional[PolicyAuthorization] = None
+    previous_policy_revision: typing.Optional[str] = None
+    used_routes: int
+
+
+class PolicyResult(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    status: typing.Union[typing.Literal["recorded"], typing.Literal["not_found"], typing.Literal["denied"]]
+    reasons: typing.List[str]
+    record: typing.Optional[PolicyRecord] = None
+
+
+class DevelopmentJevResponse(pydantic.BaseModel):
+    model: str
+    answers: typing.Dict[str, typesafe_patch.internal.Answer]
+    usage: typing.Optional[typesafe_patch.internal.Usage] = None
+
+
+def development_judgment_decode(body: str, model: str) -> bool:
+    """Raises:
+        DecodeError, ParseError, ParseFailed"""
+async def development_judgment_decode_async(body: str, model: str) -> bool:
+    """Raises:
+        DecodeError, ParseError, ParseFailed"""
+
+
+def development_task_request_shape(task: str, offered: str, model: str) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def development_task_request_shape_async(task: str, offered: str, model: str) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def development_discovery_request_shape(task: str, offered: str, model: str) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def development_discovery_request_shape_async(task: str, offered: str, model: str) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def development_discovery_judgment(task: str, offered: str, model: str, api_key: str, base_url: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[JevUsageObservation], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, DecodeError, SerializationError, CompilationError"""
+async def development_discovery_judgment_async(task: str, offered: str, model: str, api_key: str, base_url: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[JevUsageObservation], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, DecodeError, SerializationError, CompilationError"""
+
+
+def development_task_judgment(task: str, offered: str, model: str, api_key: str, base_url: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[JevUsageObservation], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, DecodeError, SerializationError, CompilationError"""
+async def development_task_judgment_async(task: str, offered: str, model: str, api_key: str, base_url: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[JevUsageObservation], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, DecodeError, SerializationError, CompilationError"""
+
+
+def DevelopmentText(task: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def DevelopmentText_async(task: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+def DevelopmentText_spec(task: str) -> ai.FunctionSpec[str]:
+    """Raises:
+        InvalidArgument, Io, ParseError, InvalidRequest"""
+async def DevelopmentText_spec_async(task: str) -> ai.FunctionSpec[str]:
+    """Raises:
+        InvalidArgument, Io, ParseError, InvalidRequest"""
+def DevelopmentText_stream(task: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> _BamlStream[typing.Union[str, _BamlStreamDone], str, str]:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def DevelopmentText_stream_async(task: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> _BamlStream[typing.Union[str, _BamlStreamDone], str, str]:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def development_client(model: str, api_key: str, base_url: str, timeout_ms: int, output_tokens: int, *, observe_wire: typing.Union[bool, UNSET] = False) -> vendor.openai.ChatClient:
+    """Raises:
+        ParseError"""
+async def development_client_async(model: str, api_key: str, base_url: str, timeout_ms: int, output_tokens: int, *, observe_wire: typing.Union[bool, UNSET] = False) -> vendor.openai.ChatClient:
+    """Raises:
+        ParseError"""
+
+
+def development_request_shape(task: str, model: str, output_tokens: int) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def development_request_shape_async(task: str, model: str, output_tokens: int) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def development_completion(task: str, model: str, api_key: str, base_url: str, timeout_ms: int, output_tokens: int) -> ai.ModelTurn:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def development_completion_async(task: str, model: str, api_key: str, base_url: str, timeout_ms: int, output_tokens: int) -> ai.ModelTurn:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def development_observed_completion(task: str, model: str, api_key: str, base_url: str, timeout_ms: int, output_tokens: int, family: str) -> ai.ModelTurn:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def development_observed_completion_async(task: str, model: str, api_key: str, base_url: str, timeout_ms: int, output_tokens: int, family: str) -> ai.ModelTurn:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def DevelopmentArtifactText(task: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def DevelopmentArtifactText_async(task: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+def DevelopmentArtifactText_spec(task: str) -> ai.FunctionSpec[str]:
+    """Raises:
+        InvalidArgument, Io, ParseError, InvalidRequest"""
+async def DevelopmentArtifactText_spec_async(task: str) -> ai.FunctionSpec[str]:
+    """Raises:
+        InvalidArgument, Io, ParseError, InvalidRequest"""
+def DevelopmentArtifactText_stream(task: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> _BamlStream[typing.Union[str, _BamlStreamDone], str, str]:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def DevelopmentArtifactText_stream_async(task: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> _BamlStream[typing.Union[str, _BamlStreamDone], str, str]:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def development_artifact_request_shape(task: str, model: str, output_tokens: int) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def development_artifact_request_shape_async(task: str, model: str, output_tokens: int) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def development_artifact_completion(task: str, model: str, api_key: str, base_url: str, timeout_ms: int, output_tokens: int) -> ai.ModelTurn:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def development_artifact_completion_async(task: str, model: str, api_key: str, base_url: str, timeout_ms: int, output_tokens: int) -> ai.ModelTurn:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def LocalDevelopmentText(task: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def LocalDevelopmentText_async(task: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+def LocalDevelopmentText_spec(task: str) -> ai.FunctionSpec[str]:
+    """Raises:
+        InvalidArgument, Io, ParseError, InvalidRequest"""
+async def LocalDevelopmentText_spec_async(task: str) -> ai.FunctionSpec[str]:
+    """Raises:
+        InvalidArgument, Io, ParseError, InvalidRequest"""
+def LocalDevelopmentText_stream(task: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> _BamlStream[typing.Union[str, _BamlStreamDone], str, str]:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def LocalDevelopmentText_stream_async(task: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> _BamlStream[typing.Union[str, _BamlStreamDone], str, str]:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def local_development_client(model: str, base_url: str, timeout_ms: int, output_tokens: int, options_json: str) -> vendor.openai.ChatClient:
+    """Raises:
+        ParseError"""
+async def local_development_client_async(model: str, base_url: str, timeout_ms: int, output_tokens: int, options_json: str) -> vendor.openai.ChatClient:
+    """Raises:
+        ParseError"""
+
+
+def local_development_request_shape(task: str, model: str, output_tokens: int, options_json: str) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def local_development_request_shape_async(task: str, model: str, output_tokens: int, options_json: str) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def local_development_completion(task: str, model: str, base_url: str, timeout_ms: int, output_tokens: int, options_json: str) -> ai.ModelTurn:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def local_development_completion_async(task: str, model: str, base_url: str, timeout_ms: int, output_tokens: int, options_json: str) -> ai.ModelTurn:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+class DiscoveryEnvelope(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    request_id: str
+    operation: typing.Literal["discover"]
+    project_id: str
+    workspace_id: str
+    harness_id: str
+    execution_target_id: str
+    created_at: str
+    idempotency_key: str
+    extensions: typing.Dict[str, str]
+
+
+class DiscoveryScope(pydantic.BaseModel):
+    project_id: str
+    workspace_id: str
+    producer: str
+    operation: typing.Literal["discover"]
+
+
+class DiscoveryGuidanceRef(pydantic.BaseModel):
+    resource_id: str
+    revision: str
+    content_hash: str
+
+
+class DiscoveryDescription(pydantic.BaseModel):
+    resource_id: str
+    revision: str
+    content_hash: str
+    description_revision: str
+    description: str
+
+
+class DiscoveryLimits(pydantic.BaseModel):
+    max_rounds: int
+    active_branch_width: int
+    max_candidates: int
+    max_calls: int
+    max_input_tokens: int
+    output_planning_reservation: int
+    hard_output_token_limit: typing.Optional[int] = None
+    spending_ceiling: typing.Optional[Money] = None
+    max_description_utf8_bytes: int
+
+
+class DiscoveryJudgmentPolicy(pydantic.BaseModel):
+    enabled: bool
+    cloud_allowed: bool
+    provider: str
+    max_calls: int
+    max_candidates: int
+    max_input_tokens: int
+    output_planning_reservation: int
+    hard_output_token_limit: typing.Optional[int] = None
+    spending_ceiling: typing.Optional[Money] = None
+    rates: typing.Optional[RateCard] = None
+    model_revision: str
+    function_revision: typing.Literal["ObserveDiscoveryOption-v1"]
+    token_counter_revision: str
+
+
+class DiscoveryInputs(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    envelope: DiscoveryEnvelope
+    work_objective_id: str
+    work_objective_text: str
+    authorized_context: str
+    attachment_refs: typing.List[AttachmentReference]
+    hard_constraints: HardConstraints
+    acceptance_requirements: typing.List[AcceptanceRequirement]
+    required_guidance: typing.List[GuidanceRevision]
+    catalog: CatalogSnapshot
+    taxonomy_revision: str
+    content_revision: str
+    descriptions: typing.List[DiscoveryDescription]
+    settings_layers: typing.List[SettingsLayer]
+    judgment_policy: DiscoveryJudgmentPolicy
+    limits: DiscoveryLimits
+
+
+class DiscoveryOption(pydantic.BaseModel):
+    option_id: str
+    level: typing.Union[typing.Literal["domain"], typing.Literal["specialty"], typing.Literal["task_family"], typing.Literal["resource"]]
+    label: typing.Optional[str] = None
+    description: typing.Optional[str] = None
+    description_digest: typing.Optional[str] = None
+    reference: typing.Optional[DiscoveryGuidanceRef] = None
+    children: typing.List[str]
+    feasible: typing.Optional[bool] = None
+    reason: typing.Optional[str] = None
+
+
+class DiscoveryCursor(pydantic.BaseModel):
+    option_ids: typing.List[str]
+    enqueue_sequence: int
+
+
+class DiscoveryBudget(pydantic.BaseModel):
+    rounds: int
+    candidates: int
+    calls: int
+    input_tokens: int
+    output_tokens: int
+    reserved_spend: typing.Optional[str] = None
+    currency: typing.Optional[str] = None
+
+
+class DiscoveryState(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    transition_policy: typing.Literal["discovery-fifo-v1"]
+    nodes: typing.List[DiscoveryOption]
+    preferred: typing.List[DiscoveryCursor]
+    deferred: typing.List[DiscoveryCursor]
+    next_sequence: int
+    prefer_next: bool
+    visited: typing.List[str]
+    supported: typing.List[str]
+    rejected: typing.List[str]
+    excluded: typing.List[str]
+    unresolved: typing.List[str]
+    budget: DiscoveryBudget
+    limits: DiscoveryLimits
+
+
+class DiscoveryQuestion(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    question_digest: str
+    level: typing.Union[typing.Literal["domain"], typing.Literal["specialty"], typing.Literal["task_family"], typing.Literal["resource"]]
+    options: typing.List[DiscoveryOption]
+    queue: typing.Union[typing.Literal["preferred"], typing.Literal["deferred"]]
+
+
+class DiscoveryJudgmentRecord(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    function_revision: typing.Literal["ObserveDiscoveryOption-v1"]
+    model_revision: str
+    question_digest: str
+    judgments: typing.Dict[str, bool]
+    measurements: typing.List[Measurement]
+
+
+class DiscoveryTransition(pydantic.BaseModel):
+    question: DiscoveryQuestion
+    answers: DiscoveryJudgmentRecord
+    budget_before: DiscoveryBudget
+    budget_after: DiscoveryBudget
+
+
+class DiscoveryRevisions(pydantic.BaseModel):
+    catalog_revision: str
+    catalog_digest: str
+    taxonomy_revision: str
+    content_revision: str
+    descriptions_digest: str
+    settings_revision: str
+    policy_digest: str
+    authorization_digest: str
+
+
+class DiscoveryLeafFacts(pydantic.BaseModel):
+    reference: DiscoveryGuidanceRef
+    instruction_utf8_bytes: int
+    conflicts: typing.List[str]
+    required: bool
+    admitted: bool
+
+
+class DiscoveryDetails(pydantic.BaseModel):
+    discovery_id: str
+    work_objective_id: str
+    guidance_refs: typing.List[DiscoveryGuidanceRef]
+    required_guidance: typing.List[GuidanceRevision]
+    assembled_instructions: typing.List[str]
+    alternatives: typing.List[str]
+    uncertainty: typing.List[str]
+    termination_reason: str
+    trace_digest: str
+    revisions: DiscoveryRevisions
+
+
+class SelectedGuidance(pydantic.BaseModel):
+    status: typing.Literal["selected_guidance"]
+    details: DiscoveryDetails
+
+
+class NoOptionalGuidance(pydantic.BaseModel):
+    status: typing.Literal["no_optional_guidance"]
+    details: DiscoveryDetails
+
+
+class DiscoveryNeedsContext(pydantic.BaseModel):
+    status: typing.Literal["needs_context"]
+    details: DiscoveryDetails
+    missing_facts: typing.List[str]
+
+
+class DiscoveryConstraintConflict(pydantic.BaseModel):
+    status: typing.Literal["constraint_conflict"]
+    details: DiscoveryDetails
+    conflicting_requirements: typing.List[str]
+
+
+class DiscoveryFailed(pydantic.BaseModel):
+    status: typing.Literal["discovery_failed"]
+    details: DiscoveryDetails
+    error_code: str
+
+
+class DiscoveryTrace(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    initial_state: DiscoveryState
+    transitions: typing.List[DiscoveryTransition]
+    final_state: DiscoveryState
+    hard_constraints: HardConstraints
+    acceptance_requirements: typing.List[AcceptanceRequirement]
+    excluded_paths: typing.List[str]
+    result: DiscoveryResult
+    replay_available: bool
+    finalization_exclusions: typing.List[str]
+    shortlist: typing.List[DiscoveryLeafFacts]
+    missing_context: bool
+    required_feasible: bool
+    guidance_context_limit: int
+
+
+class DiscoveryRef(pydantic.BaseModel):
+    discovery_id: str
+    work_objective_id: str
+    trace_digest: str
+
+
+class DiscoveryRouteInputs(pydantic.BaseModel):
+    schema_version: typing.Literal["2"]
+    route_inputs: RouteInputs
+    discovery_ref: DiscoveryRef
+
+
+class DiscoveryInspectRequest(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    scope: DiscoveryScope
+    discovery_id: str
+    replay: bool
+
+
+class DiscoveryDeleteRequest(pydantic.BaseModel):
+    schema_version: typing.Literal["1"]
+    scope: DiscoveryScope
+    work_objective_id: str
+
+
+def DiscoveryOptionSuitable(objective: str, option: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def DiscoveryOptionSuitable_async(objective: str, option: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+def DiscoveryOptionSuitable_spec(objective: str, option: str) -> ai.FunctionSpec[bool]:
+    """Raises:
+        InvalidArgument, Io, ParseError, InvalidRequest"""
+async def DiscoveryOptionSuitable_spec_async(objective: str, option: str) -> ai.FunctionSpec[bool]:
+    """Raises:
+        InvalidArgument, Io, ParseError, InvalidRequest"""
+def DiscoveryOptionSuitable_stream(objective: str, option: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> _BamlStream[typing.Union[bool, _BamlStreamDone], bool, bool]:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def DiscoveryOptionSuitable_stream_async(objective: str, option: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> _BamlStream[typing.Union[bool, _BamlStreamDone], bool, bool]:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def discovery_request_shape(objective: str, option: str) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def discovery_request_shape_async(objective: str, option: str) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def ObserveDiscoveryOption(objective: str, option: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[JevUsageObservation], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, DecodeError, SerializationError, CompilationError"""
+async def ObserveDiscoveryOption_async(objective: str, option: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[JevUsageObservation], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, DecodeError, SerializationError, CompilationError"""
+
+
+def MockObserveDiscoveryOption(objective: str, option: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[JevUsageObservation], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, DecodeError, SerializationError, CompilationError"""
+async def MockObserveDiscoveryOption_async(objective: str, option: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[JevUsageObservation], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, DecodeError, SerializationError, CompilationError"""
+
+
 def IsSuitable(task: str, candidate: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> bool:
     """Raises:
         InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
@@ -475,6 +1546,42 @@ async def IsSuitable_stream_async(task: str, candidate: str, *, on_event: typing
         InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
 
 
+def JudgeCandidate(task: str, candidate: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[ai.events.Event], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def JudgeCandidate_async(task: str, candidate: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[ai.events.Event], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+class JevUsageObservation(pydantic.BaseModel):
+    invocation_id: typing.Optional[str] = None
+    input_tokens: typing.Optional[int] = None
+    output_tokens: typing.Optional[int] = None
+    input_invalid: bool
+    output_invalid: bool
+    call_input_tokens: typing.Optional[int] = None
+    call_output_tokens: typing.Optional[int] = None
+    duration_ms: typing.Optional[int] = None
+    first_output_ms: typing.Optional[int] = None
+
+
+def ObserveCandidate(task: str, candidate: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[JevUsageObservation], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, DecodeError, SerializationError, CompilationError"""
+async def ObserveCandidate_async(task: str, candidate: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[JevUsageObservation], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, DecodeError, SerializationError, CompilationError"""
+
+
+def MockObserveCandidate(task: str, candidate: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[JevUsageObservation], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, DecodeError, SerializationError, CompilationError"""
+async def MockObserveCandidate_async(task: str, candidate: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[JevUsageObservation], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, DecodeError, SerializationError, CompilationError"""
+
+
 def request_shape() -> str:
     """Raises:
         InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
@@ -483,10 +1590,26 @@ async def request_shape_async() -> str:
         InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
 
 
+def candidate_request_shape(task: str, candidate: str) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def candidate_request_shape_async(task: str, candidate: str) -> str:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
 def mock_judgment(base_url: str, timeout_ms: int) -> bool:
     """Raises:
         InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
 async def mock_judgment_async(base_url: str, timeout_ms: int) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+
+
+def MockJudgeCandidate(task: str, candidate: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[ai.events.Event], None]]) -> bool:
+    """Raises:
+        InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
+async def MockJudgeCandidate_async(task: str, candidate: str, timeout_ms: int, on_event: typing.Optional[typing.Callable[[ai.events.Event], None]]) -> bool:
     """Raises:
         InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
 
@@ -526,6 +1649,9 @@ EventPayload: typing.TypeAlias = typing.Union[LifecyclePayload, UsagePayload, Ev
 ReportAcknowledgment: typing.TypeAlias = typing.Union[ReportAccepted, ReportDuplicate, ReportConflict, ReportRejected]
 
 
+DiscoveryResult: typing.TypeAlias = typing.Union[SelectedGuidance, NoOptionalGuidance, DiscoveryNeedsContext, DiscoveryConstraintConflict, DiscoveryFailed]
+
+
 __all__ = [
     "MissingReason",
     "KnownMeasurement",
@@ -542,6 +1668,7 @@ __all__ = [
     "AcceptanceRequirement",
     "OptimizationObjective",
     "AttachmentReference",
+    "ExecutionTokenLimits",
     "HardConstraints",
     "RetryContext",
     "Capabilities",
@@ -550,6 +1677,8 @@ __all__ = [
     "Diagnostic",
     "CapabilityMismatch",
     "LocalNotice",
+    "NoticeRequest",
+    "NoticeInbox",
     "CandidateExclusion",
     "SetupProposal",
     "CloseCall",
@@ -576,16 +1705,167 @@ __all__ = [
     "ComparisonExperiment",
     "echo_decision",
     "echo_decision_async",
+    "RateCard",
+    "CandidateSnapshot",
+    "InventorySnapshot",
+    "CatalogResource",
+    "CatalogSnapshot",
+    "CatalogQuery",
+    "SettingsOverride",
+    "SettingsLayer",
+    "JudgmentPolicy",
+    "RouteInputs",
+    "JudgmentRecord",
+    "CommandScope",
+    "InspectRequest",
+    "DeleteRequest",
+    "ReplayBundle",
+    "LearningContext",
+    "AnalysisRequest",
+    "EvidenceMetric",
+    "EvidenceGroup",
+    "ObservationSource",
+    "ObjectiveAssessment",
+    "AnalysisResult",
+    "MaintenanceRequest",
+    "MaintenanceResult",
+    "RecoveryRequest",
+    "RecoveryResult",
+    "RecoveryArtifact",
+    "RecoveryDecision",
+    "RecoveryEvent",
+    "RecoveryDiscovery",
+    "RecoveryBundle",
+    "ExperimentProposal",
+    "ExperimentRequest",
+    "ExperimentQueueEntry",
+    "ExperimentResult",
+    "ExperimentAuthorization",
+    "ExperimentReadiness",
+    "ExperimentExecutionRequest",
+    "ExperimentCandidateResult",
+    "ExperimentHostReceipt",
+    "ExperimentExecutionRecord",
+    "ExperimentExecutionResult",
+    "QualityCalibration",
+    "PolicyCase",
+    "PolicyEvaluation",
+    "PolicyAssessment",
+    "PolicyCandidate",
+    "PolicyCaseAssignment",
+    "PolicyDefinition",
+    "PolicyAuthorization",
+    "PolicyEvidencePreparation",
+    "PolicyRequest",
+    "PolicyRecord",
+    "PolicyResult",
+    "DevelopmentJevResponse",
+    "development_judgment_decode",
+    "development_judgment_decode_async",
+    "development_task_request_shape",
+    "development_task_request_shape_async",
+    "development_discovery_request_shape",
+    "development_discovery_request_shape_async",
+    "development_discovery_judgment",
+    "development_discovery_judgment_async",
+    "development_task_judgment",
+    "development_task_judgment_async",
+    "DevelopmentText",
+    "DevelopmentText_async",
+    "DevelopmentText_spec",
+    "DevelopmentText_spec_async",
+    "DevelopmentText_stream",
+    "DevelopmentText_stream_async",
+    "development_client",
+    "development_client_async",
+    "development_request_shape",
+    "development_request_shape_async",
+    "development_completion",
+    "development_completion_async",
+    "development_observed_completion",
+    "development_observed_completion_async",
+    "DevelopmentArtifactText",
+    "DevelopmentArtifactText_async",
+    "DevelopmentArtifactText_spec",
+    "DevelopmentArtifactText_spec_async",
+    "DevelopmentArtifactText_stream",
+    "DevelopmentArtifactText_stream_async",
+    "development_artifact_request_shape",
+    "development_artifact_request_shape_async",
+    "development_artifact_completion",
+    "development_artifact_completion_async",
+    "LocalDevelopmentText",
+    "LocalDevelopmentText_async",
+    "LocalDevelopmentText_spec",
+    "LocalDevelopmentText_spec_async",
+    "LocalDevelopmentText_stream",
+    "LocalDevelopmentText_stream_async",
+    "local_development_client",
+    "local_development_client_async",
+    "local_development_request_shape",
+    "local_development_request_shape_async",
+    "local_development_completion",
+    "local_development_completion_async",
+    "DiscoveryEnvelope",
+    "DiscoveryScope",
+    "DiscoveryGuidanceRef",
+    "DiscoveryDescription",
+    "DiscoveryLimits",
+    "DiscoveryJudgmentPolicy",
+    "DiscoveryInputs",
+    "DiscoveryOption",
+    "DiscoveryCursor",
+    "DiscoveryBudget",
+    "DiscoveryState",
+    "DiscoveryQuestion",
+    "DiscoveryJudgmentRecord",
+    "DiscoveryTransition",
+    "DiscoveryRevisions",
+    "DiscoveryLeafFacts",
+    "DiscoveryDetails",
+    "SelectedGuidance",
+    "NoOptionalGuidance",
+    "DiscoveryNeedsContext",
+    "DiscoveryConstraintConflict",
+    "DiscoveryFailed",
+    "DiscoveryTrace",
+    "DiscoveryRef",
+    "DiscoveryRouteInputs",
+    "DiscoveryInspectRequest",
+    "DiscoveryDeleteRequest",
+    "DiscoveryOptionSuitable",
+    "DiscoveryOptionSuitable_async",
+    "DiscoveryOptionSuitable_spec",
+    "DiscoveryOptionSuitable_spec_async",
+    "DiscoveryOptionSuitable_stream",
+    "DiscoveryOptionSuitable_stream_async",
+    "discovery_request_shape",
+    "discovery_request_shape_async",
+    "ObserveDiscoveryOption",
+    "ObserveDiscoveryOption_async",
+    "MockObserveDiscoveryOption",
+    "MockObserveDiscoveryOption_async",
     "IsSuitable",
     "IsSuitable_async",
     "IsSuitable_spec",
     "IsSuitable_spec_async",
     "IsSuitable_stream",
     "IsSuitable_stream_async",
+    "JudgeCandidate",
+    "JudgeCandidate_async",
+    "JevUsageObservation",
+    "ObserveCandidate",
+    "ObserveCandidate_async",
+    "MockObserveCandidate",
+    "MockObserveCandidate_async",
     "request_shape",
     "request_shape_async",
+    "candidate_request_shape",
+    "candidate_request_shape_async",
     "mock_judgment",
     "mock_judgment_async",
+    "MockJudgeCandidate",
+    "MockJudgeCandidate_async",
     "MockIsSuitable",
     "MockIsSuitable_async",
     "MockIsSuitable_spec",
@@ -597,6 +1877,7 @@ __all__ = [
     "RoutingDecision",
     "EventPayload",
     "ReportAcknowledgment",
+    "DiscoveryResult",
 ]
 
 from . import reflect as reflect

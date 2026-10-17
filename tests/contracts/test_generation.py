@@ -1,5 +1,6 @@
 import hashlib
 import importlib.util
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -53,6 +54,33 @@ def test_normalization_checks_hash_and_only_declared_paths():
 
 def test_generation_is_reproducible():
     subprocess.run([sys.executable, "scripts/check_generated_contracts.py"], cwd=ROOT, check=True)
+
+
+def test_nested_source_filename_normalization_preserves_authored_text():
+    module = generator()
+    path = "ns_typesafe_patch/client.baml"
+
+    def outputs(filename, content):
+        result = {
+            Path("_inlinedbaml.py"): f"BYTECODE: bytes = {artifact(b'program')!r}".encode(),
+            Path("_baml_sources.py"): f"FILES: dict[str, str] = { {filename: content}!r}".encode(),
+        }
+        result[Path(".baml-generator-output.json")] = json.dumps(
+            {
+                "schema_version": 2,
+                "files": [
+                    {"relative_path": name.as_posix(), "sha256": hashlib.sha256(value).hexdigest()}
+                    for name, value in result.items()
+                ],
+            }
+        ).encode()
+        return result
+
+    linux = outputs(path, r"Preserve instruction C:\workspace")
+    windows = outputs(path.replace("/", "\\"), r"Preserve instruction C:\workspace")
+    assert module.normalized_outputs(linux) == module.normalized_outputs(windows)
+    changed = outputs(path.replace("/", "\\"), "Changed instruction")
+    assert module.normalized_outputs(linux) != module.normalized_outputs(changed)
 
 
 def test_wrong_compiler_fails_closed(monkeypatch):

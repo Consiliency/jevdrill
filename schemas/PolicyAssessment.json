@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "calibration_revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Calibration Revision"
+    },
+    "candidate_quality_lower_bound": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Candidate Quality Lower Bound"
+    },
+    "classification": {
+      "anyOf": [
+        {
+          "const": "quality_gate_passed",
+          "type": "string"
+        },
+        {
+          "const": "critical_regression",
+          "type": "string"
+        },
+        {
+          "const": "quality_regression",
+          "type": "string"
+        },
+        {
+          "const": "insufficient_evidence",
+          "type": "string"
+        },
+        {
+          "const": "non_comparable",
+          "type": "string"
+        }
+      ],
+      "title": "Classification"
+    },
+    "critical_regressions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Critical Regressions",
+      "type": "array"
+    },
+    "evidence_digest": {
+      "title": "Evidence Digest",
+      "type": "string"
+    },
+    "pair_count": {
+      "title": "Pair Count",
+      "type": "integer"
+    },
+    "promotion_authorized": {
+      "const": false,
+      "title": "Promotion Authorized",
+      "type": "boolean"
+    },
+    "quality_loss_upper_bound": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Quality Loss Upper Bound"
+    },
+    "reasons": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Reasons",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "calibration_revision",
+    "candidate_quality_lower_bound",
+    "classification",
+    "critical_regressions",
+    "evidence_digest",
+    "pair_count",
+    "promotion_authorized",
+    "quality_loss_upper_bound",
+    "reasons",
+    "schema_version"
+  ],
+  "title": "PolicyAssessment",
+  "type": "object"
+}

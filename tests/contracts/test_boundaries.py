@@ -16,7 +16,7 @@ def test_public_parser(fixture):
     if fixture["accepted"]:
         result = parse_contract(fixture["contract"], fixture["payload"])
         assert result.digest == fixture["digest"]
-        assert result.model().model_dump(mode="json") == fixture["payload"]
+        assert result.model().model_dump(mode="json", exclude_unset=True) == fixture["payload"]
     else:
         with pytest.raises(ContractError):
             parse_contract(fixture["contract"], fixture["payload"])
@@ -31,11 +31,16 @@ def test_non_python_consumer():
         check=True,
     )
     observations = json.loads(result.stdout)
-    assert len(observations) == len(FIXTURES)
-    for fixture, observed in zip(FIXTURES, observations, strict=True):
+    fixtures = [
+        row
+        for path in sorted((ROOT / "tests/contracts/fixtures").glob("*.json"))
+        for row in json.loads(path.read_text())
+    ]
+    assert len(observations) == len(fixtures)
+    for fixture, observed in zip(fixtures, observations, strict=True):
         assert observed["accepted"] == fixture["accepted"]
         if fixture["accepted"]:
-            assert observed["digest"] == fixture["digest"]
+            assert observed["digest"] == fixture.get("digest", canonical_digest(fixture["payload"]))
 
 
 def test_snapshot_cannot_be_changed_through_generated_view():

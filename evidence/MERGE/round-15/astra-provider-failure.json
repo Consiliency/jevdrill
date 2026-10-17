@@ -1,0 +1,21 @@
+{
+  "taskId": "node:delegated-task:command%3Amcp%3Aedd1e198-0172-4e35-bbb9-91fca31c77ad%3Adelegate-task%3Ajevdrill-merge-review-20261016-r15-6862eb8-astra",
+  "childThreadId": "thread:delegated-task:command%3Amcp%3Aedd1e198-0172-4e35-bbb9-91fca31c77ad%3Adelegate-task%3Ajevdrill-merge-review-20261016-r15-6862eb8-astra",
+  "childRunId": "run:thread:thread%3Adelegated-task%3Acommand%253Amcp%253Aedd1e198-0172-4e35-bbb9-91fca31c77ad%253Adelegate-task%253Ajevdrill-merge-review-20261016-r15-6862eb8-astra:ordinal:1",
+  "childNodeId": "node:delegated-task:command%3Amcp%3Aedd1e198-0172-4e35-bbb9-91fca31c77ad%3Adelegate-task%3Ajevdrill-merge-review-20261016-r15-6862eb8-astra",
+  "status": "failed",
+  "workState": "result_available",
+  "hasPendingChildRuns": false,
+  "latestTerminalRunId": "run:thread:thread%3Adelegated-task%3Acommand%253Amcp%253Aedd1e198-0172-4e35-bbb9-91fca31c77ad%253Adelegate-task%253Ajevdrill-merge-review-20261016-r15-6862eb8-astra:ordinal:1",
+  "latestTerminalStatus": "failed",
+  "latestTerminalSummary": "This content was flagged for possible cybersecurity risk. If this seems wrong, try rephrasing your request. Otherwise, confirm that the access_programs.cyber parameter is set to the appropriate tier, and note that some cybersecurity requests are still limited, even when Daybreak is on.",
+  "latestTerminalResultContextTransferId": "context-transfer:type:subagent_result:source-thread:thread%3Adelegated-task%3Acommand%253Amcp%253Aedd1e198-0172-4e35-bbb9-91fca31c77ad%253Adelegate-task%253Ajevdrill-merge-review-20261016-r15-6862eb8-astra:target-thread:b35de4af-4b11-49c2-bcb6-909b454e789d:cf1d88c6-7f64-4641-a6fb-a5d5aef40394",
+  "providerInstanceId": "codex",
+  "model": "gpt-6-astra",
+  "summary": "This content was flagged for possible cybersecurity risk. If this seems wrong, try rephrasing your request. Otherwise, confirm that the access_programs.cyber parameter is set to the appropriate tier, and note that some cybersecurity requests are still limited, even when Daybreak is on.",
+  "resultContextTransferId": "context-transfer:type:subagent_result:source-thread:thread%3Adelegated-task%3Acommand%253Amcp%253Aedd1e198-0172-4e35-bbb9-91fca31c77ad%253Adelegate-task%253Ajevdrill-merge-review-20261016-r15-6862eb8-astra:target-thread:b35de4af-4b11-49c2-bcb6-909b454e789d:cf1d88c6-7f64-4641-a6fb-a5d5aef40394",
+  "hasPendingQuestion": false,
+  "waitTimedOut": false,
+  "standing_verdict": null,
+  "note": "Provider task failed; any saved draft report or diagnostic is partial evidence, not a terminal review or standing vote. Source remains frozen until all four round-15 tasks finish. No retry, rephrasing or provider substitution performed to evade this flag."
+}
