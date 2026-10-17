@@ -416,3 +416,26 @@ def test_decoded_public_members_preserve_source(text, presentation):
 def test_public_same_line_vertical_tab_key_preserves_source():
     text = "? \vstr('Content')+str('-Type'): application/json"
     assert collect_context(text, [], [])["task_representation"] == text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        '{"name": "Content-Type\\nordinary", "value": "application/json"}',
+        '{"Content-Type\\nordinary": "application/json"}',
+        '["Content-Type\\nordinary", "application/json"]',
+        '{"header": "Content-Type: ordinary\\npublic", "payload": "application/json"}',
+        "?str('Content')+str('-Type'): application/json",
+        "?'Content' + '-Type': application/json",
+        "LOG \"? 'Content' + '-Type': application/json\"",
+        "`str('Content')+str('-Type'): application/json`",
+    ],
+)
+@pytest.mark.parametrize("encoding", ["plain", "json", "object"])
+def test_composed_public_members_preserve_original_source(text, encoding):
+    from jevdrill.context import redact
+
+    source = (
+        text if encoding == "plain" else json.dumps(text if encoding == "json" else {"log": text})
+    )
+    assert redact(source) == source

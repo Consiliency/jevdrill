@@ -799,6 +799,50 @@ for name, prefix, spacing in (
         )
     )
 FORMATS.update(DECODED_MEMBER_FORMATS)
+COMPOSED_MEMBER_FORMATS = {
+    "composed-original-name": lambda label: json.dumps(
+        {"name": label + "=placeholder\nordinary", "value": "SYNTHETIC_SENTINEL"}
+    ),
+    "composed-original-key": lambda label: json.dumps(
+        {label + "=placeholder\nordinary": "SYNTHETIC_SENTINEL"}
+    ),
+    "composed-original-array": lambda label: json.dumps(
+        [label + "=placeholder\nordinary", "SYNTHETIC_SENTINEL"]
+    ),
+    "composed-original-header": lambda label: json.dumps(
+        {"header": label + ": placeholder\nordinary", "payload": "SYNTHETIC_SENTINEL"}
+    ),
+    "composed-glued-call": lambda label: (
+        f"?str({label[:5]!r})+str({label[5:]!r}): SYNTHETIC_SENTINEL"
+    ),
+    "composed-glued-addition": lambda label: f"?{label[:5]!r} + {label[5:]!r}: SYNTHETIC_SENTINEL",
+    "composed-log-single-line": lambda label: (
+        "LOG " + json.dumps(f"? {label[:5]!r} + {label[5:]!r}: SYNTHETIC_SENTINEL")
+    ),
+    "composed-double-log": lambda label: (
+        "NOTE "
+        + json.dumps(
+            "LOG " + json.dumps(f"? \u00a0{label[:5]!r} + {label[5:]!r}\u2028: SYNTHETIC_SENTINEL")
+        )
+    ),
+    "composed-prose-flow": lambda label: (
+        f"Ordinary context.\n{{? str({label[:5]!r})+str({label[5:]!r}): SYNTHETIC_SENTINEL}}"
+    ),
+    "composed-prose-dollar": lambda label: (
+        f"Ordinary context.\n? $str({label[:5]!r})+str({label[5:]!r}): SYNTHETIC_SENTINEL"
+    ),
+    "composed-backtick": lambda label: (
+        f"`str({label[:5]!r})+str({label[5:]!r}): SYNTHETIC_SENTINEL`"
+    ),
+}
+for name, formatter in list(COMPOSED_MEMBER_FORMATS.items()):
+    COMPOSED_MEMBER_FORMATS[name + "-json"] = lambda label, formatter=formatter: json.dumps(
+        formatter(label)
+    )
+    COMPOSED_MEMBER_FORMATS[name + "-object"] = lambda label, formatter=formatter: json.dumps(
+        {"record": formatter(label)}
+    )
+FORMATS.update(COMPOSED_MEMBER_FORMATS)
 SCHEME_FOLDS = {
     f"{scheme}-{ending}-{blank}": (
         "  "
@@ -843,6 +887,7 @@ UNSUPPORTED_CONTEXT = {
     or name in MEMBER_VIEW_FORMATS
     or name in COMPLETE_MEMBER_FORMATS
     or name in DECODED_MEMBER_FORMATS
+    or name in COMPOSED_MEMBER_FORMATS
     or name.startswith(
         (
             "mixed-fields-",

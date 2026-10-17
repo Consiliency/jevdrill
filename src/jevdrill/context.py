@@ -232,7 +232,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
     credential_sequence = False
     sequence_count = 0
     quoted_work = 0
-    decoded_chunks: list[str] = []
+    decoded_spans: list[tuple[int, int]] = []
     decoded_end = 0
     escaped_quotes: set[int] = set()
     for opening in re.finditer(r"""['"]""", text):
@@ -243,7 +243,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
         quoted_work += (quoted.end() if quoted is not None else len(text)) - opening.start()
         if quoted_work > 16 * len(text) + 100_000:
             raise ContractError("context fragment work exceeds sanitization limit")
-        if quoted is not None and quoted.group().startswith('"') and "\\" in quoted.group():
+        if quoted is not None and quoted.group().startswith('"'):
             try:
                 decoded = json.loads(quoted.group())
             except ValueError:
@@ -251,13 +251,10 @@ def _structured(text: str, deadline: float | None) -> str | None:
             else:
                 # Validate the complete decoded record before YAML can split its
                 # original spelling across a key and its sibling value.
-                if re.search(LINE_BREAK, decoded) is not None:
-                    cleaned = redact(decoded, deadline)
-                    if cleaned != decoded:
-                        decoded_chunks.extend(
-                            (text[decoded_end : opening.start()], json.dumps(cleaned))
-                        )
-                        decoded_end = quoted.end()
+                cleaned = redact(decoded, deadline)
+                if cleaned != decoded:
+                    decoded_spans.append((opening.start(), quoted.end()))
+                    decoded_end = quoted.end()
         if quoted is not None and (
             re.search(LINE_BREAK, quoted.group()) is not None or "''" in quoted.group()[1:-1]
         ):
@@ -268,8 +265,8 @@ def _structured(text: str, deadline: float | None) -> str | None:
                 ):
                     _check_deadline(deadline)
                     escaped_quotes.update((escaped.start(), escaped.start() + 1))
-    if decoded_chunks:
-        return redact("".join(decoded_chunks) + text[decoded_end:], deadline)
+    # Retain original labels until the enclosing node decides sibling sensitivity.
+    # Unstructured prose is handled by redact's complete JSON-fragment decoder.
     for sequence in re.finditer(
         rf"{LINE_START}{INDENT}*-(?:{INDENT}+{LINE_TEXT}*|(?={LINE_BREAK}|$))"
         rf"(?:{STRUCTURED_CONTINUATION})*",
@@ -391,7 +388,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
                 quote = member.group("quote")
                 _redact_assignments(quote + original + "\n" + quote, deadline, record_member=True)
         for member in re.finditer(
-            rf"{LINE_START}(?:(?P<explicit>{INDENT}*\?(?:{INDENT}+|(?={LINE_BREAK}|$)))|"
+            rf"{LINE_START}(?:(?P<explicit>{INDENT}*\?{INDENT}*)|"
             rf"[^\r\n\x85\u2028\u2029:=]+:{INDENT}*)"
             rf"(?P<value>{LINE_TEXT}*(?:{STRUCTURED_CONTINUATION})*)",
             text,
@@ -438,8 +435,13 @@ def _structured(text: str, deadline: float | None) -> str | None:
     if isinstance(node, (MappingNode, SequenceNode)) or (
         isinstance(node, ScalarNode) and node.style in ("'", '"')
     ):
+        scalar_spans = set(spans)
+        if any(span not in scalar_spans for span in decoded_spans):
+            raise ContractError("unsupported split decoded credential record")
         _redact_assignments(text, deadline)
         changed = _redact_node(node, set(), deadline)
+        if decoded_spans and not changed:
+            raise ContractError("unsupported decoded credential record")
         result = yaml.serialize(node) if changed or comments else text
         _check_deadline(deadline)
         return result
@@ -453,15 +455,14 @@ def _structured(text: str, deadline: float | None) -> str | None:
 
 def _redact_assignments(text: str, deadline: float | None, *, record_member: bool = False) -> str:
     _check_deadline(deadline)
-    if record_member:
-        for member in re.finditer(r"`+([^`]+)", text):
-            original = _validation_view(member.group(1), deadline)
-            enclosed = "(" + original + "\n)"
-            if (
-                _redact_assignments(enclosed, deadline, record_member=True) != enclosed
-                or redact(original, deadline) != original
-            ):
-                raise ContractError("unsupported Markdown credential record")
+    for member in re.finditer(r"`+([^`]+)", text):
+        original = _validation_view(member.group(1), deadline)
+        enclosed = "(" + original + "\n)"
+        if (
+            _redact_assignments(enclosed, deadline, record_member=True) != enclosed
+            or redact(original, deadline) != original
+        ):
+            raise ContractError("unsupported Markdown credential record")
     if (
         record_member
         and text[:1] in {"'", '"'}
@@ -593,7 +594,7 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
             elif token.string == ":" and bracket_depth == 0:
                 colon = line_offsets[token.start[0] - 1] + token.start[1]
                 scalar_spans.update(((begin, colon), (colon + 1, finish)))
-        explicit_key = re.match(r"[^\S\r\n]*\?[^\S\r\n]+", text[begin:finish])
+        explicit_key = re.match(r"[^\S\r\n]*\?[^\S\r\n]*", text[begin:finish])
         if explicit_key is not None:
             scalar_spans.add((begin + explicit_key.end(), finish))
             scalar_spans.update(
@@ -675,6 +676,17 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                 with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                     expression = ast.parse(expression_source)
             except (SyntaxError, ValueError):
+                if (
+                    explicit_key is not None
+                    and opening == begin + explicit_key.end()
+                    and expression_source.startswith("$")
+                    and re.search(r"\b\w+\s*\(", expression_source)
+                ):
+                    raise ContractError("unsupported computed explicit key") from None
+                if re.match(r"\{\s*\?", expression_source) and (opening > 0 or closing < len(text)):
+                    embedded_fragment = text[opening:closing]
+                    if redact(embedded_fragment, deadline) != embedded_fragment:
+                        raise ContractError("unsupported embedded structured credential")
                 if text[opening : opening + 1] != "(":
                     continue
                 try:
