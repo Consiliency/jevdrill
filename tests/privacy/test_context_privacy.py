@@ -393,3 +393,26 @@ def test_complete_public_members_preserve_original_source(text, presentation):
             collect_context(text, [], [])
         return
     assert collect_context(text, [], [])["task_representation"] == text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        'Ordinary context.\nname: "pub\\\nlic"\nvalue: application/json',
+        "Ordinary context.\n? str('Content')+str('-Type'): application/json",
+        "? \fstr('Content')+str('-Type'): application/json",
+        "? \tstr('Content')+str('-Type'): application/json",
+    ],
+)
+@pytest.mark.parametrize("presentation", ["plain", "json", "log"])
+def test_decoded_public_members_preserve_source(text, presentation):
+    if presentation == "json":
+        text = json.dumps(text)
+    elif presentation == "log":
+        text = json.dumps({"log": text})
+    assert collect_context(text, [], [])["task_representation"] == text
+
+
+def test_public_same_line_vertical_tab_key_preserves_source():
+    text = "? \vstr('Content')+str('-Type'): application/json"
+    assert collect_context(text, [], [])["task_representation"] == text

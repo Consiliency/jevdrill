@@ -750,6 +750,55 @@ for name, formatter in list(COMPLETE_MEMBER_FORMATS.items()):
         "LOG " + json.dumps(formatter(label))
     )
 FORMATS.update(COMPLETE_MEMBER_FORMATS)
+DECODED_MEMBER_FORMATS = {}
+for ending, separator in (("nel", "\x85"), ("ls", "\u2028"), ("ps", "\u2029")):
+    for form, spacing in (("addition", "\u00a0"), ("formatted", " "), ("formatted", "\u00a0")):
+        name = f"decoded-member-{ending}-{form}-{ord(spacing)}"
+        DECODED_MEMBER_FORMATS[name] = (
+            lambda label, separator=separator, form=form, spacing=spacing: (
+                "LOG "
+                + json.dumps(
+                    "? "
+                    + spacing
+                    + (
+                        f"{label[:5]!r} + {label[5:]!r}"
+                        if form == "addition"
+                        else f"f{label[:5]!r} f{label[5:]!r}"
+                    )
+                    + separator
+                    + ": SYNTHETIC_SENTINEL"
+                )
+            )
+        )
+for presentation in ("plain", "json", "log"):
+
+    def continued_label(label, presentation=presentation):
+        text = (
+            'Ordinary context.\nname: "'
+            + label[:2]
+            + "\\\n"
+            + label[2:]
+            + '"\nvalue: SYNTHETIC_SENTINEL'
+        )
+        if presentation == "json":
+            return json.dumps(text)
+        if presentation == "log":
+            return json.dumps({"log": text})
+        return text
+
+    DECODED_MEMBER_FORMATS[f"decoded-member-continuation-{presentation}"] = continued_label
+for name, prefix, spacing in (
+    ("prose", "Ordinary context.\n", " "),
+    ("vt", "", "\v"),
+    ("ff", "", "\f"),
+    ("tab", "", "\t"),
+):
+    DECODED_MEMBER_FORMATS[f"decoded-member-same-line-{name}"] = (
+        lambda label, prefix=prefix, spacing=spacing: (
+            prefix + "? " + spacing + f"str({label[:5]!r})+str({label[5:]!r}): SYNTHETIC_SENTINEL"
+        )
+    )
+FORMATS.update(DECODED_MEMBER_FORMATS)
 SCHEME_FOLDS = {
     f"{scheme}-{ending}-{blank}": (
         "  "
@@ -793,6 +842,7 @@ UNSUPPORTED_CONTEXT = {
     or name in CONTINUITY_FORMATS
     or name in MEMBER_VIEW_FORMATS
     or name in COMPLETE_MEMBER_FORMATS
+    or name in DECODED_MEMBER_FORMATS
     or name.startswith(
         (
             "mixed-fields-",

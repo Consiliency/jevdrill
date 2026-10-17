@@ -232,10 +232,12 @@ def _structured(text: str, deadline: float | None) -> str | None:
     credential_sequence = False
     sequence_count = 0
     quoted_work = 0
+    decoded_chunks: list[str] = []
+    decoded_end = 0
     escaped_quotes: set[int] = set()
     for opening in re.finditer(r"""['"]""", text):
         _check_deadline(deadline)
-        if opening.start() in escaped_quotes:
+        if opening.start() in escaped_quotes or opening.start() < decoded_end:
             continue
         quoted = QUOTED_SCALAR.match(text, opening.start())
         quoted_work += (quoted.end() if quoted is not None else len(text)) - opening.start()
@@ -250,7 +252,12 @@ def _structured(text: str, deadline: float | None) -> str | None:
                 # Validate the complete decoded record before YAML can split its
                 # original spelling across a key and its sibling value.
                 if re.search(LINE_BREAK, decoded) is not None:
-                    redact(decoded, deadline)
+                    cleaned = redact(decoded, deadline)
+                    if cleaned != decoded:
+                        decoded_chunks.extend(
+                            (text[decoded_end : opening.start()], json.dumps(cleaned))
+                        )
+                        decoded_end = quoted.end()
         if quoted is not None and (
             re.search(LINE_BREAK, quoted.group()) is not None or "''" in quoted.group()[1:-1]
         ):
@@ -261,6 +268,8 @@ def _structured(text: str, deadline: float | None) -> str | None:
                 ):
                     _check_deadline(deadline)
                     escaped_quotes.update((escaped.start(), escaped.start() + 1))
+    if decoded_chunks:
+        return redact("".join(decoded_chunks) + text[decoded_end:], deadline)
     for sequence in re.finditer(
         rf"{LINE_START}{INDENT}*-(?:{INDENT}+{LINE_TEXT}*|(?={LINE_BREAK}|$))"
         rf"(?:{STRUCTURED_CONTINUATION})*",
@@ -382,13 +391,17 @@ def _structured(text: str, deadline: float | None) -> str | None:
                 quote = member.group("quote")
                 _redact_assignments(quote + original + "\n" + quote, deadline, record_member=True)
         for member in re.finditer(
-            rf"{LINE_START}(?:[^\r\n\x85\u2028\u2029:=]+:{INDENT}*|"
-            rf"{INDENT}*\?(?:{INDENT}+|(?={LINE_BREAK}|$)))"
+            rf"{LINE_START}(?:(?P<explicit>{INDENT}*\?(?:{INDENT}+|(?={LINE_BREAK}|$)))|"
+            rf"[^\r\n\x85\u2028\u2029:=]+:{INDENT}*)"
             rf"(?P<value>{LINE_TEXT}*(?:{STRUCTURED_CONTINUATION})*)",
             text,
         ):
             _check_deadline(deadline)
             original = _validation_view(member.group("value"), deadline)
+            # Keep a same-line key/value separator visible to the scalar-span
+            # validation before enclosing a multiline member.
+            if member.group("explicit") is not None:
+                _redact_assignments(original, deadline, record_member=True)
             _redact_assignments(
                 original.strip()
                 if QUOTED_SCALAR.fullmatch(original.strip()) is not None
@@ -459,6 +472,18 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
         if text.startswith("'"):
             original = original.replace("''", "'")
         else:
+            # YAML joins escaped physical line breaks. Validate that original
+            # decoding as well as the line-preserving view used below.
+            try:
+                for token in yaml.scan(text):
+                    _check_deadline(deadline)
+                    if isinstance(token, ScalarToken) and (
+                        _credential_label(token.value, deadline)
+                        or redact(token.value, deadline) != token.value
+                    ):
+                        raise ContractError("unsupported multiline quoted credential record")
+            except yaml.YAMLError:
+                pass
             try:
                 for token in yaml.scan(re.sub(LINE_BREAK, r"\\n", text)):
                     _check_deadline(deadline)
@@ -571,6 +596,11 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
         explicit_key = re.match(r"[^\S\r\n]*\?[^\S\r\n]+", text[begin:finish])
         if explicit_key is not None:
             scalar_spans.add((begin + explicit_key.end(), finish))
+            scalar_spans.update(
+                (begin + explicit_key.end(), closing)
+                for opening, closing in list(scalar_spans)
+                if opening == begin and closing > begin + explicit_key.end()
+            )
         expressions.extend(
             span
             for span in scalar_spans
