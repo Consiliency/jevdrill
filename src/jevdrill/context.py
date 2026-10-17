@@ -12,6 +12,7 @@ import uuid
 import warnings
 from collections.abc import Mapping, Sequence
 from io import StringIO
+from itertools import pairwise
 from pathlib import Path
 from time import monotonic
 from typing import Any
@@ -453,8 +454,98 @@ def _structured(text: str, deadline: float | None) -> str | None:
     return None
 
 
+def _validate_explicit_keys(text: str, deadline: float | None) -> None:
+    """Inspect original explicit keys independently of prose and flow placement."""
+    view = _validation_view(text, deadline)
+    source = StringIO(view)
+    offsets = [0] + [match.end() for match in re.finditer("\n", view)]
+    rows = 0
+
+    def readline() -> str:
+        nonlocal rows
+        line = source.readline()
+        if line:
+            rows += 1
+        return line
+
+    depth = 0
+    key_start = 0
+    key_depth = 0
+    key: list[tuple[int, str]] | None = None
+    while source.tell() < len(view):
+        position = source.tell()
+        base = rows
+        try:
+            for token in tokenize.generate_tokens(readline):
+                _check_deadline(deadline)
+                if token.type in {tokenize.COMMENT, tokenize.INDENT, tokenize.DEDENT}:
+                    continue
+                if token.type in {tokenize.OP, tokenize.ERRORTOKEN} and token.string == "?":
+                    key, key_depth = [], depth
+                    key_start = offsets[base + token.end[0] - 1] + token.end[1]
+                    continue
+                if (
+                    token.type == tokenize.OP
+                    and token.string == ":"
+                    and key is not None
+                    and depth == key_depth
+                ):
+                    significant = [(kind, value) for kind, value in key if value.strip()]
+                    strings = sum(kind == tokenize.STRING for kind, _ in significant)
+                    call = any(
+                        kind == tokenize.NAME and following == "("
+                        for (kind, _), (_, following) in pairwise(significant)
+                    )
+                    computed = (
+                        call
+                        or strings > 1
+                        or strings
+                        and any(value == "+" for _, value in significant)
+                    )
+                    if computed:
+                        colon = offsets[base + token.start[0] - 1] + token.start[1]
+                        expression = view[key_start:colon].strip()
+                        if QUOTED_SCALAR.fullmatch(expression) is not None:
+                            _redact_assignments(expression, deadline, record_member=True)
+                            key = None
+                            continue
+                        try:
+                            with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                                node = ast.parse("(" + expression + "\n)", mode="eval").body
+                            literal = _literal_string(node, deadline)
+                        except (SyntaxError, ValueError):
+                            literal = None
+                        if (
+                            literal is None
+                            or _credential_label(literal, deadline)
+                            or redact(literal, deadline) != literal
+                        ):
+                            raise ContractError("unsupported computed explicit key")
+                    key = None
+                    continue
+                if token.type == tokenize.OP:
+                    if token.string in "([{":
+                        depth += 1
+                    elif token.string in ")]}":
+                        depth -= 1
+                        if key is not None and depth < key_depth:
+                            key = None
+                    elif token.string == "," and depth == key_depth:
+                        key = None
+                if key is not None:
+                    key.append((token.type, token.string))
+        except (tokenize.TokenError, IndentationError):
+            # Resume after a malformed logical group, just as assignment scanning
+            # does; an unrelated prose line must not hide a later explicit key.
+            pass
+        if source.tell() == position:
+            break
+
+
 def _redact_assignments(text: str, deadline: float | None, *, record_member: bool = False) -> str:
     _check_deadline(deadline)
+    if "?" in text:
+        _validate_explicit_keys(text, deadline)
     for member in re.finditer(r"`+([^`]+)", text):
         original = _validation_view(member.group(1), deadline)
         enclosed = "(" + original + "\n)"
@@ -676,17 +767,6 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                 with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                     expression = ast.parse(expression_source)
             except (SyntaxError, ValueError):
-                if (
-                    explicit_key is not None
-                    and opening == begin + explicit_key.end()
-                    and expression_source.startswith("$")
-                    and re.search(r"\b\w+\s*\(", expression_source)
-                ):
-                    raise ContractError("unsupported computed explicit key") from None
-                if re.match(r"\{\s*\?", expression_source) and (opening > 0 or closing < len(text)):
-                    embedded_fragment = text[opening:closing]
-                    if redact(embedded_fragment, deadline) != embedded_fragment:
-                        raise ContractError("unsupported embedded structured credential")
                 if text[opening : opening + 1] != "(":
                     continue
                 try:

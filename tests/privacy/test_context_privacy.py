@@ -439,3 +439,28 @@ def test_composed_public_members_preserve_original_source(text, encoding):
         text if encoding == "plain" else json.dumps(text if encoding == "json" else {"log": text})
     )
     assert redact(source) == source
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Ordinary context. ? str('Content')+str('-Type'): application/json",
+        "LOG ?str('Content')+str('-Type'): application/json",
+        "{? 'Content'+'-Type': application/json}",
+        "LOG\n[?str('Content')+str('-Type'): application/json]",
+        "LOG\u2028? str('Content')+str('-Type'): application/json",
+        "The price is $5; why? Content-Type: application/json",
+        *[
+            "LOG" + ending + "? 'Content'+'-Type': application/json"
+            for ending in ("\n", "\r", "\r\n", "\x85", "\u2028", "\u2029")
+        ],
+    ],
+)
+@pytest.mark.parametrize("encoding", ["plain", "json", "object"])
+def test_explicit_key_placements_preserve_public_source(text, encoding):
+    from jevdrill.context import redact
+
+    source = (
+        text if encoding == "plain" else json.dumps(text if encoding == "json" else {"log": text})
+    )
+    assert redact(source) == source

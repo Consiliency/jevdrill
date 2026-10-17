@@ -843,6 +843,61 @@ for name, formatter in list(COMPOSED_MEMBER_FORMATS.items()):
         {"record": formatter(label)}
     )
 FORMATS.update(COMPOSED_MEMBER_FORMATS)
+EXPLICIT_KEY_FORMATS = {
+    "explicit-placement-inline": lambda label: (
+        f"Ordinary context. ? str({label[:5]!r})+str({label[5:]!r}): SYNTHETIC_SENTINEL"
+    ),
+    "explicit-placement-inline-glued": lambda label: (
+        f"LOG ?str({label[:5]!r})+str({label[5:]!r}): SYNTHETIC_SENTINEL"
+    ),
+    "explicit-placement-flow-add": lambda label: (
+        f"{{? {label[:5]!r}+{label[5:]!r}: SYNTHETIC_SENTINEL}}"
+    ),
+    "explicit-placement-sequence": lambda label: (
+        f"LOG\n[?str({label[:5]!r})+str({label[5:]!r}): SYNTHETIC_SENTINEL]"
+    ),
+    "explicit-placement-flow-dollar": lambda label: (
+        f"{{? ${label[:5]!r}+{label[5:]!r}: SYNTHETIC_SENTINEL}}"
+    ),
+    "explicit-placement-glued-dollar": lambda label: (
+        f"?${label[:5]!r}+{label[5:]!r}: SYNTHETIC_SENTINEL"
+    ),
+    "explicit-placement-at": lambda label: f"? @{label[:5]!r}+{label[5:]!r}: SYNTHETIC_SENTINEL",
+    "explicit-placement-flow-at": lambda label: (
+        f"{{? @{label[:5]!r}+{label[5:]!r}: SYNTHETIC_SENTINEL}}"
+    ),
+}
+for name, formatter in list(EXPLICIT_KEY_FORMATS.items()):
+    EXPLICIT_KEY_FORMATS[name + "-json"] = lambda label, formatter=formatter: json.dumps(
+        formatter(label)
+    )
+    EXPLICIT_KEY_FORMATS[name + "-log"] = lambda label, formatter=formatter: (
+        "LOG " + json.dumps(formatter(label))
+    )
+for ending, separator in (
+    ("lf", "\n"),
+    ("cr", "\r"),
+    ("crlf", "\r\n"),
+    ("nel", "\x85"),
+    ("ls", "\u2028"),
+    ("ps", "\u2029"),
+):
+    for kind in ("dollar-call", "at-call", "dollar-add"):
+        EXPLICIT_KEY_FORMATS[f"explicit-placement-{ending}-{kind}"] = (
+            lambda label, separator=separator, kind=kind: (
+                "LOG"
+                + separator
+                + "? "
+                + ("@" if kind == "at-call" else "$")
+                + (
+                    f"{label[:5]!r}+{label[5:]!r}"
+                    if kind == "dollar-add"
+                    else f"str({label[:5]!r})+str({label[5:]!r})"
+                )
+                + ": SYNTHETIC_SENTINEL"
+            )
+        )
+FORMATS.update(EXPLICIT_KEY_FORMATS)
 SCHEME_FOLDS = {
     f"{scheme}-{ending}-{blank}": (
         "  "
@@ -888,6 +943,7 @@ UNSUPPORTED_CONTEXT = {
     or name in COMPLETE_MEMBER_FORMATS
     or name in DECODED_MEMBER_FORMATS
     or name in COMPOSED_MEMBER_FORMATS
+    or name in EXPLICIT_KEY_FORMATS
     or name.startswith(
         (
             "mixed-fields-",
