@@ -112,8 +112,9 @@ def test_judgment_provider_allowlist_is_checked_before_dispatch(
 
 @pytest.mark.parametrize("attachment", [False, True])
 def test_bearer_credential_cannot_reach_judgment_or_raw_retention(
-    tmp_path, privacy_storage, credential_text, credential_may_reject, attachment
+    privacy_case_path, privacy_storage, credential_text, credential_may_reject, attachment
 ):
+    tmp_path = privacy_case_path
     value = inputs()
     value["judgment_policy"] = policy()
     value["request"]["task_representation"] = credential_text

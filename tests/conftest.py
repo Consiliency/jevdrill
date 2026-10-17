@@ -2,6 +2,7 @@ import copy
 import json
 import shutil
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 
@@ -1094,8 +1095,15 @@ def privacy_database_template(tmp_path_factory):
 
 
 @pytest.fixture
-def privacy_storage(tmp_path, privacy_database_template):
-    path = tmp_path / "route.db"
+def privacy_case_path(tmp_path_factory):
+    # Numbered paths scan all prior case directories on every allocation.
+    # Keep independent on-disk cases without quadratic matrix setup work.
+    return tmp_path_factory.mktemp("privacy-" + uuid4().hex, numbered=False)
+
+
+@pytest.fixture
+def privacy_storage(privacy_case_path, privacy_database_template):
+    path = privacy_case_path / "route.db"
     shutil.copyfile(privacy_database_template, path)
     return SQLiteStorage(path)
 

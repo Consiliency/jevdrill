@@ -14,7 +14,7 @@ from tests.retention.test_retention import request
     "field", ["work_objective_text", "authorized_context", "description", "attachment_refs"]
 )
 def test_folded_credentials_never_reach_discovery_judgment_or_retention(
-    tmp_path,
+    privacy_case_path,
     privacy_storage,
     discovery_inputs,
     discovery_observer,
@@ -23,6 +23,7 @@ def test_folded_credentials_never_reach_discovery_judgment_or_retention(
     credential_whole,
     field,
 ):
+    tmp_path = privacy_case_path
     if field == "attachment_refs":
         discovery_inputs[field] = [
             {
