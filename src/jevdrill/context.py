@@ -12,7 +12,6 @@ import uuid
 import warnings
 from collections.abc import Mapping, Sequence
 from io import StringIO
-from itertools import pairwise
 from pathlib import Path
 from time import monotonic
 from typing import Any
@@ -457,94 +456,139 @@ def _structured(text: str, deadline: float | None) -> str | None:
 def _validate_explicit_keys(text: str, deadline: float | None) -> None:
     """Inspect original explicit keys independently of prose and flow placement."""
     view = _validation_view(text, deadline)
-    source = StringIO(view)
-    offsets = [0] + [match.end() for match in re.finditer("\n", view)]
-    rows = 0
-
-    def readline() -> str:
-        nonlocal rows
-        line = source.readline()
-        if line:
-            rows += 1
-        return line
-
-    depth = 0
-    key_start = 0
-    key_depth = 0
-    key: list[tuple[int, str]] | None = None
-    while source.tell() < len(view):
-        position = source.tell()
-        base = rows
+    if view[:1] in {'"', "{", "["}:
         try:
-            for token in tokenize.generate_tokens(readline):
-                _check_deadline(deadline)
-                if token.type in {tokenize.COMMENT, tokenize.INDENT, tokenize.DEDENT}:
-                    continue
-                if token.type in {tokenize.OP, tokenize.ERRORTOKEN} and token.string == "?":
-                    key, key_depth = [], depth
-                    key_start = offsets[base + token.end[0] - 1] + token.end[1]
-                    continue
-                if (
-                    token.type == tokenize.OP
-                    and token.string == ":"
-                    and key is not None
-                    and depth == key_depth
-                ):
-                    significant = [(kind, value) for kind, value in key if value.strip()]
-                    # Python 3.13 emits a separate FSTRING_START token for each
-                    # formatted fragment. Count it as a string operand, while
-                    # leaving the middle/end tokens within that same fragment.
-                    strings = sum(
-                        kind in {tokenize.STRING, tokenize.FSTRING_START} for kind, _ in significant
-                    )
-                    call = any(
-                        kind == tokenize.NAME and following == "("
-                        for (kind, _), (_, following) in pairwise(significant)
-                    )
-                    computed = (
-                        call
-                        or strings > 1
-                        or any(kind == tokenize.FSTRING_START for kind, _ in significant)
-                        or any(value == "+" for _, value in significant)
-                    )
-                    if computed:
-                        colon = offsets[base + token.start[0] - 1] + token.start[1]
-                        expression = view[key_start:colon].strip()
-                        if QUOTED_SCALAR.fullmatch(expression) is not None:
-                            _redact_assignments(expression, deadline, record_member=True)
-                            key = None
-                            continue
-                        try:
-                            with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
-                                node = ast.parse("(" + expression + "\n)", mode="eval").body
-                            literal = _literal_string(node, deadline)
-                        except (SyntaxError, ValueError):
-                            literal = None
-                        if (
-                            literal is None
-                            or _credential_label(literal, deadline)
-                            or redact(literal, deadline) != literal
-                        ):
-                            raise ContractError("unsupported computed explicit key")
-                    key = None
-                    continue
-                if token.type == tokenize.OP:
-                    if token.string in "([{":
-                        depth += 1
-                    elif token.string in ")]}":
-                        depth -= 1
-                        if key is not None and depth < key_depth:
-                            key = None
-                    elif token.string == "," and depth == key_depth:
-                        key = None
-                if key is not None:
-                    key.append((token.type, token.string))
-        except (tokenize.TokenError, IndentationError):
-            # Resume after a malformed logical group, just as assignment scanning
-            # does; an unrelated prose line must not hide a later explicit key.
+            decoded = json.loads(view, object_pairs_hook=tuple)
+        except ValueError:
             pass
-        if source.tell() == position:
-            break
+        else:
+            pending = [decoded]
+            while pending:
+                _check_deadline(deadline)
+                item = pending.pop()
+                if isinstance(item, str):
+                    if item != view:
+                        _validate_explicit_keys(item, deadline)
+                elif isinstance(item, (list, tuple)):
+                    pending.extend(item)
+            return
+    # A log prefix may be followed by one complete JSON value. Establish its
+    # boundary by parsing the entire suffix, then inspect the decoded content.
+    # A quote in prose cannot qualify if later key fragments remain outside it.
+    first_quote = view.find('"')
+    if first_quote >= 0 and "?" not in view[:first_quote]:
+        try:
+            decoded_suffix = json.loads(view[first_quote:])
+        except ValueError:
+            pass
+        else:
+            if isinstance(decoded_suffix, str):
+                _validate_explicit_keys(decoded_suffix, deadline)
+                return
+    # Inspect each indicator in the original view first. A quoted span found
+    # by a regex may start in prose and end at a later key fragment, so it
+    # cannot establish that the indicator belongs only to a JSON string.
+    scan_work = 0
+    for marker in re.finditer(r"\?", view):
+        _check_deadline(deadline)
+        # Start at the indicator itself. A quote or apostrophe in surrounding
+        # prose is not allowed to establish the key's lexical state.
+        cursor = marker.end()
+        brackets: list[str] = []
+        quote = ""
+        comment = False
+        colon = None
+        while cursor < len(view):
+            _check_deadline(deadline)
+            scan_work += 1
+            if scan_work > 16 * len(view) + 100_000:
+                raise ContractError("context fragment work exceeds sanitization limit")
+            char = view[cursor]
+            if comment:
+                if char == "\n":
+                    comment = False
+            elif quote:
+                if char == "\\":
+                    cursor += 2
+                    continue
+                if view.startswith(quote, cursor):
+                    cursor += len(quote)
+                    quote = ""
+                    continue
+            elif char in "\"'":
+                quote = char * 3 if view.startswith(char * 3, cursor) else char
+                cursor += len(quote)
+                continue
+            elif char == "#":
+                comment = True
+            elif char in "([{":
+                brackets.append(char)
+            elif char in ")]}":
+                if not brackets:
+                    break
+                brackets.pop()
+            elif char == ":" and not brackets:
+                colon = cursor
+                break
+            elif char in ",?" and not brackets:
+                break
+            cursor += 1
+        if colon is None:
+            continue
+        expression = view[marker.end() : colon].strip()
+        significant: list[tuple[int, str]] = []
+        malformed = False
+        try:
+            for token in tokenize.generate_tokens(StringIO(expression).readline):
+                _check_deadline(deadline)
+                if token.type not in {tokenize.NL, tokenize.NEWLINE, tokenize.ENDMARKER}:
+                    significant.append((token.type, token.string))
+        except (tokenize.TokenError, IndentationError):
+            malformed = True
+        strings = sum(kind in {tokenize.STRING, tokenize.FSTRING_START} for kind, _ in significant)
+        call = any(
+            kind == tokenize.NAME and significant[index + 1][1] == "("
+            for index, (kind, _) in enumerate(significant[:-1])
+        )
+        computed = (
+            call
+            or strings > 1
+            or any(kind == tokenize.FSTRING_START for kind, _ in significant)
+            or any(value == "+" for _, value in significant)
+            or (
+                malformed
+                and (
+                    "(" in expression or "+" in expression or "'" in expression or '"' in expression
+                )
+            )
+        )
+        if not computed:
+            continue
+        if QUOTED_SCALAR.fullmatch(expression) is not None:
+            _redact_assignments(expression, deadline, record_member=True)
+            continue
+        try:
+            with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                node = ast.parse("(" + expression + "\n)", mode="eval").body
+            literal = _literal_string(node, deadline)
+        except (SyntaxError, ValueError):
+            literal = None
+        if (
+            literal is None
+            or _credential_label(literal, deadline)
+            or redact(literal, deadline) != literal
+        ):
+            raise ContractError("unsupported computed explicit key")
+    # A JSON string embedded in a log line may encode another explicit key.
+    # Decode it only after every original candidate has been checked.
+    for quoted in re.finditer(r'"(?:[^"\\]|\\.)*"', view):
+        _check_deadline(deadline)
+        try:
+            decoded = json.loads(quoted.group())
+        except ValueError:
+            continue
+        if "?" in decoded and decoded != quoted.group():
+            _validate_explicit_keys(decoded, deadline)
 
 
 def _redact_assignments(text: str, deadline: float | None, *, record_member: bool = False) -> str:

@@ -11,10 +11,16 @@ from jevdrill.contracts import ContractError
 from jevdrill.integrations.development import DevelopmentJudge
 from jevdrill.storage import SQLiteStorage
 from tests.application.test_route_integration import inputs, policy
-from tests.privacy.test_context_privacy import EXPLICIT_KEY_REPAIR_CASES
+from tests.privacy.test_context_privacy import (
+    EXPLICIT_KEY_REPAIR_CASES,
+    PROSE_EXPLICIT_KEY_CASES,
+    QUOTE_KEY_CROSS_PRODUCT,
+)
 
 
-@pytest.mark.parametrize("text", EXPLICIT_KEY_REPAIR_CASES)
+@pytest.mark.parametrize(
+    "text", EXPLICIT_KEY_REPAIR_CASES + PROSE_EXPLICIT_KEY_CASES + QUOTE_KEY_CROSS_PRODUCT
+)
 @pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
 @pytest.mark.parametrize(
     "field",

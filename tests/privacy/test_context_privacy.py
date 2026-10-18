@@ -16,6 +16,27 @@ EXPLICIT_KEY_REPAIR_CASES = (
     "Ordinary context. ? $prefix + suffix: SYNTHETIC_SENTINEL",
 )
 
+PROSE_EXPLICIT_KEY_CASES = (
+    "It's fine ? 'Author' + 'ization': SYNTHETIC_SENTINEL",
+    "Don't panic. ? f'Author' f'ization': SYNTHETIC_SENTINEL",
+    "Don't {? 'Author'+'ization': SYNTHETIC_SENTINEL}",
+    "He said \"hi ? 'Author' + 'ization': SYNTHETIC_SENTINEL",
+    'He said "hi ? "Author"+"ization": SYNTHETIC_SENTINEL',
+    'He said "hi {? "Author"+"ization": SYNTHETIC_SENTINEL}',
+)
+
+QUOTE_KEY_CROSS_PRODUCT = tuple(
+    f"{prose} {'{?' if flow else '?'} {key}: SYNTHETIC_SENTINEL{' }' if flow else ''}"
+    for prose in ("It's fine", 'He said "hi', "He said 'hi", 'He said "hi" then')
+    for key in (
+        "'Author'+'ization'",
+        '"Author"+"ization"',
+        "f'Author' f'ization'",
+        'f"Author" f"ization"',
+    )
+    for flow in (False, True)
+)
+
 
 @pytest.mark.parametrize("text", EXPLICIT_KEY_REPAIR_CASES)
 @pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
@@ -32,6 +53,24 @@ def test_computed_explicit_keys_reject_in_prose_and_wrappers(text, presentation)
         else f"`{text}`"
     )
     with pytest.raises(ContractError, match="computed explicit key"):
+        redact(source)
+
+
+@pytest.mark.parametrize("text", PROSE_EXPLICIT_KEY_CASES + QUOTE_KEY_CROSS_PRODUCT)
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_prose_quotes_cannot_hide_computed_explicit_keys(text, presentation):
+    from jevdrill.context import redact
+
+    source = (
+        text
+        if presentation == "plain"
+        else json.dumps(text)
+        if presentation == "json"
+        else json.dumps({"log": text})
+        if presentation == "json-log"
+        else f"`{text}`"
+    )
+    with pytest.raises(ContractError):
         redact(source)
 
 
