@@ -6,7 +6,6 @@ import pytest
 from jevdrill.context import collect_context, workspace_id
 from jevdrill.contracts import ContractError
 
-
 EXPLICIT_KEY_REPAIR_CASES = (
     "Ordinary context. ? f'Author' f'ization': SYNTHETIC_SENTINEL",
     "LOG\n{? f'Author' f'ization': SYNTHETIC_SENTINEL}",

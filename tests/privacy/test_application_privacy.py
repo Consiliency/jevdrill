@@ -105,10 +105,7 @@ def test_computed_explicit_keys_reject_before_dispatch_and_retention(
     with sqlite3.connect(service.path) as db:
         assert db.execute("SELECT COUNT(*) FROM judgment_calls").fetchone()[0] == 0
     assert not (tmp_path / "artifacts").exists()
-    assert all(
-        b"SYNTHETIC_SENTINEL" not in path.read_bytes()
-        for path in tmp_path.glob("*.db*")
-    )
+    assert all(b"SYNTHETIC_SENTINEL" not in path.read_bytes() for path in tmp_path.glob("*.db*"))
 
 
 def test_private_context_is_excluded_before_provider_and_retention(tmp_path):
