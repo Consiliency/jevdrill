@@ -9,6 +9,10 @@ from pathlib import Path
 
 import pytest
 
+# One probe performs multiple installed CLI, queue, and replay operations.
+# This bounds their aggregate test-process runtime, not their individual deadlines.
+USAGE_PROBE_WATCHDOG_SECONDS = 30
+
 CASES = (
     "known",
     "missing",
@@ -338,7 +342,7 @@ def test_installed_usage_persistence(tmp_path, case):
         env=env,
         text=True,
         capture_output=True,
-        timeout=20,
+        timeout=USAGE_PROBE_WATCHDOG_SECONDS,
         check=False,
     )
     assert result.returncode == 0, result.stdout + result.stderr

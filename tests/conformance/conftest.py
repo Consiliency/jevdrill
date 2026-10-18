@@ -11,6 +11,10 @@ import pytest
 
 from jevdrill.evaluation import evaluate_host_artifact, validate_splits
 
+# The one pytest child runs both bridge and baseline probes. This is an aggregate
+# test-process watchdog, separate from each logical operation's five-second limit.
+HOST_PROBES_WATCHDOG_SECONDS = 420
+
 
 @pytest.fixture(scope="session")
 def host_conformance(tmp_path_factory):
@@ -65,7 +69,7 @@ def host_conformance(tmp_path_factory):
         env=env,
         capture_output=True,
         text=True,
-        timeout=300,
+        timeout=HOST_PROBES_WATCHDOG_SECONDS,
         check=False,
     )
     assert result.returncode == 0, result.stdout + result.stderr
