@@ -7,6 +7,57 @@ from jevdrill.context import collect_context, workspace_id
 from jevdrill.contracts import ContractError
 
 
+EXPLICIT_KEY_REPAIR_CASES = (
+    "Ordinary context. ? f'Author' f'ization': SYNTHETIC_SENTINEL",
+    "LOG\n{? f'Author' f'ization': SYNTHETIC_SENTINEL}",
+    "LOG\n[? f'Author' f'ization': SYNTHETIC_SENTINEL]",
+    "Ordinary context. ? f'Author' + f'ization': SYNTHETIC_SENTINEL",
+    "Ordinary context. ? 'Author' f'ization': SYNTHETIC_SENTINEL",
+    "Ordinary context. ? prefix + suffix: SYNTHETIC_SENTINEL",
+    "Ordinary context. ? $prefix + suffix: SYNTHETIC_SENTINEL",
+)
+
+
+@pytest.mark.parametrize("text", EXPLICIT_KEY_REPAIR_CASES)
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_computed_explicit_keys_reject_in_prose_and_wrappers(text, presentation):
+    from jevdrill.context import redact
+
+    source = (
+        text
+        if presentation == "plain"
+        else json.dumps(text)
+        if presentation == "json"
+        else json.dumps({"log": text})
+        if presentation == "json-log"
+        else f"`{text}`"
+    )
+    with pytest.raises(ContractError, match="computed explicit key"):
+        redact(source)
+
+
+@pytest.mark.parametrize(
+    "text",
+    (
+        "Ordinary context. ? f'Content' f'-Type': application/json",
+        "Ordinary context. ? f'Content' + f'-Type': application/json",
+        "Ordinary context. ? 'Content''-Type': application/json",
+        "Ordinary context. ? Content-Type: application/json",
+    ),
+)
+def test_public_explicit_key_compositions_keep_source(text):
+    from jevdrill.context import redact
+
+    assert redact(text) == text
+
+
+def test_dynamic_explicit_key_rejects_without_running_expression():
+    from jevdrill.context import redact
+
+    with pytest.raises(ContractError, match="computed explicit key"):
+        redact("Ordinary context. ? f'{must_not_execute()}': SYNTHETIC_SENTINEL")
+
+
 def test_credentials_and_excluded_path_descendants_are_removed():
     result = collect_context(
         "password=sentinel ordinary",

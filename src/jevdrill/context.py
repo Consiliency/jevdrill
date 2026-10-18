@@ -491,7 +491,13 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
                     and depth == key_depth
                 ):
                     significant = [(kind, value) for kind, value in key if value.strip()]
-                    strings = sum(kind == tokenize.STRING for kind, _ in significant)
+                    # Python 3.13 emits a separate FSTRING_START token for each
+                    # formatted fragment. Count it as a string operand, while
+                    # leaving the middle/end tokens within that same fragment.
+                    strings = sum(
+                        kind in {tokenize.STRING, tokenize.FSTRING_START}
+                        for kind, _ in significant
+                    )
                     call = any(
                         kind == tokenize.NAME and following == "("
                         for (kind, _), (_, following) in pairwise(significant)
@@ -499,8 +505,8 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
                     computed = (
                         call
                         or strings > 1
-                        or strings
-                        and any(value == "+" for _, value in significant)
+                        or any(kind == tokenize.FSTRING_START for kind, _ in significant)
+                        or any(value == "+" for _, value in significant)
                     )
                     if computed:
                         colon = offsets[base + token.start[0] - 1] + token.start[1]
