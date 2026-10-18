@@ -495,8 +495,7 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
                     # formatted fragment. Count it as a string operand, while
                     # leaving the middle/end tokens within that same fragment.
                     strings = sum(
-                        kind in {tokenize.STRING, tokenize.FSTRING_START}
-                        for kind, _ in significant
+                        kind in {tokenize.STRING, tokenize.FSTRING_START} for kind, _ in significant
                     )
                     call = any(
                         kind == tokenize.NAME and following == "("
