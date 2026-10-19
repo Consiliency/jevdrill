@@ -750,7 +750,7 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
         # same unresolved-record semantics. Classify the complete key AST.
         # Bare hyphenated/dotted labels and MIME spellings remain public text.
         public_spelling = re.sub(r"(?m)^[ \t]*\#[^\n]*(?:\n|$)", "", expression).strip()
-        static_public = re.fullmatch(r"[\w.-]+(?:/[\w.-]+)*", public_spelling) is not None
+        static_public = re.fullmatch(r"[\w.][\w.-]*(?:/[\w.][\w.-]*)*", public_spelling) is not None
         try:
             with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                 key_node = ast.parse("(" + expression + "\n)", mode="eval").body
@@ -765,8 +765,18 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
             )
         ):
             computed = True
-        if not computed:
+        if static_public or numeric_public:
             continue
+        # Keep the established operator/token decision ahead of ordinary
+        # punctuation handling. In particular, a prose-adjacent ? must not
+        # hide multiplication, matrix multiplication, or another old reject.
+        if not computed and marker.start() and view[marker.start() - 1].isalnum():
+            before = view[: marker.start()]
+            # Assignment/reference scans also pass a URL suffix beginning
+            # with //, so recognize that same absolute-URL path here.
+            url = re.search(r"(?:https?:)?//[^\s?#]+$", before)
+            if url is not None and re.fullmatch(r"[\w.-]+=(?:https?|[\w.-]+)", expression):
+                continue
         if QUOTED_SCALAR.fullmatch(expression) is not None:
             # YAML doubles single quotes, while Python reads adjacent quoted
             # fragments as one literal. Both readings must be safe before a
@@ -801,12 +811,12 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
                 if _credential_label(checked, deadline) or redact(checked, deadline) != checked:
                     raise ContractError("unsupported computed explicit key")
             continue
-        try:
-            with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
-                node = ast.parse("(" + expression + "\n)", mode="eval").body
-            literal = _literal_string(node, deadline)
-        except (SyntaxError, ValueError):
-            literal = None
+        # Word-only public YAML labels that are not Python expressions remain
+        # plain text. A parsed comparison (is, in, is not, not in) is always
+        # unresolved, including when its spelling also reads as prose.
+        if key_node is None and not computed and re.fullmatch(r"\w+(?:[ \t]+\w+)+", expression):
+            continue
+        literal = _literal_string(key_node, deadline) if key_node is not None else None
         if (
             literal is None
             or _credential_label(literal, deadline)
@@ -1131,6 +1141,14 @@ def _redact_assignments(
                 except ValueError:
                     pass
                 else:
+                    # Classification and the downstream JSON decoder must
+                    # agree on the original bytes. Normalized control chars
+                    # can make an invalid fragment look safe here while the
+                    # decoder later splits its credential members into prose.
+                    try:
+                        json.loads(text[opening:closing].strip(), object_pairs_hook=tuple)
+                    except ValueError:
+                        raise ContractError("unsupported embedded JSON fragment") from None
                     json_fragment = True
             # A complete local literal has its own lexical boundary. Inspect
             # its immediate members here, even when an apostrophe in preceding
@@ -1447,6 +1465,67 @@ def _redact_plain(text: str, deadline: float | None) -> str:
     return _redact_private_keys(cleaned, deadline)
 
 
+def _redact_local_json(text: str, deadline: float | None) -> str:
+    """Sanitize complete JSON containers from their own opening delimiter."""
+    decoder = json.JSONDecoder(object_pairs_hook=tuple)
+    assignment_operator = re.compile(r"(?:(?:\*\*|//|<<|>>|[+\-*/%@&|^])?=)")
+    chunks: list[str] = []
+    end = 0
+    work = 0
+    for opening in re.finditer(r"[\[{]", text):
+        _check_deadline(deadline)
+        if opening.start() < end:
+            continue
+        try:
+            _, closing = decoder.raw_decode(text, opening.start())
+        except json.JSONDecodeError:
+            # A failed decode may have examined the entire remaining suffix.
+            work += len(text) - opening.start()
+            if work > 16 * len(text) + 100_000:
+                raise ContractError("context fragment work exceeds sanitization limit")
+            continue
+        work += closing - opening.start()
+        if work > 16 * len(text) + 100_000:
+            raise ContractError("context fragment work exceeds sanitization limit")
+        if text[opening.start()] == "[":
+            cursor = closing
+            continued = False
+            while cursor < len(text):
+                if text[cursor].isspace():
+                    cursor += 1
+                elif text.startswith("\\\r\n", cursor):
+                    cursor += 3
+                    continued = True
+                elif text.startswith("\\\n", cursor):
+                    cursor += 2
+                    continued = True
+                else:
+                    break
+                _check_deadline(deadline)
+            # Charge suffix scans as well as JSON decoding. Repeated arrays
+            # cannot rescan long whitespace for free.
+            work += cursor - closing
+            if work > 16 * len(text) + 100_000:
+                raise ContractError("context fragment work exceeds sanitization limit")
+            if assignment_operator.match(text, cursor) is not None:
+                # The assignment pass has already had first refusal. If it
+                # left a sensitive target intact, local rewriting would split
+                # that target from its value across a continued assignment.
+                if continued:
+                    fragment = text[opening.start():closing]
+                    cleaned = _structured(fragment, deadline)
+                    if cleaned is None or cleaned != fragment:
+                        raise ContractError("unsupported credential assignment")
+                continue
+        fragment = text[opening.start():closing]
+        cleaned = _structured(fragment, deadline)
+        if cleaned is None:
+            raise ContractError("unsupported structured context")
+        chunks.extend((text[end:opening.start()], cleaned))
+        end = closing
+    return "".join(chunks) + text[end:]
+
+
 def redact(text: str, deadline: float | None = None) -> str:
     try:
         _check_deadline(deadline)
@@ -1461,6 +1540,7 @@ def redact(text: str, deadline: float | None = None) -> str:
         if structured is not None:
             return structured
         text = _redact_assignments(text, deadline)
+        text = _redact_local_json(text, deadline)
         decoder = json.JSONDecoder(object_pairs_hook=tuple)
         chunks = []
         end = 0

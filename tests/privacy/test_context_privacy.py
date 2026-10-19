@@ -16,6 +16,86 @@ EXPLICIT_KEY_REPAIR_CASES = (
     "Ordinary context. ? $prefix + suffix: SYNTHETIC_SENTINEL",
 )
 
+LOCAL_JSON_PROSE_CASES = (
+    'Size 10" {"name":"Authorization","value":"SYNTHETIC_SENTINEL"}',
+    'Log 5" pipe [["Authorization", "SYNTHETIC_SENTINEL"]]',
+    'Escaped \\"quote\\" [["Authorization", "SYNTHETIC_SENTINEL"]]',
+    'Log "col1\tcol2" {"name":"Authorization","value":"SYNTHETIC_SENTINEL"}',
+    'Context log [["Authorization\t", "SYNTHETIC_SENTINEL"]]',
+    'See payload {"name":"Authorization\t","value":"SYNTHETIC_SENTINEL"}',
+    'Here\'s [["Authorization\t", "SYNTHETIC_SENTINEL"]]',
+    'See payload {"note":"col1\tcol2","name":"Authorization","value":"SYNTHETIC_SENTINEL"}',
+    'Size 10" {"name":"Content-Type","value":"application/json","name":"Authorization","value":"SYNTHETIC_SENTINEL"}',
+)
+
+
+@pytest.mark.parametrize("source", LOCAL_JSON_PROSE_CASES)
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_local_json_fragments_after_prose_do_not_leak(source, presentation):
+    from jevdrill.context import redact
+
+    presented = _present_public_document(source, presentation)
+    try:
+        cleaned = redact(presented)
+    except ContractError:
+        return
+    assert "SYNTHETIC_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("prefix", ('Size 10" ', 'Escaped \\"quote\\" ', "Context log "))
+@pytest.mark.parametrize("shape", ('{"name":"Content-Type","value":"application/json"}', '[["Content-Type","application/json"]]'))
+def test_public_local_json_after_prose_stays_visible(prefix, shape):
+    from jevdrill.context import redact
+
+    source = prefix + shape + "\nNext ordinary line."
+    assert redact(source) == source
+
+
+@pytest.mark.parametrize("expression", ("name is other", "name in other", "name <", "{name:}"))
+def test_unresolved_explicit_key_after_prose_rejects(expression):
+    from jevdrill.context import redact
+
+    with pytest.raises(ContractError, match="computed explicit key"):
+        redact(f"Ordinary context. ? {expression}: SYNTHETIC_SENTINEL")
+
+
+def test_multiline_subscript_assignment_keeps_value_attached():
+    from jevdrill.context import redact
+
+    source = 'if True: headers[\n"Authorization"\n] = "SYNTHETIC_SENTINEL"'
+    assert redact(source) == "if True: [redacted]"
+
+
+@pytest.mark.parametrize(
+    "prefix",
+    ("if True: ", "while ready: ", "if True:\n    ", "for item in items:\n    "),
+)
+@pytest.mark.parametrize("continuation", (" \\\n= ", " \\\r\n= ", " \\\n += "))
+@pytest.mark.parametrize("label", ('"Authorization"', '"X-API-Key"'))
+def test_continued_multiline_subscript_assignment_owns_sensitive_value(
+    prefix, continuation, label
+):
+    from jevdrill.context import redact
+
+    source = prefix + f"headers[\n{label}\n]" + continuation + '"SYNTHETIC_SENTINEL"'
+    try:
+        cleaned = redact(source)
+    except ContractError:
+        return
+    assert "SYNTHETIC_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("continuation", (" \\\n= ", " \\\r\n= ", " \\\n += "))
+def test_continued_public_subscript_assignment_keeps_next_line(continuation):
+    from jevdrill.context import redact
+
+    source = (
+        'if True: headers[\n"Content-Type"\n]'
+        + continuation
+        + '"application/json"\nNext ordinary line.'
+    )
+    assert redact(source) == source
+
 PROSE_EXPLICIT_KEY_CASES = (
     "It's fine ? 'Author' + 'ization': SYNTHETIC_SENTINEL",
     "Don't panic. ? f'Author' f'ization': SYNTHETIC_SENTINEL",

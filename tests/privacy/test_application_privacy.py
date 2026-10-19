@@ -15,11 +15,35 @@ from tests.privacy.test_context_privacy import (
     DOUBLED_QUOTE_EXPLICIT_KEY_CASES,
     ESCAPED_LOCAL_RECORD_CASES,
     EXPLICIT_KEY_REPAIR_CASES,
+    LOCAL_JSON_PROSE_CASES,
     PROSE_EXPLICIT_KEY_CASES,
     PUBLIC_NEL_MEMBER,
     QUOTE_KEY_CROSS_PRODUCT,
     STRUCTURAL_RECORD_SHAPES,
 )
+
+
+@pytest.mark.parametrize(
+    "field",
+    (
+        "route_task",
+        "route_attachment",
+        "work_objective_text",
+        "authorized_context",
+        "description",
+        "attachment_refs",
+    ),
+)
+@pytest.mark.parametrize("source", LOCAL_JSON_PROSE_CASES)
+def test_local_json_prose_sanitizes_under_six_dictionary_keys(field, source):
+    from jevdrill.application import _sanitize
+
+    for value in (source, json.dumps({"log": source})):
+        try:
+            result = _sanitize({field: value})
+        except ContractError:
+            continue
+        assert "SYNTHETIC_SENTINEL" not in json.dumps(result)
 
 
 @pytest.mark.parametrize(
