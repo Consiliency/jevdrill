@@ -565,7 +565,25 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
         if not computed:
             continue
         if QUOTED_SCALAR.fullmatch(expression) is not None:
-            _redact_assignments(expression, deadline, record_member=True)
+            # YAML doubles single quotes, while Python reads adjacent quoted
+            # fragments as one literal. Both readings must be safe before a
+            # surrounding prose quote can hide this member from later scans.
+            decoded = (
+                expression[1:-1].replace("''", "'")
+                if expression.startswith("'")
+                else yaml.safe_load(expression)
+            )
+            try:
+                with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                    literal = _literal_string(ast.parse(expression, mode="eval").body, deadline)
+            except (SyntaxError, ValueError):
+                literal = None
+            if any(
+                _credential_label(value, deadline) or redact(value, deadline) != value
+                for value in (decoded, literal)
+                if isinstance(value, str)
+            ):
+                raise ContractError("unsupported computed explicit key")
             continue
         try:
             with warnings.catch_warnings(action="ignore", category=SyntaxWarning):

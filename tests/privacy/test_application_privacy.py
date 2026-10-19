@@ -12,6 +12,7 @@ from jevdrill.integrations.development import DevelopmentJudge
 from jevdrill.storage import SQLiteStorage
 from tests.application.test_route_integration import inputs, policy
 from tests.privacy.test_context_privacy import (
+    DOUBLED_QUOTE_EXPLICIT_KEY_CASES,
     EXPLICIT_KEY_REPAIR_CASES,
     PROSE_EXPLICIT_KEY_CASES,
     QUOTE_KEY_CROSS_PRODUCT,
@@ -112,6 +113,27 @@ def test_computed_explicit_keys_reject_before_dispatch_and_retention(
         assert db.execute("SELECT COUNT(*) FROM judgment_calls").fetchone()[0] == 0
     assert not (tmp_path / "artifacts").exists()
     assert all(b"SYNTHETIC_SENTINEL" not in path.read_bytes() for path in tmp_path.glob("*.db*"))
+
+
+@pytest.mark.parametrize("text", DOUBLED_QUOTE_EXPLICIT_KEY_CASES)
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+@pytest.mark.parametrize(
+    "field",
+    (
+        "route_task",
+        "route_attachment",
+        "work_objective_text",
+        "authorized_context",
+        "description",
+        "attachment_refs",
+    ),
+)
+def test_doubled_quote_keys_reject_before_dispatch_and_retention(
+    tmp_path, text, presentation, field
+):
+    test_computed_explicit_keys_reject_before_dispatch_and_retention(
+        tmp_path, text, presentation, field
+    )
 
 
 def test_private_context_is_excluded_before_provider_and_retention(tmp_path):

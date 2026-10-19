@@ -25,6 +25,14 @@ PROSE_EXPLICIT_KEY_CASES = (
     'He said "hi {? "Author"+"ization": SYNTHETIC_SENTINEL}',
 )
 
+DOUBLED_QUOTE_EXPLICIT_KEY_CASES = (
+    "It's fine ? 'Author''ization': SYNTHETIC_SENTINEL",
+    "Don't {? 'Author''ization': SYNTHETIC_SENTINEL}",
+    "He said \"hi ? 'Author''ization': SYNTHETIC_SENTINEL",
+    'It\'s fine ? "Author""ization": SYNTHETIC_SENTINEL',
+    "Don't {? 'Author'\"ization\": SYNTHETIC_SENTINEL}",
+)
+
 QUOTE_KEY_CROSS_PRODUCT = tuple(
     f"{prose} {'{?' if flow else '?'} {key}: SYNTHETIC_SENTINEL{' }' if flow else ''}"
     for prose in ("It's fine", 'He said "hi', "He said 'hi", 'He said "hi" then')
@@ -74,12 +82,31 @@ def test_prose_quotes_cannot_hide_computed_explicit_keys(text, presentation):
         redact(source)
 
 
+@pytest.mark.parametrize("text", DOUBLED_QUOTE_EXPLICIT_KEY_CASES)
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_doubled_quote_explicit_keys_reject_in_prose_and_wrappers(text, presentation):
+    from jevdrill.context import redact
+
+    source = (
+        text
+        if presentation == "plain"
+        else json.dumps(text)
+        if presentation == "json"
+        else json.dumps({"log": text})
+        if presentation == "json-log"
+        else f"`{text}`"
+    )
+    with pytest.raises(ContractError):
+        redact(source)
+
+
 @pytest.mark.parametrize(
     "text",
     (
         "Ordinary context. ? f'Content' f'-Type': application/json",
         "Ordinary context. ? f'Content' + f'-Type': application/json",
         "Ordinary context. ? 'Content''-Type': application/json",
+        "It's fine ? 'Content''-Type': application/json",
         "Ordinary context. ? Content-Type: application/json",
     ),
 )
