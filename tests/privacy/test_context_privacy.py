@@ -78,6 +78,55 @@ STRUCTURAL_RECORD_SHAPES = (
 )
 
 
+PROSE_SUBSCRIPT_ASSIGNMENT_PREFIXES = (
+    "Here is ",
+    "Ordinary ",
+    "It's fine ",
+    'He said "hi ',
+)
+PROSE_SUBSCRIPT_ASSIGNMENT_KEYS = (
+    "'Author'+'ization'",
+    "'Authorization'",
+    "'Auth\\x6frization'",
+)
+
+
+@pytest.mark.parametrize("prefix", PROSE_SUBSCRIPT_ASSIGNMENT_PREFIXES)
+@pytest.mark.parametrize("key", PROSE_SUBSCRIPT_ASSIGNMENT_KEYS)
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_prose_prefixed_subscript_assignments_do_not_leak(prefix, key, presentation):
+    from jevdrill.context import redact
+
+    source = _present_public_document(
+        f"{prefix}headers[{key}] = 'SYNTHETIC_SENTINEL'", presentation
+    )
+    try:
+        cleaned = redact(source)
+    except ContractError:
+        return
+    assert "SYNTHETIC_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("key", PROSE_SUBSCRIPT_ASSIGNMENT_KEYS)
+def test_standalone_subscript_assignment_preserves_next_line(key):
+    from jevdrill.context import redact
+
+    source = f"headers[{key}] = 'SYNTHETIC_SENTINEL'\nNext ordinary line."
+    cleaned = redact(source)
+    assert cleaned == "[redacted]\nNext ordinary line."
+
+
+@pytest.mark.parametrize("prefix", PROSE_SUBSCRIPT_ASSIGNMENT_PREFIXES)
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_prose_prefixed_public_subscript_assignment_stays_visible(prefix, presentation):
+    from jevdrill.context import redact
+
+    source = _present_public_document(
+        prefix + "headers['Content-Type'] = 'application/json'", presentation
+    )
+    assert redact(source) == source
+
+
 @pytest.mark.parametrize("prefix", ("Don't ", 'He said "hi ', "Ordinary "))
 @pytest.mark.parametrize("shape", STRUCTURAL_RECORD_SHAPES)
 @pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))

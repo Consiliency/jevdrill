@@ -165,6 +165,22 @@ def test_round27_classes_stop_at_application_effects(tmp_path, field, text):
 
 
 @pytest.mark.parametrize(
+    "field",
+    (
+        "route_task",
+        "route_attachment",
+        "work_objective_text",
+        "authorized_context",
+        "description",
+        "attachment_refs",
+    ),
+)
+def test_prose_prefixed_assignment_stops_before_application_effects(tmp_path, field):
+    text = "Here is headers['Author'+'ization'] = 'SYNTHETIC_SENTINEL'"
+    test_computed_explicit_keys_reject_before_dispatch_and_retention(tmp_path, text, "plain", field)
+
+
+@pytest.mark.parametrize(
     "text",
     (
         "Ordinary task. Keep the public instructions.",

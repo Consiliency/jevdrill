@@ -991,19 +991,34 @@ def _redact_assignments(
             for span in scalar_spans
             if re.fullmatch(r"[+-]?\w+(?:[-/]\w+)*", text[span[0] : span[1]].strip()) is None
         )
+        assignment_targets: set[str] = set()
+        try:
+            with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                statement_group = ast.parse(_validation_view(text[begin:finish], deadline))
+        except (SyntaxError, ValueError):
+            pass
+        else:
+            target_work = finish - begin
+            for statement in statement_group.body:
+                _check_deadline(deadline)
+                targets = (
+                    statement.targets
+                    if isinstance(statement, ast.Assign)
+                    else [statement.target]
+                    if isinstance(statement, (ast.AnnAssign, ast.AugAssign))
+                    else []
+                )
+                for target in targets:
+                    for node in ast.walk(target):
+                        _check_deadline(deadline)
+                        target_work += 1
+                        if target_work > 16 * (finish - begin) + 100_000:
+                            raise ContractError("context fragment work exceeds sanitization limit")
+                        if isinstance(node, ast.Subscript):
+                            assignment_targets.add(ast.dump(node))
         scan_work = 0
         for marker in re.compile(r"[\[({]").finditer(text, begin, finish):
             opening = marker.start()
-            # A bracket following a static target base is a subscript, not
-            # an independent sequence literal. The complete assignment is
-            # inspected below with its target and operator intact.
-            prefix = text[begin:opening]
-            if (
-                text[opening] == "["
-                and re.search(r"(?:[A-Za-z_]\w*|\])\s*$", prefix)
-                and not any(char in prefix for char in "'\";=:#")
-            ):
-                continue
             cursor = opening
             brackets: list[str] = []
             quote = ""
@@ -1046,7 +1061,35 @@ def _redact_assignments(
                     if not brackets or brackets.pop() != {")": "(", "]": "[", "}": "{"}[char]:
                         break
                     if not brackets:
-                        expressions.append((opening, cursor + 1))
+                        # Defer a subscript only when the complete prefix is
+                        # itself a valid assignment target. A trailing name
+                        # in prose ("Here is headers[...]") is insufficient.
+                        assignment_target = False
+                        if char == "]" and text[opening] == "[" and assignment_targets:
+                            scan_work += cursor + 1 - begin
+                            if scan_work > 16 * (finish - begin) + 100_000:
+                                raise ContractError(
+                                    "context fragment work exceeds sanitization limit"
+                                )
+                            try:
+                                with warnings.catch_warnings(
+                                    action="ignore", category=SyntaxWarning
+                                ):
+                                    candidate = ast.parse(
+                                        _validation_view(text[begin : cursor + 1], deadline)
+                                        + " = None"
+                                    ).body
+                                assignment_target = (
+                                    len(candidate) == 1
+                                    and isinstance(candidate[0], ast.Assign)
+                                    and len(candidate[0].targets) == 1
+                                    and isinstance(candidate[0].targets[0], ast.Subscript)
+                                    and ast.dump(candidate[0].targets[0]) in assignment_targets
+                                )
+                            except (SyntaxError, ValueError):
+                                pass
+                        if not assignment_target:
+                            expressions.append((opening, cursor + 1))
                         if text[opening] == "(":
                             caller = opening
                             while caller > begin and text[caller - 1] in " \t":
