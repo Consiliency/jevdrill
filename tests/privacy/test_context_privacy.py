@@ -473,6 +473,32 @@ def test_ordinary_decoded_and_markdown_members_preserve_source(text):
     assert collect_context(text, [], [])["task_representation"] == text
 
 
+@pytest.mark.parametrize("label_parts", (("Author", "ization"), ("api_", "key"), ("pass", "word")))
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_multiline_quoted_composed_credential_key_rejects(label_parts, presentation):
+    from jevdrill.context import redact
+
+    left, right = label_parts
+    text = (
+        "Ordinary context.\x85? 'str(''"
+        + left
+        + "'')\x85 +str(''"
+        + right
+        + "'')'\x85: SYNTHETIC_SENTINEL"
+    )
+    source = (
+        text
+        if presentation == "plain"
+        else json.dumps(text)
+        if presentation == "json"
+        else json.dumps({"log": text})
+        if presentation == "json-log"
+        else f"`{text}`"
+    )
+    with pytest.raises(ContractError):
+        redact(source)
+
+
 @pytest.mark.parametrize(
     "text",
     [

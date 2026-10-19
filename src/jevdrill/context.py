@@ -578,12 +578,25 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
                     literal = _literal_string(ast.parse(expression, mode="eval").body, deadline)
             except (SyntaxError, ValueError):
                 literal = None
-            if any(
-                _credential_label(value, deadline) or redact(value, deadline) != value
-                for value in (decoded, literal)
-                if isinstance(value, str)
-            ):
-                raise ContractError("unsupported computed explicit key")
+            for value in (decoded, literal):
+                if not isinstance(value, str):
+                    continue
+                if _credential_label(value, deadline):
+                    raise ContractError("unsupported computed explicit key")
+                # A decoded YAML key can itself spell a multiline, constant
+                # composition. Inspect its static result before recursively
+                # treating the source spelling as an unresolved record.
+                composed = None
+                if "#" not in value:
+                    try:
+                        with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                            node = ast.parse("(" + value + "\n)", mode="eval").body
+                        composed = _literal_string(node, deadline)
+                    except (SyntaxError, ValueError):
+                        pass
+                checked = composed if composed is not None else value
+                if _credential_label(checked, deadline) or redact(checked, deadline) != checked:
+                    raise ContractError("unsupported computed explicit key")
             continue
         try:
             with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
