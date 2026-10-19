@@ -1100,7 +1100,7 @@ def _redact_assignments(
                 inspection_work += 1
                 if inspection_work > 16 * (finish - begin) + 100_000:
                     raise ContractError("context fragment work exceeds sanitization limit")
-                members: list[ast.AST] = []
+                members: Sequence[ast.AST] = []
                 if isinstance(container, ast.Dict):
                     members = [*filter(None, container.keys), *container.values]
                 elif isinstance(container, (ast.List, ast.Tuple, ast.Set)):
