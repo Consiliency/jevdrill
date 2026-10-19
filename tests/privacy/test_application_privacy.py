@@ -13,10 +13,40 @@ from jevdrill.storage import SQLiteStorage
 from tests.application.test_route_integration import inputs, policy
 from tests.privacy.test_context_privacy import (
     DOUBLED_QUOTE_EXPLICIT_KEY_CASES,
+    ESCAPED_LOCAL_RECORD_CASES,
     EXPLICIT_KEY_REPAIR_CASES,
     PROSE_EXPLICIT_KEY_CASES,
+    PUBLIC_NEL_MEMBER,
     QUOTE_KEY_CROSS_PRODUCT,
 )
+
+
+@pytest.mark.parametrize(
+    "field",
+    (
+        "route_task",
+        "route_attachment",
+        "work_objective_text",
+        "authorized_context",
+        "description",
+        "attachment_refs",
+    ),
+)
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_local_escaped_labels_and_public_nel_at_six_sanitize_boundaries(field, presentation):
+    from jevdrill.application import _sanitize
+
+    credential = ESCAPED_LOCAL_RECORD_CASES[0]
+    public = PUBLIC_NEL_MEMBER
+    if presentation == "json":
+        credential, public = json.dumps(credential), json.dumps(public)
+    elif presentation == "json-log":
+        credential, public = json.dumps({"log": credential}), json.dumps({"log": public})
+    elif presentation == "backtick":
+        credential, public = f"`{credential}`", f"`{public}`"
+    with pytest.raises(ContractError):
+        _sanitize({field: credential})
+    assert _sanitize({field: public}) == {field: public}
 
 
 @pytest.mark.parametrize(
@@ -70,7 +100,7 @@ def test_computed_explicit_keys_reject_before_dispatch_and_retention(
         "text_representation": text,
     }
     storage = SQLiteStorage(tmp_path / "route.db")
-    with pytest.raises(ContractError, match="computed explicit key"):
+    with pytest.raises(ContractError, match="computed explicit key|escaped literal credential"):
         if field.startswith("route_"):
             payload = inputs()
             payload["judgment_policy"] = policy() | {"model_revision": service.model_revision}
@@ -113,6 +143,23 @@ def test_computed_explicit_keys_reject_before_dispatch_and_retention(
         assert db.execute("SELECT COUNT(*) FROM judgment_calls").fetchone()[0] == 0
     assert not (tmp_path / "artifacts").exists()
     assert all(b"SYNTHETIC_SENTINEL" not in path.read_bytes() for path in tmp_path.glob("*.db*"))
+
+
+@pytest.mark.parametrize(
+    "field",
+    (
+        "route_task",
+        "route_attachment",
+        "work_objective_text",
+        "authorized_context",
+        "description",
+        "attachment_refs",
+    ),
+)
+def test_local_escaped_labels_reject_before_six_application_effect_boundaries(tmp_path, field):
+    test_computed_explicit_keys_reject_before_dispatch_and_retention(
+        tmp_path, ESCAPED_LOCAL_RECORD_CASES[0], "plain", field
+    )
 
 
 @pytest.mark.parametrize("text", DOUBLED_QUOTE_EXPLICIT_KEY_CASES)

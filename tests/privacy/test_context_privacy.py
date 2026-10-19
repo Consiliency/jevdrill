@@ -33,6 +33,172 @@ DOUBLED_QUOTE_EXPLICIT_KEY_CASES = (
     "Don't {? 'Author'\"ization\": SYNTHETIC_SENTINEL}",
 )
 
+ESCAPED_LOCAL_RECORD_CASES = (
+    "Don't {'Auth\\x6frization': SYNTHETIC_SENTINEL}",
+    "It's fine ? 'Auth\\x6frization': SYNTHETIC_SENTINEL",
+    "Don't [? 'Auth\\x6frization': SYNTHETIC_SENTINEL]",
+    "It's fine; headers['Auth\\x6frization'] = 'SYNTHETIC_SENTINEL'",
+    "He said \"hi ? 'Auth\\x6frization': SYNTHETIC_SENTINEL",
+    "It's fine ? 'Auth\\157rization': SYNTHETIC_SENTINEL",
+    "It's fine ? 'Auth\\N{LATIN SMALL LETTER O}rization': SYNTHETIC_SENTINEL",
+    'It\'s fine ? "Auth\\x6frization": SYNTHETIC_SENTINEL',
+    "It's fine ? 'api\\x5fkey': SYNTHETIC_SENTINEL",
+    "It's fine ? 'pass\\x77ord': SYNTHETIC_SENTINEL",
+    "It's fine ? 'se\\x63ret': SYNTHETIC_SENTINEL",
+    "It's fine ? 'access_\\x74oken': SYNTHETIC_SENTINEL",
+    "It's fine ? 'X-API-\\x4bey': SYNTHETIC_SENTINEL",
+)
+
+TRIPLE_QUOTED_COMPOSITION = "It's fine ? '''Author'' ''ization''': SYNTHETIC_SENTINEL"
+
+PUBLIC_NEL_MEMBER = (
+    "Ordinary context.\x85? 'str(''Content'')\x85 +str(''-Type'')'\x85: application/json"
+)
+
+
+def _present_public_document(text, presentation):
+    return (
+        text
+        if presentation == "plain"
+        else json.dumps(text)
+        if presentation == "json"
+        else json.dumps({"log": text})
+        if presentation == "json-log"
+        else f"`{text}`"
+    )
+
+
+@pytest.mark.parametrize(
+    "prose", ("Ordinary context.", "It's ready.", 'She said "hello".', "Don't panic.")
+)
+@pytest.mark.parametrize("newline", ("\n", "\r\n", "\x85", "\u2028"))
+@pytest.mark.parametrize(
+    "key",
+    (
+        "'str(''Content'')+str(''-Type'')'",
+        "'str(''X'') + str(''-Mode'')'",
+        "'Ac''cept'",
+        "'X-Trace-Id'",
+        "'Content\\x2dType'",
+    ),
+)
+@pytest.mark.parametrize("value", ("application/json", "text/plain; charset=utf-8", "enabled"))
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_complete_public_explicit_key_metamorphic(prose, newline, key, value, presentation):
+    from jevdrill.context import redact
+
+    text = f"{prose}{newline}? {key}{newline}: {value}"
+    source = _present_public_document(text, presentation)
+    assert redact(source) == source
+
+
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+@pytest.mark.parametrize(
+    "suffix",
+    (
+        "? 'str(''Author'')+str(''ization'')'\x85: visible",
+        "? 'unknown(''Content'')'\x85: visible",
+        "? 'str(''Content'')+str(''-Type'')\x85: visible",
+        "? 'str(''Content'')+str(''-Type'')'\x85: Bearer SYNTHETIC_SENTINEL",
+        "? 'str(''Content'')+str(''-Type'')'\x85: visible\x85Authorization: SYNTHETIC_SENTINEL",
+        "? 'str(''Content'')+str(''-Type'')'\x85: visible; Authorization: SYNTHETIC_SENTINEL",
+    ),
+)
+def test_public_explicit_key_paired_controls(presentation, suffix):
+    from jevdrill.context import redact
+
+    source = _present_public_document("She said 'hello'.\x85" + suffix, presentation)
+    try:
+        cleaned = redact(source)
+    except ContractError:
+        return
+    assert cleaned != source
+    assert "SYNTHETIC_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("text", ESCAPED_LOCAL_RECORD_CASES)
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_local_escaped_credential_labels_reject(text, presentation):
+    from jevdrill.context import redact
+
+    source = (
+        text
+        if presentation == "plain"
+        else json.dumps(text)
+        if presentation == "json"
+        else json.dumps({"log": text})
+        if presentation == "json-log"
+        else f"`{text}`"
+    )
+    with pytest.raises(ContractError):
+        redact(source)
+
+
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_triple_quoted_composition_behind_prose_rejects(presentation):
+    from jevdrill.context import redact
+
+    text = TRIPLE_QUOTED_COMPOSITION
+    source = (
+        text
+        if presentation == "plain"
+        else json.dumps(text)
+        if presentation == "json"
+        else json.dumps({"log": text})
+        if presentation == "json-log"
+        else f"`{text}`"
+    )
+    with pytest.raises(ContractError):
+        redact(source)
+    assert redact("It's fine ? '''Content'' ''-Type''': application/json") == (
+        "It's fine ? '''Content'' ''-Type''': application/json"
+    )
+
+
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_complete_public_nel_member_preserves_all_presentations(presentation):
+    from jevdrill.context import redact
+
+    text = PUBLIC_NEL_MEMBER
+    source = (
+        text
+        if presentation == "plain"
+        else json.dumps(text)
+        if presentation == "json"
+        else json.dumps({"log": text})
+        if presentation == "json-log"
+        else f"`{text}`"
+    )
+    assert redact(source) == source
+    public_escape = "It's fine ? 'Content\\x2dType': application/json"
+    assert redact(public_escape) == public_escape
+
+
+@pytest.mark.parametrize(
+    "text",
+    (
+        "Ordinary context.\x85? 'str(''Author'')\x85 +str(''ization'')'\x85: SYNTHETIC_SENTINEL",
+        "Ordinary context.\x85? 'str(''Content'')\x85 +unknown(''-Type'')'\x85: application/json",
+        "Ordinary context.\x85? 'str(''Content'')\x85 +str(''-Type'')\x85: application/json",
+    ),
+)
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_public_nel_exception_keeps_computed_and_incomplete_rejections(text, presentation):
+    from jevdrill.context import redact
+
+    source = (
+        text
+        if presentation == "plain"
+        else json.dumps(text)
+        if presentation == "json"
+        else json.dumps({"log": text})
+        if presentation == "json-log"
+        else f"`{text}`"
+    )
+    with pytest.raises(ContractError):
+        redact(source)
+
+
 QUOTE_KEY_CROSS_PRODUCT = tuple(
     f"{prose} {'{?' if flow else '?'} {key}: SYNTHETIC_SENTINEL{' }' if flow else ''}"
     for prose in ("It's fine", 'He said "hi', "He said 'hi", 'He said "hi" then')

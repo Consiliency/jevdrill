@@ -45,6 +45,10 @@ STRUCTURED_CONTINUATION = rf"{LINE_BREAK}(?:{INDENT}+{LINE_TEXT}*|{INDENT}*\#{LI
 PRIVATE_KEY_BEGIN = re.compile(r"-----BEGIN [^-]*PRIVATE KEY-----", re.IGNORECASE)
 PRIVATE_KEY_END = re.compile(r"-----END [^-]*PRIVATE KEY-----", re.IGNORECASE)
 QUOTED_SCALAR = re.compile(r"""(?:'(?:[^']|'')*'|"(?:[^"\\]|\\[\s\S])*")""")
+ESCAPED_LABEL_COLON = re.compile(r"[^\S\r\n\x85\u2028\u2029]*:")
+ESCAPED_LABEL_ASSIGNMENT = re.compile(
+    r"[^\S\r\n\x85\u2028\u2029]*\][^\S\r\n\x85\u2028\u2029]*(?:\+|\-|\*|/|%|&|\||\^|<<|>>|//|\*\*)?="
+)
 CREDENTIAL = re.compile(
     rf"""(?i)(?<![\w.-])(?:[\w.]+\s*+\[\s*+)?(?:["'][^\S\r\n]*+)?[\w.-]*(?:{CREDENTIAL_LABEL})"""
     r"""[\w.-]*[^\S\r\n]*+["']?\s*+\]?\s*+(?::|(?:\*\*|//|<<|>>|[+\-*/%@&|^])?=)"""
@@ -157,6 +161,133 @@ def _credential_label(value: str, deadline: float | None = None) -> bool:
     return re.search(CREDENTIAL_LABEL, value.strip(), re.IGNORECASE) is not None
 
 
+def _check_escaped_record_labels(text: str, deadline: float | None) -> None:
+    """Inspect quoted labels from their own opening, ignoring prose quote state."""
+    work = 0
+    for opening in re.finditer(r"['\"]", text):
+        _check_deadline(deadline)
+        quoted = QUOTED_SCALAR.match(text, opening.start())
+        # A failed match may have scanned the whole remaining input before it
+        # discovers an unterminated quote. Charge that scan, too.
+        work += (quoted.end() if quoted is not None else len(text)) - opening.start()
+        if work > 16 * len(text) + 100_000:
+            raise ContractError("context fragment work exceeds sanitization limit")
+        if quoted is None or "\\" not in quoted.group():
+            continue
+        # A mapping/explicit key ends at a colon. A subscript target ends at
+        # its bracket and assignment operator. Neither depends on the prose
+        # preceding this local literal.
+        colon = ESCAPED_LABEL_COLON.match(text, quoted.end())
+        assignment = ESCAPED_LABEL_ASSIGNMENT.match(text, quoted.end())
+        if colon is None and assignment is None:
+            continue
+        try:
+            with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                literal = ast.literal_eval(quoted.group())
+        except (SyntaxError, ValueError):
+            continue
+        if isinstance(literal, bytes):
+            literal = literal.decode("latin1")
+        if isinstance(literal, str) and _credential_label(literal, deadline):
+            if (
+                assignment is not None
+                and colon is None
+                and _supported_escaped_assignment(text, opening.start(), deadline)
+            ):
+                continue
+            raise ContractError("unsupported escaped literal credential")
+
+
+def _supported_escaped_assignment(text: str, label_start: int, deadline: float | None) -> bool:
+    """Defer only a whole, valid assignment the existing sanitizer removes."""
+    line_start = text.rfind("\n", 0, label_start) + 1
+    line_end = text.find("\n", label_start)
+    if line_end < 0:
+        line_end = len(text)
+    line = text[line_start:line_end]
+    _check_deadline(deadline)
+    try:
+        with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+            parsed = ast.parse(line)
+    except (SyntaxError, ValueError):
+        return False
+    if len(parsed.body) != 1 or not isinstance(
+        parsed.body[0], (ast.Assign, ast.AnnAssign, ast.AugAssign)
+    ):
+        return False
+    try:
+        return _redact_assignments(line, deadline) == "[redacted]"
+    except ContractError:
+        return False
+
+
+def _complete_public_explicit_key(text: str, deadline: float | None) -> bool:
+    """Validate one complete public explicit-key document in a decoded scalar."""
+    view = _validation_view(text, deadline)
+    match = re.fullmatch(
+        r"(?P<prose>[^\n]*)\n\?[ \t]*(?P<key>'(?:[^']|'')*'|\"(?:[^\"\\]|\\[\s\S])*\")[ \t]*\n:[ \t]*(?P<value>[^\n]+)",
+        view,
+    )
+    if match is None:
+        return False
+    prose = match.group("prose")
+    # The prose is outside the record. Do not allow it to carry another
+    # assignment, bracketed record, explicit key, or Markdown presentation.
+    if not prose or any(char in prose for char in "?:={}[]`"):
+        return False
+    if redact(prose, deadline) != prose:
+        return False
+    try:
+        loader = _DeadlineLoader(
+            "? " + match.group("key") + "\n: " + match.group("value"), deadline
+        )
+        try:
+            node = loader.get_single_node()
+        finally:
+            loader.dispose()
+    except yaml.YAMLError:
+        return False
+    if not isinstance(node, MappingNode) or len(node.value) != 1:
+        return False
+    key_node, value_node = node.value[0]
+    if not isinstance(key_node, ScalarNode) or not isinstance(value_node, ScalarNode):
+        return False
+    if key_node.style not in {"'", '"'} or value_node.style is not None:
+        return False
+    key = key_node.value
+    if _credential_label(key, deadline):
+        return False
+    try:
+        with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+            alternate = _literal_string(ast.parse(match.group("key"), mode="eval").body, deadline)
+    except (SyntaxError, ValueError):
+        alternate = None
+    if alternate is not None and _credential_label(alternate, deadline):
+        return False
+    # A key that spells an expression must have a fully resolved static
+    # reading. Unknown calls and unfinished compositions cannot qualify.
+    if any(char in key for char in "()+\"'"):
+        try:
+            with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                composed = _literal_string(ast.parse("(" + key + "\n)", mode="eval").body, deadline)
+        except (SyntaxError, ValueError):
+            return False
+        if composed is None or _credential_label(composed, deadline):
+            return False
+    # Require the scalar to be a single public value. A second record cannot
+    # be swallowed as part of an accepted first record.
+    value = value_node.value
+    if not value or value != match.group("value"):
+        return False
+    if (
+        CREDENTIAL.search(value) is not None
+        or redact(value, deadline) != value
+        or _redact_assignments(value, deadline, record_member=True) != value
+    ):
+        raise ContractError("unsupported credential explicit value")
+    return True
+
+
 def _redact_node(node: Node, seen: set[int], deadline: float | None) -> bool:
     _check_deadline(deadline)
     if id(node) in seen:
@@ -193,6 +324,8 @@ def _redact_node(node: Node, seen: set[int], deadline: float | None) -> bool:
         for item in node.value:
             changed = _redact_node(item, seen, deadline) or changed
     elif isinstance(node, ScalarNode):
+        if _complete_public_explicit_key(node.value, deadline):
+            return False
         if re.search(LINE_BREAK, node.value) is not None and node.style is None:
             _redact_assignments(
                 "(" + _validation_view(node.value, deadline) + "\n)",
@@ -233,6 +366,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
     sequence_count = 0
     quoted_work = 0
     decoded_spans: list[tuple[int, int]] = []
+    public_spans: set[tuple[int, int]] = set()
     decoded_end = 0
     escaped_quotes: set[int] = set()
     for opening in re.finditer(r"""['"]""", text):
@@ -240,6 +374,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
         if opening.start() in escaped_quotes or opening.start() < decoded_end:
             continue
         quoted = QUOTED_SCALAR.match(text, opening.start())
+        complete_public = False
         quoted_work += (quoted.end() if quoted is not None else len(text)) - opening.start()
         if quoted_work > 16 * len(text) + 100_000:
             raise ContractError("context fragment work exceeds sanitization limit")
@@ -255,8 +390,28 @@ def _structured(text: str, deadline: float | None) -> str | None:
                 if cleaned != decoded:
                     decoded_spans.append((opening.start(), quoted.end()))
                     decoded_end = quoted.end()
-        if quoted is not None and (
-            re.search(LINE_BREAK, quoted.group()) is not None or "''" in quoted.group()[1:-1]
+                else:
+                    complete_public = _complete_public_explicit_key(decoded, deadline)
+                    if complete_public:
+                        try:
+                            loader = _DeadlineLoader(quoted.group(), deadline)
+                            try:
+                                yaml_reading = loader.get_single_data()
+                            finally:
+                                loader.dispose()
+                            with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                                python_reading = ast.literal_eval(quoted.group())
+                        except (yaml.YAMLError, SyntaxError, ValueError):
+                            complete_public = False
+                        else:
+                            complete_public = yaml_reading == decoded == python_reading
+                    if complete_public:
+                        decoded_end = quoted.end()
+                        public_spans.add((opening.start(), quoted.end()))
+        if (
+            quoted is not None
+            and (re.search(LINE_BREAK, quoted.group()) is not None or "''" in quoted.group()[1:-1])
+            and not complete_public
         ):
             _redact_assignments(quoted.group(), deadline, record_member=True)
             if quoted.group().startswith("'"):
@@ -326,7 +481,10 @@ def _structured(text: str, deadline: float | None) -> str | None:
                 if token.value == "<<":
                     raise ContractError("unsupported YAML merge")
                 source = text[token.start_mark.index : token.end_mark.index]
-                if token.style in {"'", '"'}:
+                if (
+                    token.style in {"'", '"'}
+                    and (token.start_mark.index, token.end_mark.index) not in public_spans
+                ):
                     _redact_assignments(source, deadline, record_member=True)
                 if "\\" in token.value and re.match(r"[rRuUbB]*[\"']", source):
                     try:
@@ -553,6 +711,10 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
         computed = (
             call
             or strings > 1
+            or any(
+                kind == tokenize.STRING and value.startswith(("'''", '"""'))
+                for kind, value in significant
+            )
             or any(kind == tokenize.FSTRING_START for kind, _ in significant)
             or any(value == "+" for _, value in significant)
             or (
@@ -628,6 +790,10 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
         _validate_explicit_keys(text, deadline)
     for member in re.finditer(r"`+([^`]+)", text):
         original = _validation_view(member.group(1), deadline)
+        if _complete_public_explicit_key(member.group(1), deadline) and redact(
+            member.group(1), deadline
+        ) == member.group(1):
+            continue
         enclosed = "(" + original + "\n)"
         if (
             _redact_assignments(enclosed, deadline, record_member=True) != enclosed
@@ -1148,6 +1314,9 @@ def _redact_plain(text: str, deadline: float | None) -> str:
 def redact(text: str, deadline: float | None = None) -> str:
     try:
         _check_deadline(deadline)
+        _check_escaped_record_labels(text, deadline)
+        if "?" in text:
+            _complete_public_explicit_key(text, deadline)
         if PRIVATE_KEY_BEGIN.search(text) is not None:
             _redact_private_keys(text, deadline)
         if not any(marker in text for marker in "{}[]:=\"'&#*!|>?-%"):
