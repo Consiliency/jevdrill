@@ -1512,16 +1512,16 @@ def _redact_local_json(text: str, deadline: float | None) -> str:
                 # left a sensitive target intact, local rewriting would split
                 # that target from its value across a continued assignment.
                 if continued:
-                    fragment = text[opening.start():closing]
+                    fragment = text[opening.start() : closing]
                     cleaned = _structured(fragment, deadline)
                     if cleaned is None or cleaned != fragment:
                         raise ContractError("unsupported credential assignment")
                 continue
-        fragment = text[opening.start():closing]
+        fragment = text[opening.start() : closing]
         cleaned = _structured(fragment, deadline)
         if cleaned is None:
             raise ContractError("unsupported structured context")
-        chunks.extend((text[end:opening.start()], cleaned))
+        chunks.extend((text[end : opening.start()], cleaned))
         end = closing
     return "".join(chunks) + text[end:]
 
