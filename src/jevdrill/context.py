@@ -45,7 +45,8 @@ STRUCTURED_CONTINUATION = rf"{LINE_BREAK}(?:{INDENT}+{LINE_TEXT}*|{INDENT}*\#{LI
 PRIVATE_KEY_BEGIN = re.compile(r"-----BEGIN [^-]*PRIVATE KEY-----", re.IGNORECASE)
 PRIVATE_KEY_END = re.compile(r"-----END [^-]*PRIVATE KEY-----", re.IGNORECASE)
 QUOTED_SCALAR = re.compile(r"""(?:'(?:[^']|'')*'|"(?:[^"\\]|\\[\s\S])*")""")
-ESCAPED_LABEL_COLON = re.compile(r"[^\S\r\n\x85\u2028\u2029]*:")
+PYTHON_QUOTED_SCALAR = re.compile(r"""(?:'(?:[^'\\]|\\[\s\S])*'|"(?:[^"\\]|\\[\s\S])*")""")
+ESCAPED_LABEL_COLON = re.compile(rf"(?:{INDENT}|{LINE_BREAK}|\#{LINE_TEXT}*{LINE_BREAK})*:")
 ESCAPED_LABEL_ASSIGNMENT = re.compile(
     r"[^\S\r\n\x85\u2028\u2029]*\][^\S\r\n\x85\u2028\u2029]*(?:\+|\-|\*|/|%|&|\||\^|<<|>>|//|\*\*)?="
 )
@@ -166,7 +167,12 @@ def _check_escaped_record_labels(text: str, deadline: float | None) -> None:
     work = 0
     for opening in re.finditer(r"['\"]", text):
         _check_deadline(deadline)
-        quoted = QUOTED_SCALAR.match(text, opening.start())
+        candidates = [
+            match
+            for pattern in (QUOTED_SCALAR, PYTHON_QUOTED_SCALAR)
+            if (match := pattern.match(text, opening.start())) is not None
+        ]
+        quoted = max(candidates, key=lambda match: match.end(), default=None)
         # A failed match may have scanned the whole remaining input before it
         # discovers an unterminated quote. Charge that scan, too.
         work += (quoted.end() if quoted is not None else len(text)) - opening.start()
@@ -181,14 +187,24 @@ def _check_escaped_record_labels(text: str, deadline: float | None) -> None:
         assignment = ESCAPED_LABEL_ASSIGNMENT.match(text, quoted.end())
         if colon is None and assignment is None:
             continue
+        readings = []
         try:
             with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
-                literal = ast.literal_eval(quoted.group())
+                readings.append(ast.literal_eval(quoted.group()))
         except (SyntaxError, ValueError):
-            continue
-        if isinstance(literal, bytes):
-            literal = literal.decode("latin1")
-        if isinstance(literal, str) and _credential_label(literal, deadline):
+            pass
+        try:
+            readings.append(yaml.safe_load(quoted.group()))
+        except yaml.YAMLError:
+            pass
+        if any(
+            isinstance(literal, (str, bytes))
+            and _credential_label(
+                literal.decode("latin1") if isinstance(literal, bytes) else literal,
+                deadline,
+            )
+            for literal in readings
+        ):
             if (
                 assignment is not None
                 and colon is None
@@ -596,7 +612,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
         scalar_spans = set(spans)
         if any(span not in scalar_spans for span in decoded_spans):
             raise ContractError("unsupported split decoded credential record")
-        _redact_assignments(text, deadline)
+        _redact_assignments(text, deadline, structured_source=True)
         changed = _redact_node(node, set(), deadline)
         if decoded_spans and not changed:
             raise ContractError("unsupported decoded credential record")
@@ -724,6 +740,31 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
                 )
             )
         )
+        numeric_public = (
+            re.fullmatch(r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?", expression) is not None
+        )
+        if numeric_public:
+            computed = False
+        # Token spellings alone cannot enumerate computed keys: multiplication,
+        # shifts, boolean composition and later Python operators all have the
+        # same unresolved-record semantics. Classify the complete key AST.
+        # Bare hyphenated/dotted labels and MIME spellings remain public text.
+        public_spelling = re.sub(r"(?m)^[ \t]*\#[^\n]*(?:\n|$)", "", expression).strip()
+        static_public = re.fullmatch(r"[\w.-]+(?:/[\w.-]+)*", public_spelling) is not None
+        try:
+            with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                key_node = ast.parse("(" + expression + "\n)", mode="eval").body
+        except (SyntaxError, ValueError):
+            key_node = None
+        if (
+            key_node is not None
+            and not (static_public or numeric_public)
+            and isinstance(
+                key_node,
+                (ast.BinOp, ast.BoolOp, ast.IfExp, ast.UnaryOp, ast.NamedExpr, ast.Subscript),
+            )
+        ):
+            computed = True
         if not computed:
             continue
         if QUOTED_SCALAR.fullmatch(expression) is not None:
@@ -784,7 +825,13 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
             _validate_explicit_keys(decoded, deadline)
 
 
-def _redact_assignments(text: str, deadline: float | None, *, record_member: bool = False) -> str:
+def _redact_assignments(
+    text: str,
+    deadline: float | None,
+    *,
+    record_member: bool = False,
+    structured_source: bool = False,
+) -> str:
     _check_deadline(deadline)
     if "?" in text:
         _validate_explicit_keys(text, deadline)
@@ -947,6 +994,16 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
         scan_work = 0
         for marker in re.compile(r"[\[({]").finditer(text, begin, finish):
             opening = marker.start()
+            # A bracket following a static target base is a subscript, not
+            # an independent sequence literal. The complete assignment is
+            # inspected below with its target and operator intact.
+            prefix = text[begin:opening]
+            if (
+                text[opening] == "["
+                and re.search(r"(?:[A-Za-z_]\w*|\])\s*$", prefix)
+                and not any(char in prefix for char in "'\";=:#")
+            ):
+                continue
             cursor = opening
             brackets: list[str] = []
             quote = ""
@@ -1003,6 +1060,7 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                         break
                 cursor += 1
         parse_work = 0
+        inspection_work = 0
         for opening, closing in sorted(set(expressions), key=lambda span: (span[0], -span[1])):
             _check_deadline(deadline)
             parse_work += closing - opening
@@ -1023,6 +1081,41 @@ def _redact_assignments(text: str, deadline: float | None, *, record_member: boo
                         expression = ast.parse(expression_source)
                 except (SyntaxError, ValueError):
                     continue
+            json_fragment = False
+            if expression_source[:1] in {"{", "["}:
+                try:
+                    json.loads(expression_source, object_pairs_hook=tuple)
+                except ValueError:
+                    pass
+                else:
+                    json_fragment = True
+            # A complete local literal has its own lexical boundary. Inspect
+            # its immediate members here, even when an apostrophe in preceding
+            # prose has confused the whole-line tokenizer or YAML parser.
+            # The enclosing structured path handles standalone documents;
+            # embedded records must fail closed before any supplied context
+            # can leave this boundary.
+            for container in ast.walk(expression):
+                _check_deadline(deadline)
+                inspection_work += 1
+                if inspection_work > 16 * (finish - begin) + 100_000:
+                    raise ContractError("context fragment work exceeds sanitization limit")
+                members: list[ast.AST] = []
+                if isinstance(container, ast.Dict):
+                    members = [*filter(None, container.keys), *container.values]
+                elif isinstance(container, (ast.List, ast.Tuple, ast.Set)):
+                    members = container.elts
+                if (
+                    not structured_source
+                    and not json_fragment
+                    and members
+                    and any(
+                        (label := _literal_string(member, deadline)) is not None
+                        and _credential_label(label, deadline)
+                        for member in members
+                    )
+                ):
+                    raise ContractError("unsupported embedded credential record")
             scalar = (
                 expression.body[0].annotation
                 if len(expression.body) == 1

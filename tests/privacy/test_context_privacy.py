@@ -55,6 +55,82 @@ PUBLIC_NEL_MEMBER = (
     "Ordinary context.\x85? 'str(''Content'')\x85 +str(''-Type'')'\x85: application/json"
 )
 
+STRUCTURAL_RECORD_SHAPES = (
+    "[['Authorization', 'SYNTHETIC_SENTINEL']]",
+    "[['X-API-Key', 'SYNTHETIC_SENTINEL']]",
+    "[('Authorization', 'SYNTHETIC_SENTINEL')]",
+    "{'Auth\\x6frization': 'SYNTHETIC_SENTINEL'}",
+    "{'Auth\\x6frization\\'x': 'SYNTHETIC_SENTINEL'}",
+    "{'name':'Auth\\x6frization','value':'SYNTHETIC_SENTINEL'}",
+    "{'name':'\\u0041uthorization','value':'SYNTHETIC_SENTINEL'}",
+    "[['Auth\\x6frization', 'SYNTHETIC_SENTINEL']]",
+    "headers['Auth\\x6frization']: str = 'SYNTHETIC_SENTINEL'",
+    "headers['Auth\\x6frization'] @= 'SYNTHETIC_SENTINEL'",
+    "headers['Auth\\x6frization'], x = 'SYNTHETIC_SENTINEL', 1",
+    "headers['Auth\\x6frization'][0] = 'SYNTHETIC_SENTINEL'",
+    "headers['Auth\\x6frization'] \\\n= 'SYNTHETIC_SENTINEL'",
+    "headers['Auth\\x6frization'\n] = 'SYNTHETIC_SENTINEL'",
+    "? prefix and suffix: SYNTHETIC_SENTINEL",
+    "? prefix if condition else suffix: SYNTHETIC_SENTINEL",
+) + tuple(
+    f"? prefix {operator} suffix: SYNTHETIC_SENTINEL"
+    for operator in ("*", "**", "@", "%", "&", "|", "^", "<<", ">>", "//", "-", "/")
+)
+
+
+@pytest.mark.parametrize("prefix", ("Don't ", 'He said "hi ', "Ordinary "))
+@pytest.mark.parametrize("shape", STRUCTURAL_RECORD_SHAPES)
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_local_complete_records_survive_no_presentation(prefix, shape, presentation):
+    from jevdrill.context import redact
+
+    source = _present_public_document(prefix + shape, presentation)
+    try:
+        cleaned = redact(source)
+    except ContractError:
+        return
+    assert "SYNTHETIC_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("prefix", ("Don't ", 'He said "hi ', "Ordinary "))
+@pytest.mark.parametrize(
+    "separator", ("\n", "\r", "\r\n", "\x85", "\u2028", "\u2029", " # comment\n")
+)
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_local_map_key_colon_line_boundaries(prefix, separator, presentation):
+    from jevdrill.context import redact
+
+    source = _present_public_document(
+        prefix + "{'Auth\\x6frization'" + separator + ": 'SYNTHETIC_SENTINEL'}",
+        presentation,
+    )
+    try:
+        cleaned = redact(source)
+    except ContractError:
+        return
+    assert "SYNTHETIC_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_structural_public_and_assignment_controls(presentation):
+    from jevdrill.context import redact
+
+    for text in (
+        "Don't [['Content-Type', 'application/json']]",
+        "Don't [('Content-Type', 'application/json')]",
+        "Don't {'Content\\x2dType'\n: 'application/json'}",
+        "Don't {'Content\\x2dType\\'x': 'application/json'}",
+        "Ordinary context. ? Content-Type: application/json",
+        "Ordinary context. ? application/json: visible",
+        "Ordinary context. ? +7: visible",
+        "Ordinary context. ? a.b: visible",
+    ):
+        source = _present_public_document(text, presentation)
+        assert redact(source) == source
+    assert redact("headers['Auth\\x6frization'] = 'SYNTHETIC_SENTINEL'\nNext ordinary line.") == (
+        "[redacted]\nNext ordinary line."
+    )
+
 
 def _present_public_document(text, presentation):
     return (

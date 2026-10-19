@@ -7,7 +7,7 @@ from uuid import uuid4
 import pytest
 
 from jevdrill.application import Application
-from jevdrill.contracts import ContractError
+from jevdrill.contracts import ContractError, canonical_digest
 from jevdrill.integrations.development import DevelopmentJudge
 from jevdrill.storage import SQLiteStorage
 from tests.application.test_route_integration import inputs, policy
@@ -18,6 +18,7 @@ from tests.privacy.test_context_privacy import (
     PROSE_EXPLICIT_KEY_CASES,
     PUBLIC_NEL_MEMBER,
     QUOTE_KEY_CROSS_PRODUCT,
+    STRUCTURAL_RECORD_SHAPES,
 )
 
 
@@ -100,7 +101,10 @@ def test_computed_explicit_keys_reject_before_dispatch_and_retention(
         "text_representation": text,
     }
     storage = SQLiteStorage(tmp_path / "route.db")
-    with pytest.raises(ContractError, match="computed explicit key|escaped literal credential"):
+    with pytest.raises(
+        ContractError,
+        match="computed explicit key|escaped literal credential|embedded credential record",
+    ):
         if field.startswith("route_"):
             payload = inputs()
             payload["judgment_policy"] = policy() | {"model_revision": service.model_revision}
@@ -143,6 +147,55 @@ def test_computed_explicit_keys_reject_before_dispatch_and_retention(
         assert db.execute("SELECT COUNT(*) FROM judgment_calls").fetchone()[0] == 0
     assert not (tmp_path / "artifacts").exists()
     assert all(b"SYNTHETIC_SENTINEL" not in path.read_bytes() for path in tmp_path.glob("*.db*"))
+
+
+@pytest.mark.parametrize(
+    ("field", "text"),
+    (
+        ("route_task", "Don't " + STRUCTURAL_RECORD_SHAPES[0]),
+        ("route_attachment", "Don't {'Auth\\x6frization'\n: 'SYNTHETIC_SENTINEL'}"),
+        ("work_objective_text", "Don't " + STRUCTURAL_RECORD_SHAPES[4]),
+        ("authorized_context", "It's fine " + STRUCTURAL_RECORD_SHAPES[5]),
+        ("description", "It's fine; " + STRUCTURAL_RECORD_SHAPES[12]),
+        ("attachment_refs", "Ordinary context. " + STRUCTURAL_RECORD_SHAPES[14]),
+    ),
+)
+def test_round27_classes_stop_at_application_effects(tmp_path, field, text):
+    test_computed_explicit_keys_reject_before_dispatch_and_retention(tmp_path, text, "plain", field)
+
+
+@pytest.mark.parametrize(
+    "text",
+    (
+        "Ordinary task. Keep the public instructions.",
+        "Don't [['Content-Type', 'application/json']]",
+    ),
+)
+def test_round27_public_controls_dispatch_unchanged(tmp_path, text):
+    calls = []
+
+    class CapturingJudge:
+        def judge(self, task, candidates, deadline):
+            calls.append(task)
+            return {
+                "schema_version": "1",
+                "function_revision": "JudgeCandidate-v2",
+                "model_revision": "jev-latest",
+                "candidate_digest": canonical_digest(list(candidates)),
+                "judgments": {row["candidate_id"]: True for row in candidates},
+                "measurements": [],
+            }
+
+    payload = inputs()
+    payload["judgment_policy"] = policy()
+    payload["inventory"]["candidates"][0]["quality_sufficient"] = None
+    payload["request"]["task_representation"] = text
+    response = Application(SQLiteStorage(tmp_path / "route.db"), judgments=CapturingJudge()).route(
+        payload
+    )
+    assert response["status"] == "ready"
+    assert len(calls) == 1
+    assert text in calls[0]
 
 
 @pytest.mark.parametrize(
