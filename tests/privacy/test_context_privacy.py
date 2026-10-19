@@ -43,7 +43,10 @@ def test_local_json_fragments_after_prose_do_not_leak(source, presentation):
 
 
 @pytest.mark.parametrize("prefix", ('Size 10" ', 'Escaped \\"quote\\" ', "Context log "))
-@pytest.mark.parametrize("shape", ('{"name":"Content-Type","value":"application/json"}', '[["Content-Type","application/json"]]'))
+@pytest.mark.parametrize(
+    "shape",
+    ('{"name":"Content-Type","value":"application/json"}', '[["Content-Type","application/json"]]'),
+)
 def test_public_local_json_after_prose_stays_visible(prefix, shape):
     from jevdrill.context import redact
 
@@ -72,9 +75,7 @@ def test_multiline_subscript_assignment_keeps_value_attached():
 )
 @pytest.mark.parametrize("continuation", (" \\\n= ", " \\\r\n= ", " \\\n += "))
 @pytest.mark.parametrize("label", ('"Authorization"', '"X-API-Key"'))
-def test_continued_multiline_subscript_assignment_owns_sensitive_value(
-    prefix, continuation, label
-):
+def test_continued_multiline_subscript_assignment_owns_sensitive_value(prefix, continuation, label):
     from jevdrill.context import redact
 
     source = prefix + f"headers[\n{label}\n]" + continuation + '"SYNTHETIC_SENTINEL"'
@@ -95,6 +96,7 @@ def test_continued_public_subscript_assignment_keeps_next_line(continuation):
         + '"application/json"\nNext ordinary line.'
     )
     assert redact(source) == source
+
 
 PROSE_EXPLICIT_KEY_CASES = (
     "It's fine ? 'Author' + 'ization': SYNTHETIC_SENTINEL",
