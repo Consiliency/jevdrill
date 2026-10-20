@@ -1688,13 +1688,9 @@ def _guard_multiline_assignment_ownership(text: str, deadline: float | None) -> 
             work += 1
             if work > cap:
                 raise ContractError("context fragment work exceeds sanitization limit")
-            targets = (
-                statement.targets
-                if isinstance(statement, ast.Assign)
-                else [statement.target]
-                if isinstance(statement, (ast.AnnAssign, ast.AugAssign))
-                else []
-            )
+            if not isinstance(statement, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+                continue
+            targets = statement.targets if isinstance(statement, ast.Assign) else [statement.target]
             if not targets or statement.lineno == statement.end_lineno:
                 continue
             for target in targets:
