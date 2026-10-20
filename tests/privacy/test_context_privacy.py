@@ -1776,3 +1776,223 @@ def test_round32_complete_plain_records_keep_redaction_path(source, expected, pr
     text = source if presentation == "plain" else json.dumps(source)
     cleaned = expected if presentation == "plain" else json.dumps(expected) + "\n"
     assert redact(text) == cleaned
+
+
+# Round 33: shift assignments and raw-sensitive owner spellings.
+ROUND33_SHIFT_EXACT_WITNESSES = (
+    'Note that secret\u0301 >>= "SYNTHETIC_R32_CORRECTNESS_SENTINEL"',
+    'Note that secret\u0301 <<= "SYNTHETIC_R32_CORRECTNESS_SENTINEL"',
+    'Ordinary prose, (secret) >>= "SYNTHETIC_R32_CORRECTNESS_SENTINEL"',
+    'Ordinary prose, (secret) <<= "SYNTHETIC_R32_CORRECTNESS_SENTINEL"',
+    'Ordinary prose, (api_key) >>= "SYNTHETIC_R32_CORRECTNESS_SENTINEL"',
+    "It's (password) <<= \"SYNTHETIC_R32_CORRECTNESS_SENTINEL\" and don't",
+    "It's secret\u0301 >>= \"SYNTHETIC_R32_CORRECTNESS_SENTINEL\" and don't",
+    'Ordinary "prose" (authorization) >>= "SYNTHETIC_R32_CORRECTNESS_SENTINEL"',
+)
+ROUND33_GROK_EXACT_WITNESSES = (
+    'Ordinary prose, (secret\u200c) >>= "SYNTHETIC_R32_GROK_SENTINEL"',
+    'Note that secret\u200d >>= "SYNTHETIC_R32_GROK_SENTINEL"',
+)
+ROUND33_RAW_EXACT_WITNESSES = tuple(
+    template.format(name="secret" + suffix, marker="SYNTHETIC_R32_ASTRA_MARKER")
+    for suffix in ("\u0327", "\u0307")
+    for template in (
+        'Note that {name} = "{marker}"',
+        'Note that {name} += "{marker}"',
+        'Note that ({name}) = "{marker}"',
+        "It's {name} = \"{marker}\" and don't",
+    )
+)
+
+# This is the Python operator grammar, listed independently of the local guard.
+ROUND33_PYTHON_AUGMENTED = (
+    "+=",
+    "-=",
+    "*=",
+    "/=",
+    "//=",
+    "%=",
+    "**=",
+    "@=",
+    "&=",
+    "|=",
+    "^=",
+    "<<=",
+    ">>=",
+)
+ROUND33_RAW_OWNER_TARGETS = (
+    "secret\u0327",
+    "secret\u0307",
+    "cfg.secret\u0327",
+    "cfg.secret\u0307",
+    "api_key\u0307",
+    "access_token\u0327",
+    "cfg.api_key\u0307",
+    'secret\u0327["public"]',
+    "(secret\u0327, other)",
+    "[secret\u0307, other]",
+    "[other, *secret\u0327]",
+    "secret\u0327 \\\n",
+    "secret\u0307 \\\r",
+    "secret\u0327 \\\r\n",
+)
+ROUND33_VALID_TARGET_OPERATOR_PAIRS = tuple(
+    (target, operator)
+    for target in ROUND33_RAW_OWNER_TARGETS
+    for operator in ("=", "+=", ": str =")
+    if _round32_valid_target_operator(target, " " + operator + " ")
+)
+
+
+@pytest.mark.parametrize(
+    "source",
+    ROUND33_SHIFT_EXACT_WITNESSES + ROUND33_GROK_EXACT_WITNESSES + ROUND33_RAW_EXACT_WITNESSES,
+)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round33_exact_assignment_witnesses_never_return_marker(source, presentation):
+    from jevdrill.context import redact
+
+    marker = "SYNTHETIC_R32_"
+    text = source if presentation == "plain" else json.dumps(source)
+    try:
+        cleaned = redact(text)
+    except ContractError:
+        return
+    assert marker not in cleaned
+
+
+@pytest.mark.parametrize("operator", ROUND33_PYTHON_AUGMENTED)
+@pytest.mark.parametrize("target", ("(secret)", "secret\u0327", "cfg.secret\u0307"))
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round33_complete_python_augmented_operator_family(operator, target, presentation):
+    import ast
+
+    from jevdrill.context import redact
+
+    statement = f'{target} {operator} "SYNTHETIC_R33_SENTINEL"'
+    assert isinstance(ast.parse(statement).body[0], ast.AugAssign)
+    source = "Ordinary prose, " + statement
+    text = source if presentation == "plain" else json.dumps(source)
+    try:
+        cleaned = redact(text)
+    except ContractError:
+        return
+    assert "SYNTHETIC_R33_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("target,operator", ROUND33_VALID_TARGET_OPERATOR_PAIRS)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round33_raw_sensitive_actual_owner_grammar(target, operator, presentation):
+    import ast
+
+    from jevdrill.context import redact
+
+    statement = f'{target} {operator} "SYNTHETIC_R33_SENTINEL"'
+    assert isinstance(ast.parse(statement), ast.Module)
+    source = "Note that " + statement
+    text = source if presentation == "plain" else json.dumps(source)
+    try:
+        cleaned = redact(text)
+    except ContractError:
+        return
+    assert "SYNTHETIC_R33_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize(
+    "name",
+    ("secret\u0327", "secret\u0307", "api_key\u0307", "access_token\u0327"),
+)
+def test_round33_raw_sensitive_name_is_runtime_valid_but_normalized_label_is_not(name):
+    import ast
+    import unicodedata
+
+    from jevdrill.context import _credential_label
+
+    assert name.isidentifier()
+    assert isinstance(ast.parse(name + " = 1").body[0], ast.Assign)
+    assert _credential_label(name)
+    assert not _credential_label(unicodedata.normalize("NFKC", name))
+
+
+@pytest.mark.parametrize(
+    "source",
+    (
+        'Note that (secret\u0327 := "SYNTHETIC_R33_SENTINEL")',
+        'Note that cfg[secret\u0327] = "application/json"',
+        'Note that cfg.public["secret\u0327"] = "application/json"',
+        'Note that public: secret\u0327 = "application/json"',
+        'Note that content_type\u0327 >>= "application/json"',
+        'Ordinary prose, (content_type) <<= "application/json"',
+        'Ordinary prose, (secret) >= "SYNTHETIC_R33_SENTINEL"',
+        'Ordinary prose, (secret) <= "SYNTHETIC_R33_SENTINEL"',
+        'Ordinary prose, (secret) == "SYNTHETIC_R33_SENTINEL"',
+        "The secret (to success) is patience.",
+    ),
+)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round33_owner_and_comparison_controls_match_established_path(source, presentation):
+    from jevdrill.context import redact
+
+    text = source if presentation == "plain" else json.dumps(source)
+    if "secret\u0327 :=" in source:
+        with pytest.raises(ContractError):
+            redact(text)
+    elif 'cfg.public["secret\u0327"]' in source:
+        with pytest.raises(ContractError, match="unsupported credential assignment"):
+            redact(text)
+    elif "public: secret\u0327" in source:
+        expected = "Note that public: '[redacted]'\n"
+        assert redact(text) == (
+            expected if presentation == "plain" else json.dumps(expected) + "\n"
+        )
+    else:
+        assert redact(text) == text
+
+
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round33_complete_redaction_and_ordinary_next_line(presentation):
+    from jevdrill.context import redact
+
+    source = 'secret = "SYNTHETIC_R33_SENTINEL"\nOrdinary next line.'
+    text = source if presentation == "plain" else json.dumps(source)
+    cleaned = redact(text)
+    assert "SYNTHETIC_R33_SENTINEL" not in cleaned
+    assert "Ordinary next line." in cleaned
+    metadata = "alpha objective-private-sentinel api_key=credential-sentinel"
+    presented = metadata if presentation == "plain" else json.dumps(metadata)
+    expected = "alpha objective-private-sentinel [redacted]"
+    assert redact(presented) == (
+        expected if presentation == "plain" else json.dumps(expected) + "\n"
+    )
+
+
+@pytest.mark.parametrize(
+    "source",
+    (
+        '(secret) >>= "SYNTHETIC_R33_SENTINEL"',
+        '(secret) <<= "SYNTHETIC_R33_SENTINEL"',
+        'secret\u200c >>= "SYNTHETIC_R33_SENTINEL"',
+    ),
+)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round33_standalone_shift_controls_keep_complete_redaction(source, presentation):
+    from jevdrill.context import redact
+
+    text = source if presentation == "plain" else json.dumps(source)
+    assert redact(text) == ("[redacted]" if presentation == "plain" else '"[redacted]"\n')
+
+
+@pytest.mark.parametrize("character", ("\u200c", "\u200d"))
+def test_round33_grok_identifier_continuations_follow_runtime(character):
+    import ast
+
+    name = "secret" + character
+    assert name.isidentifier()
+    assert isinstance(ast.parse(name + " >>= 1").body[0], ast.AugAssign)
+
+
+def test_round33_known_ordinary_question_rejection_is_unchanged():
+    from jevdrill.context import redact
+
+    with pytest.raises(ContractError, match="unsupported computed explicit key"):
+        redact("Why? Here is context: visible")

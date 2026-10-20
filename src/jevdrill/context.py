@@ -1732,18 +1732,43 @@ def _guard_local_assignment_owners(
             unicodedata.normalize("NFKC", spelling), deadline
         )
 
-    def owners(node: ast.AST) -> list[str]:
+    def owners(node: ast.AST, lines: list[bytes]) -> list[str]:
         charge()
-        if isinstance(node, ast.Name):
-            return [node.id]
-        if isinstance(node, ast.Attribute):
-            return [*owners(node.value), node.attr]
+        if isinstance(node, (ast.Name, ast.Attribute)):
+            # AST identifiers are NFKC-normalized. Recover the identifier at
+            # this owner's own end position, not a subscript index, annotation,
+            # or arbitrary text within the complete attribute expression.
+            line_number = node.end_lineno
+            end = node.end_col_offset
+            if line_number is None or end is None or not 1 <= line_number <= len(lines):
+                raise ContractError("unsupported credential assignment")
+            line = lines[line_number - 1]
+            if not 0 < end <= len(line):
+                raise ContractError("unsupported credential assignment")
+            begin = end
+            while begin:
+                charge()
+                previous = begin - 1
+                while previous and line[previous] & 0xC0 == 0x80:
+                    charge()
+                    previous -= 1
+                char = line[previous:begin].decode("utf-8")
+                if not ("a" + char).isidentifier():
+                    break
+                begin = previous
+            spelling = line[begin:end].decode("utf-8")
+            charge(end - begin)
+            if not spelling.isidentifier():
+                raise ContractError("unsupported credential assignment")
+            if isinstance(node, ast.Name):
+                return [spelling]
+            return [*owners(node.value, lines), spelling]
         if isinstance(node, ast.Subscript):
-            return owners(node.value)
+            return owners(node.value, lines)
         if isinstance(node, (ast.Tuple, ast.List)):
-            return [name for element in node.elts for name in owners(element)]
+            return [name for element in node.elts for name in owners(element, lines)]
         if isinstance(node, ast.Starred):
-            return owners(node.value)
+            return owners(node.value, lines)
         return []
 
     def named_expression_owner(start: int, grouped: bool) -> bool:
@@ -1852,15 +1877,20 @@ def _guard_local_assignment_owners(
                 return None
             elif char == "=" and not groups:
                 if (cursor + 1 < len(text) and text[cursor + 1] == "=") or (
-                    cursor > start and text[cursor - 1] in "!<>="
+                    cursor > start
+                    and text[cursor - 1] in "!<>="
+                    and text[max(start, cursor - 2) : cursor] not in ("<<", ">>")
                 ):
                     cursor += 1
                     continue
                 fragment = text[start : cursor + 1]
                 charge(len(fragment))
+                view = _validation_view(fragment + " None", deadline)
+                lines = [line.encode("utf-8") for line in view.splitlines(keepends=True)]
+                charge(sum(len(line) for line in lines))
                 try:
                     with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
-                        statement = ast.parse(_validation_view(fragment + " None", deadline)).body
+                        statement = ast.parse(view).body
                 except (SyntaxError, ValueError):
                     return None
                 if len(statement) != 1:
@@ -1871,7 +1901,7 @@ def _guard_local_assignment_owners(
                     if isinstance(item, ast.Assign)
                     else ([item.target] if isinstance(item, (ast.AnnAssign, ast.AugAssign)) else [])
                 )
-                return [name for target in targets for name in owners(target)]
+                return [name for target in targets for name in owners(target, lines)]
             cursor += 1
         return None
 
@@ -1917,7 +1947,7 @@ def _guard_local_assignment_owners(
         while lookahead < len(text) and text[lookahead] in " \t\f":
             charge()
             lookahead += 1
-        if lookahead >= len(text) or text[lookahead] not in "=:+-*/%@&|^\\,.)]([":
+        if lookahead >= len(text) or text[lookahead] not in "=:+-*/%@&|^\\,.)]([<>":
             continue
         if text.startswith(":=", lookahead) and (
             named_expression_owner(begin, grouped=False)

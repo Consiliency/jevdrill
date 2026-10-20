@@ -25,6 +25,9 @@ from tests.privacy.test_context_privacy import (
     ROUND31_VALID_IDENTIFIER_WITNESSES,
     ROUND32_ASSIGNMENT_WITNESSES,
     ROUND32_NAMED_EXPR_WITNESSES,
+    ROUND33_GROK_EXACT_WITNESSES,
+    ROUND33_RAW_EXACT_WITNESSES,
+    ROUND33_SHIFT_EXACT_WITNESSES,
     STRUCTURAL_RECORD_SHAPES,
 )
 
@@ -327,7 +330,10 @@ def test_private_context_is_excluded_before_provider_and_retention(tmp_path):
     + ROUND31_VALID_IDENTIFIER_WITNESSES
     + ROUND31_MIXED_VALID_IDENTIFIER_LEAK_WITNESSES
     + ROUND32_ASSIGNMENT_WITNESSES
-    + ROUND32_NAMED_EXPR_WITNESSES,
+    + ROUND32_NAMED_EXPR_WITNESSES
+    + ROUND33_SHIFT_EXACT_WITNESSES
+    + ROUND33_GROK_EXACT_WITNESSES
+    + ROUND33_RAW_EXACT_WITNESSES,
 )
 @pytest.mark.parametrize("presentation", ("plain", "json"))
 @pytest.mark.parametrize(
@@ -341,7 +347,7 @@ def test_private_context_is_excluded_before_provider_and_retention(tmp_path):
         "attachment_refs",
     ),
 )
-def test_round31_exact_witnesses_reject_before_six_application_effects(source, presentation, field):
+def test_exact_owner_witnesses_reject_before_six_application_effects(source, presentation, field):
     import copy
 
     text = source if presentation == "plain" else json.dumps(source)

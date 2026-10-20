@@ -85,7 +85,11 @@ lists, attributes, subscripts, annotations, augmented operators, and CR/LF/CRLF
 continuations; a recognized sensitive target is rejected before application effects.
 Locally complete assignment expressions (`:=`) are parsed as Python expressions
 within balanced containers or condition clauses; their actual `NamedExpr` targets
-are checked using the raw source spelling as well as its NFKC spelling. Comparisons
+are checked using the raw source spelling as well as its NFKC spelling. The
+statement-target parser likewise checks the raw spelling at each actual Name or
+Attribute owner's source span before Python's AST normalization can erase an
+ASCII credential substring. Subscript indices and annotations do not own the
+assignment, while `<<=` and `>>=` remain assignment operators. Comparisons
 remain ordinary controls. Invalid local syntax is not promoted to a recognized
 target by a marker-shaped substring alone.
 The target check excludes subscript indices and keeps comparisons and public
