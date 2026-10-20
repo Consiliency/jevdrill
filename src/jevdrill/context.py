@@ -1708,7 +1708,9 @@ def _guard_sensitive_name_targets(text: str, deadline: float | None) -> None:
             i += 1
 
 
-def _guard_local_assignment_owners(text: str, deadline: float | None) -> None:
+def _guard_local_assignment_owners(
+    text: str, deadline: float | None, *, pending_plain_redaction: bool = False
+) -> None:
     """Prove a local Python assignment target before releasing unstructured prose.
 
     A candidate starts at a runtime-valid identifier or a grouping opener that
@@ -1873,6 +1875,12 @@ def _guard_local_assignment_owners(text: str, deadline: float | None) -> None:
             cursor += 1
         return None
 
+    # These complete plaintext records are still validated and removed by the
+    # existing CONTEXT_PART path. Do not reject a target already inside one.
+    # Structured early returns have no later plaintext pass and never opt in.
+    covered_records = iter(CREDENTIAL.finditer(text)) if pending_plain_redaction else iter(())
+    covered_record = next(covered_records, None)
+
     # Track grouping openers in a single pass. Quote state is deliberately
     # local to candidate parsing: quoted prose before an assignment can be
     # syntactically invalid while the target itself is still valid Python.
@@ -1894,6 +1902,15 @@ def _guard_local_assignment_owners(text: str, deadline: float | None) -> None:
             charge()
             scan += 1
         spelling = text[begin:scan]
+        while covered_record is not None and covered_record.end() <= begin:
+            charge()
+            covered_record = next(covered_records, None)
+        if (
+            covered_record is not None
+            and covered_record.start() <= begin
+            and scan <= covered_record.end()
+        ):
+            continue
         if not spelling.isidentifier() or not sensitive_name(spelling):
             continue
         lookahead = scan
@@ -2206,7 +2223,7 @@ def redact(text: str, deadline: float | None = None) -> str:
         _guard_sensitive_name_targets(text, deadline)
         text = _redact_assignments(text, deadline)
         _guard_multiline_assignment_ownership(text, deadline)
-        _guard_local_assignment_owners(text, deadline)
+        _guard_local_assignment_owners(text, deadline, pending_plain_redaction=True)
         text = _redact_local_json(text, deadline)
         decoder = json.JSONDecoder(object_pairs_hook=tuple)
         chunks = []

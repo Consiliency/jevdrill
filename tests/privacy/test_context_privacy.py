@@ -1745,3 +1745,34 @@ def test_round32_ordinary_long_paragraph_stays_ordinary():
 
     source = "The secret is patience. " * 1000 + "public = 1"
     assert redact(source) == source
+
+
+@pytest.mark.parametrize(
+    "source,expected",
+    (
+        (
+            "alpha objective-private-sentinel api_key=credential-sentinel",
+            "alpha objective-private-sentinel [redacted]",
+        ),
+        (
+            "alpha description-private-sentinel password=secret-sentinel",
+            "alpha description-private-sentinel [redacted]",
+        ),
+        ("alpha access_token=context-secret-sentinel", "alpha [redacted]"),
+        (
+            'alpha api_key = "synthetic"\nordinary next line',
+            "alpha [redacted]\nordinary next line",
+        ),
+        (
+            "alpha api_key=one two\n  folded synthetic\nordinary next line",
+            "alpha [redacted]\nordinary next line",
+        ),
+    ),
+)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round32_complete_plain_records_keep_redaction_path(source, expected, presentation):
+    from jevdrill.context import redact
+
+    text = source if presentation == "plain" else json.dumps(source)
+    cleaned = expected if presentation == "plain" else json.dumps(expected) + "\n"
+    assert redact(text) == cleaned

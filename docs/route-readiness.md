@@ -95,6 +95,9 @@ structured credential-label policy is unchanged. The parser charges scanning
 and target inspection to the existing work cap and deadline. Earlier reports
 called U+200C invalid, but the pinned Python runtime accepts U+200C and U+200D
 in identifiers; current regression controls follow the runtime parser.
+Complete plaintext credential records continue through the existing validated
+redaction path. The local target guard defers records covered by that later pass;
+structured early returns still check all surviving targets.
 Original structured labels are inspected before assignment
 rewriting so sibling sensitivity is preserved. Continuation scanning is linear;
 literal parser resource failures become boundary rejections.
