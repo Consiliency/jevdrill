@@ -1140,3 +1140,312 @@ def test_explicit_key_placements_preserve_public_source(text, encoding):
         text if encoding == "plain" else json.dumps(text if encoding == "json" else {"log": text})
     )
     assert redact(source) == source
+
+
+ROUND31_MARKER = "SYNTHETIC_R30_ASTRA_SENTINEL"
+ROUND31_TARGET_WITNESSES = (
+    'It\'s headers["secret"].é = "' + ROUND31_MARKER + "\" and don't",
+    'Ordinary "prose headers["secret"]: \\\nstr = "' + ROUND31_MARKER + '""',
+    'Ordinary "prose headers["secret"][key \\\n] = "' + ROUND31_MARKER + '""',
+)
+
+
+@pytest.mark.parametrize("source", ROUND31_TARGET_WITNESSES)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round31_exact_target_ownership_witnesses(source, presentation):
+    from jevdrill.context import redact
+
+    text = source if presentation == "plain" else json.dumps(source)
+    try:
+        cleaned = redact(text)
+    except ContractError:
+        return
+    assert ROUND31_MARKER not in cleaned
+
+
+@pytest.mark.parametrize("break_text", ("\r", "\n", "\r\n"))
+@pytest.mark.parametrize("label", ("secret", "s\\u0065cret"))
+@pytest.mark.parametrize(
+    "tail",
+    (
+        '.é = "{marker}"',
+        '.e\u0301 = "{marker}"',
+        '.K = "{marker}"',
+        '[outer[inner]] = "{marker}"',
+        ': \\{break_text}dict[str, list[int]] = "{marker}"',
+        ', other \\{break_text}= "{marker}"',
+        ' \\{break_text}+= "{marker}"',
+        ' \\{break_text}== "{marker}"',
+    ),
+)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round31_sensitive_target_tail_remains_attached(break_text, label, tail, presentation):
+    from jevdrill.context import redact
+
+    source = (
+        'Ordinary "prose headers["'
+        + label
+        + '"]'
+        + tail.format(break_text=break_text, marker=ROUND31_MARKER)
+        + '"'
+    )
+    text = source if presentation == "plain" else json.dumps(source)
+    try:
+        cleaned = redact(text)
+    except ContractError:
+        return
+    assert ROUND31_MARKER not in cleaned
+
+
+@pytest.mark.parametrize("source", ROUND31_TARGET_WITNESSES)
+def test_round31_exact_public_content_type_twins_remain_unchanged(source):
+    from jevdrill.context import redact
+
+    public = source.replace("secret", "Content-Type").replace(ROUND31_MARKER, "application/json")
+    assert redact(public) == public
+
+
+def test_round31_ordinary_following_line_is_not_credential_value():
+    from jevdrill.context import redact
+
+    source = 'Ordinary "prose headers["secret"]\nordinary next line ' + ROUND31_MARKER + '"'
+    assert ROUND31_MARKER in redact(source)
+    public = source.replace("secret", "Content-Type").replace(ROUND31_MARKER, "application/json")
+    assert redact(public) == public
+
+
+ROUND31_ALT_TARGET_WITNESSES = (
+    'Ordinary "prose headers["secret"]. value = SYNTHETIC_SENTINEL"',  # R30-W1
+    'It\'s headers["secret"]. value = "SYNTHETIC_SENTINEL" and don\'t',  # R30-W2
+    'Ordinary "prose headers["secret"]: str \\\n= SYNTHETIC_SENTINEL"',  # R30-W3
+    'Ordinary "prose headers["secret"], other \\\n= SYNTHETIC_SENTINEL"',  # R30-W4
+    'Note that secret["public"] = "SYNTHETIC_SENTINEL"',  # R30-W5
+    'Note that api_key["public"] = "SYNTHETIC_SENTINEL"',  # R30-W6
+    'Note that cfg.secret["public"] = "SYNTHETIC_SENTINEL"',  # R30-W7
+    'Note that secret, other = "SYNTHETIC_SENTINEL", 1',  # R30-W8
+    'Ordinary "prose" secret["public"] = "SYNTHETIC_SENTINEL"',  # R30-W9
+    'It\'s secret["public"] = "SYNTHETIC_SENTINEL" and don\'t',  # R30-W10
+    'Note that api_key \\\n= "SYNTHETIC_SENTINEL"',  # R30-W11
+)
+
+ROUND31_ALT_PUBLIC_TWINS = (
+    'Ordinary "prose headers["Content-Type"]. value = application/json"',  # R30-W1
+    'It\'s headers["Content-Type"]. value = "application/json" and don\'t',  # R30-W2
+    'Ordinary "prose headers["Content-Type"]: str \\\n= application/json"',  # R30-W3
+    'Ordinary "prose headers["Content-Type"], other \\\n= application/json"',  # R30-W4
+    'Note that content_type["public"] = "application/json"',  # R30-W5
+    'Note that content_type["public"] = "application/json"',  # R30-W6
+    'Note that cfg.content_type["public"] = "application/json"',  # R30-W7
+    'Note that content_type, other = "application/json", 1',  # R30-W8
+    'Ordinary "prose" content_type["public"] = "application/json"',  # R30-W9
+    'It\'s content_type["public"] = "application/json" and don\'t',  # R30-W10
+    'Note that content_type \\\n= "application/json"',  # R30-W11
+)
+
+
+@pytest.mark.parametrize("source", ROUND31_ALT_TARGET_WITNESSES)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round31_alt_exact_target_ownership_witnesses(source, presentation):
+    from jevdrill.context import redact
+
+    text = source if presentation == "plain" else json.dumps(source)
+    try:
+        cleaned = redact(text)
+    except ContractError:
+        return
+    assert "SYNTHETIC_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("source", ROUND31_ALT_PUBLIC_TWINS[:2] + ROUND31_ALT_PUBLIC_TWINS[3:])
+def test_round31_alt_supported_public_twins_remain_unchanged(source):
+    from jevdrill.context import redact
+
+    assert redact(source) == source
+
+
+def test_round31_alt_public_annotation_retains_baseline_rejection():
+    from jevdrill.context import redact
+
+    with pytest.raises(ContractError):
+        redact(ROUND31_ALT_PUBLIC_TWINS[2])
+
+
+@pytest.mark.parametrize("break_text", ("\r", "\n", "\r\n"))
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round31_alt_bare_name_explicit_continuations(break_text, presentation):
+    from jevdrill.context import redact
+
+    source = "Note that api_key " + chr(92) + break_text + '= "SYNTHETIC_SENTINEL"'
+    text = source if presentation == "plain" else json.dumps(source)
+    try:
+        cleaned = redact(text)
+    except ContractError:
+        return
+    assert "SYNTHETIC_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize(
+    "source",
+    (
+        'Note that content_type["public"] = "application/json"',
+        'Note that cfg.content_type["public"] = "application/json"',
+        'Note that content_type, other = "application/json", 1',
+        "Note that content_type " + chr(92) + chr(10) + '= "application/json"',
+        "Note that the secret, however, is x=1",
+    ),
+)
+def test_round31_alt_public_name_and_prose_controls(source):
+    from jevdrill.context import redact
+
+    assert redact(source) == source
+
+
+ROUND31_VALID_IDENTIFIER_WITNESSES = (
+    'Note that secret́["public"] = "SYNTHETIC_PARENT_SENTINEL"',
+    'It\'s secret́["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that cfg.secret́["public"] = "SYNTHETIC_PARENT_SENTINEL"',
+    'It\'s cfg.secret́["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that secret́, other = "SYNTHETIC_PARENT_SENTINEL"',
+    "It's secret́, other = \"SYNTHETIC_PARENT_SENTINEL\" and don't",
+    'Note that secret·x["public"] = "SYNTHETIC_PARENT_SENTINEL"',
+    'It\'s secret·x["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that cfg.secret·x["public"] = "SYNTHETIC_PARENT_SENTINEL"',
+    'It\'s cfg.secret·x["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that secret·x, other = "SYNTHETIC_PARENT_SENTINEL"',
+    "It's secret·x, other = \"SYNTHETIC_PARENT_SENTINEL\" and don't",
+    'Note that ｓｅｃｒｅｔ["public"] = "SYNTHETIC_PARENT_SENTINEL"',
+    'It\'s ｓｅｃｒｅｔ["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that cfg.ｓｅｃｒｅｔ["public"] = "SYNTHETIC_PARENT_SENTINEL"',
+    'It\'s cfg.ｓｅｃｒｅｔ["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that ｓｅｃｒｅｔ, other = "SYNTHETIC_PARENT_SENTINEL"',
+    "It's ｓｅｃｒｅｔ, other = \"SYNTHETIC_PARENT_SENTINEL\" and don't",
+    'Note that 𝓼𝓮𝓬𝓻𝓮𝓽["public"] = "SYNTHETIC_PARENT_SENTINEL"',
+    'It\'s 𝓼𝓮𝓬𝓻𝓮𝓽["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that cfg.𝓼𝓮𝓬𝓻𝓮𝓽["public"] = "SYNTHETIC_PARENT_SENTINEL"',
+    'It\'s cfg.𝓼𝓮𝓬𝓻𝓮𝓽["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that 𝓼𝓮𝓬𝓻𝓮𝓽, other = "SYNTHETIC_PARENT_SENTINEL"',
+    "It's 𝓼𝓮𝓬𝓻𝓮𝓽, other = \"SYNTHETIC_PARENT_SENTINEL\" and don't",
+    'Note that api_ｋｅｙ["public"] = "SYNTHETIC_PARENT_SENTINEL"',
+    'It\'s api_ｋｅｙ["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that cfg.api_ｋｅｙ["public"] = "SYNTHETIC_PARENT_SENTINEL"',
+    'It\'s cfg.api_ｋｅｙ["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that api_ｋｅｙ, other = "SYNTHETIC_PARENT_SENTINEL"',
+    "It's api_ｋｅｙ, other = \"SYNTHETIC_PARENT_SENTINEL\" and don't",
+)
+
+
+@pytest.mark.parametrize("source", ROUND31_VALID_IDENTIFIER_WITNESSES)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round31_valid_unicode_identifier_ownership(source, presentation):
+    from jevdrill.context import redact
+
+    text = source if presentation == "plain" else json.dumps(source)
+    try:
+        cleaned = redact(text)
+    except ContractError:
+        return
+    assert "SYNTHETIC_PARENT_SENTINEL" not in cleaned
+
+
+ROUND31_VALID_IDENTIFIER_PUBLIC_TWINS = (
+    'Note that content_typé["public"] = "application/json"',
+    'It\'s content_typé["public"] = "application/json" and don\'t',
+    'Note that cfg.content_typé["public"] = "application/json"',
+    'It\'s cfg.content_typé["public"] = "application/json" and don\'t',
+    'Note that content_typé, other = "application/json"',
+    "It's content_typé, other = \"application/json\" and don't",
+    'Note that content·type["public"] = "application/json"',
+    'It\'s content·type["public"] = "application/json" and don\'t',
+    'Note that cfg.content·type["public"] = "application/json"',
+    'It\'s cfg.content·type["public"] = "application/json" and don\'t',
+    'Note that content·type, other = "application/json"',
+    "It's content·type, other = \"application/json\" and don't",
+    'Note that ｐｕｂｌｉｃ["public"] = "application/json"',
+    'It\'s ｐｕｂｌｉｃ["public"] = "application/json" and don\'t',
+    'Note that cfg.ｐｕｂｌｉｃ["public"] = "application/json"',
+    'It\'s cfg.ｐｕｂｌｉｃ["public"] = "application/json" and don\'t',
+    'Note that ｐｕｂｌｉｃ, other = "application/json"',
+    "It's ｐｕｂｌｉｃ, other = \"application/json\" and don't",
+    'Note that 𝓹𝓾𝓫𝓵𝓲𝓬["public"] = "application/json"',
+    'It\'s 𝓹𝓾𝓫𝓵𝓲𝓬["public"] = "application/json" and don\'t',
+    'Note that cfg.𝓹𝓾𝓫𝓵𝓲𝓬["public"] = "application/json"',
+    'It\'s cfg.𝓹𝓾𝓫𝓵𝓲𝓬["public"] = "application/json" and don\'t',
+    'Note that 𝓹𝓾𝓫𝓵𝓲𝓬, other = "application/json"',
+    "It's 𝓹𝓾𝓫𝓵𝓲𝓬, other = \"application/json\" and don't",
+    'Note that content_ｔｙｐｅ["public"] = "application/json"',
+    'It\'s content_ｔｙｐｅ["public"] = "application/json" and don\'t',
+    'Note that cfg.content_ｔｙｐｅ["public"] = "application/json"',
+    'It\'s cfg.content_ｔｙｐｅ["public"] = "application/json" and don\'t',
+    'Note that content_ｔｙｐｅ, other = "application/json"',
+    "It's content_ｔｙｐｅ, other = \"application/json\" and don't",
+)
+
+
+@pytest.mark.parametrize("source", ROUND31_VALID_IDENTIFIER_PUBLIC_TWINS)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round31_valid_unicode_public_identifier_twins(source, presentation):
+    from jevdrill.context import redact
+
+    text = source if presentation == "plain" else json.dumps(source)
+    if "𝓹𝓾𝓫𝓵𝓲𝓬" in source and presentation == "json":
+        with pytest.raises(ContractError):
+            redact(text)
+    else:
+        assert redact(text) == text
+
+
+ROUND31_MIXED_VALID_IDENTIFIER_WITNESSES = (
+    'Note that secret́["public"] = "SYNTHETIC_PARENT_SENTINEL"wrong',
+    'It\'s secret́["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that cfg.secret́["public"] = "SYNTHETIC_PARENT_SENTINEL"wrong',
+    'It\'s cfg.secret́["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that secret́, other = "SYNTHETIC_PARENT_SENTINEL"wrong',
+    "It's secret́, other = \"SYNTHETIC_PARENT_SENTINEL\" and don't",
+    'Note that secret . value = "SYNTHETIC_PARENT_SENTINEL"wrong',
+    "It's secret . value = \"SYNTHETIC_PARENT_SENTINEL\" and don't",
+    'Note that secret ["public"] = "SYNTHETIC_PARENT_SENTINEL"wrong',
+    'It\'s secret ["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that secret: str = "SYNTHETIC_PARENT_SENTINEL"wrong',
+    "It's secret: str = \"SYNTHETIC_PARENT_SENTINEL\" and don't",
+    'Note that api_keý \\\n = "SYNTHETIC_PARENT_SENTINEL"wrong',
+    "It's api_keý \\\n = \"SYNTHETIC_PARENT_SENTINEL\" and don't",
+    'Note that secret·x["public"] = "SYNTHETIC_PARENT_SENTINEL"wrong',
+    'It\'s secret·x["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+)
+
+
+@pytest.mark.parametrize("source", ROUND31_MIXED_VALID_IDENTIFIER_WITNESSES)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round31_mixed_valid_unicode_identifier_ownership(source, presentation):
+    from jevdrill.context import redact
+
+    text = source if presentation == "plain" else json.dumps(source)
+    try:
+        cleaned = redact(text)
+    except ContractError:
+        return
+    assert "SYNTHETIC_PARENT_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("break_text", ("\r", "\n", "\r\n"))
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round31_combining_public_continuation_twin(break_text, presentation):
+    from jevdrill.context import redact
+
+    source = "Note that content_typé " + chr(92) + break_text + '= "application/json"'
+    text = source if presentation == "plain" else json.dumps(source)
+    assert redact(text) == text
+
+
+ROUND31_MIXED_VALID_IDENTIFIER_LEAK_WITNESSES = (
+    'Note that secret́["public"] = "SYNTHETIC_PARENT_SENTINEL"wrong',
+    'It\'s secret́["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that cfg.secret́["public"] = "SYNTHETIC_PARENT_SENTINEL"wrong',
+    'It\'s cfg.secret́["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+    'Note that secret́, other = "SYNTHETIC_PARENT_SENTINEL"wrong',
+    "It's secret́, other = \"SYNTHETIC_PARENT_SENTINEL\" and don't",
+    'Note that api_keý \\\n = "SYNTHETIC_PARENT_SENTINEL"wrong',
+    "It's api_keý \\\n = \"SYNTHETIC_PARENT_SENTINEL\" and don't",
+    'Note that secret·x["public"] = "SYNTHETIC_PARENT_SENTINEL"wrong',
+    'It\'s secret·x["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
+)

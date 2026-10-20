@@ -8,6 +8,7 @@ import posixpath
 import re
 import sys
 import tokenize
+import unicodedata
 import uuid
 import warnings
 from collections.abc import Mapping, Sequence
@@ -58,6 +59,8 @@ CREDENTIAL = re.compile(
     + rf"""|(?<![^\r\n\x85\u2028\u2029"']){INDENT}*(?:bearer|basic)\s+[^\s"',;}}\]]+"""
     + rf"""[^\r\n\x85\u2028\u2029"',;}}\]]*(?:{CONTINUATION})*"""
 )
+TARGET_AUGMENTED = re.compile(r"(?:\*\*|//|<<|>>|[+\-*/%@&|^])=")
+TARGET_COMPARISON_WORD = re.compile(r"(?:is|in|not\s+in)\b")
 CONTEXT_PART = re.compile(
     "(?P<credential>" + CREDENTIAL.pattern.removeprefix("(?i)") + r")|[\[{\"]",
     re.IGNORECASE,
@@ -1465,6 +1468,246 @@ def _redact_plain(text: str, deadline: float | None) -> str:
     return _redact_private_keys(cleaned, deadline)
 
 
+def _sensitive_array_tail(
+    text: str, closing: int, deadline: float | None, charge: list[int], cap: int
+) -> str:
+    """Classify a decoded sensitive array's target tail before rewriting it.
+
+    The scan is local and forward-only.  It treats a physical break as a
+    boundary unless an explicit continuation or open bracket owns it.
+    Unclosed postfix syntax is unsafe; it must not detach the decoded label.
+    """
+
+    def step(count: int = 1) -> None:
+        charge[0] += count
+        if charge[0] > cap:
+            raise ContractError("context fragment work exceeds sanitization limit")
+        _check_deadline(deadline)
+
+    def continuation(i: int) -> int:
+        if text.startswith("\\\r\n", i):
+            return i + 3
+        if i + 1 < len(text) and text[i] == "\\" and text[i + 1] in "\r\n":
+            return i + 2
+        return i
+
+    def spacing(i: int) -> int:
+        while i < len(text):
+            nxt = continuation(i)
+            if nxt != i:
+                step(nxt - i)
+                i = nxt
+            elif text[i] in " \t\f":
+                step()
+                i += 1
+            else:
+                break
+        return i
+
+    def bracket(i: int) -> int | None:
+        stack = [{"[": "]", "(": ")", "{": "}"}[text[i]]]
+        i += 1
+        step()
+        quote = None
+        while i < len(text):
+            ch = text[i]
+            step()
+            if quote:
+                if ch == "\\" and i + 1 < len(text):
+                    i += 2
+                    step()
+                    continue
+                if ch == quote:
+                    quote = None
+            elif ch in "\"'":
+                quote = ch
+            elif ch in "[({":
+                stack.append({"[": "]", "(": ")", "{": "}"}[ch])
+            elif ch in "])}":
+                if ch != stack.pop():
+                    return None
+                if not stack:
+                    return i + 1
+            elif ch in "\r\n" and (i == 0 or text[i - 1] != "\\"):
+                # An open Python bracket owns implicit physical continuations.
+                pass
+            i += 1
+        return None
+
+    i = spacing(closing)
+    postfixed = False
+    while i < len(text):
+        if text[i] == ".":
+            postfixed = True
+            i += 1
+            step()
+            begin = i
+            while i < len(text):
+                ch = text[i]
+                if ("a" + ch).isidentifier():
+                    i += 1
+                    step()
+                else:
+                    break
+            if begin == i or not text[begin:i].isidentifier():
+                return "unsafe"
+            i = spacing(i)
+        elif text[i] == "[":
+            postfixed = True
+            nxt = bracket(i)
+            if nxt is None:
+                return "unsafe"
+            i = spacing(nxt)
+        else:
+            break
+    if i >= len(text) or text[i] in "\r\n\x85\u2028\u2029":
+        return "fragment" if not postfixed else "safe_tail"
+    if text[i] in "=":
+        return "unsafe" if postfixed else "assignment"
+    if text[i] in "<>!" or TARGET_COMPARISON_WORD.match(text, i):
+        return "unsafe"
+    if text[i] in "+-*/%@&|^<>" and TARGET_AUGMENTED.match(text, i):
+        return "unsafe" if postfixed else "assignment"
+    if text[i] in ":,":
+        # Annotations and tuple/chained targets may continue over explicit
+        # breaks or balanced brackets; inspect through their logical operator.
+        i += 1
+        step()
+        while i < len(text):
+            nxt = continuation(i)
+            if nxt != i:
+                step(nxt - i)
+                i = nxt
+                continue
+            ch = text[i]
+            if ch in "\r\n\x85\u2028\u2029":
+                return "fragment"
+            if ch in "[({":
+                nxt = bracket(i)
+                if nxt is None:
+                    return "unsafe"
+                i = nxt
+                continue
+            if ch == "=" or (ch in "+-*/%@&|^<>" and TARGET_AUGMENTED.match(text, i)):
+                return "unsafe"
+            if ch in "<>!":
+                return "unsafe"
+            if ch in "in" and TARGET_COMPARISON_WORD.match(text, i):
+                return "unsafe"
+            step()
+            i += 1
+        return "fragment"
+    # Unrecognized prose or syntax can still carry an operator later in the
+    # same logical record.  Do not assume the first unknown token ends the
+    # target; keep the credential fragment whole through that boundary.
+    while i < len(text):
+        nxt = continuation(i)
+        if nxt != i:
+            step(nxt - i)
+            i = nxt
+            continue
+        ch = text[i]
+        if ch in "\r\n\x85\u2028\u2029":
+            break
+        if ch in "=<>!" or (ch in "+-*/%@&|^" and TARGET_AUGMENTED.match(text, i)):
+            return "unsafe"
+        if ch in "in" and TARGET_COMPARISON_WORD.match(text, i):
+            return "unsafe"
+        step()
+        i += 1
+    return "safe_tail" if postfixed else "fragment"
+
+
+def _guard_sensitive_name_targets(text: str, deadline: float | None) -> None:
+    """Keep a locally spelled credential NAME/attribute attached to its target.
+
+    This local check is independent of whole-prose tokenization: contractions
+    and quoted prose can hide the assignment operator from tokenize.  Simple
+    assignments retain their existing complete CREDENTIAL handling.
+    """
+    cap = 16 * len(text) + 100_000
+    work = 0
+
+    def charge(count: int = 1) -> None:
+        nonlocal work
+        work += count
+        if work > cap:
+            raise ContractError("context fragment work exceeds sanitization limit")
+        _check_deadline(deadline)
+
+    scan = 0
+    while scan < len(text):
+        charge()
+        if not text[scan].isidentifier() or (scan > 0 and ("a" + text[scan - 1]).isidentifier()):
+            scan += 1
+            continue
+        begin = scan
+        scan += 1
+        while scan < len(text) and ("a" + text[scan]).isidentifier():
+            charge()
+            scan += 1
+        spelling = text[begin:scan]
+        if not spelling.isidentifier() or not (
+            _credential_label(spelling, deadline)
+            or _credential_label(unicodedata.normalize("NFKC", spelling), deadline)
+        ):
+            continue
+        cursor = scan
+        while cursor < len(text) and text[cursor] in " \t\f":
+            cursor += 1
+            charge()
+        if cursor >= len(text) or text[cursor] not in "[.,\\":
+            continue
+        budget = [work]
+        ownership = _sensitive_array_tail(text, scan, deadline, budget, cap)
+        work = budget[0]
+        if text[cursor] != "," and (
+            ownership == "unsafe" or (text[cursor] == "\\" and ownership == "assignment")
+        ):
+            raise ContractError("unsupported credential assignment")
+        if text[cursor] != ",":
+            continue
+        # For tuples, prove the *local* target syntax with AST.  Ordinary
+        # prose such as "the secret, however, is x=1" must not be rejected.
+        i = cursor + 1
+        while i < len(text):
+            _check_deadline(deadline)
+            if text.startswith("\\\r\n", i):
+                charge(3)
+                i += 3
+                continue
+            if i + 1 < len(text) and text[i] == "\\" and text[i + 1] in "\r\n":
+                charge(2)
+                i += 2
+                continue
+            if text[i] in "\r\n\x85\u2028\u2029":
+                break
+            charge()
+            if text[i] == "=":
+                fragment = re.sub(r"\\(?:\r\n|[\r\n])", "", text[begin:i])
+                charge(len(fragment))
+                try:
+                    with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                        parsed = ast.parse(fragment + " = None")
+                except (SyntaxError, ValueError):
+                    pass
+                else:
+                    if len(parsed.body) == 1 and isinstance(parsed.body[0], ast.Assign):
+                        target = parsed.body[0].targets[0]
+                        if _credential_label(spelling, deadline) or any(
+                            isinstance(node, (ast.Name, ast.Attribute))
+                            and _credential_label(
+                                unicodedata.normalize(
+                                    "NFKC", node.id if isinstance(node, ast.Name) else node.attr
+                                ),
+                                deadline,
+                            )
+                            for node in ast.walk(target)
+                        ):
+                            raise ContractError("unsupported credential assignment")
+            i += 1
+
+
 def _redact_local_json(text: str, deadline: float | None) -> str:
     """Sanitize complete JSON containers from their own opening delimiter."""
     decoder = json.JSONDecoder(object_pairs_hook=tuple)
@@ -1509,6 +1752,14 @@ def _redact_local_json(text: str, deadline: float | None) -> str:
                     pending.extend(member)
                 elif isinstance(member, dict):
                     pending.extend(member.items())
+            if sensitive:
+                budget = [work]
+                ownership = _sensitive_array_tail(
+                    text, closing, deadline, budget, 16 * len(text) + 100_000
+                )
+                work = budget[0]
+                if ownership == "unsafe":
+                    raise ContractError("unsupported credential assignment")
             # A quoted prose prefix can make the assignment pass miss this
             # target. Inspect the complete target before rewriting its first
             # array, which would otherwise detach the credential from its RHS.
@@ -1730,6 +1981,7 @@ def redact(text: str, deadline: float | None = None) -> str:
         structured = _structured(text, deadline)
         if structured is not None:
             return structured
+        _guard_sensitive_name_targets(text, deadline)
         text = _redact_assignments(text, deadline)
         _guard_multiline_assignment_ownership(text, deadline)
         text = _redact_local_json(text, deadline)
@@ -1765,6 +2017,8 @@ def redact(text: str, deadline: float | None = None) -> str:
             end = consumed
             cursor = end
         return "".join(chunks) + _redact_plain(text[end:], deadline)
+    except UnicodeError as error:
+        raise ContractError("unsupported Unicode context representation") from error
     except (RecursionError, MemoryError) as error:
         raise ContractError("context nesting exceeds sanitization limit") from error
 

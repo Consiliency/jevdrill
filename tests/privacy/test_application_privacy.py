@@ -19,6 +19,10 @@ from tests.privacy.test_context_privacy import (
     PROSE_EXPLICIT_KEY_CASES,
     PUBLIC_NEL_MEMBER,
     QUOTE_KEY_CROSS_PRODUCT,
+    ROUND31_ALT_TARGET_WITNESSES,
+    ROUND31_MIXED_VALID_IDENTIFIER_LEAK_WITNESSES,
+    ROUND31_TARGET_WITNESSES,
+    ROUND31_VALID_IDENTIFIER_WITNESSES,
     STRUCTURAL_RECORD_SHAPES,
 )
 
@@ -312,3 +316,69 @@ def test_private_context_is_excluded_before_provider_and_retention(tmp_path):
         if path.is_file():
             assert b"PRIVATE_SENTINEL" not in path.read_bytes()
             assert b"PRIVATE_ATTACHMENT" not in path.read_bytes()
+
+
+@pytest.mark.parametrize(
+    "source",
+    ROUND31_TARGET_WITNESSES
+    + ROUND31_ALT_TARGET_WITNESSES
+    + ROUND31_VALID_IDENTIFIER_WITNESSES
+    + ROUND31_MIXED_VALID_IDENTIFIER_LEAK_WITNESSES,
+)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+@pytest.mark.parametrize(
+    "field",
+    (
+        "route_task",
+        "route_attachment",
+        "work_objective_text",
+        "authorized_context",
+        "description",
+        "attachment_refs",
+    ),
+)
+def test_round31_exact_witnesses_reject_before_six_application_effects(source, presentation, field):
+    import copy
+
+    text = source if presentation == "plain" else json.dumps(source)
+    attachment = {
+        "reference": "public.txt",
+        "authorized": True,
+        "modality": "document",
+        "representation_source": "supplied",
+        "text_representation": text,
+    }
+    fixture = "route-application.json" if field.startswith("route_") else "discovery.json"
+    payload = copy.deepcopy(
+        json.loads((Path(__file__).parents[1] / "contracts/fixtures" / fixture).read_text())[0][
+            "payload"
+        ]
+    )
+    payload["settings_layers"] = [{"source": "request", "values": {"retain_raw_tasks": True}}]
+    if field == "route_task":
+        payload["request"]["task_representation"] = text
+    elif field == "route_attachment":
+        payload["request"]["attachment_refs"] = [attachment]
+    elif field == "description":
+        payload["descriptions"][0]["description"] = text
+    elif field == "attachment_refs":
+        payload[field] = [attachment]
+    else:
+        payload[field] = text
+
+    class NoStorageEffects:
+        def __init__(self):
+            self.calls = []
+
+        def __getattr__(self, name):
+            def fail(*args, **kwargs):
+                self.calls.append(name)
+                raise AssertionError("storage effect before credential rejection")
+
+            return fail
+
+    storage = NoStorageEffects()
+    app = Application(storage)
+    with pytest.raises(ContractError):
+        (app.route if field.startswith("route_") else app.discover)(payload)
+    assert storage.calls == []

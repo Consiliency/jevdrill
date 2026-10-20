@@ -69,7 +69,16 @@ ambiguous escaped or concatenated literal labels, mixed credential records that 
 structurally parsed, and multiline code assignments are rejected. Assignment
 targets are inspected as complete logical statements, including augmented operators,
 CR/LF/CRLF boundaries and literal labels; implicit multiline targets and incomplete
-expressions reject. Original structured labels are inspected before assignment
+expressions reject. Before rewriting a decoded sensitive array fragment, local
+forward inspection follows Unicode identifier attributes, balanced postfix
+subscripts, annotations and continuations through the associated operator;
+unresolved sensitive target ownership rejects within the existing work and deadline bounds.
+Locally spelled credential names and attributes followed by subscripts,
+tuple targets, or explicit continuations are checked independently of
+surrounding prose tokenization. Locally parsed Python identifiers use
+Python continuation rules; both raw and NFKC spellings are passed to the existing
+credential-label predicate; structured labels retain their prior scope.
+Original structured labels are inspected before assignment
 rewriting so sibling sensitivity is preserved. Continuation scanning is linear;
 literal parser resource failures become boundary rejections.
 Original-source mixed records recognize CR, LF, CRLF, NEL and Unicode line/paragraph
