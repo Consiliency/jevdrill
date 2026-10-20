@@ -1472,12 +1472,15 @@ def _redact_local_json(text: str, deadline: float | None) -> str:
     chunks: list[str] = []
     end = 0
     work = 0
+    complete_assignments = tuple(
+        (match.start(), match.end()) for match in CREDENTIAL.finditer(text) if "[" in match.group()
+    )
     for opening in re.finditer(r"[\[{]", text):
         _check_deadline(deadline)
         if opening.start() < end:
             continue
         try:
-            _, closing = decoder.raw_decode(text, opening.start())
+            value, closing = decoder.raw_decode(text, opening.start())
         except json.JSONDecodeError:
             # A failed decode may have examined the entire remaining suffix.
             work += len(text) - opening.start()
@@ -1488,6 +1491,89 @@ def _redact_local_json(text: str, deadline: float | None) -> str:
         if work > 16 * len(text) + 100_000:
             raise ContractError("context fragment work exceeds sanitization limit")
         if text[opening.start()] == "[":
+            fragment = text[opening.start() : closing]
+            # JSON escapes are part of a label's spelling, not its meaning.
+            # Inspect decoded members before deciding whether this array can
+            # be separated from the assignment or comparison that follows it.
+            pending = [value]
+            sensitive = False
+            while pending:
+                _check_deadline(deadline)
+                member = pending.pop()
+                work += 1
+                if work > 16 * len(text) + 100_000:
+                    raise ContractError("context fragment work exceeds sanitization limit")
+                if isinstance(member, str):
+                    sensitive = _credential_label(member, deadline) or sensitive
+                elif isinstance(member, (list, tuple)):
+                    pending.extend(member)
+                elif isinstance(member, dict):
+                    pending.extend(member.items())
+            # A quoted prose prefix can make the assignment pass miss this
+            # target. Inspect the complete target before rewriting its first
+            # array, which would otherwise detach the credential from its RHS.
+            if sensitive:
+                cursor = closing
+                while cursor < len(text):
+                    _check_deadline(deadline)
+                    work += 1
+                    if work > 16 * len(text) + 100_000:
+                        raise ContractError("context fragment work exceeds sanitization limit")
+                    if text[cursor].isspace():
+                        cursor += 1
+                    elif (
+                        text[cursor] == "\\"
+                        and cursor + 1 < len(text)
+                        and text[cursor + 1] in "\r\n"
+                    ):
+                        cursor += 3 if text.startswith("\\\r\n", cursor) else 2
+                    elif text[cursor] == "[":
+                        try:
+                            _, next_cursor = decoder.raw_decode(text, cursor)
+                        except json.JSONDecodeError:
+                            line_end = text.find("\n", cursor)
+                            unresolved = text[cursor : line_end if line_end >= 0 else len(text)]
+                            work += len(unresolved)
+                            if work > 16 * len(text) + 100_000:
+                                raise ContractError(
+                                    "context fragment work exceeds sanitization limit"
+                                )
+                            if re.search(r"(?<![<>=!])=|==", unresolved):
+                                raise ContractError("unsupported credential assignment")
+                            break
+                        work += next_cursor - cursor
+                        cursor = next_cursor
+                    elif text[cursor] == ".":
+                        member = re.compile(r"\.[A-Za-z_]\w*").match(text, cursor)
+                        if member is None:
+                            break
+                        cursor += len(member.group())
+                    else:
+                        break
+                if cursor < len(text) and (
+                    text[cursor] in ":,=" or assignment_operator.match(text, cursor)
+                ):
+                    # Include annotations and tuple targets. A comparison is
+                    # also unsafe when paired prose quotes expose the array.
+                    line_end = text.find("\n", cursor)
+                    tail = text[cursor : line_end if line_end >= 0 else len(text)]
+                    work += len(tail)
+                    if work > 16 * len(text) + 100_000:
+                        raise ContractError("context fragment work exceeds sanitization limit")
+                    work += len(complete_assignments)
+                    if work > 16 * len(text) + 100_000:
+                        raise ContractError("context fragment work exceeds sanitization limit")
+                    # A complete later match removes the whole statement.
+                    # Sensitivity was already decided from decoded members.
+                    covered = any(
+                        start <= opening.start() < stop
+                        and stop >= (line_end if line_end >= 0 else len(text))
+                        for start, stop in complete_assignments
+                    )
+                    if not covered and re.search(
+                        r"(?<![<>=!])(?:\*\*|//|<<|>>|[+\-*/%@&|^])?=|==", tail
+                    ):
+                        raise ContractError("unsupported credential assignment")
             cursor = closing
             continued = False
             while cursor < len(text):
@@ -1511,11 +1597,8 @@ def _redact_local_json(text: str, deadline: float | None) -> str:
                 # The assignment pass has already had first refusal. If it
                 # left a sensitive target intact, local rewriting would split
                 # that target from its value across a continued assignment.
-                if continued:
-                    fragment = text[opening.start() : closing]
-                    cleaned = _structured(fragment, deadline)
-                    if cleaned is None or cleaned != fragment:
-                        raise ContractError("unsupported credential assignment")
+                if continued and sensitive:
+                    raise ContractError("unsupported credential assignment")
                 continue
         fragment = text[opening.start() : closing]
         cleaned = _structured(fragment, deadline)
@@ -1524,6 +1607,118 @@ def _redact_local_json(text: str, deadline: float | None) -> str:
         chunks.extend((text[end : opening.start()], cleaned))
         end = closing
     return "".join(chunks) + text[end:]
+
+
+def _guard_multiline_assignment_ownership(text: str, deadline: float | None) -> None:
+    """Classify assignment targets within lexical Python statements.
+
+    A NEWLINE token ends a logical statement; NL inside brackets or after an
+    explicit continuation does not.  Ordinary preceding and following lines
+    cannot multiply the parsing work or make a valid assignment unparsable.
+    """
+    if not (any(char in text for char in "[()") and "=" in text and re.search(LINE_BREAK, text)):
+        return
+    _check_deadline(deadline)
+    # String offsets remain in the original text.  Token line numbers are
+    # obtained from the normalized view and never converted from byte columns.
+    line_starts = [0]
+    line_ends = []
+    for marker in re.finditer(LINE_BREAK, text):
+        _check_deadline(deadline)
+        line_ends.append(marker.start())
+        line_starts.append(marker.end())
+    line_ends.append(len(text))
+    view = _validation_view(text, deadline)
+    boundaries = []
+    logical_start = 0
+    try:
+        for token in tokenize.generate_tokens(StringIO(view).readline):
+            _check_deadline(deadline)
+            if token.type == tokenize.NEWLINE:
+                end_line = min(token.end[0] - 1, len(line_ends) - 1)
+                if logical_start <= end_line:
+                    boundaries.append((logical_start, end_line))
+                logical_start = end_line + 1
+            elif token.type == tokenize.ENDMARKER:
+                if logical_start < len(line_ends):
+                    boundaries.append((logical_start, len(line_ends) - 1))
+    except (tokenize.TokenError, IndentationError):
+        # A malformed lexical prefix cannot safely establish the later
+        # statement boundary.  Retain the existing conservative rejection.
+        if re.search(CREDENTIAL_LABEL, text, re.IGNORECASE) is not None:
+            raise ContractError("unsupported multiline credential assignment") from None
+        return
+    local_rewrite_stable: bool | None = None
+    work = 0
+    cap = 16 * len(text) + 100_000
+    for begin_line, end_line in boundaries:
+        _check_deadline(deadline)
+        begin, finish = line_starts[begin_line], line_ends[end_line]
+        if begin >= finish:
+            continue
+        fragment = text[begin:finish]
+        if (
+            not any(char in fragment for char in "[()")
+            or "=" not in fragment
+            or not re.search(LINE_BREAK, fragment)
+        ):
+            continue
+        work += len(fragment)
+        if work > cap:
+            raise ContractError("context fragment work exceeds sanitization limit")
+        # Isolated indented statements are valid after removing their shared
+        # margin.  This permits a body statement under an unrelated header.
+        lines = fragment.splitlines(keepends=True)
+        indents = [len(part) - len(part.lstrip(" \t")) for part in lines if part.strip()]
+        if indents:
+            margin = min(indents)
+            if margin:
+                fragment = "".join(part[margin:] if part.strip() else part for part in lines)
+        try:
+            with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                parsed = ast.parse(_validation_view(fragment, deadline))
+        except (SyntaxError, ValueError):
+            continue
+        covered = any(
+            match.end() >= len(fragment) and "[" in fragment[match.start() : match.end()]
+            for match in CREDENTIAL.finditer(fragment)
+        )
+        for statement in ast.walk(parsed):
+            _check_deadline(deadline)
+            work += 1
+            if work > cap:
+                raise ContractError("context fragment work exceeds sanitization limit")
+            targets = (
+                statement.targets
+                if isinstance(statement, ast.Assign)
+                else [statement.target]
+                if isinstance(statement, (ast.AnnAssign, ast.AugAssign))
+                else []
+            )
+            if not targets or statement.lineno == statement.end_lineno:
+                continue
+            for target in targets:
+                for node in ast.walk(target):
+                    _check_deadline(deadline)
+                    work += 1
+                    if work > cap:
+                        raise ContractError("context fragment work exceeds sanitization limit")
+                    label = (
+                        node.id
+                        if isinstance(node, ast.Name)
+                        else node.attr
+                        if isinstance(node, ast.Attribute)
+                        else _literal_string(node, deadline)
+                        if isinstance(node, (ast.Constant, ast.BinOp, ast.JoinedStr))
+                        else None
+                    )
+                    if label is not None and _credential_label(label, deadline):
+                        if covered:
+                            if local_rewrite_stable is None:
+                                local_rewrite_stable = _redact_local_json(text, deadline) == text
+                            if local_rewrite_stable:
+                                continue
+                        raise ContractError("unsupported multiline credential assignment")
 
 
 def redact(text: str, deadline: float | None = None) -> str:
@@ -1540,6 +1735,7 @@ def redact(text: str, deadline: float | None = None) -> str:
         if structured is not None:
             return structured
         text = _redact_assignments(text, deadline)
+        _guard_multiline_assignment_ownership(text, deadline)
         text = _redact_local_json(text, deadline)
         decoder = json.JSONDecoder(object_pairs_hook=tuple)
         chunks = []

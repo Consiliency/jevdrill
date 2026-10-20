@@ -69,6 +69,167 @@ def test_multiline_subscript_assignment_keeps_value_attached():
     assert redact(source) == "if True: [redacted]"
 
 
+@pytest.mark.parametrize("witness_id", range(15))
+@pytest.mark.parametrize("presentation", ("plain", "json", "json-log", "backtick"))
+def test_round30_assignment_target_ownership(witness_id, presentation):
+    from jevdrill.context import redact
+
+    # These values are inert strings. The sanitizer only parses assignment
+    # syntax and must never evaluate a supplied expression.
+    sources = (
+        'Ordinary "prose ["secret", "SYNTHETIC_SENTINEL"] = 1"',
+        'Ordinary "prose ["secret", "SYNTHETIC_SENTINEL"] == 1"',
+        'Ordinary "prose ["secret", "SYNTHETIC_SENTINEL"] += 1"',
+        'Ordinary "prose headers["secret", "public"] = SYNTHETIC_SENTINEL"',
+        'Ordinary "prose headers["secret key"] = SYNTHETIC_SENTINEL"',
+        'Ordinary "prose headers["secret/prod"] = SYNTHETIC_SENTINEL"',
+        'Ordinary "prose headers["secret"]["public"] = SYNTHETIC_SENTINEL"',
+        'Ordinary "prose headers["secret"].value = SYNTHETIC_SENTINEL"',
+        'It\'s headers["secret key"] = "SYNTHETIC_SENTINEL" and don\'t',
+        'It\'s headers["secret"]["public"] = "SYNTHETIC_SENTINEL" and don\'t',
+        'It\'s headers["secret"].value = "SYNTHETIC_SENTINEL" and don\'t',
+        'if True: headers[\n"Authorization"\n] = \\\n"SYNTHETIC_SENTINEL"',
+        'if True: headers[\n"Authorization"\n] = (\n"SYNTHETIC_SENTINEL"\n)',
+        'if True: headers[\n"Authorization key"\n] = "SYNTHETIC_SENTINEL"',
+        'if True: (\napi_key,\nother\n) = "SYNTHETIC_SENTINEL", 1',
+    )
+    source = sources[witness_id]
+    if presentation == "json":
+        source = json.dumps(source)
+    elif presentation == "json-log":
+        source = "LOG " + json.dumps(source)
+    elif presentation == "backtick":
+        source = "`" + source + "`"
+    try:
+        cleaned = redact(source)
+    except ContractError:
+        return
+    assert "SYNTHETIC_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("break_text", ("\r", "\n", "\r\n"))
+@pytest.mark.parametrize("suffix", (" \\{br}= ", " \\{br}: str = ", " \\{br}, other = "))
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round30_continued_targets_keep_values_attached(break_text, suffix, presentation):
+    from jevdrill.context import redact
+
+    source = (
+        "if True: headers["
+        + break_text
+        + '"Authorization"'
+        + break_text
+        + "]"
+        + suffix.replace("{br}", break_text)
+        + '"SYNTHETIC_SENTINEL"'
+    )
+    if presentation == "json":
+        source = json.dumps(source)
+    try:
+        cleaned = redact(source)
+    except ContractError:
+        return
+    assert "SYNTHETIC_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize(
+    "source",
+    (
+        'Ordinary "prose ["Content-Type", "application/json"] = 1"',
+        'Ordinary "prose ["Content-Type", "application/json"] == 1"',
+        'Ordinary "prose headers["Content-Type"]["public"] = application_json"',
+        'if True: headers[\n"Content-Type"\n] = \\\n"application/json"\nNext ordinary line.',
+        'if True: headers[\n"Content-Type"\n] = (\n"application/json"\n)\nNext ordinary line.',
+        'if True: (\ncontent_type,\nother\n) = "application/json", 1\nNext ordinary line.',
+    ),
+)
+def test_round30_public_assignment_controls_unchanged(source):
+    from jevdrill.context import redact
+
+    assert redact(source) == source
+
+
+def test_round30_dynamic_nested_target_does_not_detach_value():
+    from jevdrill.context import redact
+
+    source = 'Ordinary "prose headers["secret"][key].value = SYNTHETIC_SENTINEL"'
+    with pytest.raises(ContractError):
+        redact(source)
+    public = 'Ordinary "prose headers["Content-Type"][key].value = application_json"'
+    with pytest.raises(ContractError, match="computed assignment target"):
+        redact(public)
+
+
+@pytest.mark.parametrize(
+    "label",
+    (
+        "s\\u0065cret",
+        "\\u0073ecret",
+        "Authoriz\\u0061tion",
+        "X-API-K\\u0065y",
+        "access_tok\\u0065n",
+        "client_s\\u0065cret",
+    ),
+)
+@pytest.mark.parametrize(
+    "template",
+    (
+        'Ordinary "prose ["{label}", "SYNTHETIC_SENTINEL"] = 1"',
+        'Ordinary "prose ["{label}", "SYNTHETIC_SENTINEL"] == 1"',
+        'Ordinary "prose ["{label}", "SYNTHETIC_SENTINEL"] += 1"',
+        'Ordinary "prose headers["{label}"]["public"].value = SYNTHETIC_SENTINEL"',
+        'It\'s headers["{label}"].value = "SYNTHETIC_SENTINEL" and don\'t',
+        'Ordinary "prose [["{label}", "SYNTHETIC_SENTINEL"]] = 1"',
+    ),
+)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round30_decoded_local_json_labels_keep_values_attached(label, template, presentation):
+    from jevdrill.context import redact
+
+    source = template.format(label=label)
+    if presentation == "json":
+        source = json.dumps(source)
+    try:
+        cleaned = redact(source)
+    except ContractError:
+        return
+    assert "SYNTHETIC_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("label", ("Content-Type", "Content-T\\u0079pe"))
+@pytest.mark.parametrize(
+    "template",
+    (
+        'Ordinary "prose ["{label}", "application/json"] = 1"',
+        'Ordinary "prose headers["{label}"]["public"].value = application_json"',
+        'headers[\n"{label}"\n] = "application/json"\nNext ordinary line.',
+    ),
+)
+def test_round30_decoded_public_label_preserves_original_text(label, template):
+    from jevdrill.context import redact
+
+    source = template.format(label=label)
+    assert redact(source) == source
+
+
+@pytest.mark.parametrize(
+    "fragment",
+    (
+        '["public", ["s\\u0065cret", "SYNTHETIC_SENTINEL"]]',
+        '[["public", 1], ["Authoriz\\u0061tion", "SYNTHETIC_SENTINEL"]]',
+        '{"name":"public","name":"X-API-K\\u0065y","value":"SYNTHETIC_SENTINEL"}',
+    ),
+)
+def test_round30_nested_and_duplicate_encoded_members_do_not_detach(fragment):
+    from jevdrill.context import redact
+
+    source = 'Ordinary "prose ' + fragment + ' = 1"'
+    try:
+        cleaned = redact(source)
+    except ContractError:
+        return
+    assert "SYNTHETIC_SENTINEL" not in cleaned
+
+
 @pytest.mark.parametrize(
     "prefix",
     ("if True: ", "while ready: ", "if True:\n    ", "for item in items:\n    "),

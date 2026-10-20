@@ -10,6 +10,85 @@ from jevdrill.storage import SQLiteStorage
 from tests.retention.test_retention import request
 
 
+@pytest.mark.parametrize("field", ("authorized_context", "description"))
+@pytest.mark.parametrize(
+    "source",
+    (
+        'if True: headers[\n"Authorization"\n] \\\r= "SYNTHETIC_SENTINEL"',
+        'if True: headers[\n"Authorization"\n] \\\n: str = "SYNTHETIC_SENTINEL"',
+        'if True: headers[\n"Authorization"\n] \\\n, other = "SYNTHETIC_SENTINEL"',
+        'Ordinary "prose ["secret", "SYNTHETIC_SENTINEL"] == 1"',
+        'It\'s headers["secret"].value = "SYNTHETIC_SENTINEL" and don\'t',
+        'if True: (\napi_key,\nother\n) = "SYNTHETIC_SENTINEL", 1',
+    ),
+)
+def test_round30_discovery_ingress_prevents_assignment_value_retention(
+    privacy_case_path, privacy_storage, discovery_inputs, discovery_observer, field, source
+):
+    if field == "description":
+        discovery_inputs["descriptions"][0]["description"] = source
+    else:
+        discovery_inputs[field] = source
+    discovery_inputs["settings_layers"].append(
+        {"source": "request", "values": {"retain_raw_tasks": True}}
+    )
+    discovery_inputs["limits"]["max_rounds"] = 1
+    app = Application(privacy_storage, discovery_judgments=discovery_observer)
+    try:
+        app.discover(discovery_inputs)
+    except ContractError:
+        assert not discovery_observer.calls
+    else:
+        assert "SYNTHETIC_SENTINEL" not in json.dumps(discovery_observer.calls)
+    assert b"SYNTHETIC_SENTINEL" not in (privacy_case_path / "route.db").read_bytes()
+    assert all(
+        b"SYNTHETIC_SENTINEL" not in path.read_bytes()
+        for path in (privacy_case_path / "artifacts").rglob("*")
+        if path.is_file()
+    )
+
+
+@pytest.mark.parametrize(
+    ("field", "source"),
+    (
+        ("authorized_context", 'Ordinary "prose ["s\\u0065cret", "SYNTHETIC_SENTINEL"] = 1"'),
+        (
+            "description",
+            'It\'s headers["Authoriz\\u0061tion"].value = "SYNTHETIC_SENTINEL" and don\'t',
+        ),
+        (
+            "resource_option",
+            'Ordinary "prose headers["X-API-K\\u0065y"]["public"].value = SYNTHETIC_SENTINEL"',
+        ),
+    ),
+)
+def test_round30_encoded_labels_do_not_reach_discovery_or_retention(
+    privacy_case_path, privacy_storage, discovery_inputs, discovery_observer, field, source
+):
+    if field == "authorized_context":
+        discovery_inputs[field] = source
+    else:
+        # The alpha description becomes a real resource option during discover.
+        discovery_inputs["descriptions"][0]["description"] = source
+    discovery_inputs["settings_layers"].append(
+        {"source": "request", "values": {"retain_raw_tasks": True}}
+    )
+    discovery_inputs["limits"]["max_rounds"] = 1
+    app = Application(privacy_storage, discovery_judgments=discovery_observer)
+    try:
+        app.discover(discovery_inputs)
+    except ContractError:
+        assert not discovery_observer.calls
+    else:
+        assert "SYNTHETIC_SENTINEL" not in json.dumps(discovery_observer.calls)
+    assert b"SYNTHETIC_SENTINEL" not in (privacy_case_path / "route.db").read_bytes()
+    assert all(
+        b"SYNTHETIC_SENTINEL" not in path.read_bytes()
+        for path in (privacy_case_path / "artifacts").rglob("*")
+        if path.is_file()
+    )
+
+
 @pytest.mark.parametrize(
     "field", ["work_objective_text", "authorized_context", "description", "attachment_refs"]
 )
