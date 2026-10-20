@@ -1449,3 +1449,299 @@ ROUND31_MIXED_VALID_IDENTIFIER_LEAK_WITNESSES = (
     'Note that secret·x["public"] = "SYNTHETIC_PARENT_SENTINEL"wrong',
     'It\'s secret·x["public"] = "SYNTHETIC_PARENT_SENTINEL" and don\'t',
 )
+
+
+# Exact C31 assignment witnesses W1–W5/W7 and A31 raw-XID witnesses.
+# W6 is a comparison and remains an ordinary-data control.
+ROUND32_ASSIGNMENT_WITNESSES = (
+    'Ordinary prose, (secret) = "SYNTHETIC_R31_CORRECTNESS_SENTINEL"',
+    'Ordinary prose, (api_key) = "SYNTHETIC_R31_CORRECTNESS_SENTINEL"',
+    'Ordinary prose, (secret, other) = "SYNTHETIC_R31_CORRECTNESS_SENTINEL", 1',
+    'Ordinary prose, [secret, other] = ["SYNTHETIC_R31_CORRECTNESS_SENTINEL", 1]',
+    "It's (password) = \"SYNTHETIC_R31_CORRECTNESS_SENTINEL\" and don't",
+    'Ordinary "prose" (authorization) = "SYNTHETIC_R31_CORRECTNESS_SENTINEL"',
+    'Note that secret\u0301 = "SYNTHETIC_R31_ASTRA_MARKER"',
+    'Note that secret\u0301 += "SYNTHETIC_R31_ASTRA_MARKER"',
+    "It's secret\u0301 = \"SYNTHETIC_R31_ASTRA_MARKER\" and don't",
+    "It's secret\u0301 += \"SYNTHETIC_R31_ASTRA_MARKER\" and don't",
+)
+
+ROUND32_NAMED_EXPR_WITNESSES = (
+    'Note that (secret\u0301 := "SYNTHETIC_R32_PARENT_SENTINEL")',
+    "It's (secret\u0301 := \"SYNTHETIC_R32_PARENT_SENTINEL\") and don't",
+)
+
+
+@pytest.mark.parametrize("source", ROUND32_ASSIGNMENT_WITNESSES)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round32_exact_assignment_owners_never_reach_output(source, presentation):
+    from jevdrill.context import redact
+
+    text = source if presentation == "plain" else json.dumps(source)
+    with pytest.raises(ContractError, match="credential assignment"):
+        redact(text)
+
+
+@pytest.mark.parametrize("source", ROUND32_NAMED_EXPR_WITNESSES)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round32_exact_named_expression_owners_reject(source, presentation):
+    from jevdrill.context import redact
+
+    text = source if presentation == "plain" else json.dumps(source)
+    with pytest.raises(ContractError, match="credential assignment"):
+        redact(text)
+
+
+@pytest.mark.parametrize(
+    "expression",
+    (
+        '(secret\u0301 := "SYNTHETIC_R32_SENTINEL")',
+        '((secret\u0301 := "SYNTHETIC_R32_SENTINEL"))',
+        '[secret\u0301 := "SYNTHETIC_R32_SENTINEL"]',
+        'cfg[secret\u0301 := "SYNTHETIC_R32_SENTINEL"]',
+        '((secret\u0301 := "SYNTHETIC_R32_SENTINEL") if True else 0)',
+        '(lambda: (secret\u0301 := "SYNTHETIC_R32_SENTINEL"))',
+    ),
+)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round32_named_expression_balanced_owner_grammar(expression, presentation):
+    import ast
+
+    from jevdrill.context import redact
+
+    assert isinstance(ast.parse(expression, mode="eval"), ast.Expression)
+    source = "Note that " + expression
+    text = source if presentation == "plain" else json.dumps(source)
+    try:
+        cleaned = redact(text)
+    except ContractError:
+        return
+    assert "SYNTHETIC_R32_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("keyword", ("if", "while"))
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round32_named_expression_condition_owner(keyword, presentation):
+    import ast
+
+    from jevdrill.context import redact
+
+    statement = f'{keyword} secret\u0301 := "SYNTHETIC_R32_SENTINEL": pass'
+    assert isinstance(ast.parse(statement), ast.Module)
+    source = "Note that " + statement
+    text = source if presentation == "plain" else json.dumps(source)
+    try:
+        cleaned = redact(text)
+    except ContractError:
+        return
+    assert "SYNTHETIC_R32_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize(
+    "name",
+    (
+        "secret\u0301",
+        "secret\u00b7x",
+        "secret\u200c",
+        "secret\u200d",
+        "ｓｅｃｒｅｔ",
+        "𝓼𝓮𝓬𝓻𝓮𝓽",
+        "api_ｋｅｙ",
+    ),
+)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round32_named_expression_runtime_identifier_spellings(name, presentation):
+    import ast
+
+    from jevdrill.context import redact
+
+    assert name.isidentifier()
+    assert isinstance(ast.parse(f"({name} := 1)", mode="eval"), ast.Expression)
+    source = f'Note that ({name} := "SYNTHETIC_R32_SENTINEL")'
+    text = source if presentation == "plain" else json.dumps(source)
+    try:
+        cleaned = redact(text)
+    except ContractError:
+        return
+    assert "SYNTHETIC_R32_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize(
+    "name",
+    (
+        "content_type\u0301",
+        "public\u00b7x",
+        "public\u200c",
+        "public\u200d",
+        "ｃｏｎｔｅｎｔ_ｔｙｐｅ",
+    ),
+)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round32_public_named_expression_runtime_identifier_twins(name, presentation):
+    from jevdrill.context import redact
+
+    source = f'Note that ({name} := "application/json")'
+    text = source if presentation == "plain" else json.dumps(source)
+    assert redact(text) == text
+
+
+@pytest.mark.parametrize(
+    "source",
+    (
+        'Note that (content_type := "application/json")',
+        "It's (content_type := \"application/json\") and don't",
+        'Note that ((content_type := "application/json") if True else 0)',
+        'Note that if content_type := "application/json": pass',
+        'Note that while content_type := "application/json": pass',
+    ),
+)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round32_public_named_expression_controls(source, presentation):
+    from jevdrill.context import redact
+
+    text = source if presentation == "plain" else json.dumps(source)
+    assert redact(text) == text
+
+
+ROUND32_GRAMMAR_TARGETS = (
+    "secret",
+    "api_key",
+    "secret\u0301",
+    "secret\u00b7x",
+    "secret\u200c",
+    "secret\u200d",
+    "ｓｅｃｒｅｔ",
+    "cfg.secret\u0301",
+    "(secret)",
+    "((secret))",
+    "(secret, other)",
+    "[secret, other]",
+    "(secret, (other,))",
+    "[other, *secret]",
+    'secret[\n"public"\n]',
+)
+
+
+def _round32_valid_target_operator(target, operator):
+    import ast
+
+    try:
+        ast.parse(target + operator + '"SYNTHETIC_R32_SENTINEL"')
+    except SyntaxError:
+        return False
+    return True
+
+
+ROUND32_VALID_TARGET_OPERATOR_PAIRS = tuple(
+    (target, operator)
+    for target in ROUND32_GRAMMAR_TARGETS
+    for operator in (" = ", " += ", " : str = ")
+    if _round32_valid_target_operator(target, operator)
+)
+assert len(ROUND32_VALID_TARGET_OPERATOR_PAIRS) == 37
+
+
+@pytest.mark.parametrize("target,operator", ROUND32_VALID_TARGET_OPERATOR_PAIRS)
+@pytest.mark.parametrize("prefix", ("Note that ", "It's "))
+def test_round32_runtime_valid_local_target_grammar(target, operator, prefix):
+    import ast
+
+    from jevdrill.context import redact
+
+    statement = target + operator + '"SYNTHETIC_R32_SENTINEL"'
+    assert isinstance(ast.parse(statement), ast.Module)
+    source = prefix + statement + (" and don't" if prefix.startswith("It's") else "")
+    for text in (source, json.dumps(source)):
+        try:
+            cleaned = redact(text)
+        except ContractError:
+            continue
+        assert "SYNTHETIC_R32_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("linebreak", ("\n", "\r", "\r\n"))
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round32_explicit_continuation_owns_sensitive_name(linebreak, presentation):
+    from jevdrill.context import redact
+
+    source = "Note that api_key\u0301 " + chr(92) + linebreak + '= "SYNTHETIC_R32_SENTINEL"'
+    text = source if presentation == "plain" else json.dumps(source)
+    try:
+        cleaned = redact(text)
+    except ContractError:
+        return
+    assert "SYNTHETIC_R32_SENTINEL" not in cleaned
+
+
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round32_complete_standalone_target_still_redacts(presentation):
+    from jevdrill.context import redact
+
+    for source in (
+        '(secret) = "SYNTHETIC_R32_SENTINEL"',
+        '(secret, other) = "SYNTHETIC_R32_SENTINEL", 1',
+        '[secret, other] = ["SYNTHETIC_R32_SENTINEL", 1]',
+    ):
+        text = source if presentation == "plain" else json.dumps(source)
+        assert redact(text) == ("[redacted]" if presentation == "plain" else '"[redacted]"\n')
+
+
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round32_public_and_ordinary_following_line_controls(presentation):
+    from jevdrill.context import redact
+
+    for source in (
+        'Ordinary prose, (content_type) = "application/json"',
+        'Note that cfg.public["content_type"] = "application/json"',
+        'Note that public["content_type"] = "application/json"',
+        'Note that cfg[content_type] = "application/json"',
+        "The secret (to success) is patience.",
+        'Ordinary prose, (secret) == "SYNTHETIC_R31_CORRECTNESS_SENTINEL"',
+    ):
+        text = source if presentation == "plain" else json.dumps(source)
+        assert redact(text) == text
+    source = 'secret = "SYNTHETIC_R32_SENTINEL"\nOrdinary next line.'
+    text = source if presentation == "plain" else json.dumps(source)
+    cleaned = redact(text)
+    assert "SYNTHETIC_R32_SENTINEL" not in cleaned
+    assert "Ordinary next line." in cleaned
+
+
+@pytest.mark.parametrize("character", ("\u0301", "\u00b7", "\u200c", "\u200d"))
+def test_round32_identifier_continuation_matches_runtime_parser(character):
+    import ast
+
+    spelling = "secret" + character
+    assert spelling.isidentifier()
+    assert ("a" + character).isidentifier()
+    assert isinstance(ast.parse(spelling + " = 1").body[0], ast.Assign)
+
+
+@pytest.mark.parametrize(
+    "name",
+    (
+        "content_type\u0301",
+        "public\u00b7x",
+        "public\u200c",
+        "public\u200d",
+        "ｃｏｎｔｅｎｔ_ｔｙｐｅ",
+    ),
+)
+@pytest.mark.parametrize("presentation", ("plain", "json"))
+def test_round32_runtime_valid_public_identifier_controls(name, presentation):
+    import ast
+
+    from jevdrill.context import redact
+
+    assert name.isidentifier()
+    assert isinstance(ast.parse(name + " = 1").body[0], ast.Assign)
+    source = f'Note that {name}["public"] = "application/json"'
+    text = source if presentation == "plain" else json.dumps(source)
+    assert redact(text) == text
+
+
+def test_round32_ordinary_long_paragraph_stays_ordinary():
+    from jevdrill.context import redact
+
+    source = "The secret is patience. " * 1000 + "public = 1"
+    assert redact(source) == source

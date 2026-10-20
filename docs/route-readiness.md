@@ -78,6 +78,23 @@ tuple targets, or explicit continuations are checked independently of
 surrounding prose tokenization. Locally parsed Python identifiers use
 Python continuation rules; both raw and NFKC spellings are passed to the existing
 credential-label predicate; structured labels retain their prior scope.
+After existing complete-statement redaction, a bounded local parser checks surviving
+Python assignment targets inside prose and quoted text. It follows runtime-valid
+identifier spellings (including supported format continuations), grouping, tuples,
+lists, attributes, subscripts, annotations, augmented operators, and CR/LF/CRLF
+continuations; a recognized sensitive target is rejected before application effects.
+Locally complete assignment expressions (`:=`) are parsed as Python expressions
+within balanced containers or condition clauses; their actual `NamedExpr` targets
+are checked using the raw source spelling as well as its NFKC spelling. Comparisons
+remain ordinary controls. Invalid local syntax is not promoted to a recognized
+target by a marker-shaped substring alone.
+The target check excludes subscript indices and keeps comparisons and public
+Content-Type controls in their established paths. Runtime-valid identifier
+spellings are compared in raw and NFKC form only for this local target check;
+structured credential-label policy is unchanged. The parser charges scanning
+and target inspection to the existing work cap and deadline. Earlier reports
+called U+200C invalid, but the pinned Python runtime accepts U+200C and U+200D
+in identifiers; current regression controls follow the runtime parser.
 Original structured labels are inspected before assignment
 rewriting so sibling sensitivity is preserved. Continuation scanning is linear;
 literal parser resource failures become boundary rejections.

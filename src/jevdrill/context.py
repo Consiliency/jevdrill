@@ -1708,6 +1708,227 @@ def _guard_sensitive_name_targets(text: str, deadline: float | None) -> None:
             i += 1
 
 
+def _guard_local_assignment_owners(text: str, deadline: float | None) -> None:
+    """Prove a local Python assignment target before releasing unstructured prose.
+
+    A candidate starts at a runtime-valid identifier or a grouping opener that
+    encloses it. Only Python target nodes own a spelling; subscript indices and
+    annotations do not. Incomplete/unsupported local ownership fails closed.
+    """
+    cap = 16 * len(text) + 100_000
+    work = 0
+
+    def charge(amount: int = 1) -> None:
+        nonlocal work
+        work += amount
+        if work > cap:
+            raise ContractError("context fragment work exceeds sanitization limit")
+        _check_deadline(deadline)
+
+    def sensitive_name(spelling: str) -> bool:
+        return _credential_label(spelling, deadline) or _credential_label(
+            unicodedata.normalize("NFKC", spelling), deadline
+        )
+
+    def owners(node: ast.AST) -> list[str]:
+        charge()
+        if isinstance(node, ast.Name):
+            return [node.id]
+        if isinstance(node, ast.Attribute):
+            return [*owners(node.value), node.attr]
+        if isinstance(node, ast.Subscript):
+            return owners(node.value)
+        if isinstance(node, (ast.Tuple, ast.List)):
+            return [name for element in node.elts for name in owners(element)]
+        if isinstance(node, ast.Starred):
+            return owners(node.value)
+        return []
+
+    def named_expression_owner(start: int, grouped: bool) -> bool:
+        """Inspect a locally complete walrus expression, including its raw target."""
+        cursor = start
+        groups: list[str] = []
+        quote = ""
+        escaped = False
+        while cursor < len(text):
+            charge()
+            char = text[cursor]
+            if quote:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == quote:
+                    quote = ""
+                cursor += 1
+                continue
+            if char in "\"'":
+                quote = char
+                cursor += 1
+                continue
+            if char in "([{":
+                groups.append(char)
+            elif char in ")]}":
+                if not groups:
+                    break
+                if {"(": ")", "[": "]", "{": "}"}[groups.pop()] != char:
+                    return False
+                if grouped and not groups:
+                    cursor += 1
+                    break
+            # The initial colon is the walrus operator, not a clause
+            # delimiter. A later colon ends an if/while condition.
+            elif (
+                not grouped
+                and not groups
+                and char in ",:\r\n\x85\u2028\u2029"
+                and (char != ":" or not text.startswith(":=", cursor))
+            ):
+                break
+            cursor += 1
+        fragment = _validation_view(text[start:cursor], deadline)
+        charge(len(fragment))
+        if not grouped:
+            fragment = "(" + fragment + ")"
+        try:
+            with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                expression = ast.parse(fragment, mode="eval")
+        except (SyntaxError, ValueError):
+            return False
+        for node in ast.walk(expression):
+            charge()
+            if isinstance(node, ast.NamedExpr):
+                spelling = ast.get_source_segment(fragment, node.target)
+                if spelling is not None and sensitive_name(spelling):
+                    return True
+        return False
+
+    def assignment_target(start: int) -> list[str] | None:
+        # Inspect one physical/logical record. Grouping and explicit backslash
+        # continuations carry the record through CR, LF, and CRLF.
+        cursor = start
+        groups: list[str] = []
+        quote = ""
+        escaped = False
+        while cursor < len(text):
+            charge()
+            char = text[cursor]
+            if quote:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == quote:
+                    quote = ""
+                cursor += 1
+                continue
+            # An apostrophe between identifier characters is prose, not
+            # a Python quote opener (It's, don't).
+            if char in "\"'" and (
+                char != "'"
+                or not (
+                    cursor > 0
+                    and cursor + 1 < len(text)
+                    and ("a" + text[cursor - 1]).isidentifier()
+                    and ("a" + text[cursor + 1]).isidentifier()
+                )
+            ):
+                quote = char
+                cursor += 1
+                continue
+            if char == "\\" and cursor + 1 < len(text) and text[cursor + 1] in "\r\n":
+                cursor += 3 if text.startswith("\\\r\n", cursor) else 2
+                charge(2)
+                continue
+            if char in "([{":
+                groups.append(char)
+            elif char in ")]}":
+                if not groups or {"(": ")", "[": "]", "{": "}"}[groups[-1]] != char:
+                    return None
+                groups.pop()
+            elif char in "\r\n\x85\u2028\u2029" and not groups:
+                return None
+            elif char == "=" and not groups:
+                if (cursor + 1 < len(text) and text[cursor + 1] == "=") or (
+                    cursor > start and text[cursor - 1] in "!<>="
+                ):
+                    cursor += 1
+                    continue
+                fragment = text[start : cursor + 1]
+                charge(len(fragment))
+                try:
+                    with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+                        statement = ast.parse(_validation_view(fragment + " None", deadline)).body
+                except (SyntaxError, ValueError):
+                    return None
+                if len(statement) != 1:
+                    return None
+                item = statement[0]
+                targets = (
+                    item.targets
+                    if isinstance(item, ast.Assign)
+                    else ([item.target] if isinstance(item, (ast.AnnAssign, ast.AugAssign)) else [])
+                )
+                return [name for target in targets for name in owners(target)]
+            cursor += 1
+        return None
+
+    # Track grouping openers in a single pass. Quote state is deliberately
+    # local to candidate parsing: quoted prose before an assignment can be
+    # syntactically invalid while the target itself is still valid Python.
+    openers: list[tuple[str, int]] = []
+    scan = 0
+    while scan < len(text):
+        charge()
+        char = text[scan]
+        if char in "([":
+            openers.append((char, scan))
+        elif char in ")]" and openers:
+            openers.pop()
+        if not char.isidentifier() or (scan and ("a" + text[scan - 1]).isidentifier()):
+            scan += 1
+            continue
+        begin = scan
+        scan += 1
+        while scan < len(text) and ("a" + text[scan]).isidentifier():
+            charge()
+            scan += 1
+        spelling = text[begin:scan]
+        if not spelling.isidentifier() or not sensitive_name(spelling):
+            continue
+        lookahead = scan
+        while lookahead < len(text) and text[lookahead] in " \t\f":
+            charge()
+            lookahead += 1
+        if lookahead >= len(text) or text[lookahead] not in "=:+-*/%@&|^\\,.)]([":
+            continue
+        if text.startswith(":=", lookahead) and (
+            named_expression_owner(begin, grouped=False)
+            or any(
+                named_expression_owner(position, grouped=True) for _, position in reversed(openers)
+            )
+        ):
+            raise ContractError("unsupported credential assignment")
+        starts = [begin]
+        for kind, position in reversed(openers):
+            charge()
+            # A postfix '[' is a subscript of its preceding expression, not
+            # a new grouping target rooted at its index.
+            before = position - 1
+            if (
+                kind == "["
+                and before >= 0
+                and (("a" + text[before]).isidentifier() or text[before] in ")]")
+            ):
+                continue
+            starts.append(position)
+        for start in starts:
+            charge()
+            labels = assignment_target(start)
+            if labels is not None and any(sensitive_name(label) for label in labels):
+                raise ContractError("unsupported credential assignment")
+
+
 def _redact_local_json(text: str, deadline: float | None) -> str:
     """Sanitize complete JSON containers from their own opening delimiter."""
     decoder = json.JSONDecoder(object_pairs_hook=tuple)
@@ -1980,10 +2201,12 @@ def redact(text: str, deadline: float | None = None) -> str:
             return _redact_plain(text, deadline)
         structured = _structured(text, deadline)
         if structured is not None:
+            _guard_local_assignment_owners(structured, deadline)
             return structured
         _guard_sensitive_name_targets(text, deadline)
         text = _redact_assignments(text, deadline)
         _guard_multiline_assignment_ownership(text, deadline)
+        _guard_local_assignment_owners(text, deadline)
         text = _redact_local_json(text, deadline)
         decoder = json.JSONDecoder(object_pairs_hook=tuple)
         chunks = []
