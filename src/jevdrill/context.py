@@ -48,18 +48,26 @@ PRIVATE_KEY_END = re.compile(r"-----END [^-]*PRIVATE KEY-----", re.IGNORECASE)
 QUOTED_SCALAR = re.compile(r"""(?:'(?:[^']|'')*'|"(?:[^"\\]|\\[\s\S])*")""")
 PYTHON_QUOTED_SCALAR = re.compile(r"""(?:'(?:[^'\\]|\\[\s\S])*'|"(?:[^"\\]|\\[\s\S])*")""")
 ESCAPED_LABEL_COLON = re.compile(rf"(?:{INDENT}|{LINE_BREAK}|\#{LINE_TEXT}*{LINE_BREAK})*:")
+# Free-text assignments also occur in supplied shell/JS/Perl/Make snippets.
+# Keep their lexical operators consistent before local Python/JSON parsing can
+# separate a sensitive target fragment from its value. Inputs are never run.
+AUGMENTED_OPERATOR = r"(?:\*\*|//|<<|>>|\|\||&&|\?\?|[+\-*/%@&|^?.])"
+ASSIGNMENT_OPERATOR = rf"{AUGMENTED_OPERATOR}?="
+CREDENTIAL_WORD = rf"[\w.-]*(?:{CREDENTIAL_LABEL})[\w.-]*"
 ESCAPED_LABEL_ASSIGNMENT = re.compile(
-    r"[^\S\r\n\x85\u2028\u2029]*\][^\S\r\n\x85\u2028\u2029]*(?:\+|\-|\*|/|%|&|\||\^|<<|>>|//|\*\*)?="
+    rf"[^\S\r\n\x85\u2028\u2029]*\][^\S\r\n\x85\u2028\u2029]*{ASSIGNMENT_OPERATOR}"
 )
 CREDENTIAL = re.compile(
-    rf"""(?i)(?<![\w.-])(?:[\w.]+\s*+\[\s*+)?(?:["'][^\S\r\n]*+)?[\w.-]*(?:{CREDENTIAL_LABEL})"""
-    r"""[\w.-]*[^\S\r\n]*+["']?\s*+\]?\s*+(?::|(?:\*\*|//|<<|>>|[+\-*/%@&|^])?=)"""
+    rf"""(?i)(?:(?<![\w.-])(?:[\w.]+\s*+\[\s*+)?(?:["'][^\S\r\n]*+)?{CREDENTIAL_WORD}"""
+    r"""[^\S\r\n]*+["'`]?\s*+\]?"""
+    rf"""|\$[\w.]+\s*+\{{\s*+(?:["'][^\S\r\n]*+)?{CREDENTIAL_WORD}[^\S\r\n]*+["']?\s*+\}})"""
+    rf"\s*+(?::|{ASSIGNMENT_OPERATOR})"
     rf"{LINE_TEXT}*"
     rf"(?:{CONTINUATION})*"
     + rf"""|(?<![^\r\n\x85\u2028\u2029"']){INDENT}*(?:bearer|basic)\s+[^\s"',;}}\]]+"""
     + rf"""[^\r\n\x85\u2028\u2029"',;}}\]]*(?:{CONTINUATION})*"""
 )
-TARGET_AUGMENTED = re.compile(r"(?:\*\*|//|<<|>>|[+\-*/%@&|^])=")
+TARGET_AUGMENTED = re.compile(rf"{AUGMENTED_OPERATOR}=")
 TARGET_COMPARISON_WORD = re.compile(r"(?:is|in|not\s+in)\b")
 CONTEXT_PART = re.compile(
     "(?P<credential>" + CREDENTIAL.pattern.removeprefix("(?i)") + r")|[\[{\"]",
@@ -1537,7 +1545,7 @@ def _sensitive_array_tail(
     i = spacing(closing)
     postfixed = False
     while i < len(text):
-        if text[i] == ".":
+        if text[i] == "." and not TARGET_AUGMENTED.match(text, i):
             postfixed = True
             i += 1
             step()
@@ -1566,7 +1574,7 @@ def _sensitive_array_tail(
         return "unsafe" if postfixed else "assignment"
     if text[i] in "<>!" or TARGET_COMPARISON_WORD.match(text, i):
         return "unsafe"
-    if text[i] in "+-*/%@&|^<>" and TARGET_AUGMENTED.match(text, i):
+    if TARGET_AUGMENTED.match(text, i):
         return "unsafe" if postfixed else "assignment"
     if text[i] in ":,":
         # Annotations and tuple/chained targets may continue over explicit
@@ -1588,7 +1596,7 @@ def _sensitive_array_tail(
                     return "unsafe"
                 i = nxt
                 continue
-            if ch == "=" or (ch in "+-*/%@&|^<>" and TARGET_AUGMENTED.match(text, i)):
+            if ch == "=" or TARGET_AUGMENTED.match(text, i):
                 return "unsafe"
             if ch in "<>!":
                 return "unsafe"
@@ -1609,7 +1617,7 @@ def _sensitive_array_tail(
         ch = text[i]
         if ch in "\r\n\x85\u2028\u2029":
             break
-        if ch in "=<>!" or (ch in "+-*/%@&|^" and TARGET_AUGMENTED.match(text, i)):
+        if ch in "=<>!" or TARGET_AUGMENTED.match(text, i):
             return "unsafe"
         if ch in "in" and TARGET_COMPARISON_WORD.match(text, i):
             return "unsafe"
@@ -1716,8 +1724,16 @@ def _guard_extended_credential_assignments(text: str, deadline: float | None) ->
     """
     cap = 16 * len(text) + 100_000
     work = 0
-    label = re.compile(rf"(?i)(?<![\w.-])[\w.-]*(?:{CREDENTIAL_LABEL})[\w.-]*")
-    operator = re.compile(r"(?:\*\*|//|<<|>>|[+\-*/%@&|^:])?=(?!=)")
+    label = re.compile(
+        rf"""(?i)(?<![\w.-])(?P<hash>\$[\w.]+\s*+\{{\s*+(?:["']\s*+)?)?{CREDENTIAL_WORD}"""
+    )
+    horizontal = r"[^\S\r\n\x85\u2028\u2029]*+"
+    # Quoted subscript keys and Perl hash keys can own a following operator.
+    # An unquoted Python subscript index does not own the assignment.
+    operator = re.compile(
+        rf"""(?:["'`]{horizontal}(?:\]\s*+)?)?(?::=?|{ASSIGNMENT_OPERATOR})(?!=)"""
+    )
+    hash_operator = re.compile(rf"""["']?{horizontal}\}}\s*+(?::=?|{ASSIGNMENT_OPERATOR})(?!=)""")
     for match in label.finditer(text):
         _check_deadline(deadline)
         work += match.end() - match.start()
@@ -1750,7 +1766,8 @@ def _guard_extended_credential_assignments(text: str, deadline: float | None) ->
             if work > cap:
                 raise ContractError("context fragment work exceeds sanitization limit")
             _check_deadline(deadline)
-        if hidden and operator.match(text, cursor):
+        associated_operator = hash_operator if match.group("hash") else operator
+        if hidden and associated_operator.match(text, cursor):
             raise ContractError("unsupported credential assignment")
 
 
@@ -2033,7 +2050,7 @@ def _guard_local_assignment_owners(
                 break
         # A grouped target can continue through comments and physical lines.
         if not openers and (
-            lookahead >= len(text) or text[lookahead] not in "=:+-*/%@&|^\\,.)]([<>"
+            lookahead >= len(text) or text[lookahead] not in "=:+-*/%@&|^?\\,.)]([<>"
         ):
             continue
         if text.startswith(":=", lookahead) and (
@@ -2066,7 +2083,7 @@ def _guard_local_assignment_owners(
 def _redact_local_json(text: str, deadline: float | None) -> str:
     """Sanitize complete JSON containers from their own opening delimiter."""
     decoder = json.JSONDecoder(object_pairs_hook=tuple)
-    assignment_operator = re.compile(r"(?:(?:\*\*|//|<<|>>|[+\-*/%@&|^])?=)")
+    assignment_operator = re.compile(ASSIGNMENT_OPERATOR)
     chunks: list[str] = []
     end = 0
     work = 0

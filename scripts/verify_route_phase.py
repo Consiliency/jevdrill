@@ -53,6 +53,9 @@ REQUIRED_CONTROLS = {
         "tests/privacy/test_round34_combined.py::test_suffix_assignments_never_reach_six_application_sinks",
         "tests/privacy/test_round34_combined.py::test_raw_multiline_owner_rejects_before_six_application_effects_and_bytes",
         "tests/privacy/test_round34_combined.py::test_multiline_named_expression_checks_raw_owner",
+        "tests/privacy/test_round35_records.py::test_sensitive_records_never_reach_six_application_sinks",
+        "tests/privacy/test_round35_records.py::test_hidden_suffix_records_after_prose_are_clean",
+        "tests/privacy/test_round35_records.py::test_alternate_key_delimiters_are_clean",
     ],
     "EC-ROUTE-5": [
         "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity",
@@ -77,6 +80,9 @@ REQUIRED_CONTROLS = {
     ],
 }
 CONTROL_COUNTS = {
+    "tests/privacy/test_round35_records.py::test_sensitive_records_never_reach_six_application_sinks": 288,
+    "tests/privacy/test_round35_records.py::test_hidden_suffix_records_after_prose_are_clean": 96,
+    "tests/privacy/test_round35_records.py::test_alternate_key_delimiters_are_clean": 96,
     "tests/privacy/test_round34_combined.py::test_suffix_assignments_never_reach_six_application_sinks": 216,
     "tests/privacy/test_round34_combined.py::test_raw_multiline_owner_rejects_before_six_application_effects_and_bytes": 24,
     "tests/privacy/test_round34_combined.py::test_multiline_named_expression_checks_raw_owner": 48,
@@ -103,6 +109,7 @@ REQUIRED_TEST_PATHS = (
     "tests/privacy/test_jev_privacy.py",
     "tests/privacy/test_application_privacy.py",
     "tests/privacy/test_round34_combined.py",
+    "tests/privacy/test_round35_records.py",
 )
 
 

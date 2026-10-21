@@ -395,9 +395,12 @@ def test_reducer_requires_executed_controls(evidence_root, mutation):
         "tests/privacy/test_round34_combined.py::test_suffix_assignments_never_reach_six_application_sinks",
         "tests/privacy/test_round34_combined.py::test_raw_multiline_owner_rejects_before_six_application_effects_and_bytes",
         "tests/privacy/test_round34_combined.py::test_multiline_named_expression_checks_raw_owner",
+        "tests/privacy/test_round35_records.py::test_sensitive_records_never_reach_six_application_sinks",
+        "tests/privacy/test_round35_records.py::test_hidden_suffix_records_after_prose_are_clean",
+        "tests/privacy/test_round35_records.py::test_alternate_key_delimiters_are_clean",
     ),
 )
-def test_reducer_rejects_one_missing_r34_parameter(evidence_root, control):
+def test_reducer_rejects_one_missing_privacy_parameter(evidence_root, control):
     row = manifest("Linux")
     missing = next(
         index

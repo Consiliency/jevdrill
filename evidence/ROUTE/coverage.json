@@ -34,7 +34,8 @@
       "tests/privacy/test_round34_combined.py",
       "tests/settings/test_settings.py",
       "tests/cli/test_discovery_cli.py",
-      "tests/cli/test_cli.py"
+      "tests/cli/test_cli.py",
+      "tests/privacy/test_round35_records.py"
     ],
     "EC-ROUTE-5": [
       "tests/contracts/test_discovery_contracts.py",
@@ -74,7 +75,10 @@
       "tests/cli/test_discovery_cli.py::test_cold_discover_inspect_replay_delete_commands",
       "tests/privacy/test_round34_combined.py::test_suffix_assignments_never_reach_six_application_sinks",
       "tests/privacy/test_round34_combined.py::test_raw_multiline_owner_rejects_before_six_application_effects_and_bytes",
-      "tests/privacy/test_round34_combined.py::test_multiline_named_expression_checks_raw_owner"
+      "tests/privacy/test_round34_combined.py::test_multiline_named_expression_checks_raw_owner",
+      "tests/privacy/test_round35_records.py::test_sensitive_records_never_reach_six_application_sinks",
+      "tests/privacy/test_round35_records.py::test_hidden_suffix_records_after_prose_are_clean",
+      "tests/privacy/test_round35_records.py::test_alternate_key_delimiters_are_clean"
     ],
     "EC-ROUTE-5": [
       "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity",
