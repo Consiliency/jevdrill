@@ -50,6 +50,9 @@ REQUIRED_CONTROLS = {
     "EC-ROUTE-4": [
         "tests/privacy/test_discovery_privacy.py::test_metadata_replay_has_no_raw_objective_description_or_provider_payload",
         "tests/cli/test_discovery_cli.py::test_cold_discover_inspect_replay_delete_commands",
+        "tests/privacy/test_round34_combined.py::test_suffix_assignments_never_reach_six_application_sinks",
+        "tests/privacy/test_round34_combined.py::test_raw_multiline_owner_rejects_before_six_application_effects_and_bytes",
+        "tests/privacy/test_round34_combined.py::test_multiline_named_expression_checks_raw_owner",
     ],
     "EC-ROUTE-5": [
         "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity",
@@ -74,6 +77,9 @@ REQUIRED_CONTROLS = {
     ],
 }
 CONTROL_COUNTS = {
+    "tests/privacy/test_round34_combined.py::test_suffix_assignments_never_reach_six_application_sinks": 216,
+    "tests/privacy/test_round34_combined.py::test_raw_multiline_owner_rejects_before_six_application_effects_and_bytes": 24,
+    "tests/privacy/test_round34_combined.py::test_multiline_named_expression_checks_raw_owner": 48,
     "tests/integrations/test_discovery_jev.py::test_discovery_call_rechecks_authorization_before_http": 3,
     "tests/verification/test_route_phase.py::test_reducer_rejects_inputs_changed_during_collection": 2,
     "tests/application/test_discovery_application.py::test_bad_links_never_enter_prepare": 8,
@@ -96,6 +102,7 @@ REQUIRED_TEST_PATHS = (
     "tests/privacy/test_context_privacy.py",
     "tests/privacy/test_jev_privacy.py",
     "tests/privacy/test_application_privacy.py",
+    "tests/privacy/test_round34_combined.py",
 )
 
 

@@ -389,6 +389,29 @@ def test_reducer_requires_executed_controls(evidence_root, mutation):
     )
 
 
+@pytest.mark.parametrize(
+    "control",
+    (
+        "tests/privacy/test_round34_combined.py::test_suffix_assignments_never_reach_six_application_sinks",
+        "tests/privacy/test_round34_combined.py::test_raw_multiline_owner_rejects_before_six_application_effects_and_bytes",
+        "tests/privacy/test_round34_combined.py::test_multiline_named_expression_checks_raw_owner",
+    ),
+)
+def test_reducer_rejects_one_missing_r34_parameter(evidence_root, control):
+    row = manifest("Linux")
+    missing = next(
+        index
+        for index, item in enumerate(row["assertions"])
+        if item["node_id"].startswith(control + "[")
+    )
+    row["assertions"].pop(missing)
+    row["tests"]["total"] -= 1
+    row["assertions_sha256"] = runner.command_digest(row["assertions"])
+    assert "missing executed control: " + control in runner.reduce_manifests(
+        [row], "fixture", evidence_root, required_platforms={("Linux", "3.13")}
+    )
+
+
 def test_input_binding_includes_nested_pinned_patch(evidence_root):
     path = evidence_root / "baml_src/ns_typesafe_patch/ns_internal/jev.baml"
     path.parent.mkdir(parents=True)
