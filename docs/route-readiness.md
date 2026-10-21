@@ -92,6 +92,12 @@ ASCII credential substring. Subscript indices and annotations do not own the
 assignment, while `<<=` and `>>=` remain assignment operators. Comparisons
 remain ordinary controls. Invalid local syntax is not promoted to a recognized
 target by a marker-shaped substring alone.
+An intact credential label extended by invisible format, combining or non-ASCII
+space characters and attached ordinary suffix spelling before an assignment
+operator is rejected as a free-text assignment, even when it is not a valid
+Python identifier. Grouped
+Python targets are checked against their raw owner spans through comments and
+CR/LF/CRLF continuations.
 The target check excludes subscript indices and keeps comparisons and public
 Content-Type controls in their established paths. Runtime-valid identifier
 spellings are compared in raw and NFKC form only for this local target check;

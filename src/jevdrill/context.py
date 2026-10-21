@@ -1708,6 +1708,52 @@ def _guard_sensitive_name_targets(text: str, deadline: float | None) -> None:
             i += 1
 
 
+def _guard_extended_credential_assignments(text: str, deadline: float | None) -> None:
+    """Reject intact credential labels with invisible and ordinary suffixes.
+
+    These are free-text records even when the suffix makes the target invalid
+    Python. Scan only the supplied text; never build a Unicode-wide table.
+    """
+    cap = 16 * len(text) + 100_000
+    work = 0
+    label = re.compile(rf"(?i)(?<![\w.-])[\w.-]*(?:{CREDENTIAL_LABEL})[\w.-]*")
+    operator = re.compile(r"(?:\*\*|//|<<|>>|[+\-*/%@&|^:])?=(?!=)")
+    for match in label.finditer(text):
+        _check_deadline(deadline)
+        work += match.end() - match.start()
+        if work > cap:
+            raise ContractError("context fragment work exceeds sanitization limit")
+        if not _credential_label(match.group(), deadline):
+            continue
+        cursor = match.end()
+        hidden = False
+        adjacent = False
+        while cursor < len(text):
+            char = text[cursor]
+            if char in "\r\n\x85\u2028\u2029":
+                break
+            category = unicodedata.category(char)
+            if char in " \t\f" or category == "Zs":
+                hidden = hidden or char not in " \t\f"
+                adjacent = False
+            elif category in {"Cf", "Mn", "Me", "Cc"}:
+                hidden = True
+                adjacent = True
+            elif hidden and adjacent and (char.isalnum() or char in "_.-"):
+                # A hidden separator may split one raw label into several
+                # ordinary spelling runs, including hyphenated suffixes.
+                pass
+            else:
+                break
+            cursor += 1
+            work += 1
+            if work > cap:
+                raise ContractError("context fragment work exceeds sanitization limit")
+            _check_deadline(deadline)
+        if hidden and operator.match(text, cursor):
+            raise ContractError("unsupported credential assignment")
+
+
 def _guard_local_assignment_owners(
     text: str, deadline: float | None, *, pending_plain_redaction: bool = False
 ) -> None:
@@ -1777,9 +1823,16 @@ def _guard_local_assignment_owners(
         groups: list[str] = []
         quote = ""
         escaped = False
+        comment = False
         while cursor < len(text):
             charge()
             char = text[cursor]
+            if comment:
+                if char in "\r\n\x85\u2028\u2029":
+                    comment = False
+                else:
+                    cursor += 1
+                    continue
             if quote:
                 if escaped:
                     escaped = False
@@ -1791,6 +1844,10 @@ def _guard_local_assignment_owners(
                 continue
             if char in "\"'":
                 quote = char
+                cursor += 1
+                continue
+            if char == "#":
+                comment = True
                 cursor += 1
                 continue
             if char in "([{":
@@ -1837,9 +1894,16 @@ def _guard_local_assignment_owners(
         groups: list[str] = []
         quote = ""
         escaped = False
+        comment = False
         while cursor < len(text):
             charge()
             char = text[cursor]
+            if comment:
+                if char in "\r\n\x85\u2028\u2029":
+                    comment = False
+                else:
+                    cursor += 1
+                    continue
             if quote:
                 if escaped:
                     escaped = False
@@ -1861,6 +1925,10 @@ def _guard_local_assignment_owners(
                 )
             ):
                 quote = char
+                cursor += 1
+                continue
+            if char == "#":
+                comment = True
                 cursor += 1
                 continue
             if char == "\\" and cursor + 1 < len(text) and text[cursor + 1] in "\r\n":
@@ -1914,12 +1982,19 @@ def _guard_local_assignment_owners(
     # Track grouping openers in a single pass. Quote state is deliberately
     # local to candidate parsing: quoted prose before an assignment can be
     # syntactically invalid while the target itself is still valid Python.
+    _guard_extended_credential_assignments(text, deadline)
     openers: list[tuple[str, int]] = []
     scan = 0
+    comment = False
     while scan < len(text):
         charge()
         char = text[scan]
-        if char in "([":
+        if comment:
+            if char in "\r\n\x85\u2028\u2029":
+                comment = False
+        elif char == "#" and openers:
+            comment = True
+        elif char in "([":
             openers.append((char, scan))
         elif char in ")]" and openers:
             openers.pop()
@@ -1944,10 +2019,22 @@ def _guard_local_assignment_owners(
         if not spelling.isidentifier() or not sensitive_name(spelling):
             continue
         lookahead = scan
-        while lookahead < len(text) and text[lookahead] in " \t\f":
-            charge()
-            lookahead += 1
-        if lookahead >= len(text) or text[lookahead] not in "=:+-*/%@&|^\\,.)]([<>":
+        while lookahead < len(text):
+            if text[lookahead] in " \t\f" or (
+                openers and text[lookahead] in "\r\n\x85\u2028\u2029"
+            ):
+                charge()
+                lookahead += 1
+            elif openers and text[lookahead] == "#":
+                while lookahead < len(text) and text[lookahead] not in "\r\n\x85\u2028\u2029":
+                    charge()
+                    lookahead += 1
+            else:
+                break
+        # A grouped target can continue through comments and physical lines.
+        if not openers and (
+            lookahead >= len(text) or text[lookahead] not in "=:+-*/%@&|^\\,.)]([<>"
+        ):
             continue
         if text.startswith(":=", lookahead) and (
             named_expression_owner(begin, grouped=False)
