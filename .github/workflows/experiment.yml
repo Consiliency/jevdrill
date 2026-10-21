@@ -11,7 +11,7 @@ jobs:
           node-version: '22'
       - run: uv sync --locked
       - run: npm ci
-      - run: uv run python -m pytest -q tests/experiments tests/promotion tests/evaluation/test_policy_evaluation.py tests/verification/test_discovery_calibration.py tests/verification/test_calibration_benchmark.py
+      - run: uv run python -m pytest -q tests/experiments tests/promotion tests/evaluation/test_policy_evaluation.py tests/verification
       - run: uv run python scripts/verify_discovery_calibration.py --offline-only
       # Native installed companion and actual Linux runtime receipts are explicit
       # separately configured collections; this diagnostic produces no phase gate.

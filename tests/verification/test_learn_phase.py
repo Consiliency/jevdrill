@@ -30,11 +30,23 @@ def synthetic_reducer_input(tmp_path, discovery_inputs):
         check["command"] = commands[check["name"]]
         check["command_sha256"] = verifier.host.route.command_digest(check["command"])
     assertions = inherited["route_regressions"]["assertions"]
-    known = {row["node_id"] for row in assertions}
-    for nodes in verifier.CONTROLS.values():
+    route = verifier.host.route
+    # Historical HOST evidence predates newer ROUTE controls. Keep this synthetic
+    # input complete for the current inherited reducer, including parameter counts.
+    for nodes in (*route.REQUIRED_CONTROLS.values(), *verifier.CONTROLS.values()):
         for node in nodes:
-            if node not in known:
-                assertions.append({"node_id": node, "outcome": "passed"})
+            matched = sum(
+                row["node_id"] == node or row["node_id"].startswith(node + "[")
+                for row in assertions
+            )
+            count = route.CONTROL_COUNTS.get(node, 1)
+            assertions.extend(
+                {
+                    "node_id": node if count == 1 else node + f"[synthetic-{number}]",
+                    "outcome": "passed",
+                }
+                for number in range(matched, count)
+            )
     inherited["route_regressions"]["tests"]["total"] = len(assertions)
     inherited["route_regressions"]["assertions_sha256"] = verifier.host.route.command_digest(
         assertions
@@ -198,6 +210,21 @@ def reduce(receipts):
 
 def test_reducer_accepts_complete_synthetic_input(synthetic_reducer_input):
     assert reduce([synthetic_reducer_input]) == []
+
+
+@pytest.mark.parametrize("control", sorted(verifier.host.route.CONTROL_COUNTS))
+def test_reducer_rejects_missing_inherited_route_parameter(synthetic_reducer_input, control):
+    assert reduce([synthetic_reducer_input]) == []
+    route = synthetic_reducer_input["inherited_host"]["route_regressions"]
+    row = next(
+        row
+        for row in route["assertions"]
+        if row["node_id"] == control or row["node_id"].startswith(control + "[")
+    )
+    route["assertions"].remove(row)
+    route["tests"]["total"] -= 1
+    route["assertions_sha256"] = verifier.host.route.command_digest(route["assertions"])
+    assert "missing executed control: " + control in reduce([synthetic_reducer_input])
 
 
 @pytest.mark.parametrize(

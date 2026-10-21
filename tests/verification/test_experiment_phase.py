@@ -97,6 +97,21 @@ def test_reducer_accepts_executed_parameterized_control_and_rejects_omission(syn
     assert "missing EXPERIMENT assertion: " + control in reduce([synthetic_experiment])
 
 
+@pytest.mark.parametrize("control", sorted(checks.learn.host.route.CONTROL_COUNTS))
+def test_reducer_rejects_missing_inherited_route_parameter(synthetic_experiment, control):
+    assert reduce([synthetic_experiment]) == []
+    route = synthetic_experiment["inherited_learn"]["inherited_host"]["route_regressions"]
+    row = next(
+        row
+        for row in route["assertions"]
+        if row["node_id"] == control or row["node_id"].startswith(control + "[")
+    )
+    route["assertions"].remove(row)
+    route["tests"]["total"] -= 1
+    route["assertions_sha256"] = checks.learn.host.route.command_digest(route["assertions"])
+    assert "missing executed control: " + control in reduce([synthetic_experiment])
+
+
 @pytest.mark.parametrize(
     "fault",
     [
