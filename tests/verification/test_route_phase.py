@@ -398,6 +398,11 @@ def test_reducer_requires_executed_controls(evidence_root, mutation):
         "tests/privacy/test_round35_records.py::test_sensitive_records_never_reach_six_application_sinks",
         "tests/privacy/test_round35_records.py::test_hidden_suffix_records_after_prose_are_clean",
         "tests/privacy/test_round35_records.py::test_alternate_key_delimiters_are_clean",
+        "tests/privacy/test_round36_records.py::test_sensitive_records_never_reach_six_application_sinks",
+        "tests/privacy/test_round36_records.py::test_spacing_combining_suffix_records_are_clean",
+        "tests/privacy/test_round36_records.py::test_perl_dereference_owner_remains_sensitive",
+        "tests/privacy/test_round36_records.py::test_right_arrow_target_is_checked_before_its_value",
+        "tests/privacy/test_round36_records.py::test_word_and_left_arrow_assignments_are_clean",
     ),
 )
 def test_reducer_rejects_one_missing_privacy_parameter(evidence_root, control):

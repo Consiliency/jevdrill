@@ -56,6 +56,11 @@ REQUIRED_CONTROLS = {
         "tests/privacy/test_round35_records.py::test_sensitive_records_never_reach_six_application_sinks",
         "tests/privacy/test_round35_records.py::test_hidden_suffix_records_after_prose_are_clean",
         "tests/privacy/test_round35_records.py::test_alternate_key_delimiters_are_clean",
+        "tests/privacy/test_round36_records.py::test_sensitive_records_never_reach_six_application_sinks",
+        "tests/privacy/test_round36_records.py::test_spacing_combining_suffix_records_are_clean",
+        "tests/privacy/test_round36_records.py::test_perl_dereference_owner_remains_sensitive",
+        "tests/privacy/test_round36_records.py::test_right_arrow_target_is_checked_before_its_value",
+        "tests/privacy/test_round36_records.py::test_word_and_left_arrow_assignments_are_clean",
     ],
     "EC-ROUTE-5": [
         "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity",
@@ -80,6 +85,11 @@ REQUIRED_CONTROLS = {
     ],
 }
 CONTROL_COUNTS = {
+    "tests/privacy/test_round36_records.py::test_sensitive_records_never_reach_six_application_sinks": 312,
+    "tests/privacy/test_round36_records.py::test_spacing_combining_suffix_records_are_clean": 80,
+    "tests/privacy/test_round36_records.py::test_perl_dereference_owner_remains_sensitive": 128,
+    "tests/privacy/test_round36_records.py::test_right_arrow_target_is_checked_before_its_value": 32,
+    "tests/privacy/test_round36_records.py::test_word_and_left_arrow_assignments_are_clean": 96,
     "tests/privacy/test_round35_records.py::test_sensitive_records_never_reach_six_application_sinks": 288,
     "tests/privacy/test_round35_records.py::test_hidden_suffix_records_after_prose_are_clean": 96,
     "tests/privacy/test_round35_records.py::test_alternate_key_delimiters_are_clean": 96,
@@ -110,6 +120,7 @@ REQUIRED_TEST_PATHS = (
     "tests/privacy/test_application_privacy.py",
     "tests/privacy/test_round34_combined.py",
     "tests/privacy/test_round35_records.py",
+    "tests/privacy/test_round36_records.py",
 )
 
 

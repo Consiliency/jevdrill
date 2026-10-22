@@ -48,11 +48,12 @@ PRIVATE_KEY_END = re.compile(r"-----END [^-]*PRIVATE KEY-----", re.IGNORECASE)
 QUOTED_SCALAR = re.compile(r"""(?:'(?:[^']|'')*'|"(?:[^"\\]|\\[\s\S])*")""")
 PYTHON_QUOTED_SCALAR = re.compile(r"""(?:'(?:[^'\\]|\\[\s\S])*'|"(?:[^"\\]|\\[\s\S])*")""")
 ESCAPED_LABEL_COLON = re.compile(rf"(?:{INDENT}|{LINE_BREAK}|\#{LINE_TEXT}*{LINE_BREAK})*:")
-# Free-text assignments also occur in supplied shell/JS/Perl/Make snippets.
+# Free-text assignments also occur in supplied shell/JS/Perl/Make/CoffeeScript/R snippets.
 # Keep their lexical operators consistent before local Python/JSON parsing can
 # separate a sensitive target fragment from its value. Inputs are never run.
-AUGMENTED_OPERATOR = r"(?:\*\*|//|<<|>>|\|\||&&|\?\?|[+\-*/%@&|^?.])"
-ASSIGNMENT_OPERATOR = rf"{AUGMENTED_OPERATOR}?="
+AUGMENTED_OPERATOR = r"(?:\*\*|//|<<|>>|\|\||&&|\?\?|or|and|[+\-*/%@&|^?.])"
+ASSIGNMENT_OPERATOR = rf"(?:{AUGMENTED_OPERATOR}?=|<<-|<-)"
+PERL_HASH_OWNER = r"(?:\$[\w.]+\s*+(?:->\s*+)?|->\s*+)"
 CREDENTIAL_WORD = rf"[\w.-]*(?:{CREDENTIAL_LABEL})[\w.-]*"
 ESCAPED_LABEL_ASSIGNMENT = re.compile(
     rf"[^\S\r\n\x85\u2028\u2029]*\][^\S\r\n\x85\u2028\u2029]*{ASSIGNMENT_OPERATOR}"
@@ -60,7 +61,7 @@ ESCAPED_LABEL_ASSIGNMENT = re.compile(
 CREDENTIAL = re.compile(
     rf"""(?i)(?:(?<![\w.-])(?:[\w.]+\s*+\[\s*+)?(?:["'][^\S\r\n]*+)?{CREDENTIAL_WORD}"""
     r"""[^\S\r\n]*+["'`]?\s*+\]?"""
-    rf"""|\$[\w.]+\s*+\{{\s*+(?:["'][^\S\r\n]*+)?{CREDENTIAL_WORD}[^\S\r\n]*+["']?\s*+\}})"""
+    rf"""|{PERL_HASH_OWNER}\{{\s*+(?:["'][^\S\r\n]*+)?{CREDENTIAL_WORD}[^\S\r\n]*+["']?\s*+\}})"""
     rf"\s*+(?::|{ASSIGNMENT_OPERATOR})"
     rf"{LINE_TEXT}*"
     rf"(?:{CONTINUATION})*"
@@ -1725,7 +1726,7 @@ def _guard_extended_credential_assignments(text: str, deadline: float | None) ->
     cap = 16 * len(text) + 100_000
     work = 0
     label = re.compile(
-        rf"""(?i)(?<![\w.-])(?P<hash>\$[\w.]+\s*+\{{\s*+(?:["']\s*+)?)?{CREDENTIAL_WORD}"""
+        rf"""(?i)(?<![\w.-])(?P<hash>{PERL_HASH_OWNER}\{{\s*+(?:["']\s*+)?)?{CREDENTIAL_WORD}"""
     )
     horizontal = r"[^\S\r\n\x85\u2028\u2029]*+"
     # Quoted subscript keys and Perl hash keys can own a following operator.
@@ -1752,7 +1753,7 @@ def _guard_extended_credential_assignments(text: str, deadline: float | None) ->
             if char in " \t\f" or category == "Zs":
                 hidden = hidden or char not in " \t\f"
                 adjacent = False
-            elif category in {"Cf", "Mn", "Me", "Cc"}:
+            elif category in {"Cf", "Mn", "Mc", "Me", "Cc"}:
                 hidden = True
                 adjacent = True
             elif hidden and adjacent and (char.isalnum() or char in "_.-"):
@@ -1769,6 +1770,49 @@ def _guard_extended_credential_assignments(text: str, deadline: float | None) ->
         associated_operator = hash_operator if match.group("hash") else operator
         if hidden and associated_operator.match(text, cursor):
             raise ContractError("unsupported credential assignment")
+
+
+def _guard_directional_assignment_owners(text: str, deadline: float | None) -> None:
+    """Reject sensitive directional targets before rewriting their fragments.
+
+    R can put its target after the value. Perl can continue dereferencing after
+    a sensitive brace key, so masking only that key loses its ownership. These
+    unsupported owners fail closed; supplied code is never executed.
+    """
+    cursor = 0
+    arrow = re.compile(r"->>?")
+    while match := arrow.search(text, cursor):
+        _check_deadline(deadline)
+        cursor = match.end()
+        while cursor < len(text) and text[cursor].isspace():
+            _check_deadline(deadline)
+            cursor += 1
+        if cursor < len(text) and text[cursor] == "{":
+            # Visit each key once, even with many arrows inside invalid input.
+            begin = cursor + 1
+            cursor = begin
+            while cursor < len(text) and text[cursor] not in "{}\r\n":
+                _check_deadline(deadline)
+                cursor += 1
+            if cursor < len(text) and text[cursor] == "}":
+                key = text[begin:cursor]
+                cursor += 1
+                continuation = cursor
+                while continuation < len(text) and text[continuation].isspace():
+                    _check_deadline(deadline)
+                    continuation += 1
+                if text.startswith("->", continuation) and _credential_label(key, deadline):
+                    raise ContractError("unsupported credential assignment")
+            elif cursor < len(text):
+                cursor += 1
+        else:
+            # Inspect only the target's statement, excluding ordinary comments.
+            begin = cursor
+            while cursor < len(text) and text[cursor] not in "\r\n\x85\u2028\u2029;#":
+                _check_deadline(deadline)
+                cursor += 1
+            if _credential_label(text[begin:cursor], deadline):
+                raise ContractError("unsupported credential assignment")
 
 
 def _guard_local_assignment_owners(
@@ -2344,6 +2388,7 @@ def redact(text: str, deadline: float | None = None) -> str:
     try:
         _check_deadline(deadline)
         _check_escaped_record_labels(text, deadline)
+        _guard_directional_assignment_owners(text, deadline)
         if "?" in text:
             _complete_public_explicit_key(text, deadline)
         if PRIVATE_KEY_BEGIN.search(text) is not None:

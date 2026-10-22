@@ -62,9 +62,12 @@ sanitization. Credential labels use the same authorization/API-key/access-token/
 password/secret rule, including prefixed labels. A labeled mapping or header-pair
 array masks sibling values; encoded string layers are sanitized recursively.
 Free-text credential assignments include their complete line and indented
-continuations, including logical/conditional (`||=`, `&&=`, `??=`, `?=`) and
-concatenation (`.=`) operators. Literal backtick subscript keys and brace-delimited
-hash keys use the same credential-label rule before local fragment rewriting.
+continuations, including logical/conditional (`||=`, `&&=`, `??=`, `?=`, `or=`,
+`and=`), concatenation (`.=`), and leftward (`<-`, `<<-`) operators. Rightward
+assignments (`->`, `->>`) inspect their target before releasing the preceding
+value; a sensitive target rejects. Literal backtick subscript keys and brace-delimited
+hash keys, including dereference arrows and sensitive intermediate keys in chains,
+use the same credential-label rule before local fragment rewriting.
 Unsupported credential representations and excessive nesting
 fail before judgment submission and raw retention.
 YAML anchors, aliases, merge keys, explicit tags and non-scalar mapping keys,
@@ -95,7 +98,7 @@ ASCII credential substring. Subscript indices and annotations do not own the
 assignment, while `<<=` and `>>=` remain assignment operators. Comparisons
 remain ordinary controls. Invalid local syntax is not promoted to a recognized
 target by a marker-shaped substring alone.
-An intact credential label extended by invisible format, combining or non-ASCII
+An intact credential label extended by invisible format, combining (Mn, Mc or Me) or non-ASCII
 space characters and attached ordinary suffix spelling before an assignment
 operator or colon delimiter is rejected as a free-text record, even after
 ordinary prose and when it is not a valid Python identifier. Grouped
