@@ -58,11 +58,17 @@ CREDENTIAL_WORD = rf"[\w.-]*(?:{CREDENTIAL_LABEL})[\w.-]*"
 ESCAPED_LABEL_ASSIGNMENT = re.compile(
     rf"[^\S\r\n\x85\u2028\u2029]*\][^\S\r\n\x85\u2028\u2029]*{ASSIGNMENT_OPERATOR}"
 )
-CREDENTIAL = re.compile(
-    rf"""(?i)(?:(?<![\w.-])(?:[\w.]+\s*+\[\s*+)?(?:["'][^\S\r\n]*+)?{CREDENTIAL_WORD}"""
+CREDENTIAL_OWNER = (
+    rf"""(?:(?<![\w.-])(?:[\w.]+\s*+\[\s*+)?(?:["'][^\S\r\n]*+)?{CREDENTIAL_WORD}"""
     r"""[^\S\r\n]*+["'`]?\s*+\]?"""
     rf"""|{PERL_HASH_OWNER}\{{\s*+(?:["'][^\S\r\n]*+)?{CREDENTIAL_WORD}[^\S\r\n]*+["']?\s*+\}})"""
-    rf"\s*+(?::|{ASSIGNMENT_OPERATOR})"
+)
+CREDENTIAL_RECORD = re.compile(
+    rf"(?i){CREDENTIAL_OWNER}\s*+(?P<operator>:=|:|{ASSIGNMENT_OPERATOR})"
+    rf"(?P<value>{LINE_TEXT}*)"
+)
+CREDENTIAL = re.compile(
+    rf"(?i){CREDENTIAL_OWNER}\s*+(?::|{ASSIGNMENT_OPERATOR})"
     rf"{LINE_TEXT}*"
     rf"(?:{CONTINUATION})*"
     + rf"""|(?<![^\r\n\x85\u2028\u2029"']){INDENT}*(?:bearer|basic)\s+[^\s"',;}}\]]+"""
@@ -1433,6 +1439,57 @@ def _redact_assignments(
     return "".join(chunks) + text[end:]
 
 
+def _guard_multiline_credential_values(text: str, deadline: float | None) -> None:
+    """Keep a labelled value's ownership before any local fragment is rewritten.
+
+    Python tokenization cannot delimit R/Perl continuation or backtick/heredoc
+    values. Reject their incomplete physical-line prefixes instead of releasing
+    an unindented body as ordinary text. Complete values keep that next line.
+    """
+    if re.search(LINE_BREAK, text) is None:
+        return
+    for match in CREDENTIAL_RECORD.finditer(text):
+        _check_deadline(deadline)
+        if re.match(LINE_BREAK, text[match.end() : match.end() + 2]) is None:
+            continue
+        value = match.group("value").strip()
+        assignment = match.group("operator") != ":"
+        # A heredoc opener owns following lines even when the label uses a
+        # colon. Numeric shifts and complete quoted strings are not openers.
+        if re.match(r"<<<?[-~]?[ \t]*(?:[\"'`]|[^\W\d])", value):
+            raise ContractError("unsupported multiline credential assignment")
+        if assignment and (not value or value.startswith(("#", "//", "/*"))):
+            raise ContractError("unsupported multiline credential assignment")
+        quote = None
+        escaped = False
+        stack = []
+        code_end = len(value)
+        for index, char in enumerate(value):
+            _check_deadline(deadline)
+            if quote is not None:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == quote:
+                    quote = None
+            elif char == "#":
+                code_end = index
+                break
+            elif char in "\"'`":
+                quote = char
+            elif char in "([{":
+                stack.append(char)
+            elif char in ")]}":
+                if not stack or stack[-1] != {")": "(", "]": "[", "}": "{"}[char]:
+                    break
+                stack.pop()
+        code = value[:code_end].rstrip()
+        trailing_operator = re.search(r"(?:[+\-*/%&|^=<>?:,\\]|\s\.)$", code) is not None
+        if quote == "`" or assignment and (stack or quote is None and trailing_operator):
+            raise ContractError("unsupported multiline credential assignment")
+
+
 def _redact_plain(text: str, deadline: float | None) -> str:
     _check_deadline(deadline)
     for match in CREDENTIAL.finditer(text):
@@ -2389,6 +2446,7 @@ def redact(text: str, deadline: float | None = None) -> str:
         _check_deadline(deadline)
         _check_escaped_record_labels(text, deadline)
         _guard_directional_assignment_owners(text, deadline)
+        _guard_multiline_credential_values(text, deadline)
         if "?" in text:
             _complete_public_explicit_key(text, deadline)
         if PRIVATE_KEY_BEGIN.search(text) is not None:

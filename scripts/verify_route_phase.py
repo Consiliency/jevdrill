@@ -61,6 +61,10 @@ REQUIRED_CONTROLS = {
         "tests/privacy/test_round36_records.py::test_perl_dereference_owner_remains_sensitive",
         "tests/privacy/test_round36_records.py::test_right_arrow_target_is_checked_before_its_value",
         "tests/privacy/test_round36_records.py::test_word_and_left_arrow_assignments_are_clean",
+        "tests/privacy/test_round37_values.py::test_open_literal_values_never_escape_owner",
+        "tests/privacy/test_round37_values.py::test_incomplete_assignment_values_never_escape_owner",
+        "tests/privacy/test_round37_values.py::test_original_witness_line_boundaries_are_clean",
+        "tests/privacy/test_round37_values.py::test_multiline_values_never_reach_six_application_sinks",
     ],
     "EC-ROUTE-5": [
         "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity",
@@ -85,6 +89,10 @@ REQUIRED_CONTROLS = {
     ],
 }
 CONTROL_COUNTS = {
+    "tests/privacy/test_round37_values.py::test_open_literal_values_never_escape_owner": 192,
+    "tests/privacy/test_round37_values.py::test_incomplete_assignment_values_never_escape_owner": 264,
+    "tests/privacy/test_round37_values.py::test_original_witness_line_boundaries_are_clean": 42,
+    "tests/privacy/test_round37_values.py::test_multiline_values_never_reach_six_application_sinks": 168,
     "tests/privacy/test_round36_records.py::test_sensitive_records_never_reach_six_application_sinks": 312,
     "tests/privacy/test_round36_records.py::test_spacing_combining_suffix_records_are_clean": 80,
     "tests/privacy/test_round36_records.py::test_perl_dereference_owner_remains_sensitive": 128,
@@ -121,6 +129,7 @@ REQUIRED_TEST_PATHS = (
     "tests/privacy/test_round34_combined.py",
     "tests/privacy/test_round35_records.py",
     "tests/privacy/test_round36_records.py",
+    "tests/privacy/test_round37_values.py",
 )
 
 

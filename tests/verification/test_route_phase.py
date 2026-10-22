@@ -403,6 +403,10 @@ def test_reducer_requires_executed_controls(evidence_root, mutation):
         "tests/privacy/test_round36_records.py::test_perl_dereference_owner_remains_sensitive",
         "tests/privacy/test_round36_records.py::test_right_arrow_target_is_checked_before_its_value",
         "tests/privacy/test_round36_records.py::test_word_and_left_arrow_assignments_are_clean",
+        "tests/privacy/test_round37_values.py::test_open_literal_values_never_escape_owner",
+        "tests/privacy/test_round37_values.py::test_incomplete_assignment_values_never_escape_owner",
+        "tests/privacy/test_round37_values.py::test_original_witness_line_boundaries_are_clean",
+        "tests/privacy/test_round37_values.py::test_multiline_values_never_reach_six_application_sinks",
     ),
 )
 def test_reducer_rejects_one_missing_privacy_parameter(evidence_root, control):
