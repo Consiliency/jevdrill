@@ -78,8 +78,14 @@ CR/LF/CRLF boundaries and literal labels; implicit multiline targets and incompl
 expressions reject. Before any owner or local fragment is rewritten, incomplete
 credential values also reject: empty or comment-only assignment right-hand sides,
 open grouped values, and labelled backtick or heredoc/nowdoc literal openers that
-own following lines. Complete same-line values still keep an ordinary unindented
-next line. Before rewriting a decoded sensitive array fragment, local
+own following lines. Every sensitive owner on the line is inspected, including
+one after an earlier record or annotation. Before releasing a following line,
+the first value must fit a bounded complete-scalar grammar: ordinary scalar
+words, closed literals and literal containers, or supported complete scalar
+expressions. Ambiguous code-shaped values reject, including later heredoc terms,
+incomplete annotated assignments, conditional branch openers and quote-like
+literal openers. No supplied expression is evaluated. Complete supported values
+still keep an ordinary unindented next line. Before rewriting a decoded sensitive array fragment, local
 forward inspection follows Unicode identifier attributes, balanced postfix
 subscripts, annotations and continuations through the associated operator;
 unresolved sensitive target ownership rejects within the existing work and deadline bounds.

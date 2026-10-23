@@ -65,7 +65,9 @@ CREDENTIAL_OWNER = (
 )
 CREDENTIAL_RECORD = re.compile(
     rf"(?i){CREDENTIAL_OWNER}\s*+(?P<operator>:=|:|{ASSIGNMENT_OPERATOR})"
-    rf"(?P<value>{LINE_TEXT}*)"
+    # Inspect every owner on a physical line; the value is a lookahead so
+    # an earlier record cannot consume a later assignment from this scan.
+    rf"(?=(?P<value>{LINE_TEXT}*))"
 )
 CREDENTIAL = re.compile(
     rf"(?i){CREDENTIAL_OWNER}\s*+(?::|{ASSIGNMENT_OPERATOR})"
@@ -1439,55 +1441,296 @@ def _redact_assignments(
     return "".join(chunks) + text[end:]
 
 
-def _guard_multiline_credential_values(text: str, deadline: float | None) -> None:
-    """Keep a labelled value's ownership before any local fragment is rewritten.
+CREDENTIAL_SCALAR_WORDS = re.compile(r"\w+(?:[.-]\w+)*(?:[ \t]+\w+(?:[.-]\w+)*)*[.!?]?")
+CREDENTIAL_EXPRESSION_KEYWORDS = frozenset(
+    [
+        "if",
+        "else",
+        "elsif",
+        "elseif",
+        "unless",
+        "then",
+        "for",
+        "foreach",
+        "while",
+        "until",
+        "repeat",
+        "do",
+        "begin",
+        "end",
+        "case",
+        "when",
+        "switch",
+        "match",
+        "try",
+        "catch",
+        "finally",
+        "function",
+        "sub",
+        "return",
+        "yield",
+        "await",
+        "async",
+        "class",
+        "struct",
+        "let",
+        "const",
+        "val",
+        "var",
+        "local",
+        "my",
+        "our",
+        "and",
+        "or",
+        "not",
+        "xor",
+        "orelse",
+        "andalso",
+        "in",
+        "is",
+        "as",
+        "new",
+        "throw",
+    ]
+)
 
-    Python tokenization cannot delimit R/Perl continuation or backtick/heredoc
-    values. Reject their incomplete physical-line prefixes instead of releasing
-    an unindented body as ordinary text. Complete values keep that next line.
-    """
+
+def _credential_value_prefix_end(
+    value: str, deadline: float | None, *, record: bool = True
+) -> int | None:
+    """Stop at an outer record delimiter, retaining nested literal syntax."""
+    quote = None
+    escaped = False
+    stack = []
+    for index, char in enumerate(value):
+        _check_deadline(deadline)
+        if quote:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = None
+        elif char in "\"'`":
+            quote = char
+        elif char == "#":
+            # Attached hashes may introduce raw literals, not Python comments.
+            if index and not (value[index - 1].isspace() or value[index - 1] in "\"'`"):
+                return None
+            return index
+        elif char in "([{":
+            stack.append(char)
+        elif char in ")]}":
+            if not stack:
+                return index
+            if stack.pop() != {")": "(", "]": "[", "}": "{"}[char]:
+                return None
+        elif not stack and (char == ";" or record and char == ","):
+            return index
+    return None if quote or stack else len(value)
+
+
+def _credential_quote_like_literal(value: str, deadline: float | None) -> tuple[bool, int] | None:
+    m = re.match(r"(q[qwxr]?|[msy]|tr)([^\w\s])", value)
+    if m is None:
+        return None
+    if m.group(1) not in {"q", "qq", "qw"}:
+        return (False, len(value))
+    opening = m.group(2)
+    closing = {"(": ")", "[": "]", "{": "}", "<": ">"}.get(opening, opening)
+    depth = 1
+    escaped = False
+    for index in range(m.end(), len(value)):
+        _check_deadline(deadline)
+        char = value[index]
+        if escaped:
+            escaped = False
+        elif char == "\\":
+            escaped = True
+        elif opening != closing and char == opening:
+            depth += 1
+        elif char == closing:
+            depth -= 1
+            if depth == 0:
+                tail = value[index + 1 :].strip()
+                return (not tail or tail[0] in ",;)]}#", index + 1)
+    return (False, len(value))
+
+
+def _credential_value_is_complete(
+    value: str,
+    operator: str,
+    deadline: float | None,
+    depth: int = 0,
+    *,
+    opaque_words: bool = True,
+) -> bool:
+    _check_deadline(deadline)
+    if depth > 16:
+        return False
+    value = value.strip()
+    if operator == ":" and (not value or re.fullmatch(r"[|>][+\-1-9]*", value)):
+        return True
+    # Authentication parameters are one header value, including comma-separated
+    # fields and the indented continuations handled by CREDENTIAL. They are not
+    # type annotations or a sequence of code assignments.
+    token = r"[A-Za-z0-9_~+./=-]+"
+    quoted_parameter = r'"(?:[^"\\]|\\.)*"'
+    parameter = rf"[A-Za-z][\w-]*\s*=\s*(?:{quoted_parameter}|{token})"
+    if operator == ":" and re.match(r"(?i)Digest\s", value):
+        return re.fullmatch(rf"(?i)Digest\s+{parameter}(?:\s*,\s*{parameter})*", value) is not None
+    if operator == ":" and re.fullmatch(rf"(?i)(?:Basic|Bearer)\s+{token}", value):
+        return True
+    quoted = _credential_quote_like_literal(value, deadline)
+    if quoted is not None:
+        return quoted[0]
+    end = _credential_value_prefix_end(value, deadline, record=operator == ":")
+    code = value[:end].strip() if end is not None else None
+    if not code:
+        return False
+    if operator != ":" and code.endswith(","):
+        return False
+    # A raw backtick is a complete atom only if the whole value is quoted.
+    if code.startswith("`") and code.endswith("`"):
+        return "`" not in code[1:-1]
+    words = CREDENTIAL_SCALAR_WORDS.fullmatch(code)
+    if (
+        opaque_words
+        and words
+        and not any(
+            word.casefold() in CREDENTIAL_EXPRESSION_KEYWORDS for word in re.findall(r"\w+", code)
+        )
+    ):
+        return True
+    conditional = re.fullmatch(r"if\s*\(\s*(?:TRUE|FALSE|[0-9]+)\s*\)\s*(.+)", code)
+    if conditional is not None and operator in {"<-", "<<-"}:
+        return _credential_value_is_complete(
+            conditional.group(1), "=", deadline, depth + 1, opaque_words=opaque_words
+        )
+    # Unknown expression syntax never gets a completeness assumption. Keep
+    # parsing work bounded independently of a supplied expression's length.
+    if len(code) > 20_000 or re.search(r"<<[^\s]", code):
+        return False
+    try:
+        with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
+            tree = ast.parse(code, mode="exec")
+    except (SyntaxError, ValueError):
+        return False
+    _check_deadline(deadline)
+    if len(tree.body) != 1:
+        return False
+    statement = tree.body[0]
+    if (
+        isinstance(statement, ast.Expr)
+        or operator == ":"
+        and isinstance(statement, ast.Assign)
+        and all(isinstance(t, ast.Name) for t in statement.targets)
+    ):
+        node = statement.value
+    else:
+        return False
+    pending = [node]
+    while pending:
+        _check_deadline(deadline)
+        item = pending.pop()
+        if isinstance(item, ast.Constant):
+            continue
+        if (
+            opaque_words
+            and isinstance(item, ast.Name)
+            and item.id.casefold() not in CREDENTIAL_EXPRESSION_KEYWORDS
+        ):
+            continue
+        if isinstance(item, (ast.Tuple, ast.List, ast.Set)):
+            pending.extend(item.elts)
+        elif isinstance(item, ast.Dict):
+            if any(key is None for key in item.keys):
+                return False
+            pending.extend(key for key in item.keys if key is not None)
+            pending.extend(item.values)
+        elif (
+            isinstance(item, ast.UnaryOp)
+            and isinstance(item.op, (ast.UAdd, ast.USub, ast.Invert))
+            and isinstance(item.operand, ast.Constant)
+            and isinstance(item.operand.value, (int, float, complex))
+        ):
+            pending.append(item.operand)
+        elif isinstance(item, ast.BinOp):
+            if isinstance(item.op, (ast.LShift, ast.RShift)) and not (
+                isinstance(item.left, ast.Constant) and isinstance(item.left.value, (int, float))
+            ):
+                return False
+            pending.extend((item.left, item.right))
+        elif isinstance(item, ast.BoolOp):
+            pending.extend(item.values)
+        elif (
+            isinstance(item, (ast.Call, ast.JoinedStr))
+            and _literal_string(item, deadline) is not None
+        ):
+            continue
+        else:
+            return False
+    return True
+
+
+def _guard_multiline_credential_values(text: str, deadline: float | None) -> None:
     if re.search(LINE_BREAK, text) is None:
         return
+    work = 0
+    covered_end = 0
+    cap = 16 * len(text) + 100_000
+    following_line = re.compile(rf"{LINE_BREAK}(?P<next>{LINE_TEXT}*)")
     for match in CREDENTIAL_RECORD.finditer(text):
         _check_deadline(deadline)
-        if re.match(LINE_BREAK, text[match.end() : match.end() + 2]) is None:
+        value = match.group("value")
+        work += len(value)
+        if work > cap:
+            raise ContractError("context fragment work exceeds sanitization limit")
+        end = match.end("value")
+        if re.match(LINE_BREAK, text[end : end + 2]) is None:
             continue
-        value = match.group("value").strip()
-        assignment = match.group("operator") != ":"
-        # A heredoc opener owns following lines even when the label uses a
-        # colon. Numeric shifts and complete quoted strings are not openers.
-        if re.match(r"<<<?[-~]?[ \t]*(?:[\"'`]|[^\W\d])", value):
+        if match.start() < covered_end:
+            continue
+        owner = text[match.start() : match.start("operator")]
+        code_owner = "$" in owner or match.start() > 0 and text[match.start() - 1] == "$"
+        if not _credential_value_is_complete(
+            value, match.group("operator"), deadline, opaque_words=not code_owner
+        ):
             raise ContractError("unsupported multiline credential assignment")
-        if assignment and (not value or value.startswith(("#", "//", "/*"))):
-            raise ContractError("unsupported multiline credential assignment")
-        quote = None
-        escaped = False
-        stack = []
-        code_end = len(value)
-        for index, char in enumerate(value):
-            _check_deadline(deadline)
-            if quote is not None:
-                if escaped:
-                    escaped = False
-                elif char == "\\":
-                    escaped = True
-                elif char == quote:
-                    quote = None
-            elif char == "#":
-                code_end = index
-                break
-            elif char in "\"'`":
-                quote = char
-            elif char in "([{":
-                stack.append(char)
-            elif char in ")]}":
-                if not stack or stack[-1] != {")": "(", "]": "[", "}": "{"}[char]:
+        stripped = value.lstrip()
+        quoted = _credential_quote_like_literal(stripped, deadline)
+        length: int | None
+        if quoted is not None:
+            length = len(value) - len(stripped) + quoted[1]
+        else:
+            length = _credential_value_prefix_end(
+                value, deadline, record=match.group("operator") == ":"
+            )
+        terminated = length is not None and value[length:].lstrip().startswith(";")
+        # Scalar completion alone does not exclude an operator on the next
+        # line. Explicit statement terminators and Markdown closers are distinct.
+        if not terminated and not (
+            match.group("operator") == ":" and re.fullmatch(r"\s*[|>][+\-1-9]*\s*", value)
+        ):
+            following = following_line.match(text, end)
+            while following is not None:
+                _check_deadline(deadline)
+                next_value = following.group("next").lstrip()
+                work += len(following.group())
+                if work > cap:
+                    raise ContractError("context fragment work exceeds sanitization limit")
+                if next_value:
+                    if re.fullmatch(r"(?:`{3,}|~{3,})\s*", next_value):
+                        break
+                    if (match.group("operator") != ":" and next_value[0] in "\"'") or re.match(
+                        r"(?:[-+*/%@&|^?.=<>\\`,(\[]|(?:and|or|else|elsif|elseif)\b)",
+                        next_value,
+                    ):
+                        raise ContractError("unsupported multiline credential assignment")
                     break
-                stack.pop()
-        code = value[:code_end].rstrip()
-        trailing_operator = re.search(r"(?:[+\-*/%&|^=<>?:,\\]|\s\.)$", code) is not None
-        if quote == "`" or assignment and (stack or quote is None and trailing_operator):
-            raise ContractError("unsupported multiline credential assignment")
+                following = following_line.match(text, following.end())
+        if length is not None:
+            covered_end = match.end() + length
 
 
 def _redact_plain(text: str, deadline: float | None) -> str:
