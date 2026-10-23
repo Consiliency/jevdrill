@@ -1,0 +1,33 @@
+FAILED_PROOF
+Frozen HEAD 4c3a9fee43677709e96456ecee22e9c75b1de138; 871 tracked files; manifest SHA256 7e2aea2d30bd2903ab71310584a6a93b69d982a879def57acc0dd49c0b1647d3.
+All 17 source bindings verify exact HEAD, clean worktree/index, full path set, all hashes and sha256sum --quiet -c. Index entry digest remains constant.
+Full suite independent JUnit/collection counts: {"collected": 21353, "error": 0, "failure": 0, "skipped": 0, "testcases": 21353, "unique_collected": 21353, "unique_identities": 21353}.
+HTTP independent reduction and physical scan: {"byte_hits": 0, "call_state_completed": 3636, "decoded_hits": 0, "directories_with_calls": 3636, "directories_without_calls": 14531, "expected_executions": 26022, "missing_run_directories": 7855, "physical_artifacts": 3637, "physical_bytes": 5986278494, "physical_databases": 36334, "physical_files": 39973, "physical_profiles": 18167, "physical_records": 49685, "physical_tables": 672179, "reservation_rows": 3636, "reserved_microusd": 10009908, "run_directories": 18167}.
+Corpus: 4337 IDs, 302 positives; 3813 prior IDs and 262 prior positives exact; 367 prior formats and rejection permissions exact against 203222d75; 409 current formats / 2454 strings present. Additions: 26 reviewer HTTP, 150 correctness direct, 60 placement observations, 252 matrix strings, 36 public controls. LABELS/SCHEME_FOLDS exact.
+HTTP flags: null.
+HTTP incomplete: 18167 run directories retained, 7855 missing; no HTTP terminal receipt. One partial directory has application effects but no judgment call. Wire flags and 1812 expected positive rows are unverified.
+Command results:
+  collect-process-receipt.json: exit 0; duration 2.394764150987612 seconds; log SHA256 ee57be342071ebce7584089861a31086a0b4b171c324f7eb4b31f6f522091398
+  junit-audit-process-receipt.json: exit 0; duration 0.2706898249743972 seconds; log SHA256 3d4f39efe966982f89b9b8ef98253ff31bca2a6a6ff52dff4e62036cff4a852a
+  http-process-receipt.json: exit None; duration None seconds; log SHA256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  partial-http-audit-process-receipt.json: exit 1; duration 29.010702901985496 seconds; log SHA256 50451576dbda68f20cd2e94ca8715411fb2b0dd25545e1de9e8794076c77c18d
+  corpus-process-receipt.json: exit 0; duration 0.9433511749957688 seconds; log SHA256 b918f45bb7af37458f56690e4ae03d7a237df084972800978b02b464c3876474
+  full-process-receipt.json: exit 0; duration 788.70102197901 seconds; log SHA256 7db4172c269796aa2c00f6ee8cadafe246b6a7bb642c4103c01f7993926f9931
+Full JUnit SHA256 1b39b2bbe6f35ad318d4b6feef09022b8ca8be07aa06e6ac7d7c5a1b603eac42
+HTTP receipt SHA256 unavailable: no receipt written
+Machine verification SHA256 d404609419896b43a4ecc59cf9467dace1b33fd443db4389c5f18242c7cfe06b
+No automatic full/HTTP retries; all original outputs retained. Immutable proof inventory excludes mutable coordination files; round19 inventory remains historical and untouched.
+Round19 C19-1/C19-2 and G19-1/G19-2 are the consolidated dissent inputs. Astra AGREE does not carry; alternative AGREE was unusable due to factual/history gaps. Original narratives remain preserved.
+Round-5 BLOCK_MERGE remains binding; four fresh usable full-PR AGREE reviews then a separate tools-enabled Opus 5.5 president are still required.
+Audit limits:
+Test/proof audit only: not a board vote or presidential ruling.
+Root HTTP raw bodies were not retained. The interrupted run wrote no capture-boolean receipt; wire flags and positive markers cannot be reduced. Retained partial DB/artifact bytes and decoded table values were physically scanned. No second raw-wire claim.
+Finite corpus only; scope exclusions and historical suggestions remain exclusions. Distinct IDs may have identical texts; no IDs were collapsed.
+No native collectors, CI downloads, GitHub writes/watchers, real provider/study/grant/private corpus/holdout/auth/.env/deployment/promotion/adoption work. Parent handles native/CI evidence separately.
+Fresh full-suite configured companion use is limited to the prepared authorized runner. No standalone shared HOST work.
+Prior full-failure causes remain unknown. Historical failures and original inventories were not rewritten.
+Raw UUID scopes are created in the inspected probe; the DB audit verifies unique stored profile revisions, not separately persisted UUID scope values.
+HTTP interruption cause, exit status and exact duration are unknown. The partial effect sequence is not classified as a product defect or a completed rejection. No retry occurred.
+Source/index content equality is verified, not byte identity of Git index stat-cache metadata.
+The preliminary shell inspection included absent-AGENTS/no-match exits and truncated displays, followed by targeted reads. These are not product test passes or failures.
+Errors: ["process failure http-process-receipt.json", "process failure partial-http-audit-process-receipt.json", "http: HTTP process disappeared without terminal exit status or receipt. Actual HTTP row coverage, capture flags, literal-true positives and complete rejection/effect accounting cannot be verified.", "http: round10-alternative-scheme-fold-1-description: application effects without judgment call"]

@@ -1,0 +1,9 @@
+{
+  "taskId": "node:delegated-task:command%3Amcp%3A1aa0f7aa-bfec-4a95-80db-a16e55e1f7c7%3Adelegate-task%3Ajevdrill-fix-review-20261011-r3-grok",
+  "status": "cancelled",
+  "latestTerminalStatus": "cancelled",
+  "hasPendingChildRuns": false,
+  "substantive_summary_present": true,
+  "standing_completed_seat": false,
+  "interpretation": "Substantive AGREE review retained; cancelled orchestration prevents representing this as a completed governed seat."
+}

@@ -60,6 +60,13 @@ def test_request_alias_and_decoding(provider):
     assert json.loads(sdk.request_shape())["questions"]["result"]["type"] == "noul"
 
 
+def test_suitability_request_describes_a_prospective_execution_configuration():
+    body = sdk.candidate_request_shape("task", "configuration")
+    assert "prospective execution configuration" in body
+    assert "correctness of a produced answer" in body
+    assert "guidance instructions" in body
+
+
 def test_event_surface(provider, monkeypatch):
     url, _observed = provider
     events = []
@@ -126,3 +133,131 @@ def test_async_cancellation(provider):
         assert time.monotonic() - start < 0.9
 
     asyncio.run(run())
+
+
+def test_route_adapter_uses_baml_timeout_and_sanitized_events(provider, monkeypatch):
+    from jevdrill.integrations.jev import JevAdapter
+
+    url, observations = provider
+    monkeypatch.setenv("JEVDRILL_TEST_URL", url)
+    monkeypatch.setattr("jevdrill.integrations.jev.JudgeCandidate", sdk.MockJudgeCandidate)
+    retained = []
+    policy = {
+        "enabled": True,
+        "cloud_allowed": True,
+        "max_calls": 1,
+        "max_candidates": 1,
+        "max_input_tokens": 10000,
+        "max_output_tokens": 10,
+        "spending_ceiling": None,
+        "rates": None,
+        "model_revision": "jev-latest",
+        "function_revision": "JudgeCandidate-v2",
+        "token_counter_revision": "utf8-bytes-upper-bound-v1",
+    }
+
+    def observe(event):
+        value = retain_jev_call(event)
+        if value is not None:
+            retained.append(value)
+
+    response = JevAdapter(policy, observe).judge(
+        "synthetic", ({"candidate_id": "a", "model_id": "model"},), time.monotonic() + 1
+    )
+    assert response["judgments"] == {"a": True}
+    assert retained and "header-sentinel" not in json.dumps(retained)
+    assert observations["requests"]
+
+
+@pytest.mark.parametrize(
+    "usage, expected, reason",
+    [
+        ({"input_tokens": 123, "output_tokens": 1}, 1, None),
+        ({"input_tokens": 123, "output_tokens": 0}, 0, None),
+        ({"input_tokens": 123, "output_tokens": None}, None, "not_reported"),
+        ({"input_tokens": 123}, None, "not_reported"),
+        ({}, None, "not_reported"),
+        (None, None, "not_reported"),
+        ({"input_tokens": 123, "output_tokens": -1}, None, "incomplete"),
+        ({"input_tokens": 123, "output_tokens": "7"}, None, "incomplete"),
+        ({"input_tokens": 123, "output_tokens": True}, None, "incomplete"),
+        ({"input_tokens": 123, "output_tokens": 0.5}, None, "incomplete"),
+    ],
+)
+def test_observed_partial_usage(provider, monkeypatch, usage, expected, reason):
+    from jevdrill.contracts import jev_usage_measurements
+
+    url, observed = provider
+    monkeypatch.setenv("JEVDRILL_TEST_URL", url)
+    if usage is not None:
+        observed["body"]["usage"] = usage
+    events = []
+    assert sdk.MockObserveCandidate("task-canary", "candidate-canary", 1000, events.append)
+    assert len(events) == len(observed["requests"]) == 1
+    rows = jev_usage_measurements(events[0])
+    output = rows[2]["measurement_value"]
+    assert output == (
+        {"kind": "known", "value": expected, "unit": "tokens"}
+        if reason is None
+        else {"kind": "unknown", "reason": reason}
+    )
+    if usage and usage.get("input_tokens") == 123:
+        assert rows[1]["measurement_value"]["value"] == 123
+    serialized = json.dumps(events[0].model_dump())
+    assert all(
+        sentinel not in serialized
+        for sentinel in ("task-canary", "candidate-canary", "header-sentinel", "synthetic-secret")
+    )
+
+
+@pytest.mark.parametrize("score", [0, 0.49, 0.5, 0.51, 1])
+def test_observed_request_and_boolean_parity(provider, monkeypatch, score):
+    url, observed = provider
+    monkeypatch.setenv("JEVDRILL_TEST_URL", url)
+    observed["body"]["answers"]["result"]["noul"] = score
+    observed["body"]["usage"] = {"input_tokens": 123, "output_tokens": 1}
+    old = sdk.MockJudgeCandidate("task", "candidate", 1000, None)
+    new = sdk.MockObserveCandidate("task", "candidate", 1000, None)
+    assert old is new is (score >= 0.5)
+    assert len(observed["requests"]) == 2
+    assert observed["requests"][0] == observed["requests"][1]
+
+
+@pytest.mark.parametrize("answers", [{}, None, {"result": {"type": "noul", "noul": "bad"}}])
+def test_usage_survives_answer_decode_failure(provider, monkeypatch, answers):
+    from jevdrill.contracts import jev_usage_measurements
+
+    url, observed = provider
+    monkeypatch.setenv("JEVDRILL_TEST_URL", url)
+    observed["body"] = {"usage": {"input_tokens": 123, "output_tokens": 1}, "answers": answers}
+    events = []
+    with pytest.raises(BamlError):
+        sdk.MockObserveCandidate("task", "candidate", 1000, events.append)
+    assert len(events) == len(observed["requests"]) == 1
+    assert jev_usage_measurements(events[0])[1]["measurement_value"]["value"] == 123
+
+
+def test_observed_timeout_and_cancellation(provider, monkeypatch):
+    url, observed = provider
+    monkeypatch.setenv("JEVDRILL_TEST_URL", url)
+    observed["delay"] = 1
+    events = []
+    start = time.monotonic()
+    with pytest.raises(BamlError):
+        sdk.MockObserveCandidate("task", "candidate", 50, events.append)
+    assert time.monotonic() - start < 0.9
+    assert not events
+    observed["started"].clear()
+
+    async def run():
+        task = asyncio.create_task(
+            sdk.MockObserveCandidate_async("task", "candidate", 3000, events.append)
+        )
+        assert await asyncio.to_thread(observed["started"].wait, 2)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+    asyncio.run(run())
+    assert len(observed["requests"]) == 2
+    assert not events

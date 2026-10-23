@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "revision": "host-synthetic-v2",
+  "rubric_revision": "all-required-checks-v1",
+  "claim_scope": "synthetic_conformance_only",
+  "performance_claims": "insufficient_evidence",
+  "promotion_eligible": false,
+  "holdouts_opened": false,
+  "acceptance": "Every independent correctness and privacy check must pass",
+  "sample_requirement": "All six declared development/validation cases and all negative controls",
+  "baselines": {
+    "fixed_default": "Restrict inventory to the user default and preserve its explicit override",
+    "cheapest_feasible": "Offer two synthetic sufficient candidates; select the lower raw token rate",
+    "no_optional_guidance": "Same two candidates without optional resources; deliberately equivalent to cheapest-feasible, not guidance effectiveness evidence",
+    "previous_policy": "not_applicable: no prior HOST-integrated policy exists",
+    "retrieval": "not_applicable: these bounded artifacts require no retrieval"
+  },
+  "cases": [
+    {"id":"sum-development","family":"implementation","split":"development","ancestry":"sum-v1","expected":{"results":[0,6,-2]},"program":"import json; print(json.dumps({'results':[sum(x) for x in ([],[1,2,3],[-3,1])]}))"},
+    {"id":"unique-validation","family":"implementation","split":"validation","ancestry":"unique-v1","expected":{"results":[0,2,1]},"program":"import json; print(json.dumps({'results':[len(set(x)) for x in ([],[1,1,2],[0,0])]}))"},
+    {"id":"auth-development","family":"review","split":"development","ancestry":"auth-v1","expected":{"findings":{"missing_auth":{"severity":"critical","action":"check_identity_before_read"}}},"program":"import json; print(json.dumps({'findings':{'missing_auth':{'severity':'critical','action':'check_identity_before_read'}}}))"},
+    {"id":"path-validation","family":"review","split":"validation","ancestry":"path-v1","expected":{"findings":{"path_escape":{"severity":"critical","action":"reject_outside_root"}}},"program":"import json; print(json.dumps({'findings':{'path_escape':{'severity':'critical','action':'reject_outside_root'}}}))"},
+    {"id":"queue-development","family":"documentation","split":"development","ancestry":"queue-v1","expected":{"facts":{"retention_days":7},"requirements":["durable_ack"],"references":["host-interfaces"],"examples":["accepted_and_durable"]},"program":"import json; print(json.dumps({'facts':{'retention_days':7},'requirements':['durable_ack'],'references':['host-interfaces'],'examples':['accepted_and_durable']}))"},
+    {"id":"cost-validation","family":"documentation","split":"validation","ancestry":"cost-v1","expected":{"facts":{"estimated_cost_is_ceiling":false},"requirements":["unknown_usage"],"references":["route-interfaces"],"examples":["not_reported"]},"program":"import json; print(json.dumps({'facts':{'estimated_cost_is_ceiling':False},'requirements':['unknown_usage'],'references':['route-interfaces'],'examples':['not_reported']}))"}
+  ]
+}

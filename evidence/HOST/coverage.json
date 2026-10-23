@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "phase": "HOST",
+  "coverage": {
+    "EC-HOST-1": [
+      "tests/conformance/test_launch_paths.py"
+    ],
+    "EC-HOST-2": [
+      "tests/conformance/test_notices.py",
+      "tests/conformance/test_transport_queue.py",
+      "tests/storage/test_host_notices.py"
+    ],
+    "EC-HOST-3": [
+      "tests/conformance/test_launch_paths.py",
+      "tests/evaluation/test_host_acceptance.py"
+    ],
+    "EC-HOST-4": [
+      "tests/conformance/test_discovery_handoff.py"
+    ],
+    "IF-0-HOST-1": [
+      "tests/conformance/test_discovery_handoff.py"
+    ],
+    "IF-0-VC-2": [
+      "tests/verification/test_host_phase.py"
+    ]
+  },
+  "required_controls": {
+    "EC-HOST-1": [
+      "tests/conformance/test_launch_paths.py::test_real_main_delegated_lane_constructors",
+      "tests/conformance/test_launch_paths.py::test_entered_permission_expansion_denials"
+    ],
+    "EC-HOST-2": [
+      "tests/conformance/test_transport_queue.py::test_entered_ack_loss_and_cross_producer_deletion",
+      "tests/conformance/test_notices.py::test_every_report_connection_queries_notices",
+      "tests/storage/test_host_notices.py::test_notice_scope_reads_and_cross_producer_deletion"
+    ],
+    "EC-HOST-3": [
+      "tests/conformance/test_launch_paths.py::test_independent_checks_reject_entered_routed_artifacts",
+      "tests/evaluation/test_host_acceptance.py::test_frozen_groups_are_disjoint_and_holdouts_unopened"
+    ],
+    "EC-HOST-4": [
+      "tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks",
+      "tests/conformance/test_discovery_handoff.py::test_entered_reference_deletion_revision_and_policy_controls"
+    ],
+    "IF-0-HOST-1": [
+      "tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks"
+    ],
+    "IF-0-VC-2": [
+      "tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts"
+    ]
+  },
+  "status": "complete",
+  "claim_scope": "synthetic_conformance_only"
+}

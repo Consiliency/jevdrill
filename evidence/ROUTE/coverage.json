@@ -1,0 +1,746 @@
+{
+  "schema_version": 1,
+  "phase": "ROUTE",
+  "status": "complete",
+  "coverage": {
+    "EC-ROUTE-1": [
+      "tests/storage/test_storage.py",
+      "tests/storage/test_recovery.py",
+      "tests/storage/test_discovery_recovery.py",
+      "tests/application/test_discovery_application.py",
+      "tests/cli/test_cli.py"
+    ],
+    "EC-ROUTE-2": [
+      "tests/catalog/test_catalog.py",
+      "tests/inventory/test_inventory.py",
+      "tests/guidance/test_guidance.py",
+      "tests/application/test_route_integration.py",
+      "tests/application/test_discovery_application.py"
+    ],
+    "EC-ROUTE-3": [
+      "tests/routing/test_routing.py",
+      "tests/costing/test_costing.py",
+      "tests/integrations/test_jev.py",
+      "tests/integrations/test_discovery_jev.py",
+      "tests/privacy/test_discovery_privacy.py",
+      "tests/application/test_route_integration.py"
+    ],
+    "EC-ROUTE-4": [
+      "tests/privacy/test_storage_privacy.py",
+      "tests/privacy/test_context_privacy.py",
+      "tests/privacy/test_jev_privacy.py",
+      "tests/privacy/test_application_privacy.py",
+      "tests/privacy/test_discovery_privacy.py",
+      "tests/privacy/test_round34_combined.py",
+      "tests/settings/test_settings.py",
+      "tests/cli/test_discovery_cli.py",
+      "tests/cli/test_cli.py",
+      "tests/privacy/test_round35_records.py",
+      "tests/privacy/test_round36_records.py",
+      "tests/privacy/test_round37_values.py",
+      "tests/privacy/test_round38_completeness.py"
+    ],
+    "EC-ROUTE-5": [
+      "tests/contracts/test_discovery_contracts.py",
+      "tests/contracts/test_boundaries.py",
+      "tests/discovery/test_navigation.py",
+      "tests/storage/test_discovery_recovery.py"
+    ],
+    "EC-ROUTE-6": [
+      "tests/discovery/test_navigation.py",
+      "tests/application/test_discovery_application.py",
+      "tests/integrations/test_discovery_jev.py"
+    ],
+    "EC-ROUTE-7": [
+      "tests/application/test_discovery_application.py",
+      "tests/cli/test_discovery_cli.py"
+    ],
+    "IF-0-VC-2": [
+      "tests/verification/test_route_phase.py"
+    ]
+  },
+  "required_controls": {
+    "EC-ROUTE-1": [
+      "tests/storage/test_discovery_recovery.py::test_reservation_crash_recovery_never_dispatches_or_replenishes",
+      "tests/application/test_discovery_application.py::test_route_commit_rechecks_concurrent_objective_deletion"
+    ],
+    "EC-ROUTE-2": [
+      "tests/application/test_discovery_application.py::test_bad_links_never_enter_prepare",
+      "tests/application/test_discovery_application.py::test_required_guidance_rebinds_coalesces_and_rejects_conflicts"
+    ],
+    "EC-ROUTE-3": [
+      "tests/privacy/test_discovery_privacy.py::test_discovery_forbidden_provider_traffic_never_dispatches",
+      "tests/integrations/test_discovery_jev.py::test_unsupported_requested_bounds_reject_before_http",
+      "tests/integrations/test_discovery_jev.py::test_discovery_call_rechecks_authorization_before_http"
+    ],
+    "EC-ROUTE-4": [
+      "tests/privacy/test_discovery_privacy.py::test_metadata_replay_has_no_raw_objective_description_or_provider_payload",
+      "tests/cli/test_discovery_cli.py::test_cold_discover_inspect_replay_delete_commands",
+      "tests/privacy/test_round34_combined.py::test_suffix_assignments_never_reach_six_application_sinks",
+      "tests/privacy/test_round34_combined.py::test_raw_multiline_owner_rejects_before_six_application_effects_and_bytes",
+      "tests/privacy/test_round34_combined.py::test_multiline_named_expression_checks_raw_owner",
+      "tests/privacy/test_round35_records.py::test_sensitive_records_never_reach_six_application_sinks",
+      "tests/privacy/test_round35_records.py::test_hidden_suffix_records_after_prose_are_clean",
+      "tests/privacy/test_round35_records.py::test_alternate_key_delimiters_are_clean",
+      "tests/privacy/test_round36_records.py::test_sensitive_records_never_reach_six_application_sinks",
+      "tests/privacy/test_round36_records.py::test_spacing_combining_suffix_records_are_clean",
+      "tests/privacy/test_round36_records.py::test_perl_dereference_owner_remains_sensitive",
+      "tests/privacy/test_round36_records.py::test_right_arrow_target_is_checked_before_its_value",
+      "tests/privacy/test_round36_records.py::test_word_and_left_arrow_assignments_are_clean",
+      "tests/privacy/test_round37_values.py::test_open_literal_values_never_escape_owner",
+      "tests/privacy/test_round37_values.py::test_incomplete_assignment_values_never_escape_owner",
+      "tests/privacy/test_round37_values.py::test_original_witness_line_boundaries_are_clean",
+      "tests/privacy/test_round37_values.py::test_multiline_values_never_reach_six_application_sinks",
+      "tests/privacy/test_round38_completeness.py::test_owned_expression_bodies_are_clean",
+      "tests/privacy/test_round38_completeness.py::test_original_witnesses_keep_ownership_across_line_boundaries",
+      "tests/privacy/test_round38_completeness.py::test_expression_bodies_never_reach_six_application_sinks",
+      "tests/privacy/test_round38_completeness.py::test_public_expression_twins_preserve_classification"
+    ],
+    "EC-ROUTE-5": [
+      "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity",
+      "tests/discovery/test_navigation.py::test_binding_unknown_duplicate_and_stale_answers",
+      "tests/storage/test_discovery_recovery.py::test_late_answer_cannot_replace_terminal_failure"
+    ],
+    "EC-ROUTE-6": [
+      "tests/discovery/test_navigation.py::test_successive_questions_false_categories_recover_and_permutations",
+      "tests/discovery/test_navigation.py::test_false_domain_children_follow_already_queued_alternate_domains",
+      "tests/application/test_discovery_application.py::test_false_initial_category_recovers_useful_alternate_branch",
+      "tests/integrations/test_discovery_jev.py::test_generated_baml_discovery_application_loopback_and_partial_usage"
+    ],
+    "EC-ROUTE-7": [
+      "tests/application/test_discovery_application.py::test_public_discovery_two_independent_tasks_and_replay",
+      "tests/application/test_discovery_application.py::test_changing_objective_changes_supported_guidance",
+      "tests/application/test_discovery_application.py::test_all_discovery_statuses_gate_quality_sufficient_route"
+    ],
+    "IF-0-VC-2": [
+      "tests/verification/test_route_phase.py::test_reducer_rejects_four_criterion_coverage",
+      "tests/verification/test_route_phase.py::test_reducer_requires_executed_controls",
+      "tests/verification/test_route_phase.py::test_reducer_rejects_inputs_changed_during_collection"
+    ]
+  },
+  "contract_deferrals": [
+    {
+      "id": "JD-015",
+      "criteria": [
+        "EC-ROUTE-1"
+      ]
+    },
+    {
+      "id": "JD-016",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "JD-018",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "JD-019",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "JD-020",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "JD-021",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "JD-022",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "JD-023",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "JD-024",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "JD-025",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "JD-026",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "JD-027",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "JD-043",
+      "criteria": [
+        "EC-ROUTE-4"
+      ]
+    },
+    {
+      "id": "JD-058",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "JD-067",
+      "criteria": [
+        "EC-ROUTE-4"
+      ]
+    },
+    {
+      "id": "JD-071",
+      "criteria": [
+        "EC-ROUTE-4"
+      ]
+    },
+    {
+      "id": "JD-073",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "JD-077",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "JD-078",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-2.01",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-7.01",
+      "criteria": [
+        "EC-ROUTE-4"
+      ]
+    },
+    {
+      "id": "DRAFT-7.02",
+      "criteria": [
+        "EC-ROUTE-4"
+      ]
+    },
+    {
+      "id": "DRAFT-7.03",
+      "criteria": [
+        "EC-ROUTE-4"
+      ]
+    },
+    {
+      "id": "DRAFT-7.04",
+      "criteria": [
+        "EC-ROUTE-4"
+      ]
+    },
+    {
+      "id": "DRAFT-7.05",
+      "criteria": [
+        "EC-ROUTE-4"
+      ]
+    },
+    {
+      "id": "DRAFT-7.06",
+      "criteria": [
+        "EC-ROUTE-4"
+      ]
+    },
+    {
+      "id": "DRAFT-7.07",
+      "criteria": [
+        "EC-ROUTE-4"
+      ]
+    },
+    {
+      "id": "DRAFT-7.08",
+      "criteria": [
+        "EC-ROUTE-4"
+      ]
+    },
+    {
+      "id": "DRAFT-8.01",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-8.02",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-8.03",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-8.04",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-8.05",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-8.06",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-8.07",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-8.08",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-9.01",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-9.02",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-9.03",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-9.04",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-9.05",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-9.06",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-9.07",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-9.08",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-10.01",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-10.02",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-10.03",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-10.04",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-10.05",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-11.01",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-11.02",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-11.03",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-11.04",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-11.05",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-11.06",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-11.07",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-11.08",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-12.01",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-12.02",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-12.03",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-12.04",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-12.05",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-12.06",
+      "criteria": [
+        "EC-ROUTE-2",
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-13.01",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-13.02",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-13.03",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-13.04",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-13.05",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-13.06",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-14.01",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-14.02",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-14.03",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-14.04",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-14.05",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-14.06",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    },
+    {
+      "id": "DRAFT-17.01",
+      "criteria": [
+        "EC-ROUTE-1",
+        "EC-ROUTE-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-17.02",
+      "criteria": [
+        "EC-ROUTE-1",
+        "EC-ROUTE-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-17.03",
+      "criteria": [
+        "EC-ROUTE-1",
+        "EC-ROUTE-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-17.04",
+      "criteria": [
+        "EC-ROUTE-1",
+        "EC-ROUTE-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-17.05",
+      "criteria": [
+        "EC-ROUTE-1",
+        "EC-ROUTE-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-17.06",
+      "criteria": [
+        "EC-ROUTE-1",
+        "EC-ROUTE-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-17.07",
+      "criteria": [
+        "EC-ROUTE-1",
+        "EC-ROUTE-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-17.08",
+      "criteria": [
+        "EC-ROUTE-1",
+        "EC-ROUTE-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-17.09",
+      "criteria": [
+        "EC-ROUTE-1",
+        "EC-ROUTE-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-18.01",
+      "criteria": [
+        "EC-ROUTE-4",
+        "EC-HOST-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-18.02",
+      "criteria": [
+        "EC-ROUTE-4",
+        "EC-HOST-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-18.03",
+      "criteria": [
+        "EC-ROUTE-4",
+        "EC-HOST-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-18.04",
+      "criteria": [
+        "EC-ROUTE-4",
+        "EC-HOST-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-18.05",
+      "criteria": [
+        "EC-ROUTE-4",
+        "EC-HOST-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-18.06",
+      "criteria": [
+        "EC-ROUTE-4",
+        "EC-HOST-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-18.07",
+      "criteria": [
+        "EC-ROUTE-4",
+        "EC-HOST-2",
+        "EC-LEARN-3"
+      ]
+    },
+    {
+      "id": "DRAFT-24.01",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-24.02",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-24.03",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "DRAFT-24.04",
+      "criteria": [
+        "EC-ROUTE-2"
+      ]
+    },
+    {
+      "id": "JD-083",
+      "criteria": [
+        "EC-ROUTE-3"
+      ]
+    }
+  ],
+  "claims": "Software behavior through synthetic public callers and loopback BAML; native reduction required. No empirical model-quality claim."
+}

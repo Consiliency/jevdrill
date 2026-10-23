@@ -1,0 +1,196 @@
+{
+  "$defs": {
+    "Money": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Amount",
+          "type": "string"
+        },
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "currency"
+      ],
+      "title": "Money",
+      "type": "object"
+    },
+    "RateCard": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "input_rate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Input Rate"
+        },
+        "output_rate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Output Rate"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "string"
+        },
+        "subscription_multiplier": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Subscription Multiplier"
+        },
+        "verified_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Verified At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "currency",
+        "expires_at",
+        "input_rate",
+        "output_rate",
+        "revision",
+        "subscription_multiplier",
+        "verified_at"
+      ],
+      "title": "RateCard",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cloud_allowed": {
+      "title": "Cloud Allowed",
+      "type": "boolean"
+    },
+    "enabled": {
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "function_revision": {
+      "const": "ObserveDiscoveryOption-v1",
+      "title": "Function Revision",
+      "type": "string"
+    },
+    "hard_output_token_limit": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "minimum": 1,
+      "title": "Hard Output Token Limit"
+    },
+    "max_calls": {
+      "minimum": 0,
+      "title": "Max Calls",
+      "type": "integer"
+    },
+    "max_candidates": {
+      "minimum": 0,
+      "title": "Max Candidates",
+      "type": "integer"
+    },
+    "max_input_tokens": {
+      "minimum": 0,
+      "title": "Max Input Tokens",
+      "type": "integer"
+    },
+    "model_revision": {
+      "title": "Model Revision",
+      "type": "string"
+    },
+    "output_planning_reservation": {
+      "minimum": 0,
+      "title": "Output Planning Reservation",
+      "type": "integer"
+    },
+    "provider": {
+      "title": "Provider",
+      "type": "string"
+    },
+    "rates": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RateCard"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "spending_ceiling": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Money"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "token_counter_revision": {
+      "title": "Token Counter Revision",
+      "type": "string"
+    }
+  },
+  "required": [
+    "cloud_allowed",
+    "enabled",
+    "function_revision",
+    "hard_output_token_limit",
+    "max_calls",
+    "max_candidates",
+    "max_input_tokens",
+    "model_revision",
+    "output_planning_reservation",
+    "provider",
+    "rates",
+    "spending_ceiling",
+    "token_counter_revision"
+  ],
+  "title": "DiscoveryJudgmentPolicy",
+  "type": "object"
+}

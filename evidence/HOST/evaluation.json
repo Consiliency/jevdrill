@@ -1,0 +1,2544 @@
+{
+  "assertions": [
+    {
+      "id": "research.evaluation.host.test_bridge_probe::test_real_bridge[main-True-0-False]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_bridge_probe::test_real_bridge[delegated-True-1-False]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_bridge_probe::test_real_bridge[lane-True-2-False]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_bridge_probe::test_real_bridge[main-True-3-False]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_bridge_probe::test_real_bridge[delegated-True-4-False]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_bridge_probe::test_real_bridge[lane-True-5-False]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_bridge_probe::test_real_bridge[main-True-0-True]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_bridge_probe::test_real_bridge[delegated-True-2-True]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_bridge_probe::test_real_bridge[lane-True-4-True]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_bridge_probe::test_real_bridge[main-False-0-False]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_bridge_probe::test_real_bridge[delegated-False-0-False]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_bridge_probe::test_real_bridge[lane-False-0-False]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[fixed_default-0]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[fixed_default-1]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[fixed_default-2]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[fixed_default-3]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[fixed_default-4]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[fixed_default-5]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[cheapest_feasible-0]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[cheapest_feasible-1]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[cheapest_feasible-2]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[cheapest_feasible-3]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[cheapest_feasible-4]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[cheapest_feasible-5]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[no_optional_guidance-0]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[no_optional_guidance-1]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[no_optional_guidance-2]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[no_optional_guidance-3]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[no_optional_guidance-4]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_paired_baseline[no_optional_guidance-5]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_routed_negative_control[privacy_leak]",
+      "outcome": "passed"
+    },
+    {
+      "id": "research.evaluation.host.test_baseline_probe::test_routed_negative_control[swapped_split]",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_installed_discovery_decomposition_two_task_launch[alpha]",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_installed_discovery_decomposition_two_task_launch[beta]",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_entered_linked_launch_rejections[forged]",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_entered_linked_launch_rejections[deleted]",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_entered_linked_launch_rejections[stale_catalog]",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_entered_linked_launch_rejections[relaxed]",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_entered_linked_launch_rejections[decline]",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_entered_discovery_requires_harness_decomposition",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_installed_discovery_status_gates_planning[no_optional_guidance]",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_installed_discovery_status_gates_planning[needs_context]",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_installed_discovery_status_gates_planning[constraint_conflict]",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_installed_discovery_status_gates_planning[discovery_failed]",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_objective_tombstone_survives_restart_and_preserves_reports",
+      "outcome": "passed"
+    },
+    {
+      "id": "tests.test_jevdrill_discovery::test_native_unsupported_observer_records_unknown_capture",
+      "outcome": "passed"
+    }
+  ],
+  "claim_scope": "synthetic_conformance_only",
+  "command_sha256": "bb80fce58a3ae19f9115d2e0065f9834364e254120edae67261564d0fe329342",
+  "companion_discovery": {
+    "assertions": [
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_entered_discovery_requires_harness_decomposition",
+        "outcome": "passed"
+      },
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_entered_linked_launch_rejections[decline]",
+        "outcome": "passed"
+      },
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_entered_linked_launch_rejections[deleted]",
+        "outcome": "passed"
+      },
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_entered_linked_launch_rejections[forged]",
+        "outcome": "passed"
+      },
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_entered_linked_launch_rejections[relaxed]",
+        "outcome": "passed"
+      },
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_entered_linked_launch_rejections[stale_catalog]",
+        "outcome": "passed"
+      },
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_installed_discovery_decomposition_two_task_launch[alpha]",
+        "outcome": "passed"
+      },
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_installed_discovery_decomposition_two_task_launch[beta]",
+        "outcome": "passed"
+      },
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_installed_discovery_status_gates_planning[constraint_conflict]",
+        "outcome": "passed"
+      },
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_installed_discovery_status_gates_planning[discovery_failed]",
+        "outcome": "passed"
+      },
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_installed_discovery_status_gates_planning[needs_context]",
+        "outcome": "passed"
+      },
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_installed_discovery_status_gates_planning[no_optional_guidance]",
+        "outcome": "passed"
+      },
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_native_unsupported_observer_records_unknown_capture",
+        "outcome": "passed"
+      },
+      {
+        "node_id": "tests/test_jevdrill_discovery.py::test_objective_tombstone_survives_restart_and_preserves_reports",
+        "outcome": "passed"
+      }
+    ],
+    "assertions_sha256": "9f73723e78b27d35299d60a8be2acf4c97a30b438149aee969da01d634639007",
+    "command": [
+      "/mnt/workspace/users/viperjuice/tmp/jevdrill-host-dotfiles-20261009/vendor/phase-loop-runtime/.venv/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "--override-ini=addopts=",
+      "tests/test_jevdrill_discovery.py",
+      "--junitxml=/mnt/workspace/users/viperjuice/tmp/jevdrill-route-6cj2zhbw/pytest/host-conformance0/discovery.xml",
+      "--basetemp=/mnt/workspace/users/viperjuice/tmp/jevdrill-route-6cj2zhbw/pytest/host-conformance0/discovery-child"
+    ],
+    "command_sha256": "ff33cd76374d45f07deed4826e3fddf4f7d159c727a31488d46df03e9f9063de",
+    "exit_code": 0,
+    "input_digest": "da6662580a4aa7a7e3ea4716348eb01d3cef0718d1c4088ce2fd90ffa2f9ef5f",
+    "origin": "installed_companion_conformance_subprocess",
+    "output_sha256": "67281ad6d0061375fc8a566d3bbba84fb6998c20a301ca17db46ea0724d318fc",
+    "source_stable": true
+  },
+  "evaluator_sha256": "6019a95bf567b488f36798985abc87c09e8badd6516fcaff41892c75d4e061a7",
+  "holdouts_opened": false,
+  "output_sha256": "0c250e618bcbc191d41b1da9485fd56066dd1ee303be1435019a1437626e528b",
+  "performance_claims": "insufficient_evidence",
+  "promotion_eligible": false,
+  "records": [
+    {
+      "ancestry": "sum-v1",
+      "case_index": 0,
+      "connections": [
+        "notices",
+        "route",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "delete"
+      ],
+      "construction_events": [
+        "build_launch_request",
+        "build_launch_spec"
+      ],
+      "damaged": false,
+      "dataset_revision": "host-synthetic-v2",
+      "delivery_events": [
+        {
+          "durable": true,
+          "event_id": "edd7fe39-2906-4aa5-a521-ca70bfb5306b",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "edd7fe39-2906-4aa5-a521-ca70bfb5306b",
+          "schema_version": "1",
+          "status": "duplicate"
+        },
+        {
+          "durable": true,
+          "event_id": "70e43400-730f-4661-86d1-2c19ba004214",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "a8fa9102-d43a-4fc3-9ea6-91125755ed6a",
+          "schema_version": "1",
+          "status": "accepted"
+        }
+      ],
+      "durable_events": 3,
+      "entrypoint": "main",
+      "execution_run": {
+        "applied_plan_id": "725edb8b-2d8b-5a89-8df6-96a37decf1ae",
+        "execution_mode": "main",
+        "execution_run_id": "7ef9ec34-929d-45e5-878f-4eb4b3ea6590",
+        "prior_execution_run_id": null,
+        "selected_plan_id": "725edb8b-2d8b-5a89-8df6-96a37decf1ae",
+        "substitution_reason": null,
+        "task_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "host_preference": null,
+      "model_judgment": null,
+      "objective_checks": {
+        "regression_results": true
+      },
+      "restart_enqueue_status": "deleted",
+      "rubric_revision": "all-required-checks-v1",
+      "split": "development",
+      "task_family": "implementation"
+    },
+    {
+      "ancestry": "sum-v1",
+      "case_index": 0,
+      "connections": [
+        "notices",
+        "route",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "delete"
+      ],
+      "construction_events": [
+        "build_launch_request",
+        "build_launch_spec"
+      ],
+      "damaged": true,
+      "dataset_revision": "host-synthetic-v2",
+      "delivery_events": [
+        {
+          "durable": true,
+          "event_id": "c117d016-0310-4570-94d7-3441ef85a052",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "c117d016-0310-4570-94d7-3441ef85a052",
+          "schema_version": "1",
+          "status": "duplicate"
+        },
+        {
+          "durable": true,
+          "event_id": "3dea3a7c-6e1e-4a2f-b2ac-56c0e023e7ae",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "487235ab-af5a-4d01-9e16-e772f30b73f6",
+          "schema_version": "1",
+          "status": "accepted"
+        }
+      ],
+      "durable_events": 3,
+      "entrypoint": "main",
+      "execution_run": {
+        "applied_plan_id": "725edb8b-2d8b-5a89-8df6-96a37decf1ae",
+        "execution_mode": "main",
+        "execution_run_id": "335103e5-1ddc-4db1-815a-853b6b841532",
+        "prior_execution_run_id": null,
+        "selected_plan_id": "725edb8b-2d8b-5a89-8df6-96a37decf1ae",
+        "substitution_reason": null,
+        "task_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "host_preference": null,
+      "model_judgment": null,
+      "objective_checks": {
+        "regression_results": false
+      },
+      "restart_enqueue_status": "deleted",
+      "rubric_revision": "all-required-checks-v1",
+      "split": "development",
+      "task_family": "implementation"
+    },
+    {
+      "ancestry": "unique-v1",
+      "case_index": 1,
+      "connections": [
+        "notices",
+        "route",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "delete"
+      ],
+      "construction_events": [
+        "build_launch_request",
+        "build_launch_spec"
+      ],
+      "damaged": false,
+      "dataset_revision": "host-synthetic-v2",
+      "delivery_events": [
+        {
+          "durable": true,
+          "event_id": "f48f3993-d25a-4d81-a139-64328ecbecce",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "f48f3993-d25a-4d81-a139-64328ecbecce",
+          "schema_version": "1",
+          "status": "duplicate"
+        },
+        {
+          "durable": true,
+          "event_id": "ab74abd3-1763-4e0c-b69f-735a0af1d126",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "ece9b31b-14cf-4af4-8b5e-2ac46336fd87",
+          "schema_version": "1",
+          "status": "accepted"
+        }
+      ],
+      "durable_events": 3,
+      "entrypoint": "delegated",
+      "execution_run": {
+        "applied_plan_id": "0532e167-de94-5f37-ac75-26e1e736fd87",
+        "execution_mode": "delegated",
+        "execution_run_id": "cffec963-942b-4985-92fc-1d9a442a037b",
+        "prior_execution_run_id": null,
+        "selected_plan_id": "0532e167-de94-5f37-ac75-26e1e736fd87",
+        "substitution_reason": null,
+        "task_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "host_preference": null,
+      "model_judgment": null,
+      "objective_checks": {
+        "regression_results": true
+      },
+      "restart_enqueue_status": "deleted",
+      "rubric_revision": "all-required-checks-v1",
+      "split": "validation",
+      "task_family": "implementation"
+    },
+    {
+      "ancestry": "auth-v1",
+      "case_index": 2,
+      "connections": [
+        "notices",
+        "route",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "delete"
+      ],
+      "construction_events": [
+        "build_launch_request",
+        "build_launch_spec"
+      ],
+      "damaged": false,
+      "dataset_revision": "host-synthetic-v2",
+      "delivery_events": [
+        {
+          "durable": true,
+          "event_id": "7a6d92b7-69d0-48a9-b887-651a5d8d3b12",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "7a6d92b7-69d0-48a9-b887-651a5d8d3b12",
+          "schema_version": "1",
+          "status": "duplicate"
+        },
+        {
+          "durable": true,
+          "event_id": "216d6e16-8537-42ba-b8c8-d1b518480c15",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "886ad97a-97e1-4748-bb50-ce8ed6243937",
+          "schema_version": "1",
+          "status": "accepted"
+        }
+      ],
+      "durable_events": 3,
+      "entrypoint": "lane",
+      "execution_run": {
+        "applied_plan_id": "ecf54498-40a3-5a12-bc3a-47e4ad253337",
+        "execution_mode": "delegated",
+        "execution_run_id": "7a2344db-5119-4e71-a15a-4075c3636f0d",
+        "prior_execution_run_id": null,
+        "selected_plan_id": "ecf54498-40a3-5a12-bc3a-47e4ad253337",
+        "substitution_reason": null,
+        "task_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "host_preference": null,
+      "model_judgment": null,
+      "objective_checks": {
+        "defect_recall": true,
+        "false_positives": true,
+        "severity_action": true
+      },
+      "restart_enqueue_status": "deleted",
+      "rubric_revision": "all-required-checks-v1",
+      "split": "development",
+      "task_family": "review"
+    },
+    {
+      "ancestry": "auth-v1",
+      "case_index": 2,
+      "connections": [
+        "notices",
+        "route",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "delete"
+      ],
+      "construction_events": [
+        "build_launch_request",
+        "build_launch_spec"
+      ],
+      "damaged": true,
+      "dataset_revision": "host-synthetic-v2",
+      "delivery_events": [
+        {
+          "durable": true,
+          "event_id": "82a1a5ce-5561-4487-9f6d-e71cc549cd15",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "82a1a5ce-5561-4487-9f6d-e71cc549cd15",
+          "schema_version": "1",
+          "status": "duplicate"
+        },
+        {
+          "durable": true,
+          "event_id": "d5db6d66-bfea-4c3d-8bf0-e9a5ce154001",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "f5f8a1b2-add7-4b46-8a59-bb251fc58af3",
+          "schema_version": "1",
+          "status": "accepted"
+        }
+      ],
+      "durable_events": 3,
+      "entrypoint": "delegated",
+      "execution_run": {
+        "applied_plan_id": "0532e167-de94-5f37-ac75-26e1e736fd87",
+        "execution_mode": "delegated",
+        "execution_run_id": "49864d63-bb68-43f6-acf7-943fc757b070",
+        "prior_execution_run_id": null,
+        "selected_plan_id": "0532e167-de94-5f37-ac75-26e1e736fd87",
+        "substitution_reason": null,
+        "task_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "host_preference": null,
+      "model_judgment": null,
+      "objective_checks": {
+        "defect_recall": false,
+        "false_positives": false,
+        "severity_action": false
+      },
+      "restart_enqueue_status": "deleted",
+      "rubric_revision": "all-required-checks-v1",
+      "split": "development",
+      "task_family": "review"
+    },
+    {
+      "ancestry": "path-v1",
+      "case_index": 3,
+      "connections": [
+        "notices",
+        "route",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "delete"
+      ],
+      "construction_events": [
+        "build_launch_request",
+        "build_launch_spec"
+      ],
+      "damaged": false,
+      "dataset_revision": "host-synthetic-v2",
+      "delivery_events": [
+        {
+          "durable": true,
+          "event_id": "9742ed34-868b-4c25-9077-c0c69f9f0031",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "9742ed34-868b-4c25-9077-c0c69f9f0031",
+          "schema_version": "1",
+          "status": "duplicate"
+        },
+        {
+          "durable": true,
+          "event_id": "21c9d365-0cdb-419b-9da4-58854e740ff7",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "ff4651bc-c00c-4f22-9971-c514b657d24b",
+          "schema_version": "1",
+          "status": "accepted"
+        }
+      ],
+      "durable_events": 3,
+      "entrypoint": "main",
+      "execution_run": {
+        "applied_plan_id": "725edb8b-2d8b-5a89-8df6-96a37decf1ae",
+        "execution_mode": "main",
+        "execution_run_id": "6dfb08c5-4bfb-4ec9-895c-a1323e6e2359",
+        "prior_execution_run_id": null,
+        "selected_plan_id": "725edb8b-2d8b-5a89-8df6-96a37decf1ae",
+        "substitution_reason": null,
+        "task_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "host_preference": null,
+      "model_judgment": null,
+      "objective_checks": {
+        "defect_recall": true,
+        "false_positives": true,
+        "severity_action": true
+      },
+      "restart_enqueue_status": "deleted",
+      "rubric_revision": "all-required-checks-v1",
+      "split": "validation",
+      "task_family": "review"
+    },
+    {
+      "ancestry": "queue-v1",
+      "case_index": 4,
+      "connections": [
+        "notices",
+        "route",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "delete"
+      ],
+      "construction_events": [
+        "build_launch_request",
+        "build_launch_spec"
+      ],
+      "damaged": false,
+      "dataset_revision": "host-synthetic-v2",
+      "delivery_events": [
+        {
+          "durable": true,
+          "event_id": "4178c275-defc-4e4d-a8b7-67e4d38a1d3d",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "4178c275-defc-4e4d-a8b7-67e4d38a1d3d",
+          "schema_version": "1",
+          "status": "duplicate"
+        },
+        {
+          "durable": true,
+          "event_id": "16ecb1ab-92dd-447f-aab2-151cb996c08b",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "00e509f7-7b0c-4f33-ab24-0575b3b0ca3f",
+          "schema_version": "1",
+          "status": "accepted"
+        }
+      ],
+      "durable_events": 3,
+      "entrypoint": "delegated",
+      "execution_run": {
+        "applied_plan_id": "0532e167-de94-5f37-ac75-26e1e736fd87",
+        "execution_mode": "delegated",
+        "execution_run_id": "2235eb90-d7f1-4a3c-9f2f-10b03005890f",
+        "prior_execution_run_id": null,
+        "selected_plan_id": "0532e167-de94-5f37-ac75-26e1e736fd87",
+        "substitution_reason": null,
+        "task_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "host_preference": null,
+      "model_judgment": null,
+      "objective_checks": {
+        "examples": true,
+        "facts": true,
+        "references": true,
+        "requirements": true
+      },
+      "restart_enqueue_status": "deleted",
+      "rubric_revision": "all-required-checks-v1",
+      "split": "development",
+      "task_family": "documentation"
+    },
+    {
+      "ancestry": "queue-v1",
+      "case_index": 4,
+      "connections": [
+        "notices",
+        "route",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "delete"
+      ],
+      "construction_events": [
+        "build_launch_request",
+        "build_launch_spec"
+      ],
+      "damaged": true,
+      "dataset_revision": "host-synthetic-v2",
+      "delivery_events": [
+        {
+          "durable": true,
+          "event_id": "b1c49be7-b710-42f5-ad5f-288ac038c930",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "b1c49be7-b710-42f5-ad5f-288ac038c930",
+          "schema_version": "1",
+          "status": "duplicate"
+        },
+        {
+          "durable": true,
+          "event_id": "c9bbc259-da14-4145-9a88-bd54ffd9d691",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "fd1f6027-001c-4d13-a61e-9c904224b1d6",
+          "schema_version": "1",
+          "status": "accepted"
+        }
+      ],
+      "durable_events": 3,
+      "entrypoint": "lane",
+      "execution_run": {
+        "applied_plan_id": "ecf54498-40a3-5a12-bc3a-47e4ad253337",
+        "execution_mode": "delegated",
+        "execution_run_id": "21d1d5e2-7ff0-42cd-bb4f-a9107c75c9b2",
+        "prior_execution_run_id": null,
+        "selected_plan_id": "ecf54498-40a3-5a12-bc3a-47e4ad253337",
+        "substitution_reason": null,
+        "task_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "host_preference": null,
+      "model_judgment": null,
+      "objective_checks": {
+        "examples": false,
+        "facts": false,
+        "references": false,
+        "requirements": false
+      },
+      "restart_enqueue_status": "deleted",
+      "rubric_revision": "all-required-checks-v1",
+      "split": "development",
+      "task_family": "documentation"
+    },
+    {
+      "ancestry": "cost-v1",
+      "case_index": 5,
+      "connections": [
+        "notices",
+        "route",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "notices",
+        "report",
+        "delete"
+      ],
+      "construction_events": [
+        "build_launch_request",
+        "build_launch_spec"
+      ],
+      "damaged": false,
+      "dataset_revision": "host-synthetic-v2",
+      "delivery_events": [
+        {
+          "durable": true,
+          "event_id": "d5d314a8-7b03-4a8d-b2d9-3e395ec6eacf",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "d5d314a8-7b03-4a8d-b2d9-3e395ec6eacf",
+          "schema_version": "1",
+          "status": "duplicate"
+        },
+        {
+          "durable": true,
+          "event_id": "6c0e8e8e-8cf8-4bad-95b4-3bb9d84548f2",
+          "schema_version": "1",
+          "status": "accepted"
+        },
+        {
+          "durable": true,
+          "event_id": "34500f1f-34d5-49ae-9ac7-eedbc05d28c4",
+          "schema_version": "1",
+          "status": "accepted"
+        }
+      ],
+      "durable_events": 3,
+      "entrypoint": "lane",
+      "execution_run": {
+        "applied_plan_id": "ecf54498-40a3-5a12-bc3a-47e4ad253337",
+        "execution_mode": "delegated",
+        "execution_run_id": "3830cfbd-3d63-44e9-8cc5-31a09efe7a09",
+        "prior_execution_run_id": null,
+        "selected_plan_id": "ecf54498-40a3-5a12-bc3a-47e4ad253337",
+        "substitution_reason": null,
+        "task_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "host_preference": null,
+      "model_judgment": null,
+      "objective_checks": {
+        "examples": true,
+        "facts": true,
+        "references": true,
+        "requirements": true
+      },
+      "restart_enqueue_status": "deleted",
+      "rubric_revision": "all-required-checks-v1",
+      "split": "validation",
+      "task_family": "documentation"
+    },
+    {
+      "ancestry": "sum-v1",
+      "attempts": 1,
+      "baseline": "cheapest_feasible",
+      "case_index": 0,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "development",
+      "execution_ms": 19.2941,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "regression_results": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 1920.259721,
+      "routing_ms": 633.72824,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "development",
+      "task_family": "implementation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "unique-v1",
+      "attempts": 1,
+      "baseline": "cheapest_feasible",
+      "case_index": 1,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "validation",
+      "execution_ms": 18.838989,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "regression_results": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 1979.128835,
+      "routing_ms": 682.165427,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "validation",
+      "task_family": "implementation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "auth-v1",
+      "attempts": 1,
+      "baseline": "cheapest_feasible",
+      "case_index": 2,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "development",
+      "execution_ms": 16.317569,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "defect_recall": true,
+        "false_positives": true,
+        "severity_action": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 1966.328305,
+      "routing_ms": 882.71692,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "development",
+      "task_family": "review",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "path-v1",
+      "attempts": 1,
+      "baseline": "cheapest_feasible",
+      "case_index": 3,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "validation",
+      "execution_ms": 19.963551,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "defect_recall": true,
+        "false_positives": true,
+        "severity_action": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 2002.401234,
+      "routing_ms": 686.208168,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "validation",
+      "task_family": "review",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "queue-v1",
+      "attempts": 1,
+      "baseline": "cheapest_feasible",
+      "case_index": 4,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "development",
+      "execution_ms": 20.269211,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "examples": true,
+        "facts": true,
+        "references": true,
+        "requirements": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 1944.696359,
+      "routing_ms": 783.524648,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "development",
+      "task_family": "documentation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "cost-v1",
+      "attempts": 1,
+      "baseline": "cheapest_feasible",
+      "case_index": 5,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "validation",
+      "execution_ms": 11.979256,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "examples": true,
+        "facts": true,
+        "references": true,
+        "requirements": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 2113.192196,
+      "routing_ms": 683.104814,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "validation",
+      "task_family": "documentation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "sum-v1",
+      "attempts": 1,
+      "baseline": "fixed_default",
+      "case_index": 0,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "development",
+      "execution_ms": 27.31379,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-a-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "regression_results": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 3267.33333,
+      "routing_ms": 834.30994,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-a",
+      "split": "development",
+      "task_family": "implementation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "unique-v1",
+      "attempts": 1,
+      "baseline": "fixed_default",
+      "case_index": 1,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "validation",
+      "execution_ms": 18.359183,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-a-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "regression_results": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 2212.07596,
+      "routing_ms": 1134.571242,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-a",
+      "split": "validation",
+      "task_family": "implementation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "auth-v1",
+      "attempts": 1,
+      "baseline": "fixed_default",
+      "case_index": 2,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "development",
+      "execution_ms": 11.279829,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-a-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "defect_recall": true,
+        "false_positives": true,
+        "severity_action": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 2077.06958,
+      "routing_ms": 681.510824,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-a",
+      "split": "development",
+      "task_family": "review",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "path-v1",
+      "attempts": 1,
+      "baseline": "fixed_default",
+      "case_index": 3,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "validation",
+      "execution_ms": 19.497339,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-a-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "defect_recall": true,
+        "false_positives": true,
+        "severity_action": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 2188.783251,
+      "routing_ms": 682.315266,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-a",
+      "split": "validation",
+      "task_family": "review",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "queue-v1",
+      "attempts": 1,
+      "baseline": "fixed_default",
+      "case_index": 4,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "development",
+      "execution_ms": 9.990151,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-a-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "examples": true,
+        "facts": true,
+        "references": true,
+        "requirements": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 1806.619291,
+      "routing_ms": 582.732244,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-a",
+      "split": "development",
+      "task_family": "documentation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "cost-v1",
+      "attempts": 1,
+      "baseline": "fixed_default",
+      "case_index": 5,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "validation",
+      "execution_ms": 14.629096,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-a-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "examples": true,
+        "facts": true,
+        "references": true,
+        "requirements": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 2148.085761,
+      "routing_ms": 737.115349,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-a",
+      "split": "validation",
+      "task_family": "documentation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "sum-v1",
+      "attempts": 1,
+      "baseline": "no_optional_guidance",
+      "case_index": 0,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "development",
+      "execution_ms": 12.455977,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "regression_results": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 2089.49591,
+      "routing_ms": 682.526382,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "development",
+      "task_family": "implementation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "unique-v1",
+      "attempts": 1,
+      "baseline": "no_optional_guidance",
+      "case_index": 1,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "validation",
+      "execution_ms": 19.693435,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "regression_results": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 2324.15278,
+      "routing_ms": 682.522384,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "validation",
+      "task_family": "implementation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "auth-v1",
+      "attempts": 1,
+      "baseline": "no_optional_guidance",
+      "case_index": 2,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "development",
+      "execution_ms": 14.289782,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "defect_recall": true,
+        "false_positives": true,
+        "severity_action": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 2010.0745379999998,
+      "routing_ms": 836.707618,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "development",
+      "task_family": "review",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "path-v1",
+      "attempts": 1,
+      "baseline": "no_optional_guidance",
+      "case_index": 3,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "validation",
+      "execution_ms": 14.478354,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "defect_recall": true,
+        "false_positives": true,
+        "severity_action": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 2112.802024,
+      "routing_ms": 882.547814,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "validation",
+      "task_family": "review",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "queue-v1",
+      "attempts": 1,
+      "baseline": "no_optional_guidance",
+      "case_index": 4,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "development",
+      "execution_ms": 16.251547,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "examples": true,
+        "facts": true,
+        "references": true,
+        "requirements": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 1937.3187859999998,
+      "routing_ms": 686.331729,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "development",
+      "task_family": "documentation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "cost-v1",
+      "attempts": 1,
+      "baseline": "no_optional_guidance",
+      "case_index": 5,
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "validation",
+      "execution_ms": 10.177541,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "examples": true,
+        "facts": true,
+        "references": true,
+        "requirements": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 2109.172214,
+      "routing_ms": 632.115648,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "validation",
+      "task_family": "documentation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "sum-v1",
+      "attempts": 1,
+      "baseline": "cheapest_feasible",
+      "case_index": 0,
+      "control": "privacy_leak",
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "development",
+      "execution_ms": 12.777046,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "privacy": false,
+        "regression_results": true,
+        "split_provenance": true
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": false,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 2251.194149,
+      "routing_ms": 683.236768,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "development",
+      "task_family": "implementation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "ancestry": "sum-v1",
+      "attempts": 1,
+      "baseline": "cheapest_feasible",
+      "case_index": 0,
+      "control": "swapped_split",
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "estimated cost, not a guaranteed execution spending bound",
+          "UTF-8 byte input upper bound",
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": null,
+        "observed_cost": null,
+        "rate_revision": "rates-v1",
+        "raw_token_cost": {
+          "amount": "0.0002137",
+          "currency": "USD"
+        }
+      },
+      "dataset_revision": "host-synthetic-v2",
+      "declared_split": "validation",
+      "execution_ms": 15.205403,
+      "failures": 0,
+      "host_preference": null,
+      "model_judgment": null,
+      "model_revision": "model-b-v1",
+      "native_effort": {
+        "kind": "explicit",
+        "native_value": "high"
+      },
+      "objective_checks": {
+        "privacy": true,
+        "regression_results": true,
+        "split_provenance": false
+      },
+      "observed_cost": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "privacy_passed": true,
+      "provider_execution": false,
+      "reporting_and_bridge_ms": 2188.725371,
+      "routing_ms": 884.122045,
+      "rubric_revision": "all-required-checks-v1",
+      "selected_model": "model-b",
+      "split": "development",
+      "task_family": "implementation",
+      "token_usage": {
+        "kind": "unknown",
+        "reason": "not_reported"
+      },
+      "versions": {
+        "catalog_revision": "fixture",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+      }
+    },
+    {
+      "construction_events": [
+        "planning.build_launch_request",
+        "planning.build_launch_spec",
+        "planning.executor",
+        "task.SL-0.route-v2",
+        "task.build_launch_request",
+        "task.build_launch_spec",
+        "task.executor",
+        "task.SL-1.route-v2",
+        "task.build_launch_request",
+        "task.build_launch_spec",
+        "task.executor"
+      ],
+      "entered": [
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "discover",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "route",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "route",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application"
+      ],
+      "flow": "discovery",
+      "objective": "alpha",
+      "observations": [
+        {
+          "answer": false,
+          "level": "domain",
+          "option_id": "domain:6195d08bedf71606579ad66ac845d1c88bf5786190765f0dfe6f33593de071af"
+        },
+        {
+          "answer": false,
+          "level": "domain",
+          "option_id": "domain:b344f912461aa15f6108fde275e297e5a210f27490af8d263eafd11a0367edf2"
+        },
+        {
+          "answer": false,
+          "level": "specialty",
+          "option_id": "specialty:f21885b04260c761e3c78ecf626ee606c31a57c78f8e9fe31a726a53c252890e"
+        },
+        {
+          "answer": false,
+          "level": "specialty",
+          "option_id": "specialty:d1aa47037d5a7b8805b9cc57eeda3ae96618f93f6f5d32ae36f795c68924d629"
+        },
+        {
+          "answer": false,
+          "level": "task_family",
+          "option_id": "task_family:948848e97facc39d174d9af809aeeb34209bb940cf2258a5f57ce1587ee09bd0"
+        },
+        {
+          "answer": false,
+          "level": "task_family",
+          "option_id": "task_family:e4a91acb42f33f57423cf45289dd13bb83f945d7f437a860f35613a4e76c228d"
+        },
+        {
+          "answer": true,
+          "level": "resource",
+          "option_id": "resource:390d1e23eb336d1574e90de6ac371a55f232708b21ee0654a8c347f765525a65"
+        },
+        {
+          "answer": false,
+          "level": "resource",
+          "option_id": "resource:fb3fe558abc667793f5666c88d6f8b9e252b55ce5163652360758b0c51f40b9d"
+        }
+      ],
+      "runs": [
+        {
+          "decision_id": "0b3fe40f-d104-5d3e-9a00-0879a5d139d4",
+          "discovery_ref": {
+            "discovery_id": "ebbf87b0-bcc5-4849-b1e0-06af2b427f1f",
+            "trace_digest": "f826f928ee1033b8e7e131bfcff6c35a09cf76a0ef917e4019d11c6c034bb681",
+            "work_objective_id": "00000000-0000-4000-8000-000000000020"
+          },
+          "effort": "high",
+          "execution_run": {
+            "applied_plan_id": "60a59756-f863-56e5-b58d-8fd16aceac13",
+            "execution_mode": "main",
+            "execution_run_id": "d276e53f-0b24-4687-99df-ec0801eb8e76",
+            "prior_execution_run_id": null,
+            "selected_plan_id": "60a59756-f863-56e5-b58d-8fd16aceac13",
+            "substitution_reason": null,
+            "task_id": "c7ff33aa-03ed-5499-8f85-6844b83f2c80"
+          },
+          "model": "model-0",
+          "task_id": "c7ff33aa-03ed-5499-8f85-6844b83f2c80",
+          "timings": {
+            "launcher_ms": 8.475371,
+            "method": "monotonic_ns",
+            "provider_generation_ms": null,
+            "reporting_ms": 933.0927780000001,
+            "routing_ms": 1201.897843,
+            "schema_version": "1",
+            "unit": "ms"
+          }
+        },
+        {
+          "decision_id": "2c21136a-0b03-5a39-b1d0-f48b075339cc",
+          "discovery_ref": {
+            "discovery_id": "ebbf87b0-bcc5-4849-b1e0-06af2b427f1f",
+            "trace_digest": "f826f928ee1033b8e7e131bfcff6c35a09cf76a0ef917e4019d11c6c034bb681",
+            "work_objective_id": "00000000-0000-4000-8000-000000000020"
+          },
+          "effort": "low",
+          "execution_run": {
+            "applied_plan_id": "f7aa8022-211c-53fc-8256-64e4abf85925",
+            "execution_mode": "main",
+            "execution_run_id": "9bf8f93f-bae4-43f1-b50a-1ae6432fea74",
+            "prior_execution_run_id": null,
+            "selected_plan_id": "f7aa8022-211c-53fc-8256-64e4abf85925",
+            "substitution_reason": null,
+            "task_id": "b9fc3194-2152-5590-8faf-05460a5fe047"
+          },
+          "model": "model-1",
+          "task_id": "b9fc3194-2152-5590-8faf-05460a5fe047",
+          "timings": {
+            "launcher_ms": 8.559047,
+            "method": "monotonic_ns",
+            "provider_generation_ms": null,
+            "reporting_ms": 805.758078,
+            "routing_ms": 1049.724175,
+            "schema_version": "1",
+            "unit": "ms"
+          }
+        }
+      ]
+    },
+    {
+      "construction_events": [
+        "planning.build_launch_request",
+        "planning.build_launch_spec",
+        "planning.executor",
+        "task.SL-0.route-v2",
+        "task.build_launch_request",
+        "task.build_launch_spec",
+        "task.executor",
+        "task.SL-1.route-v2",
+        "task.build_launch_request",
+        "task.build_launch_spec",
+        "task.executor"
+      ],
+      "entered": [
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "discover",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "next_question",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "route",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "route",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application",
+        "main",
+        "open_application"
+      ],
+      "flow": "discovery",
+      "objective": "beta",
+      "observations": [
+        {
+          "answer": false,
+          "level": "domain",
+          "option_id": "domain:6195d08bedf71606579ad66ac845d1c88bf5786190765f0dfe6f33593de071af"
+        },
+        {
+          "answer": false,
+          "level": "domain",
+          "option_id": "domain:b344f912461aa15f6108fde275e297e5a210f27490af8d263eafd11a0367edf2"
+        },
+        {
+          "answer": false,
+          "level": "specialty",
+          "option_id": "specialty:f21885b04260c761e3c78ecf626ee606c31a57c78f8e9fe31a726a53c252890e"
+        },
+        {
+          "answer": false,
+          "level": "specialty",
+          "option_id": "specialty:d1aa47037d5a7b8805b9cc57eeda3ae96618f93f6f5d32ae36f795c68924d629"
+        },
+        {
+          "answer": false,
+          "level": "task_family",
+          "option_id": "task_family:948848e97facc39d174d9af809aeeb34209bb940cf2258a5f57ce1587ee09bd0"
+        },
+        {
+          "answer": false,
+          "level": "task_family",
+          "option_id": "task_family:e4a91acb42f33f57423cf45289dd13bb83f945d7f437a860f35613a4e76c228d"
+        },
+        {
+          "answer": false,
+          "level": "resource",
+          "option_id": "resource:390d1e23eb336d1574e90de6ac371a55f232708b21ee0654a8c347f765525a65"
+        },
+        {
+          "answer": true,
+          "level": "resource",
+          "option_id": "resource:fb3fe558abc667793f5666c88d6f8b9e252b55ce5163652360758b0c51f40b9d"
+        }
+      ],
+      "runs": [
+        {
+          "decision_id": "a37214a0-12e4-5452-8abe-7abde444ae00",
+          "discovery_ref": {
+            "discovery_id": "27356743-b357-43d9-83b9-67d30d2e58d8",
+            "trace_digest": "d71e487bc005005df4ee5ea7bd8bcb2f0f4a612d1e63121ad1bc9b4dafe8aa03",
+            "work_objective_id": "00000000-0000-4000-8000-000000000020"
+          },
+          "effort": "high",
+          "execution_run": {
+            "applied_plan_id": "4aa4c37d-f451-5045-a723-42debc8fb369",
+            "execution_mode": "main",
+            "execution_run_id": "7ddbd304-af0a-4dfc-84a0-ff2b11eabf52",
+            "prior_execution_run_id": null,
+            "selected_plan_id": "4aa4c37d-f451-5045-a723-42debc8fb369",
+            "substitution_reason": null,
+            "task_id": "c7ff33aa-03ed-5499-8f85-6844b83f2c80"
+          },
+          "model": "model-0",
+          "task_id": "c7ff33aa-03ed-5499-8f85-6844b83f2c80",
+          "timings": {
+            "launcher_ms": 7.519085,
+            "method": "monotonic_ns",
+            "provider_generation_ms": null,
+            "reporting_ms": 696.073015,
+            "routing_ms": 1201.123757,
+            "schema_version": "1",
+            "unit": "ms"
+          }
+        },
+        {
+          "decision_id": "1a83582b-1817-5396-8c07-19fbbce01660",
+          "discovery_ref": {
+            "discovery_id": "27356743-b357-43d9-83b9-67d30d2e58d8",
+            "trace_digest": "d71e487bc005005df4ee5ea7bd8bcb2f0f4a612d1e63121ad1bc9b4dafe8aa03",
+            "work_objective_id": "00000000-0000-4000-8000-000000000020"
+          },
+          "effort": "low",
+          "execution_run": {
+            "applied_plan_id": "90c02354-d140-5162-8b0e-1495c7a40c44",
+            "execution_mode": "main",
+            "execution_run_id": "a0bd981c-1fa2-477e-b793-39ec2c3c40c4",
+            "prior_execution_run_id": null,
+            "selected_plan_id": "90c02354-d140-5162-8b0e-1495c7a40c44",
+            "substitution_reason": null,
+            "task_id": "b9fc3194-2152-5590-8faf-05460a5fe047"
+          },
+          "model": "model-1",
+          "task_id": "b9fc3194-2152-5590-8faf-05460a5fe047",
+          "timings": {
+            "launcher_ms": 8.479649,
+            "method": "monotonic_ns",
+            "provider_generation_ms": null,
+            "reporting_ms": 743.092464,
+            "routing_ms": 1054.485289,
+            "schema_version": "1",
+            "unit": "ms"
+          }
+        }
+      ]
+    },
+    {
+      "discovery_id": "74b94221-6b55-4243-ab10-51970ffb865c",
+      "fault": "decline",
+      "flow": "discovery-control",
+      "rejected_before_execution": true,
+      "task_id": "c7ff33aa-03ed-5499-8f85-6844b83f2c80"
+    },
+    {
+      "discovery_id": "059f3c70-25c7-4390-9e40-b94d6fd1ab74",
+      "fault": "deleted",
+      "flow": "discovery-control",
+      "rejected_before_execution": true,
+      "task_id": "c7ff33aa-03ed-5499-8f85-6844b83f2c80"
+    },
+    {
+      "discovery_id": "184590b4-8e2a-441e-b1e3-f7ef807295e6",
+      "fault": "forged",
+      "flow": "discovery-control",
+      "rejected_before_execution": true,
+      "task_id": "c7ff33aa-03ed-5499-8f85-6844b83f2c80"
+    },
+    {
+      "discovery_id": "f201e0d8-9c34-46ed-bf30-773d300474e6",
+      "fault": "relaxed",
+      "flow": "discovery-control",
+      "rejected_before_execution": true,
+      "task_id": "c7ff33aa-03ed-5499-8f85-6844b83f2c80"
+    },
+    {
+      "discovery_id": "ad482bb4-0ed5-4d71-b264-ab4379ad2216",
+      "fault": "stale_catalog",
+      "flow": "discovery-control",
+      "rejected_before_execution": true,
+      "task_id": "c7ff33aa-03ed-5499-8f85-6844b83f2c80"
+    },
+    {
+      "control": "permission_denial",
+      "entered": [
+        "delegated"
+      ],
+      "entrypoint": "delegated",
+      "launched": 0
+    },
+    {
+      "control": "permission_denial",
+      "entered": [
+        "lane"
+      ],
+      "entrypoint": "lane",
+      "launched": 0
+    },
+    {
+      "control": "permission_denial",
+      "entered": [
+        "main"
+      ],
+      "entrypoint": "main",
+      "launched": 0
+    }
+  ],
+  "source_sha256": "28f605a5f98f1c8222494c727fb7809e80d2feafb8bfb4ed4fb92d88f2f65f84"
+}

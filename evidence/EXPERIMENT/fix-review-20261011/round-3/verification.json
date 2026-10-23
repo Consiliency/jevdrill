@@ -1,0 +1,61 @@
+{
+  "source_manifest_sha256": "d6277cc6e06151bbe8b7fe798f6b80150e3bda0211ca31edf17cec0fccb8eab8",
+  "source_files": 243,
+  "full_suite": {
+    "passed": 858,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_seconds": 372.86,
+    "started": "2026-10-12T11:13:40.060206-04:00",
+    "latest_source_mtime_utc": "2026-10-12T15:11:16.918607+00:00",
+    "source_hash_mismatches": [],
+    "log": "/tmp/jevdrill-v2-full.log",
+    "log_sha256": "4f9cb32c629cafbc8d5b97b6e6f7abbca8298490873e3d9b3b93ef68402f08fa",
+    "junit": "/tmp/jevdrill-v2-full.xml",
+    "junit_sha256": "fe16c7cacffa093716918e3ec871338266cb3e0ae65af4a6ce9071a3b9651564",
+    "environment": {
+      "JEVDRILL_AGENT_HARNESS_ROOT": "/mnt/workspace/worktrees/viperjuice/agent-harness-jevdrill-discovery-host",
+      "JEVDRILL_AGENT_HARNESS_PYTHON": "/mnt/workspace/worktrees/viperjuice/agent-harness-jevdrill-discovery-host/phase-loop-runtime/.venv/bin/python",
+      "JEVDRILL_TEST_CLI": "/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/.venv/bin/jevdrill",
+      "JEVDRILL_TEST_PYTHON": "/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/.venv/bin/python",
+      "PHASE_LOOP_TDD_EXPECT_SCHED": "1",
+      "BAML_CLI": "/home/viperjuice/workspace/worktrees/route-compiler-0.20.1/bin/baml-cli",
+      "BAML_AGENT_SKILL_CHECK": "off"
+    }
+  },
+  "targeted_suite": {
+    "passed": 130,
+    "duration_seconds": 44.68,
+    "junit": "/tmp/jevdrill-v2-targeted-fixed.xml",
+    "initial_attempt": "95 passed, 1 failed; fixture-drift assertion omitted the expected authority-preview mismatch. Also fixed missing test time import and import sorting. Initial junit preserved at /tmp/jevdrill-v2-targeted.xml"
+  },
+  "node_contract_consumer": {
+    "fixtures": 197,
+    "status": "passed",
+    "report": "/tmp/jevdrill-v2-contract-consumer.json"
+  },
+  "ruff_lint_and_format": "passed for 9 authored Python files",
+  "mypy": "passed for 23 source files",
+  "generation": {
+    "passed": true,
+    "generated_files": 147,
+    "schemas": 78,
+    "write": false,
+    "compiler": "0.20.1"
+  },
+  "offline_package_build": {
+    "status": "passed",
+    "directory": "/tmp/jevdrill-v2-dist",
+    "log": "/tmp/jevdrill-v2-build.log"
+  },
+  "import_boundaries": "passed",
+  "vocabulary": "passed",
+  "public_module_imports": "passed",
+  "git_diff_check": "passed",
+  "staged_index_unchanged": true,
+  "changed_schema_count": 7,
+  "native_platform_receipts": "Linux only; no new native macOS or Windows receipts",
+  "paid_study_calls": 0,
+  "empirical_acceptance": false
+}

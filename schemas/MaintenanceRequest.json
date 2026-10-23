@@ -1,0 +1,119 @@
+{
+  "$defs": {
+    "CommandScope": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "anyOf": [
+            {
+              "const": "route",
+              "type": "string"
+            },
+            {
+              "const": "report",
+              "type": "string"
+            }
+          ],
+          "title": "Operation"
+        },
+        "producer": {
+          "title": "Producer",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "workspace_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation",
+        "producer",
+        "project_id",
+        "workspace_id"
+      ],
+      "title": "CommandScope",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "anyOf": [
+        {
+          "const": "run",
+          "type": "string"
+        },
+        {
+          "const": "pause",
+          "type": "string"
+        },
+        {
+          "const": "resume",
+          "type": "string"
+        },
+        {
+          "const": "cancel",
+          "type": "string"
+        },
+        {
+          "const": "schedule",
+          "type": "string"
+        }
+      ],
+      "title": "Action"
+    },
+    "archive_retention_days": {
+      "maximum": 365,
+      "minimum": 365,
+      "title": "Archive Retention Days",
+      "type": "integer"
+    },
+    "interactive_busy": {
+      "title": "Interactive Busy",
+      "type": "boolean"
+    },
+    "max_items": {
+      "maximum": 1000,
+      "minimum": 1,
+      "title": "Max Items",
+      "type": "integer"
+    },
+    "request_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Request Path"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/CommandScope"
+    }
+  },
+  "required": [
+    "action",
+    "archive_retention_days",
+    "interactive_busy",
+    "max_items",
+    "request_path",
+    "schema_version",
+    "scope"
+  ],
+  "title": "MaintenanceRequest",
+  "type": "object"
+}

@@ -1,0 +1,1325 @@
+{
+  "$defs": {
+    "AcceptanceRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "evaluator_ref": {
+          "title": "Evaluator Ref",
+          "type": "string"
+        },
+        "requirement_id": {
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "user",
+              "type": "string"
+            },
+            {
+              "const": "task_family",
+              "type": "string"
+            },
+            {
+              "const": "inferred",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "description",
+        "evaluator_ref",
+        "requirement_id",
+        "source"
+      ],
+      "title": "AcceptanceRequirement",
+      "type": "object"
+    },
+    "DiscoveryBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "calls": {
+          "minimum": 0,
+          "title": "Calls",
+          "type": "integer"
+        },
+        "candidates": {
+          "minimum": 0,
+          "title": "Candidates",
+          "type": "integer"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Currency"
+        },
+        "input_tokens": {
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "reserved_spend": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reserved Spend"
+        },
+        "rounds": {
+          "minimum": 0,
+          "title": "Rounds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "calls",
+        "candidates",
+        "currency",
+        "input_tokens",
+        "output_tokens",
+        "reserved_spend",
+        "rounds"
+      ],
+      "title": "DiscoveryBudget",
+      "type": "object"
+    },
+    "DiscoveryConstraintConflict": {
+      "additionalProperties": false,
+      "properties": {
+        "conflicting_requirements": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Conflicting Requirements",
+          "type": "array"
+        },
+        "details": {
+          "$ref": "#/$defs/DiscoveryDetails"
+        },
+        "status": {
+          "const": "constraint_conflict",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "conflicting_requirements",
+        "details",
+        "status"
+      ],
+      "title": "DiscoveryConstraintConflict",
+      "type": "object"
+    },
+    "DiscoveryCursor": {
+      "additionalProperties": false,
+      "properties": {
+        "enqueue_sequence": {
+          "title": "Enqueue Sequence",
+          "type": "integer"
+        },
+        "option_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Option Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "enqueue_sequence",
+        "option_ids"
+      ],
+      "title": "DiscoveryCursor",
+      "type": "object"
+    },
+    "DiscoveryDetails": {
+      "additionalProperties": false,
+      "properties": {
+        "alternatives": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        },
+        "assembled_instructions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Assembled Instructions",
+          "type": "array"
+        },
+        "discovery_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Discovery Id",
+          "type": "string"
+        },
+        "guidance_refs": {
+          "items": {
+            "$ref": "#/$defs/DiscoveryGuidanceRef"
+          },
+          "maxItems": 2,
+          "title": "Guidance Refs",
+          "type": "array"
+        },
+        "required_guidance": {
+          "items": {
+            "$ref": "#/$defs/GuidanceRevision"
+          },
+          "title": "Required Guidance",
+          "type": "array"
+        },
+        "revisions": {
+          "$ref": "#/$defs/DiscoveryRevisions"
+        },
+        "termination_reason": {
+          "title": "Termination Reason",
+          "type": "string"
+        },
+        "trace_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Trace Digest",
+          "type": "string"
+        },
+        "uncertainty": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Uncertainty",
+          "type": "array"
+        },
+        "work_objective_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Work Objective Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "alternatives",
+        "assembled_instructions",
+        "discovery_id",
+        "guidance_refs",
+        "required_guidance",
+        "revisions",
+        "termination_reason",
+        "trace_digest",
+        "uncertainty",
+        "work_objective_id"
+      ],
+      "title": "DiscoveryDetails",
+      "type": "object"
+    },
+    "DiscoveryFailed": {
+      "additionalProperties": false,
+      "properties": {
+        "details": {
+          "$ref": "#/$defs/DiscoveryDetails"
+        },
+        "error_code": {
+          "title": "Error Code",
+          "type": "string"
+        },
+        "status": {
+          "const": "discovery_failed",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "details",
+        "error_code",
+        "status"
+      ],
+      "title": "DiscoveryFailed",
+      "type": "object"
+    },
+    "DiscoveryGuidanceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "content_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "resource_id": {
+          "minLength": 1,
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "revision": {
+          "minLength": 1,
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content_hash",
+        "resource_id",
+        "revision"
+      ],
+      "title": "DiscoveryGuidanceRef",
+      "type": "object"
+    },
+    "DiscoveryJudgmentRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "function_revision": {
+          "const": "ObserveDiscoveryOption-v1",
+          "title": "Function Revision",
+          "type": "string"
+        },
+        "judgments": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "title": "Judgments",
+          "type": "object"
+        },
+        "measurements": {
+          "items": {
+            "$ref": "#/$defs/Measurement"
+          },
+          "title": "Measurements",
+          "type": "array"
+        },
+        "model_revision": {
+          "title": "Model Revision",
+          "type": "string"
+        },
+        "question_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Question Digest",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "function_revision",
+        "judgments",
+        "measurements",
+        "model_revision",
+        "question_digest",
+        "schema_version"
+      ],
+      "title": "DiscoveryJudgmentRecord",
+      "type": "object"
+    },
+    "DiscoveryLeafFacts": {
+      "additionalProperties": false,
+      "properties": {
+        "admitted": {
+          "title": "Admitted",
+          "type": "boolean"
+        },
+        "conflicts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Conflicts",
+          "type": "array"
+        },
+        "instruction_utf8_bytes": {
+          "minimum": 0,
+          "title": "Instruction Utf8 Bytes",
+          "type": "integer"
+        },
+        "reference": {
+          "$ref": "#/$defs/DiscoveryGuidanceRef"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "admitted",
+        "conflicts",
+        "instruction_utf8_bytes",
+        "reference",
+        "required"
+      ],
+      "title": "DiscoveryLeafFacts",
+      "type": "object"
+    },
+    "DiscoveryLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "active_branch_width": {
+          "maximum": 32,
+          "minimum": 1,
+          "title": "Active Branch Width",
+          "type": "integer"
+        },
+        "hard_output_token_limit": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "minimum": 1,
+          "title": "Hard Output Token Limit"
+        },
+        "max_calls": {
+          "minimum": 0,
+          "title": "Max Calls",
+          "type": "integer"
+        },
+        "max_candidates": {
+          "minimum": 0,
+          "title": "Max Candidates",
+          "type": "integer"
+        },
+        "max_description_utf8_bytes": {
+          "maximum": 2048,
+          "minimum": 1,
+          "title": "Max Description Utf8 Bytes",
+          "type": "integer"
+        },
+        "max_input_tokens": {
+          "minimum": 0,
+          "title": "Max Input Tokens",
+          "type": "integer"
+        },
+        "max_rounds": {
+          "minimum": 0,
+          "title": "Max Rounds",
+          "type": "integer"
+        },
+        "output_planning_reservation": {
+          "minimum": 0,
+          "title": "Output Planning Reservation",
+          "type": "integer"
+        },
+        "spending_ceiling": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "active_branch_width",
+        "hard_output_token_limit",
+        "max_calls",
+        "max_candidates",
+        "max_description_utf8_bytes",
+        "max_input_tokens",
+        "max_rounds",
+        "output_planning_reservation",
+        "spending_ceiling"
+      ],
+      "title": "DiscoveryLimits",
+      "type": "object"
+    },
+    "DiscoveryNeedsContext": {
+      "additionalProperties": false,
+      "properties": {
+        "details": {
+          "$ref": "#/$defs/DiscoveryDetails"
+        },
+        "missing_facts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missing Facts",
+          "type": "array"
+        },
+        "status": {
+          "const": "needs_context",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "details",
+        "missing_facts",
+        "status"
+      ],
+      "title": "DiscoveryNeedsContext",
+      "type": "object"
+    },
+    "DiscoveryOption": {
+      "additionalProperties": false,
+      "properties": {
+        "children": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Children",
+          "type": "array"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Description"
+        },
+        "description_digest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Description Digest"
+        },
+        "feasible": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Feasible"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Label"
+        },
+        "level": {
+          "anyOf": [
+            {
+              "const": "domain",
+              "type": "string"
+            },
+            {
+              "const": "specialty",
+              "type": "string"
+            },
+            {
+              "const": "task_family",
+              "type": "string"
+            },
+            {
+              "const": "resource",
+              "type": "string"
+            }
+          ],
+          "title": "Level"
+        },
+        "option_id": {
+          "minLength": 1,
+          "title": "Option Id",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiscoveryGuidanceRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "children",
+        "description",
+        "description_digest",
+        "feasible",
+        "label",
+        "level",
+        "option_id",
+        "reason",
+        "reference"
+      ],
+      "title": "DiscoveryOption",
+      "type": "object"
+    },
+    "DiscoveryQuestion": {
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "anyOf": [
+            {
+              "const": "domain",
+              "type": "string"
+            },
+            {
+              "const": "specialty",
+              "type": "string"
+            },
+            {
+              "const": "task_family",
+              "type": "string"
+            },
+            {
+              "const": "resource",
+              "type": "string"
+            }
+          ],
+          "title": "Level"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/DiscoveryOption"
+          },
+          "title": "Options",
+          "type": "array"
+        },
+        "question_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Question Digest",
+          "type": "string"
+        },
+        "queue": {
+          "anyOf": [
+            {
+              "const": "preferred",
+              "type": "string"
+            },
+            {
+              "const": "deferred",
+              "type": "string"
+            }
+          ],
+          "title": "Queue"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "level",
+        "options",
+        "question_digest",
+        "queue",
+        "schema_version"
+      ],
+      "title": "DiscoveryQuestion",
+      "type": "object"
+    },
+    "DiscoveryRevisions": {
+      "additionalProperties": false,
+      "properties": {
+        "authorization_digest": {
+          "title": "Authorization Digest",
+          "type": "string"
+        },
+        "catalog_digest": {
+          "title": "Catalog Digest",
+          "type": "string"
+        },
+        "catalog_revision": {
+          "title": "Catalog Revision",
+          "type": "string"
+        },
+        "content_revision": {
+          "title": "Content Revision",
+          "type": "string"
+        },
+        "descriptions_digest": {
+          "title": "Descriptions Digest",
+          "type": "string"
+        },
+        "policy_digest": {
+          "title": "Policy Digest",
+          "type": "string"
+        },
+        "settings_revision": {
+          "title": "Settings Revision",
+          "type": "string"
+        },
+        "taxonomy_revision": {
+          "title": "Taxonomy Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "authorization_digest",
+        "catalog_digest",
+        "catalog_revision",
+        "content_revision",
+        "descriptions_digest",
+        "policy_digest",
+        "settings_revision",
+        "taxonomy_revision"
+      ],
+      "title": "DiscoveryRevisions",
+      "type": "object"
+    },
+    "DiscoveryState": {
+      "additionalProperties": false,
+      "properties": {
+        "budget": {
+          "$ref": "#/$defs/DiscoveryBudget"
+        },
+        "deferred": {
+          "items": {
+            "$ref": "#/$defs/DiscoveryCursor"
+          },
+          "title": "Deferred",
+          "type": "array"
+        },
+        "excluded": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Excluded",
+          "type": "array"
+        },
+        "limits": {
+          "$ref": "#/$defs/DiscoveryLimits"
+        },
+        "next_sequence": {
+          "title": "Next Sequence",
+          "type": "integer"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/DiscoveryOption"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "prefer_next": {
+          "title": "Prefer Next",
+          "type": "boolean"
+        },
+        "preferred": {
+          "items": {
+            "$ref": "#/$defs/DiscoveryCursor"
+          },
+          "title": "Preferred",
+          "type": "array"
+        },
+        "rejected": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Rejected",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "supported": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Supported",
+          "type": "array"
+        },
+        "transition_policy": {
+          "const": "discovery-fifo-v1",
+          "title": "Transition Policy",
+          "type": "string"
+        },
+        "unresolved": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unresolved",
+          "type": "array"
+        },
+        "visited": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Visited",
+          "type": "array"
+        }
+      },
+      "required": [
+        "budget",
+        "deferred",
+        "excluded",
+        "limits",
+        "next_sequence",
+        "nodes",
+        "prefer_next",
+        "preferred",
+        "rejected",
+        "schema_version",
+        "supported",
+        "transition_policy",
+        "unresolved",
+        "visited"
+      ],
+      "title": "DiscoveryState",
+      "type": "object"
+    },
+    "DiscoveryTransition": {
+      "additionalProperties": false,
+      "properties": {
+        "answers": {
+          "$ref": "#/$defs/DiscoveryJudgmentRecord"
+        },
+        "budget_after": {
+          "$ref": "#/$defs/DiscoveryBudget"
+        },
+        "budget_before": {
+          "$ref": "#/$defs/DiscoveryBudget"
+        },
+        "question": {
+          "$ref": "#/$defs/DiscoveryQuestion"
+        }
+      },
+      "required": [
+        "answers",
+        "budget_after",
+        "budget_before",
+        "question"
+      ],
+      "title": "DiscoveryTransition",
+      "type": "object"
+    },
+    "ExecutionTokenLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "input_tokens": {
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "input_tokens",
+        "output_tokens"
+      ],
+      "title": "ExecutionTokenLimits",
+      "type": "object"
+    },
+    "GuidanceRevision": {
+      "additionalProperties": false,
+      "properties": {
+        "admission": {
+          "anyOf": [
+            {
+              "const": "policy_admitted",
+              "type": "string"
+            },
+            {
+              "const": "explicitly_enabled",
+              "type": "string"
+            }
+          ],
+          "title": "Admission"
+        },
+        "authority": {
+          "title": "Authority",
+          "type": "string"
+        },
+        "content_hash": {
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "resource_id": {
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "token_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Token Count"
+        }
+      },
+      "required": [
+        "admission",
+        "authority",
+        "content_hash",
+        "resource_id",
+        "revision",
+        "role",
+        "task_id",
+        "token_count"
+      ],
+      "title": "GuidanceRevision",
+      "type": "object"
+    },
+    "HardConstraints": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_providers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Allowed Providers",
+          "type": "array"
+        },
+        "context_token_limit": {
+          "minimum": 1,
+          "title": "Context Token Limit",
+          "type": "integer"
+        },
+        "execution_token_limits": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExecutionTokenLimits"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "governing_instruction_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Governing Instruction Refs",
+          "type": "array"
+        },
+        "local_only": {
+          "title": "Local Only",
+          "type": "boolean"
+        },
+        "max_attempts": {
+          "minimum": 1,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "spending_ceiling": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "total_deadline_ms": {
+          "minimum": 1,
+          "title": "Total Deadline Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "allowed_providers",
+        "context_token_limit",
+        "governing_instruction_refs",
+        "local_only",
+        "max_attempts",
+        "spending_ceiling",
+        "total_deadline_ms"
+      ],
+      "title": "HardConstraints",
+      "type": "object"
+    },
+    "KnownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "known",
+          "title": "Kind",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "unit",
+        "value"
+      ],
+      "title": "KnownMeasurement",
+      "type": "object"
+    },
+    "Measurement": {
+      "additionalProperties": false,
+      "properties": {
+        "counting_semantics": {
+          "anyOf": [
+            {
+              "const": "disjoint",
+              "type": "string"
+            },
+            {
+              "const": "subset",
+              "type": "string"
+            },
+            {
+              "const": "not_applicable",
+              "type": "string"
+            }
+          ],
+          "title": "Counting Semantics"
+        },
+        "measurement_value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/KnownMeasurement"
+            },
+            {
+              "$ref": "#/$defs/UnknownMeasurement"
+            }
+          ],
+          "title": "Measurement Value"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "metric_version": {
+          "title": "Metric Version",
+          "type": "string"
+        },
+        "parent_metric_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Metric Id"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "const": "call",
+              "type": "string"
+            },
+            {
+              "const": "run",
+              "type": "string"
+            },
+            {
+              "const": "task",
+              "type": "string"
+            },
+            {
+              "const": "experiment",
+              "type": "string"
+            }
+          ],
+          "title": "Scope"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "direct",
+              "type": "string"
+            },
+            {
+              "const": "provider",
+              "type": "string"
+            },
+            {
+              "const": "host",
+              "type": "string"
+            },
+            {
+              "const": "evaluator",
+              "type": "string"
+            },
+            {
+              "const": "estimate",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "counting_semantics",
+        "measurement_value",
+        "method",
+        "metric_id",
+        "metric_version",
+        "parent_metric_id",
+        "scope",
+        "source"
+      ],
+      "title": "Measurement",
+      "type": "object"
+    },
+    "MissingReason": {
+      "enum": [
+        "unsupported",
+        "not_reported",
+        "not_applicable",
+        "redacted",
+        "expired",
+        "incomplete"
+      ],
+      "title": "MissingReason",
+      "type": "string"
+    },
+    "Money": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Amount",
+          "type": "string"
+        },
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "currency"
+      ],
+      "title": "Money",
+      "type": "object"
+    },
+    "NoOptionalGuidance": {
+      "additionalProperties": false,
+      "properties": {
+        "details": {
+          "$ref": "#/$defs/DiscoveryDetails"
+        },
+        "status": {
+          "const": "no_optional_guidance",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "details",
+        "status"
+      ],
+      "title": "NoOptionalGuidance",
+      "type": "object"
+    },
+    "SelectedGuidance": {
+      "additionalProperties": false,
+      "properties": {
+        "details": {
+          "$ref": "#/$defs/DiscoveryDetails"
+        },
+        "status": {
+          "const": "selected_guidance",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "details",
+        "status"
+      ],
+      "title": "SelectedGuidance",
+      "type": "object"
+    },
+    "UnknownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/MissingReason"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "UnknownMeasurement",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "acceptance_requirements": {
+      "items": {
+        "$ref": "#/$defs/AcceptanceRequirement"
+      },
+      "title": "Acceptance Requirements",
+      "type": "array"
+    },
+    "excluded_paths": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Excluded Paths",
+      "type": "array"
+    },
+    "final_state": {
+      "$ref": "#/$defs/DiscoveryState"
+    },
+    "finalization_exclusions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Finalization Exclusions",
+      "type": "array"
+    },
+    "guidance_context_limit": {
+      "minimum": 0,
+      "title": "Guidance Context Limit",
+      "type": "integer"
+    },
+    "hard_constraints": {
+      "$ref": "#/$defs/HardConstraints"
+    },
+    "initial_state": {
+      "$ref": "#/$defs/DiscoveryState"
+    },
+    "missing_context": {
+      "title": "Missing Context",
+      "type": "boolean"
+    },
+    "replay_available": {
+      "title": "Replay Available",
+      "type": "boolean"
+    },
+    "required_feasible": {
+      "title": "Required Feasible",
+      "type": "boolean"
+    },
+    "result": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SelectedGuidance"
+        },
+        {
+          "$ref": "#/$defs/NoOptionalGuidance"
+        },
+        {
+          "$ref": "#/$defs/DiscoveryNeedsContext"
+        },
+        {
+          "$ref": "#/$defs/DiscoveryConstraintConflict"
+        },
+        {
+          "$ref": "#/$defs/DiscoveryFailed"
+        }
+      ],
+      "title": "Result"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "shortlist": {
+      "items": {
+        "$ref": "#/$defs/DiscoveryLeafFacts"
+      },
+      "title": "Shortlist",
+      "type": "array"
+    },
+    "transitions": {
+      "items": {
+        "$ref": "#/$defs/DiscoveryTransition"
+      },
+      "title": "Transitions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "acceptance_requirements",
+    "excluded_paths",
+    "final_state",
+    "finalization_exclusions",
+    "guidance_context_limit",
+    "hard_constraints",
+    "initial_state",
+    "missing_context",
+    "replay_available",
+    "required_feasible",
+    "result",
+    "schema_version",
+    "shortlist",
+    "transitions"
+  ],
+  "title": "DiscoveryTrace",
+  "type": "object"
+}
