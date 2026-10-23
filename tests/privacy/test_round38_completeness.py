@@ -66,12 +66,15 @@ def test_original_witnesses_keep_ownership_across_line_boundaries(source, newlin
 @pytest.mark.parametrize("source", WITNESSES)
 @pytest.mark.parametrize("presentation", PRESENTATIONS)
 @pytest.mark.parametrize("field", FIELDS)
-def test_expression_bodies_never_reach_six_application_sinks(tmp_path, source, presentation, field):
+def test_expression_bodies_never_reach_six_application_sinks(
+    privacy_case_path, privacy_storage, source, presentation, field
+):
     assert_no_application_effects(
-        tmp_path,
+        privacy_case_path,
         present(source, presentation),
         field,
         allow_sanitized=presentation == "json_log",
+        storage=privacy_storage,
     )
 
 

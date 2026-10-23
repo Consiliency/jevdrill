@@ -63,11 +63,17 @@ def test_alternate_key_delimiters_are_clean(label, target, presentation):
 @pytest.mark.parametrize("source", WITNESSES)
 @pytest.mark.parametrize("presentation", PRESENTATIONS)
 @pytest.mark.parametrize("field", FIELDS)
-def test_sensitive_records_never_reach_six_application_sinks(tmp_path, source, presentation, field):
+def test_sensitive_records_never_reach_six_application_sinks(
+    privacy_case_path, privacy_storage, source, presentation, field
+):
     # The shared helper checks real SQLite/artifact bytes and every fake judge
     # argument. A route attachment is checked at ingress, not by task-only staging.
     assert_no_application_effects(
-        tmp_path, present(source, presentation), field, allow_sanitized=True
+        privacy_case_path,
+        present(source, presentation),
+        field,
+        allow_sanitized=True,
+        storage=privacy_storage,
     )
 
 

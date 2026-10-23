@@ -73,9 +73,15 @@ def test_original_witness_line_boundaries_are_clean(source, newline, presentatio
 @pytest.mark.parametrize("source", WITNESSES)
 @pytest.mark.parametrize("presentation", PRESENTATIONS)
 @pytest.mark.parametrize("field", FIELDS)
-def test_multiline_values_never_reach_six_application_sinks(tmp_path, source, presentation, field):
+def test_multiline_values_never_reach_six_application_sinks(
+    privacy_case_path, privacy_storage, source, presentation, field
+):
     assert_no_application_effects(
-        tmp_path, present(source, presentation), field, allow_sanitized=True
+        privacy_case_path,
+        present(source, presentation),
+        field,
+        allow_sanitized=True,
+        storage=privacy_storage,
     )
 
 

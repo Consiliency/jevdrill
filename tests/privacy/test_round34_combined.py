@@ -138,13 +138,16 @@ def test_complete_plaintext_value_keeps_ordinary_next_line():
 @pytest.mark.parametrize("label", SUFFIX_LABELS)
 @pytest.mark.parametrize("presentation", PRESENTATIONS)
 @pytest.mark.parametrize("field", FIELDS)
-def test_suffix_assignments_never_reach_six_application_sinks(tmp_path, label, presentation, field):
+def test_suffix_assignments_never_reach_six_application_sinks(
+    privacy_case_path, privacy_storage, label, presentation, field
+):
     source = f'{label} = "{MARKER}"'
     assert_no_application_effects(
-        tmp_path,
+        privacy_case_path,
         present(source, presentation),
         field,
         allow_sanitized=presentation == "json_log",
+        storage=privacy_storage,
     )
 
 
@@ -152,14 +155,16 @@ def test_suffix_assignments_never_reach_six_application_sinks(tmp_path, label, p
 @pytest.mark.parametrize("presentation", ("plain", "json"))
 @pytest.mark.parametrize("walrus", (False, True))
 def test_raw_multiline_owner_rejects_before_six_application_effects_and_bytes(
-    tmp_path, field, presentation, walrus
+    privacy_case_path, privacy_storage, field, presentation, walrus
 ):
     source = '(secret\u0327 # comment with " quote and ] bracket\r\n'
     source += f' := "{MARKER}")' if walrus else f') = "{MARKER}"'
-    assert_no_application_effects(tmp_path, present(source, presentation), field)
+    assert_no_application_effects(
+        privacy_case_path, present(source, presentation), field, storage=privacy_storage
+    )
 
 
-def assert_no_application_effects(tmp_path, text, field, *, allow_sanitized=False):
+def assert_no_application_effects(tmp_path, text, field, *, allow_sanitized=False, storage=None):
     fixture = "route-application.json" if field.startswith("route_") else "discovery.json"
     payload = copy.deepcopy(json.loads((FIXTURES / fixture).read_text())[0]["payload"])
     payload["settings_layers"] = [{"source": "request", "values": {"retain_raw_tasks": True}}]
@@ -197,7 +202,9 @@ def assert_no_application_effects(tmp_path, text, field, *, allow_sanitized=Fals
         def observe_option(self, *args, **kwargs):
             self.check(args, kwargs)
 
-    storage = SQLiteStorage(tmp_path / "route.db")
+    if storage is None:
+        storage = SQLiteStorage(tmp_path / "route.db")
+    assert storage.path == tmp_path / "route.db"
     app = Application(storage, judgments=NeverJudge(), discovery_judgments=NeverJudge())
     if allow_sanitized:
         # Sibling masking already cleans the JSON-log presentation. Allow it
