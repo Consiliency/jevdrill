@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import json
 import shutil
 from pathlib import Path
@@ -1090,8 +1091,14 @@ def credential_whole(credential_text):
 @pytest.fixture(scope="session")
 def privacy_database_template(tmp_path_factory):
     path = tmp_path_factory.mktemp("privacy-schema") / "empty.db"
-    SQLiteStorage(path)
-    return path
+    storage = SQLiteStorage(path)
+    # Only path and deadline are instance state today. Fail rather than
+    # silently share future connection/cache state across independent cases.
+    assert vars(storage) == {"path": path, "deadline": None}
+    assert not path.with_name(path.name + "-wal").exists()
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    yield storage
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == digest
 
 
 @pytest.fixture
@@ -1104,8 +1111,10 @@ def privacy_case_path(tmp_path_factory):
 @pytest.fixture
 def privacy_storage(privacy_case_path, privacy_database_template):
     path = privacy_case_path / "route.db"
-    shutil.copyfile(privacy_database_template, path)
-    return SQLiteStorage(path)
+    shutil.copyfile(privacy_database_template.path, path)
+    storage = copy.copy(privacy_database_template)
+    storage.path = path
+    return storage
 
 
 @pytest.fixture
