@@ -99,6 +99,16 @@ def test_valid_yaml_block_with_leading_blank_line_still_sanitizes():
     reject_or_clean(f"password: |\n\n  {MARKER}\n")
 
 
+@pytest.mark.parametrize("newline", ("\n", "\r", "\r\n"))
+@pytest.mark.parametrize("mixed", (False, True))
+def test_folded_headers_without_blank_gap_still_sanitize(newline, mixed):
+    prefix = "Ordinary context." + newline if mixed else ""
+    cleaned = redact(prefix + "Authorization: >" + newline + "  Bearer " + MARKER)
+    assert MARKER not in cleaned
+    if mixed:
+        assert "Ordinary context." in cleaned
+
+
 def test_many_spaced_heredoc_owners_share_a_bounded_closer_index():
     from time import monotonic
 

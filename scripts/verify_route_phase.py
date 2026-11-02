@@ -69,6 +69,10 @@ REQUIRED_CONTROLS = {
         "tests/privacy/test_round38_completeness.py::test_original_witnesses_keep_ownership_across_line_boundaries",
         "tests/privacy/test_round38_completeness.py::test_expression_bodies_never_reach_six_application_sinks",
         "tests/privacy/test_round38_completeness.py::test_public_expression_twins_preserve_classification",
+        "tests/privacy/test_round39_ownership.py::test_credential_bodies_keep_their_owner",
+        "tests/privacy/test_round39_ownership.py::test_ownership_failures_never_reach_application_effects",
+        "tests/privacy/test_round39_ownership.py::test_public_twins_are_preserved",
+        "tests/privacy/test_round39_ownership.py::test_folded_headers_without_blank_gap_still_sanitize",
     ],
     "EC-ROUTE-5": [
         "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity",
@@ -93,6 +97,10 @@ REQUIRED_CONTROLS = {
     ],
 }
 CONTROL_COUNTS = {
+    "tests/privacy/test_round39_ownership.py::test_credential_bodies_keep_their_owner": 1152,
+    "tests/privacy/test_round39_ownership.py::test_ownership_failures_never_reach_application_effects": 120,
+    "tests/privacy/test_round39_ownership.py::test_public_twins_are_preserved": 32,
+    "tests/privacy/test_round39_ownership.py::test_folded_headers_without_blank_gap_still_sanitize": 6,
     "tests/privacy/test_round38_completeness.py::test_owned_expression_bodies_are_clean": 672,
     "tests/privacy/test_round38_completeness.py::test_original_witnesses_keep_ownership_across_line_boundaries": 168,
     "tests/privacy/test_round38_completeness.py::test_expression_bodies_never_reach_six_application_sinks": 672,
@@ -139,6 +147,7 @@ REQUIRED_TEST_PATHS = (
     "tests/privacy/test_round36_records.py",
     "tests/privacy/test_round37_values.py",
     "tests/privacy/test_round38_completeness.py",
+    "tests/privacy/test_round39_ownership.py",
 )
 
 

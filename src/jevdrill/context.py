@@ -568,6 +568,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
             ):
                 continue
             cursor = record.end("value")
+            blank_line = False
             while following := block_line.match(text, cursor):
                 _check_deadline(deadline)
                 work += len(following.group())
@@ -575,9 +576,10 @@ def _structured(text: str, deadline: float | None) -> str | None:
                     raise ContractError("context fragment work exceeds sanitization limit")
                 body = following.group("body")
                 if body.strip():
-                    if re.match(INDENT, body):
+                    if blank_line and re.match(INDENT, body):
                         raise ContractError("unsupported structured credential block") from None
                     break
+                blank_line = True
                 cursor = following.end()
         for member in re.finditer(
             rf"[:?]\s*(?:\#{LINE_TEXT}*{LINE_BREAK}\s*)*"

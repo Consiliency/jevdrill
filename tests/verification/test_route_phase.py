@@ -411,6 +411,10 @@ def test_reducer_requires_executed_controls(evidence_root, mutation):
         "tests/privacy/test_round38_completeness.py::test_original_witnesses_keep_ownership_across_line_boundaries",
         "tests/privacy/test_round38_completeness.py::test_expression_bodies_never_reach_six_application_sinks",
         "tests/privacy/test_round38_completeness.py::test_public_expression_twins_preserve_classification",
+        "tests/privacy/test_round39_ownership.py::test_credential_bodies_keep_their_owner",
+        "tests/privacy/test_round39_ownership.py::test_ownership_failures_never_reach_application_effects",
+        "tests/privacy/test_round39_ownership.py::test_public_twins_are_preserved",
+        "tests/privacy/test_round39_ownership.py::test_folded_headers_without_blank_gap_still_sanitize",
     ),
 )
 def test_reducer_rejects_one_missing_privacy_parameter(evidence_root, control):
