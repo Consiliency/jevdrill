@@ -439,3 +439,55 @@ def test_input_binding_includes_nested_pinned_patch(evidence_root):
     original = runner.input_digest(evidence_root)
     path.write_text("synthetic changed source")
     assert runner.input_digest(evidence_root) != original
+
+
+@pytest.mark.parametrize("test_timeout", (False, True))
+def test_windows_collection_overlaps_checks_without_resetting_deadline(
+    tmp_path, monkeypatch, test_timeout
+):
+    import threading
+
+    tests_entered = threading.Event()
+    static_entered = threading.Event()
+    clock = [100.0]
+    timeouts = {}
+    fixture = tmp_path / "tests/contracts/fixtures/route-application.json"
+    fixture.parent.mkdir(parents=True)
+    fixture.write_text('[{"payload": {}}]')
+    commands = {
+        "tests": ["tests-command"],
+        "lint": ["static-command"],
+        "cold_cli": ["cold-command"],
+    }
+    monkeypatch.setattr(runner, "commands_for", lambda *a, **k: commands)
+    monkeypatch.setattr(runner.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(runner.time, "monotonic", lambda: clock[0])
+
+    def run(args, **kwargs):
+        if args == commands["cold_cli"]:
+            assert not tests_entered.is_set() and not static_entered.is_set()
+            timeouts["cold_cli"] = kwargs["timeout"]
+            clock[0] = 102.0
+            return runner.subprocess.CompletedProcess(args, 0, b'{"status":"ready"}', b"")
+        if args == commands["tests"]:
+            timeouts["tests"] = kwargs["timeout"]
+            tests_entered.set()
+            assert static_entered.wait(2), "static checks were starved behind pytest"
+            if test_timeout:
+                raise runner.subprocess.TimeoutExpired(args, kwargs["timeout"], output=b"progress")
+        elif args == commands["lint"]:
+            timeouts["lint"] = kwargs["timeout"]
+            static_entered.set()
+            assert tests_entered.wait(2), "independent checks did not overlap"
+        else:
+            return runner.subprocess.CompletedProcess(args, 0, stdout="baml-cli 0.20.1\n")
+        return runner.subprocess.CompletedProcess(args, 0, b"passed", b"")
+
+    monkeypatch.setattr(runner.subprocess, "run", run)
+    receipt = runner.collect(tmp_path)
+    assert timeouts == {"cold_cli": 600, "tests": 598, "lint": 598}
+    assert [row["name"] for row in receipt["checks"]] == list(commands)
+    checks = {row["name"]: row for row in receipt["checks"]}
+    assert checks["lint"]["exit_code"] == 0
+    assert checks["cold_cli"]["response_status"] == "ready"
+    assert checks["tests"]["exit_code"] == (125 if test_timeout else 0)

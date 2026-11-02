@@ -12,6 +12,7 @@ import sys
 import tempfile
 import time
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -187,7 +188,7 @@ def commands_for(
             python,
             "-m",
             "pytest",
-            "-v",
+            "-q",
             "-o",
             "faulthandler_timeout=30",
             *REQUIRED_TEST_PATHS,
@@ -552,8 +553,8 @@ def collect(root: Path, *, extra_test_paths: tuple[str, ...] = ()) -> dict[str, 
         temporary_path = Path(temporary)
         junit = temporary_path / "tests.xml"
         commands = commands_for(sys.executable, temporary_path, extra_test_paths=extra_test_paths)
-        checks: list[dict[str, object]] = []
-        for name, command in commands.items():
+
+        def execute(name: str, command: list[str]) -> dict[str, object]:
             started = time.monotonic()
             result = None
             try:
@@ -582,28 +583,51 @@ def collect(root: Path, *, extra_test_paths: tuple[str, ...] = ()) -> dict[str, 
             except OSError as error:
                 output = type(error).__name__.encode()
                 code = 125
-            checks.append(
-                {
-                    "name": name,
-                    "command": command,
-                    "command_sha256": command_digest(command),
-                    "exit_code": code,
-                    "output_sha256": hashlib.sha256(output).hexdigest(),
-                    "duration_seconds": round(time.monotonic() - started, 3),
-                }
-            )
+            check: dict[str, object] = {
+                "name": name,
+                "command": command,
+                "command_sha256": command_digest(command),
+                "exit_code": code,
+                "output_sha256": hashlib.sha256(output).hexdigest(),
+                "duration_seconds": round(time.monotonic() - started, 3),
+            }
             if name == "cold_cli":
                 try:
-                    checks[-1]["response_status"] = (
+                    check["response_status"] = (
                         json.loads(result.stdout).get("status")
                         if result is not None
                         else "unavailable"
                     )
                 except ValueError:
-                    checks[-1]["response_status"] = "unavailable"
+                    check["response_status"] = "unavailable"
             print(f"{name}: {'passed' if code == 0 else 'FAILED'}", flush=True)
             if code:
                 print(output.decode(errors="replace")[-20000:], flush=True)
+            return check
+
+        if platform.system() == "Windows" and "tests" in commands:
+            # Keep the cold-process measurement isolated from concurrent work.
+            # Two lanes share the original collection_started deadline: pytest
+            # and a serial lane of independent packaging/static checks.
+            completed = {}
+            if "cold_cli" in commands:
+                completed["cold_cli"] = execute("cold_cli", commands["cold_cli"])
+
+            def ancillary() -> list[dict[str, object]]:
+                return [
+                    execute(name, command)
+                    for name, command in commands.items()
+                    if name not in {"tests", "cold_cli"}
+                ]
+
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(ancillary)
+                completed["tests"] = execute("tests", commands["tests"])
+                for check in future.result():
+                    completed[str(check["name"])] = check
+            checks = [completed[name] for name in commands]
+        else:
+            checks = [execute(name, command) for name, command in commands.items()]
         tests: dict[str, int] = {"total": 0, "skipped": 0, "failures": 0, "errors": 0}
         assertions = []
         if junit.exists():
