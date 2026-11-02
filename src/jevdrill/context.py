@@ -555,6 +555,30 @@ def _structured(text: str, deadline: float | None) -> str | None:
         finally:
             loader.dispose()
     except yaml.YAMLError:
+        # An embedded block scalar still owns an indented body after blank
+        # lines, even when the surrounding prose is not a YAML document.
+        work = 0
+        block_line = re.compile(rf"{LINE_BREAK}(?P<body>{LINE_TEXT}*)")
+        for record in CREDENTIAL_RECORD.finditer(text):
+            _check_deadline(deadline)
+            if (
+                record.group("operator") != ":"
+                or re.fullmatch(r"[|>][+\-1-9]*(?:\s+\#[^\r\n]*)?", record.group("value").strip())
+                is None
+            ):
+                continue
+            cursor = record.end("value")
+            while following := block_line.match(text, cursor):
+                _check_deadline(deadline)
+                work += len(following.group())
+                if work > 16 * len(text) + 100_000:
+                    raise ContractError("context fragment work exceeds sanitization limit")
+                body = following.group("body")
+                if body.strip():
+                    if re.match(INDENT, body):
+                        raise ContractError("unsupported structured credential block") from None
+                    break
+                cursor = following.end()
         for member in re.finditer(
             rf"[:?]\s*(?:\#{LINE_TEXT}*{LINE_BREAK}\s*)*"
             rf"(?P<quote>['\"])(?P<value>{LINE_TEXT}*"
@@ -1680,6 +1704,16 @@ def _guard_multiline_credential_values(text: str, deadline: float | None) -> Non
     covered_end = 0
     cap = 16 * len(text) + 100_000
     following_line = re.compile(rf"{LINE_BREAK}(?P<next>{LINE_TEXT}*)")
+    # Index physical closing lines once: repeated owners must not each rescan
+    # the whole remaining input. Numeric shifts with no closer stay ordinary.
+    closers = {}
+    if "<<" in text:
+        for closing in re.finditer(
+            rf"{LINE_START}{INDENT}*(?P<word>[A-Za-z_]\w*);?{INDENT}*(?={LINE_BREAK}|$)",
+            text,
+        ):
+            _check_deadline(deadline)
+            closers[closing.group("word")] = closing.start()
     for match in CREDENTIAL_RECORD.finditer(text):
         _check_deadline(deadline)
         value = match.group("value")
@@ -1697,6 +1731,25 @@ def _guard_multiline_credential_values(text: str, deadline: float | None) -> Non
             value, match.group("operator"), deadline, opaque_words=not code_owner
         ):
             raise ContractError("unsupported multiline credential assignment")
+        if (
+            "<<" in value
+            and closers
+            and not value.lstrip().startswith("`")
+            and _credential_quote_like_literal(value.lstrip(), deadline) is None
+        ):
+            previous_shift = False
+            try:
+                for token in tokenize.generate_tokens(StringIO(value).readline):
+                    _check_deadline(deadline)
+                    if previous_shift and token.type in {tokenize.NAME, tokenize.STRING}:
+                        term = token.string
+                        if token.type == tokenize.STRING:
+                            term = ast.literal_eval(term)
+                        if isinstance(term, str) and closers.get(term, -1) > end:
+                            raise ContractError("unsupported multiline credential assignment")
+                    previous_shift = token.type == tokenize.OP and token.string == "<<"
+            except (tokenize.TokenError, SyntaxError, ValueError):
+                raise ContractError("unsupported multiline credential assignment") from None
         stripped = value.lstrip()
         quoted = _credential_quote_like_literal(stripped, deadline)
         length: int | None
@@ -1722,7 +1775,10 @@ def _guard_multiline_credential_values(text: str, deadline: float | None) -> Non
                 if next_value:
                     if re.fullmatch(r"(?:`{3,}|~{3,})\s*", next_value):
                         break
-                    if (match.group("operator") != ":" and next_value[0] in "\"'") or re.match(
+                    if (
+                        match.group("operator") != ":"
+                        and re.match(r"(?:u8R?|[uULRbrf]|br|rb|fr|rf)?[\"']", next_value)
+                    ) or re.match(
                         r"(?:[-+*/%@&|^?.=<>\\`,(\[]|(?:and|or|else|elsif|elseif)\b)",
                         next_value,
                     ):
@@ -2688,6 +2744,23 @@ def redact(text: str, deadline: float | None = None) -> str:
     try:
         _check_deadline(deadline)
         _check_escaped_record_labels(text, deadline)
+        # Markdown delimiters and arrow members do not erase a credential's
+        # ownership. Reject these unsupported records before any rewriting.
+        for decorated in re.finditer(
+            rf"(?i)(?P<mark>\*\*|~~|\*)(?:[\"']\s*)?{CREDENTIAL_WORD}"
+            rf"(?:\s*[\"'])?(?P=mark){INDENT}*(?::=?|{ASSIGNMENT_OPERATOR})(?!=)",
+            text,
+        ):
+            _check_deadline(deadline)
+            raise ContractError("unsupported credential assignment")
+        for arrow_owner in re.finditer(
+            rf"(?i)(?<![\w.-]){CREDENTIAL_WORD}"
+            rf"(?:{INDENT}*->{INDENT}*[A-Za-z_]\w*)+"
+            rf"{INDENT}*{ASSIGNMENT_OPERATOR}(?!=)",
+            text,
+        ):
+            _check_deadline(deadline)
+            raise ContractError("unsupported credential assignment")
         _guard_directional_assignment_owners(text, deadline)
         _guard_multiline_credential_values(text, deadline)
         if "?" in text:

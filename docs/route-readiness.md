@@ -85,7 +85,12 @@ words, closed literals and literal containers, or supported complete scalar
 expressions. Ambiguous code-shaped values reject, including later heredoc terms,
 incomplete annotated assignments, conditional branch openers and quote-like
 literal openers. No supplied expression is evaluated. Complete supported values
-still keep an ordinary unindented next line. Before rewriting a decoded sensitive array fragment, local
+still keep an ordinary unindented next line. Prefixed adjacent string literals and
+spaced heredoc terms with a later matching terminator retain their credential
+owner and reject before rewriting. Markdown-emphasized credential labels and
+sensitive arrow-member assignment owners likewise reject. In mixed prose, a
+credential-owned YAML block scalar retains its indented body across leading
+blank lines; unsupported mixed documents fail closed. Before rewriting a decoded sensitive array fragment, local
 forward inspection follows Unicode identifier attributes, balanced postfix
 subscripts, annotations and continuations through the associated operator;
 unresolved sensitive target ownership rejects within the existing work and deadline bounds.
