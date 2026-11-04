@@ -53,7 +53,7 @@ ESCAPED_LABEL_COLON = re.compile(rf"(?:{INDENT}|{LINE_BREAK}|\#{LINE_TEXT}*{LINE
 # separate a sensitive target fragment from its value. Inputs are never run.
 AUGMENTED_OPERATOR = r"(?:\*\*|//|<<|>>|\|\||&&|\?\?|or|and|[+\-*/%@&|^?.])"
 ASSIGNMENT_OPERATOR = rf"(?:{AUGMENTED_OPERATOR}?=|<<-|<-)"
-PERL_HASH_OWNER = r"(?:\$[\w.]+\s*+(?:->\s*+)?|->\s*+)"
+PERL_HASH_OWNER = r"(?:\$[\w.]+\s*+(?:->\s*+)?|[}\]]\s*+(?:->\s*+)?|->\s*+)"
 CREDENTIAL_WORD = rf"[\w.-]*(?:{CREDENTIAL_LABEL})[\w.-]*"
 ESCAPED_LABEL_ASSIGNMENT = re.compile(
     rf"[^\S\r\n\x85\u2028\u2029]*\][^\S\r\n\x85\u2028\u2029]*{ASSIGNMENT_OPERATOR}"
@@ -1784,11 +1784,15 @@ def _guard_multiline_credential_values(text: str, deadline: float | None) -> Non
                     if re.fullmatch(r"(?:`{3,}|~{3,})\s*", next_value):
                         break
                     if (
-                        match.group("operator") != ":"
-                        and re.match(r"(?:(?:u8|[uUL])?R?|[brf]|br|rb|fr|rf)?[\"']", next_value)
-                    ) or re.match(
-                        r"(?:[-+*/%@&|^?.=<>\\`,(\[]|(?:and|or|else|elsif|elseif)\b)",
-                        next_value,
+                        (
+                            match.group("operator") != ":"
+                            and re.match(r"(?:(?:u8|[uUL])?R?|[brf]|br|rb|fr|rf)?[\"']", next_value)
+                        )
+                        or re.match(r'(?:u8|[uUL])?R"', next_value)
+                        or re.match(
+                            r"(?:[-+*/%@&|^?.=<>\\`,(\[]|(?:and|or|else|elsif|elseif)\b)",
+                            next_value,
+                        )
                     ):
                         raise ContractError("unsupported multiline credential assignment")
                     break
@@ -2143,12 +2147,26 @@ def _assignment_in_owner_tail(
     operator = re.compile(rf"(?<![=!<>]){ASSIGNMENT_OPERATOR}(?!=)")
     quote = None
     i = start
-    while i < len(text) and text[i] not in "\r\n\x85\u2028\u2029;":
+    while i < len(text) and text[i] != ";":
         charge[0] += 1
         if charge[0] > 16 * len(text) + 100_000:
             raise ContractError("context fragment work exceeds sanitization limit")
         _check_deadline(deadline)
         ch = text[i]
+        if ch in "\r\n\x85\u2028\u2029":
+            # Only syntactic target continuations own the next physical line.
+            # An ordinary following sentence remains independent.
+            while i < len(text) and text[i].isspace():
+                _check_deadline(deadline)
+                charge[0] += 1
+                if charge[0] > 16 * len(text) + 100_000:
+                    raise ContractError("context fragment work exceeds sanitization limit")
+                i += 1
+            if quote is not None or not (
+                text.startswith("->", i) or text[i : i + 1] in ("{", "[") or operator.match(text, i)
+            ):
+                return False
+            continue
         if quote is not None:
             if ch == "\\":
                 i += 2
@@ -2175,9 +2193,19 @@ def _guard_directional_assignment_owners(text: str, deadline: float | None) -> N
     charge = [0]
     for key_match in re.finditer(
         rf"(?i){PERL_HASH_OWNER}\{{{INDENT}*[\"']?{CREDENTIAL_WORD}"
-        rf"[\"']?{INDENT}*\}}{INDENT}*(?=->|[{{\[])",
+        rf"[\"']?{INDENT}*\}}",
         text,
     ):
+        # Direct named hash owners already have a complete-value sanitizer.
+        # Use this guard for continued targets and implicit later keys only,
+        # preserving supported complete literals on the direct form.
+        tail = re.compile(r"\s*").match(text, key_match.end())
+        assert tail is not None
+        cursor = tail.end()
+        if text[key_match.start()] not in "}]" and not (
+            text.startswith("->", cursor) or text[cursor : cursor + 1] in ("{", "[")
+        ):
+            continue
         if _assignment_in_owner_tail(text, key_match.end(), deadline, charge):
             raise ContractError("unsupported credential assignment")
     cursor = 0
@@ -2785,23 +2813,39 @@ def _guard_multiline_assignment_ownership(text: str, deadline: float | None) -> 
                         raise ContractError("unsupported multiline credential assignment")
 
 
+def _guard_emphasized_credentials(text: str, deadline: float | None) -> None:
+    # Maximal delimiter runs bound disjoint label bodies. Unlike overlapping
+    # wildcard matches, this scan remains linear on underscores and snake_case.
+    previous = None
+    operator = re.compile(rf"{INDENT}*(?:{LINE_BREAK}{INDENT}*)?(?::=?|{ASSIGNMENT_OPERATOR})(?!=)")
+    for delimiter in re.finditer(r"[*_~]++", text):
+        _check_deadline(deadline)
+        if (
+            not delimiter.group().strip("_")
+            and delimiter.start() > 0
+            and delimiter.end() < len(text)
+            and text[delimiter.start() - 1].isalnum()
+            and text[delimiter.end()].isalnum()
+        ):
+            continue
+        if previous is not None and operator.match(text, delimiter.end()):
+            label = text[previous.end() : delimiter.start()]
+            if not re.search(LINE_BREAK, label) and _credential_label(label, deadline):
+                raise ContractError("unsupported credential assignment")
+        previous = delimiter
+
+
 def redact(text: str, deadline: float | None = None) -> str:
     try:
         _check_deadline(deadline)
         _check_escaped_record_labels(text, deadline)
         # Markdown delimiters and arrow members do not erase a credential's
         # ownership. Reject these unsupported records before any rewriting.
-        for decorated in re.finditer(
-            rf"(?i)[*_~]+(?:[\"']\s*)?{CREDENTIAL_WORD}"
-            rf"(?:\s*[\"'])?[*_~]+{INDENT}*(?::=?|{ASSIGNMENT_OPERATOR})(?!=)",
-            text,
-        ):
-            _check_deadline(deadline)
-            raise ContractError("unsupported credential assignment")
+        _guard_emphasized_credentials(text, deadline)
         owner_charge = [0]
         for arrow_owner in re.finditer(
             rf"(?i)(?<![\w.-]){CREDENTIAL_WORD}"
-            rf"{INDENT}*->{INDENT}*(?:[A-Za-z_]\w*|[{{\[])",
+            rf"\s*->{INDENT}*(?:[A-Za-z_]\w*|[{{\[$@])",
             text,
         ):
             if _assignment_in_owner_tail(text, arrow_owner.end(), deadline, owner_charge):

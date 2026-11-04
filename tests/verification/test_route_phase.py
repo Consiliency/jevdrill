@@ -418,6 +418,11 @@ def test_reducer_requires_executed_controls(evidence_root, mutation):
         "tests/privacy/test_round40_ownership.py::test_nested_owners_and_literal_bodies_stay_private",
         "tests/privacy/test_round40_ownership.py::test_rejects_before_application_effects",
         "tests/privacy/test_round40_ownership.py::test_public_twins_keep_their_text",
+        "tests/privacy/test_round41_ownership.py::test_continued_owners_do_not_release_values",
+        "tests/privacy/test_round41_ownership.py::test_public_twins_are_unchanged",
+        "tests/privacy/test_round41_ownership.py::test_rejects_before_judgment_and_storage",
+        "tests/privacy/test_round41_ownership.py::test_non_assignment_controls_are_unchanged",
+        "tests/privacy/test_round41_learning.py::test_second_objective_for_same_task_invalidates_learning",
     ),
 )
 def test_reducer_rejects_one_missing_privacy_parameter(evidence_root, control):

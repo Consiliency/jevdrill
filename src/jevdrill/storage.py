@@ -583,7 +583,7 @@ class SQLiteStorage:
             connection.execute("PRAGMA journal_mode = WAL")
         with self._connect(True) as connection:
             version = connection.execute("PRAGMA user_version").fetchone()[0]
-            if version > 3:
+            if version > 4:
                 raise ContractError("unsupported storage version")
             if version >= 1:
                 return
@@ -680,7 +680,7 @@ class SQLiteStorage:
                 "CREATE TABLE IF NOT EXISTS analysis_clock (scope TEXT PRIMARY KEY, first_seen REAL NOT NULL)",
                 "CREATE TABLE IF NOT EXISTS task_learning_policy (scope TEXT, task TEXT, enabled INTEGER NOT NULL, PRIMARY KEY(scope,task))",
                 "CREATE TABLE IF NOT EXISTS objective_history (scope TEXT, digest TEXT, payload TEXT NOT NULL, PRIMARY KEY(scope,digest))",
-                "CREATE TABLE IF NOT EXISTS learning_dependencies (scope TEXT, revision TEXT, source_scope TEXT, task TEXT, objective TEXT, PRIMARY KEY(scope,revision,source_scope,task))",
+                "CREATE TABLE IF NOT EXISTS learning_dependencies (scope TEXT, revision TEXT, source_scope TEXT, task TEXT, objective TEXT NOT NULL DEFAULT '', PRIMARY KEY(scope,revision,source_scope,task,objective))",
                 "CREATE TABLE IF NOT EXISTS recovered_discovery_metadata (discovery_id TEXT PRIMARY KEY, domains TEXT NOT NULL)",
                 "CREATE TABLE IF NOT EXISTS maintenance_control (scope TEXT PRIMARY KEY, action TEXT NOT NULL, last_clock REAL NOT NULL, cursor TEXT)",
                 "CREATE TABLE IF NOT EXISTS artifact_lifecycle (scope TEXT, artifact_id TEXT, created REAL NOT NULL, prompted REAL, archived REAL, source_id TEXT, PRIMARY KEY(scope,artifact_id))",
@@ -688,11 +688,27 @@ class SQLiteStorage:
                 "CREATE TABLE IF NOT EXISTS lifecycle_notices (scope TEXT, task TEXT, notice_id TEXT, payload TEXT NOT NULL, PRIMARY KEY(scope,notice_id))",
             ):
                 connection.execute(statement)
+            dependency_columns = connection.execute(
+                "PRAGMA table_info(learning_dependencies)"
+            ).fetchall()
+            if next(row[5] for row in dependency_columns if row[1] == "objective") == 0:
+                # Preserve the known dependencies from v3; the deletion path
+                # also consults context lineage for objectives v3 could omit.
+                connection.execute(
+                    "ALTER TABLE learning_dependencies RENAME TO learning_dependencies_v3"
+                )
+                connection.execute(
+                    "CREATE TABLE learning_dependencies (scope TEXT, revision TEXT, source_scope TEXT, task TEXT, objective TEXT NOT NULL DEFAULT '', PRIMARY KEY(scope,revision,source_scope,task,objective))"
+                )
+                connection.execute(
+                    "INSERT INTO learning_dependencies SELECT scope,revision,source_scope,task,coalesce(objective,'') FROM learning_dependencies_v3"
+                )
+                connection.execute("DROP TABLE learning_dependencies_v3")
             connection.execute(
                 "INSERT OR IGNORE INTO artifact_lifecycle(scope,artifact_id,created) SELECT scope,artifact_id,? FROM artifacts",
                 (time(),),
             )
-            connection.execute("PRAGMA user_version = 3")
+            connection.execute("PRAGMA user_version = 4")
 
     @staticmethod
     def _invalidate_learning(
@@ -1054,7 +1070,7 @@ class SQLiteStorage:
                             evidence["evidence_revision"],
                             pair,
                             task,
-                            linkage["work_objective_id"] if linkage else None,
+                            linkage["work_objective_id"] if linkage else "",
                         ),
                     )
 
@@ -1814,6 +1830,18 @@ class SQLiteStorage:
             self._invalidate_learning(
                 connection, self._task_scope(scope), objective=objective, purge=True
             )
+            # Older dependency rows retained only one objective per task. The
+            # immutable context lineage still identifies every linked task;
+            # invalidate conservatively by task as well, including its policies.
+            for task, payload in connection.execute(
+                "SELECT task,payload FROM learning_context WHERE scope=?",
+                (self._task_scope(scope),),
+            ).fetchall():
+                linkage = json.loads(payload)["discovery_ref"]
+                if linkage is not None and linkage["work_objective_id"] == objective:
+                    self._invalidate_learning(
+                        connection, self._task_scope(scope), task=task, purge=True
+                    )
         self.recover_artifacts()
         return {"schema_version": "1", "status": "deleted", "work_objective_id": objective}
 

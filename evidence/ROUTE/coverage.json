@@ -105,7 +105,16 @@
       "tests/privacy/test_round40_ownership.py::test_rejects_before_application_effects",
       "tests/privacy/test_round40_ownership.py::test_public_twins_keep_their_text",
       "tests/privacy/test_round40_ownership.py::test_comment_only_assignment_prefix_does_not_crash",
-      "tests/privacy/test_round40_ownership.py::test_yaml_parser_error_does_not_expose_source_in_traceback"
+      "tests/privacy/test_round40_ownership.py::test_yaml_parser_error_does_not_expose_source_in_traceback",
+      "tests/privacy/test_round41_ownership.py::test_continued_owners_do_not_release_values",
+      "tests/privacy/test_round41_ownership.py::test_public_twins_are_unchanged",
+      "tests/privacy/test_round41_ownership.py::test_rejects_before_judgment_and_storage",
+      "tests/privacy/test_round41_ownership.py::test_non_assignment_controls_are_unchanged",
+      "tests/privacy/test_round41_ownership.py::test_delimiter_runs_and_snake_case_do_not_block_deadlines",
+      "tests/privacy/test_round41_learning.py::test_analysis_objective_description_is_sanitized_before_retention",
+      "tests/privacy/test_round41_learning.py::test_report_sensitive_map_key_rejects_before_persistence",
+      "tests/privacy/test_round41_learning.py::test_route_optout_survives_failure_immediately_after_commit",
+      "tests/privacy/test_round41_learning.py::test_second_objective_for_same_task_invalidates_learning"
     ],
     "EC-ROUTE-5": [
       "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity",

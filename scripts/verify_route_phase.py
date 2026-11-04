@@ -79,6 +79,15 @@ REQUIRED_CONTROLS = {
         "tests/privacy/test_round40_ownership.py::test_public_twins_keep_their_text",
         "tests/privacy/test_round40_ownership.py::test_comment_only_assignment_prefix_does_not_crash",
         "tests/privacy/test_round40_ownership.py::test_yaml_parser_error_does_not_expose_source_in_traceback",
+        "tests/privacy/test_round41_ownership.py::test_continued_owners_do_not_release_values",
+        "tests/privacy/test_round41_ownership.py::test_public_twins_are_unchanged",
+        "tests/privacy/test_round41_ownership.py::test_rejects_before_judgment_and_storage",
+        "tests/privacy/test_round41_ownership.py::test_non_assignment_controls_are_unchanged",
+        "tests/privacy/test_round41_ownership.py::test_delimiter_runs_and_snake_case_do_not_block_deadlines",
+        "tests/privacy/test_round41_learning.py::test_analysis_objective_description_is_sanitized_before_retention",
+        "tests/privacy/test_round41_learning.py::test_report_sensitive_map_key_rejects_before_persistence",
+        "tests/privacy/test_round41_learning.py::test_route_optout_survives_failure_immediately_after_commit",
+        "tests/privacy/test_round41_learning.py::test_second_objective_for_same_task_invalidates_learning",
     ],
     "EC-ROUTE-5": [
         "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity",
@@ -103,6 +112,15 @@ REQUIRED_CONTROLS = {
     ],
 }
 CONTROL_COUNTS = {
+    "tests/privacy/test_round41_ownership.py::test_continued_owners_do_not_release_values": 648,
+    "tests/privacy/test_round41_ownership.py::test_public_twins_are_unchanged": 36,
+    "tests/privacy/test_round41_ownership.py::test_rejects_before_judgment_and_storage": 84,
+    "tests/privacy/test_round41_ownership.py::test_non_assignment_controls_are_unchanged": 4,
+    "tests/privacy/test_round41_ownership.py::test_delimiter_runs_and_snake_case_do_not_block_deadlines": 1,
+    "tests/privacy/test_round41_learning.py::test_analysis_objective_description_is_sanitized_before_retention": 1,
+    "tests/privacy/test_round41_learning.py::test_report_sensitive_map_key_rejects_before_persistence": 1,
+    "tests/privacy/test_round41_learning.py::test_route_optout_survives_failure_immediately_after_commit": 1,
+    "tests/privacy/test_round41_learning.py::test_second_objective_for_same_task_invalidates_learning": 2,
     "tests/privacy/test_round39_ownership.py::test_credential_bodies_keep_their_owner": 1152,
     "tests/privacy/test_round39_ownership.py::test_ownership_failures_never_reach_application_effects": 120,
     "tests/privacy/test_round39_ownership.py::test_public_twins_are_preserved": 32,
@@ -160,6 +178,8 @@ REQUIRED_TEST_PATHS = (
     "tests/privacy/test_round38_completeness.py",
     "tests/privacy/test_round39_ownership.py",
     "tests/privacy/test_round40_ownership.py",
+    "tests/privacy/test_round41_ownership.py",
+    "tests/privacy/test_round41_learning.py",
 )
 
 

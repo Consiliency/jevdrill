@@ -90,7 +90,7 @@ spaced heredoc terms with a later matching terminator retain their credential
 owner and reject before rewriting. Markdown-emphasized credential labels and
 sensitive arrow-member assignment owners likewise reject, including implicit Perl
 subscript chains, nested arrow members, combined emphasis, raw C++ string prefixes,
-and quoted heredoc terminators containing spaces or punctuation. Malformed YAML
+and quoted heredoc terminators containing spaces or punctuation. Emphasized multiword labels use the same substring rule; delimiter scans are bounded even on long underscore runs. Sensitive Perl and arrow targets keep ownership across syntactic continuation lines, and raw C++ literal continuations also reject after colon records. Malformed YAML
 produces a source-free contract error rather than a parser traceback. In mixed prose, a
 credential-owned YAML block scalar retains its indented body across leading
 blank lines; unsupported mixed documents fail closed. Before rewriting a decoded sensitive array fragment, local
@@ -186,3 +186,5 @@ judgments. It establishes software behavior, not live latency, model quality,
 professional suitability, production companion readiness or policy promotion.
 Replan HOST, then LEARN/EXPERIMENT/PREPARE in dependency order. Independent live
 quality evidence and real decomposition remain downstream work.
+
+Learning boundaries sanitize supplied objective descriptions before assessment and history retention. Sensitive mapping keys reject instead of being renamed, preserving check-result identities. Routing persists monotonic learning restrictions before committing a replayable decision, so a post-commit crash cannot drop an opt-out. Storage version 4 preserves one learning dependency per task and objective; migration retains known version-3 rows, and deletion also consults retained context lineage to invalidate dependencies omitted by the earlier key. This does not claim to reconstruct already-lost historical evidence.

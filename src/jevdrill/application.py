@@ -71,6 +71,11 @@ def _sanitize(value: Any, deadline: float | None = None) -> Any:
     if isinstance(value, list):
         return [_sanitize(item, deadline) for item in value]
     if isinstance(value, dict):
+        # Renaming a sensitive map key could collide with another key and
+        # silently change evaluation semantics. Reject before retaining it.
+        for key in value:
+            if isinstance(key, str) and redact(key, deadline) != key:
+                raise ContractError("unsupported credential in mapping key")
         return {key: _sanitize(item, deadline) for key, item in value.items()}
     return value
 
@@ -947,9 +952,8 @@ class Application:
                 "judgments": judgment_record,
             },
         ).payload()
-        committed = self.storage.commit_decision(
-            scope, request["envelope"]["idempotency_key"], request_digest, bundle
-        )
+        # Persist the monotonic restriction first. A crash after the decision
+        # commits must not leave its retry with an implicitly enabled policy.
         self.storage.restrict_learning(
             scope,
             request["task_id"],
@@ -958,6 +962,9 @@ class Application:
                 excluded_reference(a["reference"], settings["excluded_paths"])
                 for a in inputs["request"]["attachment_refs"]
             ),
+        )
+        committed = self.storage.commit_decision(
+            scope, request["envelope"]["idempotency_key"], request_digest, bundle
         )
         if settings["retain_raw_tasks"]:
             self.storage.stage_artifact(
@@ -1229,6 +1236,7 @@ class Application:
 
     def analyze(self, payload: Mapping[str, Any]) -> dict[str, Any]:
         request = parse_contract("AnalysisRequest", payload).payload()
+        request["objectives"] = _sanitize(request["objectives"])
         scope, now = request["scope"], time()
         settings = resolve_settings(
             [(r["source"], r["values"]) for r in request["settings_layers"]]
