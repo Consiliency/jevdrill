@@ -74,6 +74,11 @@ REQUIRED_CONTROLS = {
         "tests/privacy/test_round39_ownership.py::test_ownership_failures_never_reach_application_effects",
         "tests/privacy/test_round39_ownership.py::test_public_twins_are_preserved",
         "tests/privacy/test_round39_ownership.py::test_folded_headers_without_blank_gap_still_sanitize",
+        "tests/privacy/test_round40_ownership.py::test_nested_owners_and_literal_bodies_stay_private",
+        "tests/privacy/test_round40_ownership.py::test_rejects_before_application_effects",
+        "tests/privacy/test_round40_ownership.py::test_public_twins_keep_their_text",
+        "tests/privacy/test_round40_ownership.py::test_comment_only_assignment_prefix_does_not_crash",
+        "tests/privacy/test_round40_ownership.py::test_yaml_parser_error_does_not_expose_source_in_traceback",
     ],
     "EC-ROUTE-5": [
         "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity",
@@ -102,6 +107,11 @@ CONTROL_COUNTS = {
     "tests/privacy/test_round39_ownership.py::test_ownership_failures_never_reach_application_effects": 120,
     "tests/privacy/test_round39_ownership.py::test_public_twins_are_preserved": 32,
     "tests/privacy/test_round39_ownership.py::test_folded_headers_without_blank_gap_still_sanitize": 6,
+    "tests/privacy/test_round40_ownership.py::test_nested_owners_and_literal_bodies_stay_private": 540,
+    "tests/privacy/test_round40_ownership.py::test_rejects_before_application_effects": 72,
+    "tests/privacy/test_round40_ownership.py::test_public_twins_keep_their_text": 30,
+    "tests/privacy/test_round40_ownership.py::test_comment_only_assignment_prefix_does_not_crash": 1,
+    "tests/privacy/test_round40_ownership.py::test_yaml_parser_error_does_not_expose_source_in_traceback": 1,
     "tests/privacy/test_round38_completeness.py::test_owned_expression_bodies_are_clean": 672,
     "tests/privacy/test_round38_completeness.py::test_original_witnesses_keep_ownership_across_line_boundaries": 168,
     "tests/privacy/test_round38_completeness.py::test_expression_bodies_never_reach_six_application_sinks": 672,
@@ -149,6 +159,7 @@ REQUIRED_TEST_PATHS = (
     "tests/privacy/test_round37_values.py",
     "tests/privacy/test_round38_completeness.py",
     "tests/privacy/test_round39_ownership.py",
+    "tests/privacy/test_round40_ownership.py",
 )
 
 

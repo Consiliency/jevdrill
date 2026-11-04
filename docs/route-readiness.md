@@ -88,7 +88,10 @@ literal openers. No supplied expression is evaluated. Complete supported values
 still keep an ordinary unindented next line. Prefixed adjacent string literals and
 spaced heredoc terms with a later matching terminator retain their credential
 owner and reject before rewriting. Markdown-emphasized credential labels and
-sensitive arrow-member assignment owners likewise reject. In mixed prose, a
+sensitive arrow-member assignment owners likewise reject, including implicit Perl
+subscript chains, nested arrow members, combined emphasis, raw C++ string prefixes,
+and quoted heredoc terminators containing spaces or punctuation. Malformed YAML
+produces a source-free contract error rather than a parser traceback. In mixed prose, a
 credential-owned YAML block scalar retains its indented body across leading
 blank lines; unsupported mixed documents fail closed. Before rewriting a decoded sensitive array fragment, local
 forward inspection follows Unicode identifier attributes, balanced postfix

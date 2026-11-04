@@ -39,7 +39,8 @@
       "tests/privacy/test_round36_records.py",
       "tests/privacy/test_round37_values.py",
       "tests/privacy/test_round38_completeness.py",
-      "tests/privacy/test_round39_ownership.py"
+      "tests/privacy/test_round39_ownership.py",
+      "tests/privacy/test_round40_ownership.py"
     ],
     "EC-ROUTE-5": [
       "tests/contracts/test_discovery_contracts.py",
@@ -99,7 +100,12 @@
       "tests/privacy/test_round39_ownership.py::test_credential_bodies_keep_their_owner",
       "tests/privacy/test_round39_ownership.py::test_ownership_failures_never_reach_application_effects",
       "tests/privacy/test_round39_ownership.py::test_public_twins_are_preserved",
-      "tests/privacy/test_round39_ownership.py::test_folded_headers_without_blank_gap_still_sanitize"
+      "tests/privacy/test_round39_ownership.py::test_folded_headers_without_blank_gap_still_sanitize",
+      "tests/privacy/test_round40_ownership.py::test_nested_owners_and_literal_bodies_stay_private",
+      "tests/privacy/test_round40_ownership.py::test_rejects_before_application_effects",
+      "tests/privacy/test_round40_ownership.py::test_public_twins_keep_their_text",
+      "tests/privacy/test_round40_ownership.py::test_comment_only_assignment_prefix_does_not_crash",
+      "tests/privacy/test_round40_ownership.py::test_yaml_parser_error_does_not_expose_source_in_traceback"
     ],
     "EC-ROUTE-5": [
       "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity",

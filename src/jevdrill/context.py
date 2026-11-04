@@ -1364,7 +1364,10 @@ def _redact_assignments(
             target_start = operator_end
             try:
                 with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
-                    statement = ast.parse(_validation_view(prefix, deadline) + " = None").body[-1]
+                    statements = ast.parse(_validation_view(prefix, deadline) + " = None").body
+                    if not statements:
+                        continue
+                    statement = statements[-1]
             except (SyntaxError, ValueError):
                 if quoted_credential:
                     raise ContractError("unsupported credential assignment") from None
@@ -1711,11 +1714,14 @@ def _guard_multiline_credential_values(text: str, deadline: float | None) -> Non
     closers = {}
     if "<<" in text:
         for closing in re.finditer(
-            rf"{LINE_START}{INDENT}*(?P<word>[A-Za-z_]\w*);?{INDENT}*(?={LINE_BREAK}|$)",
+            rf"{LINE_START}(?P<word>{LINE_TEXT}+)(?={LINE_BREAK}|$)",
             text,
         ):
             _check_deadline(deadline)
-            closers[closing.group("word")] = closing.start()
+            word = closing.group("word").strip()
+            closers[word] = closing.start()
+            if word.endswith(";"):
+                closers[word[:-1].rstrip()] = closing.start()
     for match in CREDENTIAL_RECORD.finditer(text):
         _check_deadline(deadline)
         value = match.group("value")
@@ -1779,7 +1785,7 @@ def _guard_multiline_credential_values(text: str, deadline: float | None) -> Non
                         break
                     if (
                         match.group("operator") != ":"
-                        and re.match(r"(?:u8R?|[uULRbrf]|br|rb|fr|rf)?[\"']", next_value)
+                        and re.match(r"(?:(?:u8|[uUL])?R?|[brf]|br|rb|fr|rf)?[\"']", next_value)
                     ) or re.match(
                         r"(?:[-+*/%@&|^?.=<>\\`,(\[]|(?:and|or|else|elsif|elseif)\b)",
                         next_value,
@@ -2130,6 +2136,35 @@ def _guard_extended_credential_assignments(text: str, deadline: float | None) ->
             raise ContractError("unsupported credential assignment")
 
 
+def _assignment_in_owner_tail(
+    text: str, start: int, deadline: float | None, charge: list[int]
+) -> bool:
+    """Bounded lexical assignment check; comparisons and quoted text are not owners."""
+    operator = re.compile(rf"(?<![=!<>]){ASSIGNMENT_OPERATOR}(?!=)")
+    quote = None
+    i = start
+    while i < len(text) and text[i] not in "\r\n\x85\u2028\u2029;":
+        charge[0] += 1
+        if charge[0] > 16 * len(text) + 100_000:
+            raise ContractError("context fragment work exceeds sanitization limit")
+        _check_deadline(deadline)
+        ch = text[i]
+        if quote is not None:
+            if ch == "\\":
+                i += 2
+                continue
+            if ch == quote:
+                quote = None
+        elif ch in "\"'`":
+            quote = ch
+        elif ch == "#":
+            break
+        elif operator.match(text, i):
+            return True
+        i += 1
+    return False
+
+
 def _guard_directional_assignment_owners(text: str, deadline: float | None) -> None:
     """Reject sensitive directional targets before rewriting their fragments.
 
@@ -2137,6 +2172,14 @@ def _guard_directional_assignment_owners(text: str, deadline: float | None) -> N
     a sensitive brace key, so masking only that key loses its ownership. These
     unsupported owners fail closed; supplied code is never executed.
     """
+    charge = [0]
+    for key_match in re.finditer(
+        rf"(?i){PERL_HASH_OWNER}\{{{INDENT}*[\"']?{CREDENTIAL_WORD}"
+        rf"[\"']?{INDENT}*\}}{INDENT}*(?=->|[{{\[])",
+        text,
+    ):
+        if _assignment_in_owner_tail(text, key_match.end(), deadline, charge):
+            raise ContractError("unsupported credential assignment")
     cursor = 0
     arrow = re.compile(r"->>?")
     while match := arrow.search(text, cursor):
@@ -2749,20 +2792,20 @@ def redact(text: str, deadline: float | None = None) -> str:
         # Markdown delimiters and arrow members do not erase a credential's
         # ownership. Reject these unsupported records before any rewriting.
         for decorated in re.finditer(
-            rf"(?i)(?P<mark>\*\*|~~|\*)(?:[\"']\s*)?{CREDENTIAL_WORD}"
-            rf"(?:\s*[\"'])?(?P=mark){INDENT}*(?::=?|{ASSIGNMENT_OPERATOR})(?!=)",
+            rf"(?i)[*_~]+(?:[\"']\s*)?{CREDENTIAL_WORD}"
+            rf"(?:\s*[\"'])?[*_~]+{INDENT}*(?::=?|{ASSIGNMENT_OPERATOR})(?!=)",
             text,
         ):
             _check_deadline(deadline)
             raise ContractError("unsupported credential assignment")
+        owner_charge = [0]
         for arrow_owner in re.finditer(
             rf"(?i)(?<![\w.-]){CREDENTIAL_WORD}"
-            rf"(?:{INDENT}*->{INDENT}*[A-Za-z_]\w*)+"
-            rf"{INDENT}*{ASSIGNMENT_OPERATOR}(?!=)",
+            rf"{INDENT}*->{INDENT}*(?:[A-Za-z_]\w*|[{{\[])",
             text,
         ):
-            _check_deadline(deadline)
-            raise ContractError("unsupported credential assignment")
+            if _assignment_in_owner_tail(text, arrow_owner.end(), deadline, owner_charge):
+                raise ContractError("unsupported credential assignment")
         _guard_directional_assignment_owners(text, deadline)
         _guard_multiline_credential_values(text, deadline)
         if "?" in text:
@@ -2812,6 +2855,8 @@ def redact(text: str, deadline: float | None = None) -> str:
             end = consumed
             cursor = end
         return "".join(chunks) + _redact_plain(text[end:], deadline)
+    except yaml.YAMLError:
+        raise ContractError("unsupported YAML context representation") from None
     except UnicodeError as error:
         raise ContractError("unsupported Unicode context representation") from error
     except (RecursionError, MemoryError) as error:
