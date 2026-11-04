@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "status": "partial_study_integrity_verified_acceptance_blocked",
+  "checks": {
+    "closeout_counts_match_study_ledger": true,
+    "immutable_study_artifact_hashes_match": true,
+    "source_digest_unchanged": true,
+    "preview_sha256_preserved": true,
+    "original_phase_closeout_preserved": true,
+    "baml_cache_absent": true
+  },
+  "closeout_sha256": "2e2d811a15d20a455197d5062418d954733e06405c83317b76e66792004df01f",
+  "public_quality_context_sha256": "70ae8f103bfaf74e11b163dd4d36f8d825c73da5d65430574fd0c5a901569179",
+  "stop_diagnostic_sha256": "55c6b0d6414471d94c593aa558d652d2855be49abdd56d4a4c08f0148b05a512",
+  "study_sha256": "4748650da9d34739aa5c0b9207530b1e71747d4c1b7372dde92f62dd1bd12fd4",
+  "database_sha256": {
+    "controller.db": "739ddb959274141bb42ad0169f7c438d64cde7cc80ca40774a0d633ca2cbff7a",
+    "judgments.db": "be59fa07e615ab6182ba317904d8c0359948d745ff080329f2a8b5f5fe462914",
+    "worker.db": "f92162965028aa8272b9e6b405cab43bcedb953cf296126d6030dbd7d21cb224"
+  },
+  "cache": {},
+  "no_new_provider_calls": true
+}

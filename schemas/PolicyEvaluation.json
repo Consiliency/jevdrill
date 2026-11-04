@@ -1,0 +1,478 @@
+{
+  "$defs": {
+    "KnownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "known",
+          "title": "Kind",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "unit",
+        "value"
+      ],
+      "title": "KnownMeasurement",
+      "type": "object"
+    },
+    "Measurement": {
+      "additionalProperties": false,
+      "properties": {
+        "counting_semantics": {
+          "anyOf": [
+            {
+              "const": "disjoint",
+              "type": "string"
+            },
+            {
+              "const": "subset",
+              "type": "string"
+            },
+            {
+              "const": "not_applicable",
+              "type": "string"
+            }
+          ],
+          "title": "Counting Semantics"
+        },
+        "measurement_value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/KnownMeasurement"
+            },
+            {
+              "$ref": "#/$defs/UnknownMeasurement"
+            }
+          ],
+          "title": "Measurement Value"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "metric_version": {
+          "title": "Metric Version",
+          "type": "string"
+        },
+        "parent_metric_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Metric Id"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "const": "call",
+              "type": "string"
+            },
+            {
+              "const": "run",
+              "type": "string"
+            },
+            {
+              "const": "task",
+              "type": "string"
+            },
+            {
+              "const": "experiment",
+              "type": "string"
+            }
+          ],
+          "title": "Scope"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "direct",
+              "type": "string"
+            },
+            {
+              "const": "provider",
+              "type": "string"
+            },
+            {
+              "const": "host",
+              "type": "string"
+            },
+            {
+              "const": "evaluator",
+              "type": "string"
+            },
+            {
+              "const": "estimate",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "counting_semantics",
+        "measurement_value",
+        "method",
+        "metric_id",
+        "metric_version",
+        "parent_metric_id",
+        "scope",
+        "source"
+      ],
+      "title": "Measurement",
+      "type": "object"
+    },
+    "MissingReason": {
+      "enum": [
+        "unsupported",
+        "not_reported",
+        "not_applicable",
+        "redacted",
+        "expired",
+        "incomplete"
+      ],
+      "title": "MissingReason",
+      "type": "string"
+    },
+    "PolicyCase": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline_critical": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "title": "Baseline Critical",
+          "type": "object"
+        },
+        "baseline_measurements": {
+          "items": {
+            "$ref": "#/$defs/Measurement"
+          },
+          "title": "Baseline Measurements",
+          "type": "array"
+        },
+        "baseline_quality": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Baseline Quality"
+        },
+        "candidate_critical": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "title": "Candidate Critical",
+          "type": "object"
+        },
+        "candidate_measurements": {
+          "items": {
+            "$ref": "#/$defs/Measurement"
+          },
+          "title": "Candidate Measurements",
+          "type": "array"
+        },
+        "candidate_quality": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Candidate Quality"
+        },
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "exposed_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Exposed At",
+          "type": "string"
+        },
+        "related_group": {
+          "title": "Related Group",
+          "type": "string"
+        },
+        "split": {
+          "anyOf": [
+            {
+              "const": "development",
+              "type": "string"
+            },
+            {
+              "const": "validation",
+              "type": "string"
+            },
+            {
+              "const": "policy_holdout",
+              "type": "string"
+            },
+            {
+              "const": "policy_regression",
+              "type": "string"
+            },
+            {
+              "const": "release_holdout",
+              "type": "string"
+            }
+          ],
+          "title": "Split"
+        }
+      },
+      "required": [
+        "baseline_critical",
+        "baseline_measurements",
+        "baseline_quality",
+        "candidate_critical",
+        "candidate_measurements",
+        "candidate_quality",
+        "case_id",
+        "exposed_at",
+        "related_group",
+        "split"
+      ],
+      "title": "PolicyCase",
+      "type": "object"
+    },
+    "QualityCalibration": {
+      "additionalProperties": false,
+      "properties": {
+        "calibration_revision": {
+          "title": "Calibration Revision",
+          "type": "string"
+        },
+        "calibration_source": {
+          "title": "Calibration Source",
+          "type": "string"
+        },
+        "confidence": {
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0.5,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "critical_requirements": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Critical Requirements",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "dataset_revision": {
+          "title": "Dataset Revision",
+          "type": "string"
+        },
+        "evaluator_ref": {
+          "title": "Evaluator Ref",
+          "type": "string"
+        },
+        "frozen_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Frozen At",
+          "type": "string"
+        },
+        "maximum_quality_loss": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Maximum Quality Loss",
+          "type": "number"
+        },
+        "minimum_pairs": {
+          "maximum": 1000000,
+          "minimum": 2,
+          "title": "Minimum Pairs",
+          "type": "integer"
+        },
+        "quality_floor": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Quality Floor",
+          "type": "number"
+        },
+        "rubric_revision": {
+          "title": "Rubric Revision",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "task_family": {
+          "anyOf": [
+            {
+              "const": "implementation",
+              "type": "string"
+            },
+            {
+              "const": "review",
+              "type": "string"
+            },
+            {
+              "const": "documentation",
+              "type": "string"
+            }
+          ],
+          "title": "Task Family"
+        }
+      },
+      "required": [
+        "calibration_revision",
+        "calibration_source",
+        "confidence",
+        "critical_requirements",
+        "dataset_revision",
+        "evaluator_ref",
+        "frozen_at",
+        "maximum_quality_loss",
+        "minimum_pairs",
+        "quality_floor",
+        "rubric_revision",
+        "schema_version",
+        "task_family"
+      ],
+      "title": "QualityCalibration",
+      "type": "object"
+    },
+    "UnknownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/MissingReason"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "UnknownMeasurement",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "calibration": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/QualityCalibration"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "cases": {
+      "items": {
+        "$ref": "#/$defs/PolicyCase"
+      },
+      "title": "Cases",
+      "type": "array"
+    },
+    "dataset_revision": {
+      "title": "Dataset Revision",
+      "type": "string"
+    },
+    "evaluator_ref": {
+      "title": "Evaluator Ref",
+      "type": "string"
+    },
+    "evidence_origin": {
+      "anyOf": [
+        {
+          "const": "controlled",
+          "type": "string"
+        },
+        {
+          "const": "observational",
+          "type": "string"
+        },
+        {
+          "const": "synthetic",
+          "type": "string"
+        }
+      ],
+      "title": "Evidence Origin"
+    },
+    "identities_blinded": {
+      "title": "Identities Blinded",
+      "type": "boolean"
+    },
+    "rubric_revision": {
+      "title": "Rubric Revision",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "task_family": {
+      "anyOf": [
+        {
+          "const": "implementation",
+          "type": "string"
+        },
+        {
+          "const": "review",
+          "type": "string"
+        },
+        {
+          "const": "documentation",
+          "type": "string"
+        }
+      ],
+      "title": "Task Family"
+    }
+  },
+  "required": [
+    "calibration",
+    "cases",
+    "dataset_revision",
+    "evaluator_ref",
+    "evidence_origin",
+    "identities_blinded",
+    "rubric_revision",
+    "schema_version",
+    "task_family"
+  ],
+  "title": "PolicyEvaluation",
+  "type": "object"
+}

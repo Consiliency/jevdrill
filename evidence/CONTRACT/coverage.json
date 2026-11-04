@@ -551,7 +551,7 @@
     {
       "id": "JD-040",
       "source": "specs/jevdrill-design-input.md",
-      "source_sha256": "2b53004acb8d2b55b0612d31dc5806d3400863504ceb5bc872c551dad5ca13fe",
+      "source_sha256": "7b654bdc196b4cd882d7a6eddca4ceefcb8c660bb28d0a14795f4bb1279ebe74",
       "status": "planned",
       "owner": "experiment implementation",
       "phase": "EXPERIMENT",
@@ -1083,7 +1083,7 @@
     {
       "id": "JD-078",
       "source": "specs/jevdrill-design-input.md",
-      "source_sha256": "3d7e7bee2e4c1e83d5f3b1bc790331818daa41cde5b215703823bd195f358696",
+      "source_sha256": "09d14a48106536bc1dd0e38cd3586855dee705dfd1624fa3203c2efcd2b52386",
       "status": "planned",
       "owner": "route implementation",
       "phase": "ROUTE",
@@ -1111,7 +1111,7 @@
     {
       "id": "JD-080",
       "source": "specs/jevdrill-design-input.md",
-      "source_sha256": "d4d4d061fa1e027233789b665fea96c41c6647053162dc8a969ff178c92ce805",
+      "source_sha256": "5690e652542a19cf98baf1c3cd80575f4aa455fa604a2906a721de5e011c6b6f",
       "status": "planned",
       "owner": "experiment implementation",
       "phase": "EXPERIMENT",
@@ -1139,7 +1139,7 @@
     {
       "id": "JD-082",
       "source": "specs/jevdrill-design-input.md",
-      "source_sha256": "f1949f421592f75c2660181be49e0966eb6805d53d487c6d46d04121a81581a0",
+      "source_sha256": "461c09c4343e3e116809ee0a43e765fb888672a3fb5b4cf242ae1463ec4566f6",
       "status": "planned",
       "owner": "contract implementation",
       "phase": "CONTRACT",
@@ -3696,6 +3696,34 @@
         }
       ],
       "reason": "Open-decision inventory is refined by JD-001\u2013JD-082 and owned Q-01\u2013Q-14; unresolved questions block only their affected work."
+    },
+    {
+      "id": "JD-083",
+      "source": "specs/jevdrill-design-input.md",
+      "source_sha256": "d3fa217044ad4621414379b1947657f1eab0166615a2c0bdf06df0bf2b936ffe",
+      "owner": "routing",
+      "phase": "ROUTE",
+      "status": "planned",
+      "criteria": [
+        {
+          "id": "EC-ROUTE-3",
+          "required_text": "hard constraints"
+        }
+      ]
+    },
+    {
+      "id": "JD-084",
+      "source": "specs/jevdrill-design-input.md",
+      "source_sha256": "c7b0365c75fbe00e9bf080fb71169ff1bbcc7b03daea7a7ae188ed5fa84ff6aa",
+      "owner": "integrations",
+      "phase": "HOST",
+      "status": "planned",
+      "criteria": [
+        {
+          "id": "EC-HOST-1",
+          "required_text": "permission restrictions"
+        }
+      ]
     }
   ],
   "review_items": [
@@ -3910,5 +3938,10 @@
   "limitations": [
     "Criterion text and source digests detect drift; human review still assesses semantic coverage.",
     "No implemented or passed product behavior is claimed by this map."
-  ]
+  ],
+  "planning_reconciliation": {
+    "commit": "f67ad654ff224d6b343ab366260d9184150d822f",
+    "historical_mapping": "evidence/ROUTE/history/contract-coverage-f67ad654f.json",
+    "gate_claimed": false
+  }
 }

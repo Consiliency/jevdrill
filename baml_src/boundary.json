@@ -1,35 +1,737 @@
 {
   "schema_version": 1,
   "compiler_version": "0.20.1",
-  "contracts": ["RouteRequest", "RoutingDecision", "ExecutionPlan", "ExecutionRun", "ReportRequest", "ReportAcknowledgment", "ExecutionEvent", "Measurement", "Settings", "ComparisonExperiment", "CapabilityMismatch", "LocalNotice"],
-  "omittable": {},
+  "contracts": [
+    "RouteRequest",
+    "RoutingDecision",
+    "ExecutionPlan",
+    "ExecutionRun",
+    "ReportRequest",
+    "ReportAcknowledgment",
+    "ExecutionEvent",
+    "Measurement",
+    "Settings",
+    "ComparisonExperiment",
+    "CapabilityMismatch",
+    "LocalNotice",
+    "NoticeRequest",
+    "NoticeInbox",
+    "InventorySnapshot",
+    "CandidateSnapshot",
+    "CatalogSnapshot",
+    "CatalogResource",
+    "SettingsLayer",
+    "JudgmentPolicy",
+    "RouteInputs",
+    "JudgmentRecord",
+    "CommandScope",
+    "InspectRequest",
+    "DeleteRequest",
+    "ReplayBundle",
+    "DiscoveryEnvelope",
+    "DiscoveryScope",
+    "DiscoveryGuidanceRef",
+    "DiscoveryDescription",
+    "DiscoveryLimits",
+    "DiscoveryJudgmentPolicy",
+    "DiscoveryInputs",
+    "DiscoveryOption",
+    "DiscoveryBudget",
+    "DiscoveryState",
+    "DiscoveryQuestion",
+    "DiscoveryJudgmentRecord",
+    "DiscoveryTransition",
+    "DiscoveryRevisions",
+    "DiscoveryResult",
+    "DiscoveryTrace",
+    "DiscoveryRef",
+    "DiscoveryRouteInputs",
+    "DiscoveryInspectRequest",
+    "DiscoveryDeleteRequest",
+    "LearningContext",
+    "AnalysisRequest",
+    "EvidenceMetric",
+    "EvidenceGroup",
+    "ObjectiveAssessment",
+    "AnalysisResult",
+    "MaintenanceRequest",
+    "MaintenanceResult",
+    "RecoveryRequest",
+    "RecoveryResult",
+    "RecoveryArtifact",
+    "RecoveryDecision",
+    "RecoveryEvent",
+    "RecoveryDiscovery",
+    "RecoveryBundle",
+    "ObservationSource",
+    "PolicyDefinition",
+    "PolicyAuthorization",
+    "PolicyEvidencePreparation",
+    "PolicyRequest",
+    "PolicyResult",
+    "ExperimentAuthorization",
+    "ExperimentReadiness",
+    "ExperimentExecutionRequest",
+    "ExperimentHostReceipt",
+    "ExperimentExecutionResult",
+    "ExperimentRequest",
+    "ExperimentResult",
+    "QualityCalibration",
+    "PolicyEvaluation",
+    "PolicyAssessment"
+  ],
+  "omittable": {
+    "RouteInputs": [
+      "completion_time_limit_ms",
+      "catalog_query"
+    ],
+    "SettingsOverride": [
+      "routing_cost_basis",
+      "retain_raw_tasks",
+      "retain_raw_outputs",
+      "local_analysis_enabled",
+      "experiment_enabled",
+      "model_analysis_enabled",
+      "default_plan_id",
+      "routing_deadline_ms",
+      "excluded_paths",
+      "max_description_utf8_bytes"
+    ],
+    "HardConstraints": [
+      "execution_token_limits"
+    ],
+    "CandidateSnapshot": [
+      "execution_token_limits"
+    ],
+    "DecisionDetails": [
+      "discovery_ref",
+      "discovery_termination",
+      "discovery_uncertainty"
+    ],
+    "Settings": [
+      "max_description_utf8_bytes"
+    ]
+  },
   "field_rules": {
-    "Money.amount": {"pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"},
-    "Money.currency": {"pattern": "^[A-Z]{3}$"},
-    "RequestEnvelope.extensions": {"propertyNames": {"pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_.]*$"}},
-    "ExecutionPlan.optional_guidance": {"maxItems": 2},
-    "ExperimentLimits.max_candidates": {"minimum": 2},
-    "ExperimentLimits.max_concurrency": {"minimum": 1},
-    "ExperimentLimits.max_duration_ms": {"minimum": 1},
-    "ExperimentLimits.cpu_limit": {"minimum": 1},
-    "ExperimentLimits.memory_limit_bytes": {"minimum": 1},
-    "HardConstraints.total_deadline_ms": {"minimum": 1},
-    "HardConstraints.context_token_limit": {"minimum": 1},
-    "HardConstraints.max_attempts": {"minimum": 1},
-    "RetryContext.remaining_attempts": {"minimum": 0},
-    "RetryContext.remaining_time_ms": {"minimum": 0},
-    "ExecutionEvent.source_sequence": {"minimum": 0},
-    "Settings.routing_deadline_ms": {"minimum": 1},
-    "ComparisonExperiment.candidate_plans": {"minItems": 2},
-    "ComparisonExperiment.assignment_probabilities": {"additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}}
+    "CatalogQuery.max_branches": {
+      "minimum": 1,
+      "maximum": 32
+    },
+    "RouteInputs.completion_time_limit_ms": {
+      "minimum": 1
+    },
+    "Money.amount": {
+      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+    },
+    "Money.currency": {
+      "pattern": "^[A-Z]{3}$"
+    },
+    "RequestEnvelope.extensions": {
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_.]*$"
+      }
+    },
+    "ExecutionPlan.optional_guidance": {
+      "maxItems": 2
+    },
+    "ExperimentLimits.max_candidates": {
+      "minimum": 2
+    },
+    "ExperimentLimits.max_concurrency": {
+      "minimum": 1
+    },
+    "ExperimentLimits.max_duration_ms": {
+      "minimum": 1
+    },
+    "ExperimentLimits.cpu_limit": {
+      "minimum": 1
+    },
+    "ExperimentLimits.memory_limit_bytes": {
+      "minimum": 1
+    },
+    "HardConstraints.total_deadline_ms": {
+      "minimum": 1
+    },
+    "HardConstraints.context_token_limit": {
+      "minimum": 1
+    },
+    "HardConstraints.max_attempts": {
+      "minimum": 1
+    },
+    "RetryContext.remaining_attempts": {
+      "minimum": 0
+    },
+    "RetryContext.remaining_time_ms": {
+      "minimum": 0
+    },
+    "ExecutionEvent.source_sequence": {
+      "minimum": 0
+    },
+    "Settings.routing_deadline_ms": {
+      "minimum": 1
+    },
+    "ComparisonExperiment.candidate_plans": {
+      "minItems": 2
+    },
+    "ComparisonExperiment.assignment_probabilities": {
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "CandidateSnapshot.candidate_id": {
+      "minLength": 1
+    },
+    "CandidateSnapshot.model_id": {
+      "minLength": 1
+    },
+    "CandidateSnapshot.resolved_model_revision": {
+      "minLength": 1
+    },
+    "CandidateSnapshot.context_token_limit": {
+      "minimum": 1
+    },
+    "CandidateSnapshot.output_token_limit": {
+      "minimum": 1
+    },
+    "CandidateSnapshot.completion_time_ms": {
+      "minimum": 0
+    },
+    "CandidateSnapshot.guidance_options": {
+      "maxItems": 2
+    },
+    "SettingsOverride.routing_deadline_ms": {
+      "minimum": 1
+    },
+    "JudgmentPolicy.max_calls": {
+      "minimum": 0
+    },
+    "JudgmentPolicy.max_candidates": {
+      "minimum": 0
+    },
+    "JudgmentPolicy.max_input_tokens": {
+      "minimum": 1
+    },
+    "JudgmentPolicy.max_output_tokens": {
+      "minimum": 1
+    },
+    "RateCard.input_rate": {
+      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+    },
+    "RateCard.output_rate": {
+      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+    },
+    "RateCard.subscription_multiplier": {
+      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+    },
+    "RateCard.currency": {
+      "pattern": "^[A-Z]{3}$"
+    },
+    "CatalogResource.content_hash": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "JudgmentRecord.candidate_digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "ReplayBundle.request_digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "ReplayBundle.cache_digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "DiscoveryGuidanceRef.content_hash": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "DiscoveryDescription.content_hash": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "DiscoveryQuestion.question_digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "DiscoveryJudgmentRecord.question_digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "DiscoveryDetails.trace_digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "DiscoveryRef.trace_digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "DiscoveryLimits.max_rounds": {
+      "minimum": 0
+    },
+    "DiscoveryLimits.max_candidates": {
+      "minimum": 0
+    },
+    "DiscoveryLimits.max_calls": {
+      "minimum": 0
+    },
+    "DiscoveryLimits.max_input_tokens": {
+      "minimum": 0
+    },
+    "DiscoveryLimits.output_planning_reservation": {
+      "minimum": 0
+    },
+    "DiscoveryJudgmentPolicy.max_calls": {
+      "minimum": 0
+    },
+    "DiscoveryJudgmentPolicy.max_candidates": {
+      "minimum": 0
+    },
+    "DiscoveryJudgmentPolicy.max_input_tokens": {
+      "minimum": 0
+    },
+    "DiscoveryJudgmentPolicy.output_planning_reservation": {
+      "minimum": 0
+    },
+    "DiscoveryBudget.rounds": {
+      "minimum": 0
+    },
+    "DiscoveryBudget.candidates": {
+      "minimum": 0
+    },
+    "DiscoveryBudget.calls": {
+      "minimum": 0
+    },
+    "DiscoveryBudget.input_tokens": {
+      "minimum": 0
+    },
+    "DiscoveryBudget.output_tokens": {
+      "minimum": 0
+    },
+    "ExecutionTokenLimits.input_tokens": {
+      "minimum": 0
+    },
+    "ExecutionTokenLimits.output_tokens": {
+      "minimum": 0
+    },
+    "DiscoveryLimits.active_branch_width": {
+      "minimum": 1,
+      "maximum": 32
+    },
+    "DiscoveryLimits.max_description_utf8_bytes": {
+      "minimum": 1,
+      "maximum": 2048
+    },
+    "DiscoveryLimits.hard_output_token_limit": {
+      "minimum": 1
+    },
+    "DiscoveryJudgmentPolicy.hard_output_token_limit": {
+      "minimum": 1
+    },
+    "DiscoveryDetails.guidance_refs": {
+      "maxItems": 2
+    },
+    "DiscoveryEnvelope.harness_id": {
+      "minLength": 1
+    },
+    "DiscoveryEnvelope.idempotency_key": {
+      "minLength": 1
+    },
+    "DiscoveryInputs.taxonomy_revision": {
+      "minLength": 1
+    },
+    "DiscoveryInputs.content_revision": {
+      "minLength": 1
+    },
+    "DiscoveryDescription.description_revision": {
+      "minLength": 1
+    },
+    "DiscoveryGuidanceRef.resource_id": {
+      "minLength": 1
+    },
+    "DiscoveryGuidanceRef.revision": {
+      "minLength": 1
+    },
+    "DiscoveryOption.option_id": {
+      "minLength": 1
+    },
+    "Settings.max_description_utf8_bytes": {
+      "minimum": 1,
+      "maximum": 2048
+    },
+    "SettingsOverride.max_description_utf8_bytes": {
+      "minimum": 1,
+      "maximum": 2048
+    },
+    "DiscoveryLeafFacts.instruction_utf8_bytes": {
+      "minimum": 0
+    },
+    "DiscoveryTrace.guidance_context_limit": {
+      "minimum": 0
+    },
+    "LearningContext.task_family": {
+      "minLength": 1
+    },
+    "LearningContext.task_group": {
+      "minLength": 1
+    },
+    "LearningContext.environment_revision": {
+      "minLength": 1
+    },
+    "LearningContext.isolation_revision": {
+      "minLength": 1
+    },
+    "LearningContext.evaluator_ref": {
+      "minLength": 1
+    },
+    "LearningContext.rubric_revision": {
+      "minLength": 1
+    },
+    "AnalysisRequest.minimum_batch": {
+      "minimum": 1
+    },
+    "AnalysisRequest.interval_seconds": {
+      "minimum": 1
+    },
+    "MaintenanceRequest.max_items": {
+      "minimum": 1,
+      "maximum": 1000
+    },
+    "MaintenanceRequest.archive_retention_days": {
+      "minimum": 365,
+      "maximum": 365
+    },
+    "AnalysisResult.source_digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "EvidenceGroup.group_id": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "RecoveryArtifact.digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "RecoveryRequest.artifact_id": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "PolicyDefinition.policy_revision": {
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "PolicyDefinition.baseline_policy_revision": {
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "PolicyDefinition.task_group": {
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "PolicyDefinition.candidate_order": {
+      "minItems": 2,
+      "maxItems": 64
+    },
+    "PolicyDefinition.cases": {
+      "minItems": 4,
+      "maxItems": 100000
+    },
+    "PolicyDefinition.objective_value_ceiling": {
+      "exclusiveMinimum": 0
+    },
+    "PolicyDefinition.minimum_improvement": {
+      "exclusiveMinimum": 0
+    },
+    "PolicyCandidate.candidate_id": {
+      "minLength": 1
+    },
+    "PolicyCandidate.candidate_fingerprint": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "PolicyAuthorization.authorization_revision": {
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "PolicyAuthorization.max_routes": {
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "PolicyAuthorization.rollout_basis_points": {
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "PolicyEvidencePreparation.definition_digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "PolicyEvidencePreparation.evaluator_identity": {
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "PolicyEvidencePreparation.input_revision": {
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "PolicyEvidencePreparation.evidence_ref": {
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "PolicyRequest.policy_revision": {
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "PolicyRecord.definition_digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "PolicyRecord.used_routes": {
+      "minimum": 0
+    },
+    "ExperimentAuthorization.authorization_revision": {
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "ExperimentAuthorization.total_spend_microusd": {
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "ExperimentAuthorization.task_ids": {
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      }
+    },
+    "ExperimentAuthorization.allowed_execution_paths": {
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "internal",
+          "harness_assisted"
+        ]
+      }
+    },
+    "ExperimentReadiness.candidate_plan_digests": {
+      "uniqueItems": true,
+      "minItems": 2,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "ExperimentReadiness.upper_cost_microusd": {
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "ExperimentReadiness.available_cpu": {
+      "minimum": 0
+    },
+    "ExperimentReadiness.available_memory_bytes": {
+      "minimum": 0
+    },
+    "ExperimentReadiness.max_concurrency": {
+      "minimum": 0
+    },
+    "ExperimentHostReceipt.experiment_digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "ExperimentExecutionRecord.experiment_digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "ExperimentExecutionRecord.authorization_digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "ExperimentExecutionRecord.admitted_at_ms": {
+      "minimum": 0
+    },
+    "ExperimentExecutionRecord.observed_at_ms": {
+      "minimum": 0
+    },
+    "ExperimentExecutionRecord.deadline_ms": {
+      "minimum": 1
+    },
+    "ExperimentExecutionRecord.reserved_microusd": {
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "ExperimentRequest.idempotency_key": {
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "ExperimentProposal.task_group": {
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "ExperimentProposal.uncertainty_rank": {
+      "minimum": 0,
+      "maximum": 3
+    },
+    "ExperimentProposal.benefit_rank": {
+      "minimum": 0,
+      "maximum": 3
+    },
+    "ExperimentProposal.estimated_cost_microusd": {
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "ExperimentQueueEntry.occurrence_count": {
+      "minimum": 1
+    },
+    "QualityCalibration.quality_floor": {
+      "minimum": 0,
+      "maximum": 1
+    },
+    "QualityCalibration.maximum_quality_loss": {
+      "minimum": 0,
+      "maximum": 1
+    },
+    "QualityCalibration.minimum_pairs": {
+      "minimum": 2,
+      "maximum": 1000000
+    },
+    "QualityCalibration.confidence": {
+      "exclusiveMinimum": 0.5,
+      "exclusiveMaximum": 1
+    },
+    "QualityCalibration.critical_requirements": {
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "PolicyCase.baseline_quality": {
+      "minimum": 0,
+      "maximum": 1
+    },
+    "PolicyCase.candidate_quality": {
+      "minimum": 0,
+      "maximum": 1
+    }
   },
-  "identities": ["RequestEnvelope.request_id", "RequestEnvelope.project_id", "RequestEnvelope.workspace_id", "ExecutionPlan.execution_plan_id", "ExecutionPlan.predecessor_plan_id", "RouteRequest.task_id", "RetryContext.prior_routing_decision_id", "RetryContext.prior_execution_run_id", "DecisionDetails.routing_decision_id", "DecisionDetails.request_id", "DecisionDetails.task_id", "DecisionDetails.reused_decision_id", "ExecutionRun.execution_run_id", "ExecutionRun.task_id", "ExecutionRun.selected_plan_id", "ExecutionRun.applied_plan_id", "ExecutionRun.prior_execution_run_id", "ExecutionEvent.event_id", "ExecutionEvent.task_id", "ExecutionEvent.routing_decision_id", "ExecutionEvent.execution_run_id", "ExecutionEvent.supersedes_event_id", "ComparisonExperiment.comparison_experiment_id", "ComparisonExperiment.task_id", "LocalNotice.notice_id"],
-  "timestamps": ["RequestEnvelope.created_at", "DecisionDetails.created_at", "Capabilities.verified_at", "Capabilities.expires_at", "ReadinessEvidence.verified_at", "ReadinessEvidence.valid_until", "ExecutionEvent.occurred_at", "LocalNotice.deadline"],
-  "semantic_validators": ["request_operation", "effective_capabilities", "guidance_consistency", "measurement_subset", "experiment_authority", "event_correction"],
+  "identities": [
+    "RequestEnvelope.request_id",
+    "RequestEnvelope.project_id",
+    "RequestEnvelope.workspace_id",
+    "ExecutionPlan.execution_plan_id",
+    "ExecutionPlan.predecessor_plan_id",
+    "RouteRequest.task_id",
+    "RetryContext.prior_routing_decision_id",
+    "RetryContext.prior_execution_run_id",
+    "DecisionDetails.routing_decision_id",
+    "DecisionDetails.request_id",
+    "DecisionDetails.task_id",
+    "DecisionDetails.reused_decision_id",
+    "ExecutionRun.execution_run_id",
+    "ExecutionRun.task_id",
+    "ExecutionRun.selected_plan_id",
+    "ExecutionRun.applied_plan_id",
+    "ExecutionRun.prior_execution_run_id",
+    "ExecutionEvent.event_id",
+    "ExecutionEvent.task_id",
+    "ExecutionEvent.routing_decision_id",
+    "ExecutionEvent.execution_run_id",
+    "ExecutionEvent.supersedes_event_id",
+    "ComparisonExperiment.comparison_experiment_id",
+    "ComparisonExperiment.task_id",
+    "LocalNotice.notice_id",
+    "CommandScope.project_id",
+    "CommandScope.workspace_id",
+    "InspectRequest.decision_id",
+    "DeleteRequest.task_id",
+    "ReplayBundle.routing_decision_id",
+    "ReplayBundle.task_id",
+    "DiscoveryEnvelope.project_id",
+    "DiscoveryEnvelope.workspace_id",
+    "DiscoveryScope.project_id",
+    "DiscoveryScope.workspace_id",
+    "DiscoveryEnvelope.request_id",
+    "DiscoveryInputs.work_objective_id",
+    "DiscoveryDetails.discovery_id",
+    "DiscoveryDetails.work_objective_id",
+    "DiscoveryRef.discovery_id",
+    "DiscoveryRef.work_objective_id",
+    "DiscoveryInspectRequest.discovery_id",
+    "DiscoveryDeleteRequest.work_objective_id",
+    "LearningContext.task_id",
+    "LearningContext.routing_decision_id",
+    "RecoveryArtifact.task",
+    "PolicyCaseAssignment.task_id",
+    "ExperimentExecutionRequest.comparison_experiment_id",
+    "ExperimentCandidateResult.execution_plan_id",
+    "ExperimentHostReceipt.dispatch_token",
+    "ExperimentHostReceipt.preferred_plan_id",
+    "ExperimentExecutionRecord.comparison_experiment_id",
+    "ExperimentExecutionRecord.task_id",
+    "ExperimentExecutionRecord.dispatch_token"
+  ],
+  "timestamps": [
+    "RequestEnvelope.created_at",
+    "DecisionDetails.created_at",
+    "Capabilities.verified_at",
+    "Capabilities.expires_at",
+    "ReadinessEvidence.verified_at",
+    "ReadinessEvidence.valid_until",
+    "ExecutionEvent.occurred_at",
+    "LocalNotice.deadline",
+    "CandidateSnapshot.verified_at",
+    "CandidateSnapshot.expires_at",
+    "RateCard.verified_at",
+    "RateCard.expires_at",
+    "InventorySnapshot.verified_at",
+    "InventorySnapshot.expires_at",
+    "DiscoveryEnvelope.created_at",
+    "PolicyAuthorization.expires_at",
+    "PolicyEvidencePreparation.valid_until",
+    "PolicyRecord.registered_at",
+    "PolicyRecord.observed_at",
+    "PolicyRecord.exposed_at",
+    "ExperimentAuthorization.expires_at",
+    "ExperimentReadiness.expires_at",
+    "QualityCalibration.frozen_at",
+    "PolicyCase.exposed_at"
+  ],
+  "semantic_validators": [
+    "request_operation",
+    "effective_capabilities",
+    "guidance_consistency",
+    "measurement_subset",
+    "experiment_authority",
+    "event_correction"
+  ],
   "experiment_transitions": {
-    "proposed": ["accepted", "blocked", "canceled"], "accepted": ["queued", "running", "blocked", "canceled"],
-    "queued": ["running", "blocked", "canceled"], "running": ["completed", "incomplete", "canceled", "blocked"],
-    "completed": [], "incomplete": [], "canceled": [], "blocked": ["proposed"]
+    "proposed": [
+      "accepted",
+      "blocked",
+      "canceled"
+    ],
+    "accepted": [
+      "queued",
+      "running",
+      "blocked",
+      "canceled"
+    ],
+    "queued": [
+      "running",
+      "blocked",
+      "canceled"
+    ],
+    "running": [
+      "completed",
+      "incomplete",
+      "canceled",
+      "blocked"
+    ],
+    "completed": [],
+    "incomplete": [],
+    "canceled": [],
+    "blocked": [
+      "proposed"
+    ]
   },
-  "event_transitions": {"queued": ["started", "failed", "canceled"], "started": ["plan_applied", "completed", "failed", "canceled"], "plan_applied": ["completed", "failed", "canceled"], "completed": [], "failed": [], "canceled": []}
+  "event_transitions": {
+    "queued": [
+      "started",
+      "failed",
+      "canceled"
+    ],
+    "started": [
+      "plan_applied",
+      "completed",
+      "failed",
+      "canceled"
+    ],
+    "plan_applied": [
+      "completed",
+      "failed",
+      "canceled"
+    ],
+    "completed": [],
+    "failed": [],
+    "canceled": []
+  }
 }

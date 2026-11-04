@@ -1,0 +1,1929 @@
+[
+  {
+    "id": "policy-evaluation-valid",
+    "contract": "PolicyEvaluation",
+    "accepted": true,
+    "payload": {
+      "schema_version": "1",
+      "task_family": "implementation",
+      "evaluator_ref": "independent-tests-v1",
+      "rubric_revision": "required-and-quality-v1",
+      "dataset_revision": "test-only-v1",
+      "identities_blinded": true,
+      "evidence_origin": "synthetic",
+      "calibration": {
+        "schema_version": "1",
+        "calibration_revision": "test-only-calibration",
+        "task_family": "implementation",
+        "evaluator_ref": "independent-tests-v1",
+        "rubric_revision": "required-and-quality-v1",
+        "dataset_revision": "test-only-v1",
+        "calibration_source": "synthetic-unit-test-settings-not-operational-thresholds",
+        "frozen_at": "2026-09-01T00:00:00Z",
+        "critical_requirements": [
+          "authorization",
+          "correctness"
+        ],
+        "quality_floor": 0.8,
+        "maximum_quality_loss": 0.05,
+        "minimum_pairs": 2,
+        "confidence": 0.95
+      },
+      "cases": [
+        {
+          "case_id": "0",
+          "related_group": "0",
+          "split": "policy_regression",
+          "exposed_at": "2026-09-02T00:00:00Z",
+          "baseline_quality": 0.5,
+          "candidate_quality": 1.0,
+          "baseline_critical": {
+            "authorization": true,
+            "correctness": true
+          },
+          "candidate_critical": {
+            "authorization": true,
+            "correctness": true
+          },
+          "baseline_measurements": [],
+          "candidate_measurements": []
+        },
+        {
+          "case_id": "1",
+          "related_group": "1",
+          "split": "policy_holdout",
+          "exposed_at": "2026-09-02T00:00:00Z",
+          "baseline_quality": 0.5,
+          "candidate_quality": 1.0,
+          "baseline_critical": {
+            "authorization": true,
+            "correctness": true
+          },
+          "candidate_critical": {
+            "authorization": true,
+            "correctness": true
+          },
+          "baseline_measurements": [],
+          "candidate_measurements": []
+        }
+      ]
+    }
+  },
+  {
+    "id": "quality-calibration-valid",
+    "contract": "QualityCalibration",
+    "accepted": true,
+    "payload": {
+      "schema_version": "1",
+      "calibration_revision": "test-only-calibration",
+      "task_family": "implementation",
+      "evaluator_ref": "independent-tests-v1",
+      "rubric_revision": "required-and-quality-v1",
+      "dataset_revision": "test-only-v1",
+      "calibration_source": "synthetic-unit-test-settings-not-operational-thresholds",
+      "frozen_at": "2026-09-01T00:00:00Z",
+      "critical_requirements": [
+        "authorization",
+        "correctness"
+      ],
+      "quality_floor": 0.8,
+      "maximum_quality_loss": 0.05,
+      "minimum_pairs": 2,
+      "confidence": 0.95
+    }
+  },
+  {
+    "id": "calibration-unknown-field",
+    "contract": "QualityCalibration",
+    "accepted": false,
+    "payload": {
+      "schema_version": "1",
+      "calibration_revision": "test-only-calibration",
+      "task_family": "implementation",
+      "evaluator_ref": "independent-tests-v1",
+      "rubric_revision": "required-and-quality-v1",
+      "dataset_revision": "test-only-v1",
+      "calibration_source": "synthetic-unit-test-settings-not-operational-thresholds",
+      "frozen_at": "2026-09-01T00:00:00Z",
+      "critical_requirements": [
+        "authorization",
+        "correctness"
+      ],
+      "quality_floor": 0.8,
+      "maximum_quality_loss": 0.05,
+      "minimum_pairs": 2,
+      "confidence": 0.95,
+      "extra": 1
+    }
+  },
+  {
+    "id": "calibration-wrong-type",
+    "contract": "QualityCalibration",
+    "accepted": false,
+    "payload": {
+      "schema_version": "1",
+      "calibration_revision": "test-only-calibration",
+      "task_family": "implementation",
+      "evaluator_ref": "independent-tests-v1",
+      "rubric_revision": "required-and-quality-v1",
+      "dataset_revision": "test-only-v1",
+      "calibration_source": "synthetic-unit-test-settings-not-operational-thresholds",
+      "frozen_at": "2026-09-01T00:00:00Z",
+      "critical_requirements": [
+        "authorization",
+        "correctness"
+      ],
+      "quality_floor": 0.8,
+      "maximum_quality_loss": 0.05,
+      "minimum_pairs": "2",
+      "confidence": 0.95
+    }
+  },
+  {
+    "id": "calibration-confidence-one",
+    "contract": "QualityCalibration",
+    "accepted": false,
+    "payload": {
+      "schema_version": "1",
+      "calibration_revision": "test-only-calibration",
+      "task_family": "implementation",
+      "evaluator_ref": "independent-tests-v1",
+      "rubric_revision": "required-and-quality-v1",
+      "dataset_revision": "test-only-v1",
+      "calibration_source": "synthetic-unit-test-settings-not-operational-thresholds",
+      "frozen_at": "2026-09-01T00:00:00Z",
+      "critical_requirements": [
+        "authorization",
+        "correctness"
+      ],
+      "quality_floor": 0.8,
+      "maximum_quality_loss": 0.05,
+      "minimum_pairs": 2,
+      "confidence": 1
+    }
+  },
+  {
+    "id": "calibration-empty-critical",
+    "contract": "QualityCalibration",
+    "accepted": false,
+    "payload": {
+      "schema_version": "1",
+      "calibration_revision": "test-only-calibration",
+      "task_family": "implementation",
+      "evaluator_ref": "independent-tests-v1",
+      "rubric_revision": "required-and-quality-v1",
+      "dataset_revision": "test-only-v1",
+      "calibration_source": "synthetic-unit-test-settings-not-operational-thresholds",
+      "frozen_at": "2026-09-01T00:00:00Z",
+      "critical_requirements": [],
+      "quality_floor": 0.8,
+      "maximum_quality_loss": 0.05,
+      "minimum_pairs": 2,
+      "confidence": 0.95
+    }
+  },
+  {
+    "id": "calibration-duplicate-critical",
+    "contract": "QualityCalibration",
+    "accepted": false,
+    "payload": {
+      "schema_version": "1",
+      "calibration_revision": "test-only-calibration",
+      "task_family": "implementation",
+      "evaluator_ref": "independent-tests-v1",
+      "rubric_revision": "required-and-quality-v1",
+      "dataset_revision": "test-only-v1",
+      "calibration_source": "synthetic-unit-test-settings-not-operational-thresholds",
+      "frozen_at": "2026-09-01T00:00:00Z",
+      "critical_requirements": [
+        "same",
+        "same"
+      ],
+      "quality_floor": 0.8,
+      "maximum_quality_loss": 0.05,
+      "minimum_pairs": 2,
+      "confidence": 0.95
+    }
+  },
+  {
+    "id": "calibration-floor-negative",
+    "contract": "QualityCalibration",
+    "accepted": false,
+    "payload": {
+      "schema_version": "1",
+      "calibration_revision": "test-only-calibration",
+      "task_family": "implementation",
+      "evaluator_ref": "independent-tests-v1",
+      "rubric_revision": "required-and-quality-v1",
+      "dataset_revision": "test-only-v1",
+      "calibration_source": "synthetic-unit-test-settings-not-operational-thresholds",
+      "frozen_at": "2026-09-01T00:00:00Z",
+      "critical_requirements": [
+        "authorization",
+        "correctness"
+      ],
+      "quality_floor": -1,
+      "maximum_quality_loss": 0.05,
+      "minimum_pairs": 2,
+      "confidence": 0.95
+    }
+  },
+  {
+    "id": "experiment-proposal-valid",
+    "contract": "ExperimentRequest",
+    "accepted": true,
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "00000000-0000-4000-8000-000000000001",
+        "workspace_id": "00000000-0000-4000-8000-000000000001",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "idempotency_key": "fixture",
+      "action": "propose",
+      "proposal": {
+        "experiment": {
+          "assignment_policy": "fixture",
+          "assignment_probabilities": {},
+          "authorization_revision": null,
+          "candidate_plans": [
+            {
+              "access_route": "fixture",
+              "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+              "execution_target_id": "fixture",
+              "guidance_action": "none",
+              "harness_id": "fixture",
+              "model_id": "fixture",
+              "native_effort": {
+                "kind": "explicit",
+                "native_value": "fixture"
+              },
+              "optional_guidance": [],
+              "predecessor_plan_id": null,
+              "provider": "fixture",
+              "required_capabilities": [],
+              "required_guidance": [],
+              "resolved_model_revision": null
+            },
+            {
+              "access_route": "fixture",
+              "execution_plan_id": "00000000-0000-4000-8000-000000000002",
+              "execution_target_id": "fixture",
+              "guidance_action": "none",
+              "harness_id": "fixture",
+              "model_id": "fixture",
+              "native_effort": {
+                "kind": "explicit",
+                "native_value": "fixture"
+              },
+              "optional_guidance": [],
+              "predecessor_plan_id": null,
+              "provider": "fixture",
+              "required_capabilities": [],
+              "required_guidance": [],
+              "resolved_model_revision": null
+            }
+          ],
+          "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+          "context_hash": "fixture",
+          "context_ref": "fixture",
+          "evaluator_ref": "fixture",
+          "execution_path": "internal",
+          "experiment_state": "proposed",
+          "host_accepted": false,
+          "isolation_ref": "fixture",
+          "limits": {
+            "cpu_limit": 1,
+            "daily_spend": null,
+            "max_candidates": 2,
+            "max_concurrency": 1,
+            "max_duration_ms": 1,
+            "memory_limit_bytes": 1,
+            "per_experiment_spend": null
+          },
+          "optimization_objectives": [],
+          "rubric_revision": "fixture",
+          "schema_version": "1",
+          "task_id": "00000000-0000-4000-8000-000000000001"
+        },
+        "task_group": "fixture",
+        "uncertainty_rank": 2,
+        "benefit_rank": 3,
+        "estimated_cost_microusd": 100
+      },
+      "comparison_experiment_id": null
+    }
+  },
+  {
+    "id": "experiment-invalid-uncertainty_rank",
+    "contract": "ExperimentRequest",
+    "accepted": false,
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "00000000-0000-4000-8000-000000000001",
+        "workspace_id": "00000000-0000-4000-8000-000000000001",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "idempotency_key": "fixture",
+      "action": "propose",
+      "proposal": {
+        "experiment": {
+          "assignment_policy": "fixture",
+          "assignment_probabilities": {},
+          "authorization_revision": null,
+          "candidate_plans": [
+            {
+              "access_route": "fixture",
+              "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+              "execution_target_id": "fixture",
+              "guidance_action": "none",
+              "harness_id": "fixture",
+              "model_id": "fixture",
+              "native_effort": {
+                "kind": "explicit",
+                "native_value": "fixture"
+              },
+              "optional_guidance": [],
+              "predecessor_plan_id": null,
+              "provider": "fixture",
+              "required_capabilities": [],
+              "required_guidance": [],
+              "resolved_model_revision": null
+            },
+            {
+              "access_route": "fixture",
+              "execution_plan_id": "00000000-0000-4000-8000-000000000002",
+              "execution_target_id": "fixture",
+              "guidance_action": "none",
+              "harness_id": "fixture",
+              "model_id": "fixture",
+              "native_effort": {
+                "kind": "explicit",
+                "native_value": "fixture"
+              },
+              "optional_guidance": [],
+              "predecessor_plan_id": null,
+              "provider": "fixture",
+              "required_capabilities": [],
+              "required_guidance": [],
+              "resolved_model_revision": null
+            }
+          ],
+          "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+          "context_hash": "fixture",
+          "context_ref": "fixture",
+          "evaluator_ref": "fixture",
+          "execution_path": "internal",
+          "experiment_state": "proposed",
+          "host_accepted": false,
+          "isolation_ref": "fixture",
+          "limits": {
+            "cpu_limit": 1,
+            "daily_spend": null,
+            "max_candidates": 2,
+            "max_concurrency": 1,
+            "max_duration_ms": 1,
+            "memory_limit_bytes": 1,
+            "per_experiment_spend": null
+          },
+          "optimization_objectives": [],
+          "rubric_revision": "fixture",
+          "schema_version": "1",
+          "task_id": "00000000-0000-4000-8000-000000000001"
+        },
+        "task_group": "fixture",
+        "uncertainty_rank": 4,
+        "benefit_rank": 3,
+        "estimated_cost_microusd": 100
+      },
+      "comparison_experiment_id": null
+    }
+  },
+  {
+    "id": "experiment-invalid-estimated_cost_microusd",
+    "contract": "ExperimentRequest",
+    "accepted": false,
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "00000000-0000-4000-8000-000000000001",
+        "workspace_id": "00000000-0000-4000-8000-000000000001",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "idempotency_key": "fixture",
+      "action": "propose",
+      "proposal": {
+        "experiment": {
+          "assignment_policy": "fixture",
+          "assignment_probabilities": {},
+          "authorization_revision": null,
+          "candidate_plans": [
+            {
+              "access_route": "fixture",
+              "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+              "execution_target_id": "fixture",
+              "guidance_action": "none",
+              "harness_id": "fixture",
+              "model_id": "fixture",
+              "native_effort": {
+                "kind": "explicit",
+                "native_value": "fixture"
+              },
+              "optional_guidance": [],
+              "predecessor_plan_id": null,
+              "provider": "fixture",
+              "required_capabilities": [],
+              "required_guidance": [],
+              "resolved_model_revision": null
+            },
+            {
+              "access_route": "fixture",
+              "execution_plan_id": "00000000-0000-4000-8000-000000000002",
+              "execution_target_id": "fixture",
+              "guidance_action": "none",
+              "harness_id": "fixture",
+              "model_id": "fixture",
+              "native_effort": {
+                "kind": "explicit",
+                "native_value": "fixture"
+              },
+              "optional_guidance": [],
+              "predecessor_plan_id": null,
+              "provider": "fixture",
+              "required_capabilities": [],
+              "required_guidance": [],
+              "resolved_model_revision": null
+            }
+          ],
+          "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+          "context_hash": "fixture",
+          "context_ref": "fixture",
+          "evaluator_ref": "fixture",
+          "execution_path": "internal",
+          "experiment_state": "proposed",
+          "host_accepted": false,
+          "isolation_ref": "fixture",
+          "limits": {
+            "cpu_limit": 1,
+            "daily_spend": null,
+            "max_candidates": 2,
+            "max_concurrency": 1,
+            "max_duration_ms": 1,
+            "memory_limit_bytes": 1,
+            "per_experiment_spend": null
+          },
+          "optimization_objectives": [],
+          "rubric_revision": "fixture",
+          "schema_version": "1",
+          "task_id": "00000000-0000-4000-8000-000000000001"
+        },
+        "task_group": "fixture",
+        "uncertainty_rank": 2,
+        "benefit_rank": 3,
+        "estimated_cost_microusd": -1
+      },
+      "comparison_experiment_id": null
+    }
+  },
+  {
+    "id": "experiment-invalid-benefit_rank",
+    "contract": "ExperimentRequest",
+    "accepted": false,
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "00000000-0000-4000-8000-000000000001",
+        "workspace_id": "00000000-0000-4000-8000-000000000001",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "idempotency_key": "fixture",
+      "action": "propose",
+      "proposal": {
+        "experiment": {
+          "assignment_policy": "fixture",
+          "assignment_probabilities": {},
+          "authorization_revision": null,
+          "candidate_plans": [
+            {
+              "access_route": "fixture",
+              "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+              "execution_target_id": "fixture",
+              "guidance_action": "none",
+              "harness_id": "fixture",
+              "model_id": "fixture",
+              "native_effort": {
+                "kind": "explicit",
+                "native_value": "fixture"
+              },
+              "optional_guidance": [],
+              "predecessor_plan_id": null,
+              "provider": "fixture",
+              "required_capabilities": [],
+              "required_guidance": [],
+              "resolved_model_revision": null
+            },
+            {
+              "access_route": "fixture",
+              "execution_plan_id": "00000000-0000-4000-8000-000000000002",
+              "execution_target_id": "fixture",
+              "guidance_action": "none",
+              "harness_id": "fixture",
+              "model_id": "fixture",
+              "native_effort": {
+                "kind": "explicit",
+                "native_value": "fixture"
+              },
+              "optional_guidance": [],
+              "predecessor_plan_id": null,
+              "provider": "fixture",
+              "required_capabilities": [],
+              "required_guidance": [],
+              "resolved_model_revision": null
+            }
+          ],
+          "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+          "context_hash": "fixture",
+          "context_ref": "fixture",
+          "evaluator_ref": "fixture",
+          "execution_path": "internal",
+          "experiment_state": "proposed",
+          "host_accepted": false,
+          "isolation_ref": "fixture",
+          "limits": {
+            "cpu_limit": 1,
+            "daily_spend": null,
+            "max_candidates": 2,
+            "max_concurrency": 1,
+            "max_duration_ms": 1,
+            "memory_limit_bytes": 1,
+            "per_experiment_spend": null
+          },
+          "optimization_objectives": [],
+          "rubric_revision": "fixture",
+          "schema_version": "1",
+          "task_id": "00000000-0000-4000-8000-000000000001"
+        },
+        "task_group": "fixture",
+        "uncertainty_rank": 2,
+        "benefit_rank": "3",
+        "estimated_cost_microusd": 100
+      },
+      "comparison_experiment_id": null
+    }
+  },
+  {
+    "id": "lifecycle-ExperimentAuthorization",
+    "contract": "ExperimentAuthorization",
+    "payload": {
+      "schema_version": "1",
+      "authorization_revision": "owner-v1",
+      "scope": {
+        "project_id": "b8bcfff7-0642-4594-b7ae-824612c56981",
+        "workspace_id": "b28892aa-7d44-4dc9-8960-172b3be3f94e",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "enabled": true,
+      "task_ids": [
+        "00000000-0000-4000-8000-000000000001"
+      ],
+      "allowed_providers": [
+        "fixture"
+      ],
+      "allowed_harnesses": [
+        "fixture"
+      ],
+      "allowed_execution_paths": [
+        "internal"
+      ],
+      "allowed_isolation_refs": [
+        "fixture"
+      ],
+      "background_allowed": false,
+      "local_only": true,
+      "expires_at": "2099-01-01T00:00:00Z",
+      "limits": {
+        "cpu_limit": 2,
+        "daily_spend": {
+          "amount": "5",
+          "currency": "USD"
+        },
+        "max_candidates": 2,
+        "max_concurrency": 1,
+        "max_duration_ms": 120000,
+        "memory_limit_bytes": 2147483648,
+        "per_experiment_spend": {
+          "amount": "1",
+          "currency": "USD"
+        }
+      },
+      "total_spend_microusd": 5000000
+    },
+    "accepted": true
+  },
+  {
+    "id": "lifecycle-ExperimentAuthorization-extra",
+    "contract": "ExperimentAuthorization",
+    "payload": {
+      "schema_version": "1",
+      "authorization_revision": "owner-v1",
+      "scope": {
+        "project_id": "b8bcfff7-0642-4594-b7ae-824612c56981",
+        "workspace_id": "b28892aa-7d44-4dc9-8960-172b3be3f94e",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "enabled": true,
+      "task_ids": [
+        "00000000-0000-4000-8000-000000000001"
+      ],
+      "allowed_providers": [
+        "fixture"
+      ],
+      "allowed_harnesses": [
+        "fixture"
+      ],
+      "allowed_execution_paths": [
+        "internal"
+      ],
+      "allowed_isolation_refs": [
+        "fixture"
+      ],
+      "background_allowed": false,
+      "local_only": true,
+      "expires_at": "2099-01-01T00:00:00Z",
+      "limits": {
+        "cpu_limit": 2,
+        "daily_spend": {
+          "amount": "5",
+          "currency": "USD"
+        },
+        "max_candidates": 2,
+        "max_concurrency": 1,
+        "max_duration_ms": 120000,
+        "memory_limit_bytes": 2147483648,
+        "per_experiment_spend": {
+          "amount": "1",
+          "currency": "USD"
+        }
+      },
+      "total_spend_microusd": 5000000,
+      "undeclared": true
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-ExperimentAuthorization-missing",
+    "contract": "ExperimentAuthorization",
+    "payload": {
+      "authorization_revision": "owner-v1",
+      "scope": {
+        "project_id": "b8bcfff7-0642-4594-b7ae-824612c56981",
+        "workspace_id": "b28892aa-7d44-4dc9-8960-172b3be3f94e",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "enabled": true,
+      "task_ids": [
+        "00000000-0000-4000-8000-000000000001"
+      ],
+      "allowed_providers": [
+        "fixture"
+      ],
+      "allowed_harnesses": [
+        "fixture"
+      ],
+      "allowed_execution_paths": [
+        "internal"
+      ],
+      "allowed_isolation_refs": [
+        "fixture"
+      ],
+      "background_allowed": false,
+      "local_only": true,
+      "expires_at": "2099-01-01T00:00:00Z",
+      "limits": {
+        "cpu_limit": 2,
+        "daily_spend": {
+          "amount": "5",
+          "currency": "USD"
+        },
+        "max_candidates": 2,
+        "max_concurrency": 1,
+        "max_duration_ms": 120000,
+        "memory_limit_bytes": 2147483648,
+        "per_experiment_spend": {
+          "amount": "1",
+          "currency": "USD"
+        }
+      },
+      "total_spend_microusd": 5000000
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-ExperimentReadiness",
+    "contract": "ExperimentReadiness",
+    "payload": {
+      "schema_version": "1",
+      "harness_id": "fixture",
+      "execution_target_id": "fixture",
+      "context_hash": "fixture",
+      "context_available": true,
+      "local_execution": true,
+      "isolation_ref": "fixture",
+      "declared_capabilities": [
+        "bounded_execution",
+        "durable_dispatch",
+        "cancel_before_start",
+        "verified_cleanup",
+        "restricted_container",
+        "network_disabled"
+      ],
+      "runtime_capabilities": [
+        "bounded_execution",
+        "durable_dispatch",
+        "cancel_before_start",
+        "verified_cleanup",
+        "restricted_container",
+        "network_disabled"
+      ],
+      "candidate_plan_digests": [
+        "ee75c8355d8add7f13a094ce2cdace4285c44621c3e9116710d8872274fecb8f",
+        "a9fa80e87a39e887a3c1ae2d333ee1f8225590e1d87d47b63db3ecdbdd507b11"
+      ],
+      "spend_bound_verified": true,
+      "upper_cost_microusd": 600000,
+      "available_cpu": 2,
+      "available_memory_bytes": 2147483648,
+      "max_concurrency": 1,
+      "expires_at": "2099-01-01T00:00:00Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "lifecycle-ExperimentReadiness-extra",
+    "contract": "ExperimentReadiness",
+    "payload": {
+      "schema_version": "1",
+      "harness_id": "fixture",
+      "execution_target_id": "fixture",
+      "context_hash": "fixture",
+      "context_available": true,
+      "local_execution": true,
+      "isolation_ref": "fixture",
+      "declared_capabilities": [
+        "bounded_execution",
+        "durable_dispatch",
+        "cancel_before_start",
+        "verified_cleanup",
+        "restricted_container",
+        "network_disabled"
+      ],
+      "runtime_capabilities": [
+        "bounded_execution",
+        "durable_dispatch",
+        "cancel_before_start",
+        "verified_cleanup",
+        "restricted_container",
+        "network_disabled"
+      ],
+      "candidate_plan_digests": [
+        "ee75c8355d8add7f13a094ce2cdace4285c44621c3e9116710d8872274fecb8f",
+        "a9fa80e87a39e887a3c1ae2d333ee1f8225590e1d87d47b63db3ecdbdd507b11"
+      ],
+      "spend_bound_verified": true,
+      "upper_cost_microusd": 600000,
+      "available_cpu": 2,
+      "available_memory_bytes": 2147483648,
+      "max_concurrency": 1,
+      "expires_at": "2099-01-01T00:00:00Z",
+      "undeclared": true
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-ExperimentReadiness-missing",
+    "contract": "ExperimentReadiness",
+    "payload": {
+      "harness_id": "fixture",
+      "execution_target_id": "fixture",
+      "context_hash": "fixture",
+      "context_available": true,
+      "local_execution": true,
+      "isolation_ref": "fixture",
+      "declared_capabilities": [
+        "bounded_execution",
+        "durable_dispatch",
+        "cancel_before_start",
+        "verified_cleanup",
+        "restricted_container",
+        "network_disabled"
+      ],
+      "runtime_capabilities": [
+        "bounded_execution",
+        "durable_dispatch",
+        "cancel_before_start",
+        "verified_cleanup",
+        "restricted_container",
+        "network_disabled"
+      ],
+      "candidate_plan_digests": [
+        "ee75c8355d8add7f13a094ce2cdace4285c44621c3e9116710d8872274fecb8f",
+        "a9fa80e87a39e887a3c1ae2d333ee1f8225590e1d87d47b63db3ecdbdd507b11"
+      ],
+      "spend_bound_verified": true,
+      "upper_cost_microusd": 600000,
+      "available_cpu": 2,
+      "available_memory_bytes": 2147483648,
+      "max_concurrency": 1,
+      "expires_at": "2099-01-01T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-ExperimentExecutionRequest",
+    "contract": "ExperimentExecutionRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "b8bcfff7-0642-4594-b7ae-824612c56981",
+        "workspace_id": "b28892aa-7d44-4dc9-8960-172b3be3f94e",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+      "action": "admit",
+      "background": false
+    },
+    "accepted": true
+  },
+  {
+    "id": "lifecycle-ExperimentExecutionRequest-extra",
+    "contract": "ExperimentExecutionRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "b8bcfff7-0642-4594-b7ae-824612c56981",
+        "workspace_id": "b28892aa-7d44-4dc9-8960-172b3be3f94e",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+      "action": "admit",
+      "background": false,
+      "undeclared": true
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-ExperimentExecutionRequest-missing",
+    "contract": "ExperimentExecutionRequest",
+    "payload": {
+      "scope": {
+        "project_id": "b8bcfff7-0642-4594-b7ae-824612c56981",
+        "workspace_id": "b28892aa-7d44-4dc9-8960-172b3be3f94e",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+      "action": "admit",
+      "background": false
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-ExperimentHostReceipt",
+    "contract": "ExperimentHostReceipt",
+    "payload": {
+      "schema_version": "1",
+      "dispatch_token": "3421cb5b-816f-4be0-ae95-f799059c4f21",
+      "experiment_digest": "367972ce2e213cd500e82c9d7ef956639112a1217e3e38dee6b48b98e70e0fdd",
+      "host_status": "running",
+      "cleanup_verified": false,
+      "candidates": [],
+      "preferred_plan_id": null,
+      "preference_reason": null
+    },
+    "accepted": true
+  },
+  {
+    "id": "lifecycle-ExperimentHostReceipt-extra",
+    "contract": "ExperimentHostReceipt",
+    "payload": {
+      "schema_version": "1",
+      "dispatch_token": "3421cb5b-816f-4be0-ae95-f799059c4f21",
+      "experiment_digest": "367972ce2e213cd500e82c9d7ef956639112a1217e3e38dee6b48b98e70e0fdd",
+      "host_status": "running",
+      "cleanup_verified": false,
+      "candidates": [],
+      "preferred_plan_id": null,
+      "preference_reason": null,
+      "undeclared": true
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-ExperimentHostReceipt-missing",
+    "contract": "ExperimentHostReceipt",
+    "payload": {
+      "dispatch_token": "3421cb5b-816f-4be0-ae95-f799059c4f21",
+      "experiment_digest": "367972ce2e213cd500e82c9d7ef956639112a1217e3e38dee6b48b98e70e0fdd",
+      "host_status": "running",
+      "cleanup_verified": false,
+      "candidates": [],
+      "preferred_plan_id": null,
+      "preference_reason": null
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-ExperimentExecutionResult",
+    "contract": "ExperimentExecutionResult",
+    "payload": {
+      "schema_version": "1",
+      "status": "recorded",
+      "reasons": [],
+      "record": {
+        "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "experiment_digest": "367972ce2e213cd500e82c9d7ef956639112a1217e3e38dee6b48b98e70e0fdd",
+        "authorization_revision": "owner-v1",
+        "authorization_digest": "82f923a2aae2fda0fcbc6cab0c3584a65564d472d238b639c89bd8872b008fd1",
+        "dispatch_token": "3421cb5b-816f-4be0-ae95-f799059c4f21",
+        "harness_id": "fixture",
+        "reserved_microusd": 600000,
+        "admitted_at_ms": 1000000,
+        "observed_at_ms": 1000000,
+        "deadline_ms": 1120000,
+        "execution_status": "accepted",
+        "receipt": null
+      }
+    },
+    "accepted": true
+  },
+  {
+    "id": "lifecycle-ExperimentExecutionResult-extra",
+    "contract": "ExperimentExecutionResult",
+    "payload": {
+      "schema_version": "1",
+      "status": "recorded",
+      "reasons": [],
+      "record": {
+        "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "experiment_digest": "367972ce2e213cd500e82c9d7ef956639112a1217e3e38dee6b48b98e70e0fdd",
+        "authorization_revision": "owner-v1",
+        "authorization_digest": "82f923a2aae2fda0fcbc6cab0c3584a65564d472d238b639c89bd8872b008fd1",
+        "dispatch_token": "3421cb5b-816f-4be0-ae95-f799059c4f21",
+        "harness_id": "fixture",
+        "reserved_microusd": 600000,
+        "admitted_at_ms": 1000000,
+        "observed_at_ms": 1000000,
+        "deadline_ms": 1120000,
+        "execution_status": "accepted",
+        "receipt": null
+      },
+      "undeclared": true
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-ExperimentExecutionResult-missing",
+    "contract": "ExperimentExecutionResult",
+    "payload": {
+      "status": "recorded",
+      "reasons": [],
+      "record": {
+        "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "experiment_digest": "367972ce2e213cd500e82c9d7ef956639112a1217e3e38dee6b48b98e70e0fdd",
+        "authorization_revision": "owner-v1",
+        "authorization_digest": "82f923a2aae2fda0fcbc6cab0c3584a65564d472d238b639c89bd8872b008fd1",
+        "dispatch_token": "3421cb5b-816f-4be0-ae95-f799059c4f21",
+        "harness_id": "fixture",
+        "reserved_microusd": 600000,
+        "admitted_at_ms": 1000000,
+        "observed_at_ms": 1000000,
+        "deadline_ms": 1120000,
+        "execution_status": "accepted",
+        "receipt": null
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-PolicyDefinition",
+    "contract": "PolicyDefinition",
+    "payload": {
+      "schema_version": "1",
+      "policy_revision": "one",
+      "baseline_policy_revision": "execution-ceilings-v1",
+      "task_group": "development-fixture",
+      "objective": {
+        "objective_id": "cost",
+        "version": "1",
+        "metric_id": "raw_token_cost",
+        "direction": "minimize",
+        "routing_cost_basis": "raw",
+        "acceptance_requirements": []
+      },
+      "candidate_order": [
+        {
+          "candidate_id": "a",
+          "candidate_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "candidate_id": "b",
+          "candidate_fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ],
+      "calibration": {
+        "schema_version": "1",
+        "calibration_revision": "fixture-only",
+        "task_family": "review",
+        "evaluator_ref": "fixture",
+        "rubric_revision": "fixture",
+        "dataset_revision": "fixture",
+        "calibration_source": "synthetic-control",
+        "frozen_at": "2026-01-01T00:00:00Z",
+        "critical_requirements": [
+          "authorization"
+        ],
+        "quality_floor": 0.7,
+        "maximum_quality_loss": 0.4,
+        "minimum_pairs": 2,
+        "confidence": 0.95
+      },
+      "cases": [
+        {
+          "case_id": "0",
+          "related_group": "0",
+          "task_id": "2cedeb17-0930-4820-838e-7a755c4561c4",
+          "split": "policy_holdout"
+        },
+        {
+          "case_id": "1",
+          "related_group": "1",
+          "task_id": "7e8d7c69-be6e-4425-bb14-7c8eff950ce7",
+          "split": "policy_holdout"
+        },
+        {
+          "case_id": "100",
+          "related_group": "100",
+          "task_id": "8f480512-9249-4fe9-a7a8-d5c0759f5762",
+          "split": "policy_regression"
+        },
+        {
+          "case_id": "101",
+          "related_group": "101",
+          "task_id": "a4b81a96-dc50-4988-8a6f-babcc8d5e412",
+          "split": "policy_regression"
+        }
+      ],
+      "objective_value_ceiling": 1.0,
+      "minimum_improvement": 0.1
+    },
+    "accepted": true
+  },
+  {
+    "id": "lifecycle-PolicyDefinition-extra",
+    "contract": "PolicyDefinition",
+    "payload": {
+      "schema_version": "1",
+      "policy_revision": "one",
+      "baseline_policy_revision": "execution-ceilings-v1",
+      "task_group": "development-fixture",
+      "objective": {
+        "objective_id": "cost",
+        "version": "1",
+        "metric_id": "raw_token_cost",
+        "direction": "minimize",
+        "routing_cost_basis": "raw",
+        "acceptance_requirements": []
+      },
+      "candidate_order": [
+        {
+          "candidate_id": "a",
+          "candidate_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "candidate_id": "b",
+          "candidate_fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ],
+      "calibration": {
+        "schema_version": "1",
+        "calibration_revision": "fixture-only",
+        "task_family": "review",
+        "evaluator_ref": "fixture",
+        "rubric_revision": "fixture",
+        "dataset_revision": "fixture",
+        "calibration_source": "synthetic-control",
+        "frozen_at": "2026-01-01T00:00:00Z",
+        "critical_requirements": [
+          "authorization"
+        ],
+        "quality_floor": 0.7,
+        "maximum_quality_loss": 0.4,
+        "minimum_pairs": 2,
+        "confidence": 0.95
+      },
+      "cases": [
+        {
+          "case_id": "0",
+          "related_group": "0",
+          "task_id": "2cedeb17-0930-4820-838e-7a755c4561c4",
+          "split": "policy_holdout"
+        },
+        {
+          "case_id": "1",
+          "related_group": "1",
+          "task_id": "7e8d7c69-be6e-4425-bb14-7c8eff950ce7",
+          "split": "policy_holdout"
+        },
+        {
+          "case_id": "100",
+          "related_group": "100",
+          "task_id": "8f480512-9249-4fe9-a7a8-d5c0759f5762",
+          "split": "policy_regression"
+        },
+        {
+          "case_id": "101",
+          "related_group": "101",
+          "task_id": "a4b81a96-dc50-4988-8a6f-babcc8d5e412",
+          "split": "policy_regression"
+        }
+      ],
+      "objective_value_ceiling": 1.0,
+      "minimum_improvement": 0.1,
+      "undeclared": true
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-PolicyDefinition-missing",
+    "contract": "PolicyDefinition",
+    "payload": {
+      "policy_revision": "one",
+      "baseline_policy_revision": "execution-ceilings-v1",
+      "task_group": "development-fixture",
+      "objective": {
+        "objective_id": "cost",
+        "version": "1",
+        "metric_id": "raw_token_cost",
+        "direction": "minimize",
+        "routing_cost_basis": "raw",
+        "acceptance_requirements": []
+      },
+      "candidate_order": [
+        {
+          "candidate_id": "a",
+          "candidate_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "candidate_id": "b",
+          "candidate_fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ],
+      "calibration": {
+        "schema_version": "1",
+        "calibration_revision": "fixture-only",
+        "task_family": "review",
+        "evaluator_ref": "fixture",
+        "rubric_revision": "fixture",
+        "dataset_revision": "fixture",
+        "calibration_source": "synthetic-control",
+        "frozen_at": "2026-01-01T00:00:00Z",
+        "critical_requirements": [
+          "authorization"
+        ],
+        "quality_floor": 0.7,
+        "maximum_quality_loss": 0.4,
+        "minimum_pairs": 2,
+        "confidence": 0.95
+      },
+      "cases": [
+        {
+          "case_id": "0",
+          "related_group": "0",
+          "task_id": "2cedeb17-0930-4820-838e-7a755c4561c4",
+          "split": "policy_holdout"
+        },
+        {
+          "case_id": "1",
+          "related_group": "1",
+          "task_id": "7e8d7c69-be6e-4425-bb14-7c8eff950ce7",
+          "split": "policy_holdout"
+        },
+        {
+          "case_id": "100",
+          "related_group": "100",
+          "task_id": "8f480512-9249-4fe9-a7a8-d5c0759f5762",
+          "split": "policy_regression"
+        },
+        {
+          "case_id": "101",
+          "related_group": "101",
+          "task_id": "a4b81a96-dc50-4988-8a6f-babcc8d5e412",
+          "split": "policy_regression"
+        }
+      ],
+      "objective_value_ceiling": 1.0,
+      "minimum_improvement": 0.1
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-PolicyAuthorization",
+    "contract": "PolicyAuthorization",
+    "payload": {
+      "schema_version": "1",
+      "authorization_revision": "owner",
+      "scope": {
+        "project_id": "8fff41bd-6734-45d6-8e26-40b8ede02e17",
+        "workspace_id": "9e49b060-f63a-498b-a6bf-c49cc2e45c2c",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "enabled": true,
+      "allowed_task_groups": [
+        "development-fixture"
+      ],
+      "allowed_policy_revisions": [
+        "one",
+        "two"
+      ],
+      "max_routes": 2,
+      "rollout_basis_points": 10000,
+      "expires_at": "2099-01-01T00:00:00Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "lifecycle-PolicyAuthorization-extra",
+    "contract": "PolicyAuthorization",
+    "payload": {
+      "schema_version": "1",
+      "authorization_revision": "owner",
+      "scope": {
+        "project_id": "8fff41bd-6734-45d6-8e26-40b8ede02e17",
+        "workspace_id": "9e49b060-f63a-498b-a6bf-c49cc2e45c2c",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "enabled": true,
+      "allowed_task_groups": [
+        "development-fixture"
+      ],
+      "allowed_policy_revisions": [
+        "one",
+        "two"
+      ],
+      "max_routes": 2,
+      "rollout_basis_points": 10000,
+      "expires_at": "2099-01-01T00:00:00Z",
+      "undeclared": true
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-PolicyAuthorization-missing",
+    "contract": "PolicyAuthorization",
+    "payload": {
+      "authorization_revision": "owner",
+      "scope": {
+        "project_id": "8fff41bd-6734-45d6-8e26-40b8ede02e17",
+        "workspace_id": "9e49b060-f63a-498b-a6bf-c49cc2e45c2c",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "enabled": true,
+      "allowed_task_groups": [
+        "development-fixture"
+      ],
+      "allowed_policy_revisions": [
+        "one",
+        "two"
+      ],
+      "max_routes": 2,
+      "rollout_basis_points": 10000,
+      "expires_at": "2099-01-01T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-PolicyEvidencePreparation",
+    "contract": "PolicyEvidencePreparation",
+    "payload": {
+      "schema_version": "1",
+      "definition_digest": "c3b4086356c3471a2b53c7db176e13f5b700dcbc4235ae9fdd2d73c50fb72055",
+      "evaluator_identity": "independent-fixture",
+      "independent": true,
+      "input_revision": "frozen-data",
+      "valid_until": "2099-01-01T00:00:00Z",
+      "status": "current",
+      "evidence_ref": "fixture-check"
+    },
+    "accepted": true
+  },
+  {
+    "id": "lifecycle-PolicyEvidencePreparation-extra",
+    "contract": "PolicyEvidencePreparation",
+    "payload": {
+      "schema_version": "1",
+      "definition_digest": "c3b4086356c3471a2b53c7db176e13f5b700dcbc4235ae9fdd2d73c50fb72055",
+      "evaluator_identity": "independent-fixture",
+      "independent": true,
+      "input_revision": "frozen-data",
+      "valid_until": "2099-01-01T00:00:00Z",
+      "status": "current",
+      "evidence_ref": "fixture-check",
+      "undeclared": true
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-PolicyEvidencePreparation-missing",
+    "contract": "PolicyEvidencePreparation",
+    "payload": {
+      "definition_digest": "c3b4086356c3471a2b53c7db176e13f5b700dcbc4235ae9fdd2d73c50fb72055",
+      "evaluator_identity": "independent-fixture",
+      "independent": true,
+      "input_revision": "frozen-data",
+      "valid_until": "2099-01-01T00:00:00Z",
+      "status": "current",
+      "evidence_ref": "fixture-check"
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-PolicyRequest",
+    "contract": "PolicyRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "8fff41bd-6734-45d6-8e26-40b8ede02e17",
+        "workspace_id": "9e49b060-f63a-498b-a6bf-c49cc2e45c2c",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "policy_revision": "one",
+      "action": "register",
+      "definition": {
+        "schema_version": "1",
+        "policy_revision": "one",
+        "baseline_policy_revision": "execution-ceilings-v1",
+        "task_group": "development-fixture",
+        "objective": {
+          "objective_id": "cost",
+          "version": "1",
+          "metric_id": "raw_token_cost",
+          "direction": "minimize",
+          "routing_cost_basis": "raw",
+          "acceptance_requirements": []
+        },
+        "candidate_order": [
+          {
+            "candidate_id": "a",
+            "candidate_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "candidate_id": "b",
+            "candidate_fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ],
+        "calibration": {
+          "schema_version": "1",
+          "calibration_revision": "fixture-only",
+          "task_family": "review",
+          "evaluator_ref": "fixture",
+          "rubric_revision": "fixture",
+          "dataset_revision": "fixture",
+          "calibration_source": "synthetic-control",
+          "frozen_at": "2026-01-01T00:00:00Z",
+          "critical_requirements": [
+            "authorization"
+          ],
+          "quality_floor": 0.7,
+          "maximum_quality_loss": 0.4,
+          "minimum_pairs": 2,
+          "confidence": 0.95
+        },
+        "cases": [
+          {
+            "case_id": "0",
+            "related_group": "0",
+            "task_id": "2cedeb17-0930-4820-838e-7a755c4561c4",
+            "split": "policy_holdout"
+          },
+          {
+            "case_id": "1",
+            "related_group": "1",
+            "task_id": "7e8d7c69-be6e-4425-bb14-7c8eff950ce7",
+            "split": "policy_holdout"
+          },
+          {
+            "case_id": "100",
+            "related_group": "100",
+            "task_id": "8f480512-9249-4fe9-a7a8-d5c0759f5762",
+            "split": "policy_regression"
+          },
+          {
+            "case_id": "101",
+            "related_group": "101",
+            "task_id": "a4b81a96-dc50-4988-8a6f-babcc8d5e412",
+            "split": "policy_regression"
+          }
+        ],
+        "objective_value_ceiling": 1.0,
+        "minimum_improvement": 0.1
+      }
+    },
+    "accepted": true
+  },
+  {
+    "id": "lifecycle-PolicyRequest-extra",
+    "contract": "PolicyRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "8fff41bd-6734-45d6-8e26-40b8ede02e17",
+        "workspace_id": "9e49b060-f63a-498b-a6bf-c49cc2e45c2c",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "policy_revision": "one",
+      "action": "register",
+      "definition": {
+        "schema_version": "1",
+        "policy_revision": "one",
+        "baseline_policy_revision": "execution-ceilings-v1",
+        "task_group": "development-fixture",
+        "objective": {
+          "objective_id": "cost",
+          "version": "1",
+          "metric_id": "raw_token_cost",
+          "direction": "minimize",
+          "routing_cost_basis": "raw",
+          "acceptance_requirements": []
+        },
+        "candidate_order": [
+          {
+            "candidate_id": "a",
+            "candidate_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "candidate_id": "b",
+            "candidate_fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ],
+        "calibration": {
+          "schema_version": "1",
+          "calibration_revision": "fixture-only",
+          "task_family": "review",
+          "evaluator_ref": "fixture",
+          "rubric_revision": "fixture",
+          "dataset_revision": "fixture",
+          "calibration_source": "synthetic-control",
+          "frozen_at": "2026-01-01T00:00:00Z",
+          "critical_requirements": [
+            "authorization"
+          ],
+          "quality_floor": 0.7,
+          "maximum_quality_loss": 0.4,
+          "minimum_pairs": 2,
+          "confidence": 0.95
+        },
+        "cases": [
+          {
+            "case_id": "0",
+            "related_group": "0",
+            "task_id": "2cedeb17-0930-4820-838e-7a755c4561c4",
+            "split": "policy_holdout"
+          },
+          {
+            "case_id": "1",
+            "related_group": "1",
+            "task_id": "7e8d7c69-be6e-4425-bb14-7c8eff950ce7",
+            "split": "policy_holdout"
+          },
+          {
+            "case_id": "100",
+            "related_group": "100",
+            "task_id": "8f480512-9249-4fe9-a7a8-d5c0759f5762",
+            "split": "policy_regression"
+          },
+          {
+            "case_id": "101",
+            "related_group": "101",
+            "task_id": "a4b81a96-dc50-4988-8a6f-babcc8d5e412",
+            "split": "policy_regression"
+          }
+        ],
+        "objective_value_ceiling": 1.0,
+        "minimum_improvement": 0.1
+      },
+      "undeclared": true
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-PolicyRequest-missing",
+    "contract": "PolicyRequest",
+    "payload": {
+      "scope": {
+        "project_id": "8fff41bd-6734-45d6-8e26-40b8ede02e17",
+        "workspace_id": "9e49b060-f63a-498b-a6bf-c49cc2e45c2c",
+        "producer": "fixture",
+        "operation": "route"
+      },
+      "policy_revision": "one",
+      "action": "register",
+      "definition": {
+        "schema_version": "1",
+        "policy_revision": "one",
+        "baseline_policy_revision": "execution-ceilings-v1",
+        "task_group": "development-fixture",
+        "objective": {
+          "objective_id": "cost",
+          "version": "1",
+          "metric_id": "raw_token_cost",
+          "direction": "minimize",
+          "routing_cost_basis": "raw",
+          "acceptance_requirements": []
+        },
+        "candidate_order": [
+          {
+            "candidate_id": "a",
+            "candidate_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "candidate_id": "b",
+            "candidate_fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ],
+        "calibration": {
+          "schema_version": "1",
+          "calibration_revision": "fixture-only",
+          "task_family": "review",
+          "evaluator_ref": "fixture",
+          "rubric_revision": "fixture",
+          "dataset_revision": "fixture",
+          "calibration_source": "synthetic-control",
+          "frozen_at": "2026-01-01T00:00:00Z",
+          "critical_requirements": [
+            "authorization"
+          ],
+          "quality_floor": 0.7,
+          "maximum_quality_loss": 0.4,
+          "minimum_pairs": 2,
+          "confidence": 0.95
+        },
+        "cases": [
+          {
+            "case_id": "0",
+            "related_group": "0",
+            "task_id": "2cedeb17-0930-4820-838e-7a755c4561c4",
+            "split": "policy_holdout"
+          },
+          {
+            "case_id": "1",
+            "related_group": "1",
+            "task_id": "7e8d7c69-be6e-4425-bb14-7c8eff950ce7",
+            "split": "policy_holdout"
+          },
+          {
+            "case_id": "100",
+            "related_group": "100",
+            "task_id": "8f480512-9249-4fe9-a7a8-d5c0759f5762",
+            "split": "policy_regression"
+          },
+          {
+            "case_id": "101",
+            "related_group": "101",
+            "task_id": "a4b81a96-dc50-4988-8a6f-babcc8d5e412",
+            "split": "policy_regression"
+          }
+        ],
+        "objective_value_ceiling": 1.0,
+        "minimum_improvement": 0.1
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-PolicyResult",
+    "contract": "PolicyResult",
+    "payload": {
+      "schema_version": "1",
+      "status": "recorded",
+      "reasons": [],
+      "record": {
+        "definition": {
+          "schema_version": "1",
+          "policy_revision": "one",
+          "baseline_policy_revision": "execution-ceilings-v1",
+          "task_group": "development-fixture",
+          "objective": {
+            "objective_id": "cost",
+            "version": "1",
+            "metric_id": "raw_token_cost",
+            "direction": "minimize",
+            "routing_cost_basis": "raw",
+            "acceptance_requirements": []
+          },
+          "candidate_order": [
+            {
+              "candidate_id": "a",
+              "candidate_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            {
+              "candidate_id": "b",
+              "candidate_fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          ],
+          "calibration": {
+            "schema_version": "1",
+            "calibration_revision": "fixture-only",
+            "task_family": "review",
+            "evaluator_ref": "fixture",
+            "rubric_revision": "fixture",
+            "dataset_revision": "fixture",
+            "calibration_source": "synthetic-control",
+            "frozen_at": "2026-01-01T00:00:00Z",
+            "critical_requirements": [
+              "authorization"
+            ],
+            "quality_floor": 0.7,
+            "maximum_quality_loss": 0.4,
+            "minimum_pairs": 2,
+            "confidence": 0.95
+          },
+          "cases": [
+            {
+              "case_id": "0",
+              "related_group": "0",
+              "task_id": "2cedeb17-0930-4820-838e-7a755c4561c4",
+              "split": "policy_holdout"
+            },
+            {
+              "case_id": "1",
+              "related_group": "1",
+              "task_id": "7e8d7c69-be6e-4425-bb14-7c8eff950ce7",
+              "split": "policy_holdout"
+            },
+            {
+              "case_id": "100",
+              "related_group": "100",
+              "task_id": "8f480512-9249-4fe9-a7a8-d5c0759f5762",
+              "split": "policy_regression"
+            },
+            {
+              "case_id": "101",
+              "related_group": "101",
+              "task_id": "a4b81a96-dc50-4988-8a6f-babcc8d5e412",
+              "split": "policy_regression"
+            }
+          ],
+          "objective_value_ceiling": 1.0,
+          "minimum_improvement": 0.1
+        },
+        "definition_digest": "c3b4086356c3471a2b53c7db176e13f5b700dcbc4235ae9fdd2d73c50fb72055",
+        "registered_at": "2026-01-02T00:00:00.000000Z",
+        "observed_at": "2026-01-02T00:00:00.000000Z",
+        "exposed_at": null,
+        "policy_status": "registered",
+        "preparation": {
+          "schema_version": "1",
+          "definition_digest": "c3b4086356c3471a2b53c7db176e13f5b700dcbc4235ae9fdd2d73c50fb72055",
+          "evaluator_identity": "independent-fixture",
+          "independent": true,
+          "input_revision": "frozen-data",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "status": "current",
+          "evidence_ref": "fixture-check"
+        },
+        "evaluation": null,
+        "assessment": null,
+        "objective_improvement_lower_bound": null,
+        "reasons": [],
+        "authorization": null,
+        "previous_policy_revision": null,
+        "used_routes": 0
+      }
+    },
+    "accepted": true
+  },
+  {
+    "id": "lifecycle-PolicyResult-extra",
+    "contract": "PolicyResult",
+    "payload": {
+      "schema_version": "1",
+      "status": "recorded",
+      "reasons": [],
+      "record": {
+        "definition": {
+          "schema_version": "1",
+          "policy_revision": "one",
+          "baseline_policy_revision": "execution-ceilings-v1",
+          "task_group": "development-fixture",
+          "objective": {
+            "objective_id": "cost",
+            "version": "1",
+            "metric_id": "raw_token_cost",
+            "direction": "minimize",
+            "routing_cost_basis": "raw",
+            "acceptance_requirements": []
+          },
+          "candidate_order": [
+            {
+              "candidate_id": "a",
+              "candidate_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            {
+              "candidate_id": "b",
+              "candidate_fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          ],
+          "calibration": {
+            "schema_version": "1",
+            "calibration_revision": "fixture-only",
+            "task_family": "review",
+            "evaluator_ref": "fixture",
+            "rubric_revision": "fixture",
+            "dataset_revision": "fixture",
+            "calibration_source": "synthetic-control",
+            "frozen_at": "2026-01-01T00:00:00Z",
+            "critical_requirements": [
+              "authorization"
+            ],
+            "quality_floor": 0.7,
+            "maximum_quality_loss": 0.4,
+            "minimum_pairs": 2,
+            "confidence": 0.95
+          },
+          "cases": [
+            {
+              "case_id": "0",
+              "related_group": "0",
+              "task_id": "2cedeb17-0930-4820-838e-7a755c4561c4",
+              "split": "policy_holdout"
+            },
+            {
+              "case_id": "1",
+              "related_group": "1",
+              "task_id": "7e8d7c69-be6e-4425-bb14-7c8eff950ce7",
+              "split": "policy_holdout"
+            },
+            {
+              "case_id": "100",
+              "related_group": "100",
+              "task_id": "8f480512-9249-4fe9-a7a8-d5c0759f5762",
+              "split": "policy_regression"
+            },
+            {
+              "case_id": "101",
+              "related_group": "101",
+              "task_id": "a4b81a96-dc50-4988-8a6f-babcc8d5e412",
+              "split": "policy_regression"
+            }
+          ],
+          "objective_value_ceiling": 1.0,
+          "minimum_improvement": 0.1
+        },
+        "definition_digest": "c3b4086356c3471a2b53c7db176e13f5b700dcbc4235ae9fdd2d73c50fb72055",
+        "registered_at": "2026-01-02T00:00:00.000000Z",
+        "observed_at": "2026-01-02T00:00:00.000000Z",
+        "exposed_at": null,
+        "policy_status": "registered",
+        "preparation": {
+          "schema_version": "1",
+          "definition_digest": "c3b4086356c3471a2b53c7db176e13f5b700dcbc4235ae9fdd2d73c50fb72055",
+          "evaluator_identity": "independent-fixture",
+          "independent": true,
+          "input_revision": "frozen-data",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "status": "current",
+          "evidence_ref": "fixture-check"
+        },
+        "evaluation": null,
+        "assessment": null,
+        "objective_improvement_lower_bound": null,
+        "reasons": [],
+        "authorization": null,
+        "previous_policy_revision": null,
+        "used_routes": 0
+      },
+      "undeclared": true
+    },
+    "accepted": false
+  },
+  {
+    "id": "lifecycle-PolicyResult-missing",
+    "contract": "PolicyResult",
+    "payload": {
+      "status": "recorded",
+      "reasons": [],
+      "record": {
+        "definition": {
+          "schema_version": "1",
+          "policy_revision": "one",
+          "baseline_policy_revision": "execution-ceilings-v1",
+          "task_group": "development-fixture",
+          "objective": {
+            "objective_id": "cost",
+            "version": "1",
+            "metric_id": "raw_token_cost",
+            "direction": "minimize",
+            "routing_cost_basis": "raw",
+            "acceptance_requirements": []
+          },
+          "candidate_order": [
+            {
+              "candidate_id": "a",
+              "candidate_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            {
+              "candidate_id": "b",
+              "candidate_fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          ],
+          "calibration": {
+            "schema_version": "1",
+            "calibration_revision": "fixture-only",
+            "task_family": "review",
+            "evaluator_ref": "fixture",
+            "rubric_revision": "fixture",
+            "dataset_revision": "fixture",
+            "calibration_source": "synthetic-control",
+            "frozen_at": "2026-01-01T00:00:00Z",
+            "critical_requirements": [
+              "authorization"
+            ],
+            "quality_floor": 0.7,
+            "maximum_quality_loss": 0.4,
+            "minimum_pairs": 2,
+            "confidence": 0.95
+          },
+          "cases": [
+            {
+              "case_id": "0",
+              "related_group": "0",
+              "task_id": "2cedeb17-0930-4820-838e-7a755c4561c4",
+              "split": "policy_holdout"
+            },
+            {
+              "case_id": "1",
+              "related_group": "1",
+              "task_id": "7e8d7c69-be6e-4425-bb14-7c8eff950ce7",
+              "split": "policy_holdout"
+            },
+            {
+              "case_id": "100",
+              "related_group": "100",
+              "task_id": "8f480512-9249-4fe9-a7a8-d5c0759f5762",
+              "split": "policy_regression"
+            },
+            {
+              "case_id": "101",
+              "related_group": "101",
+              "task_id": "a4b81a96-dc50-4988-8a6f-babcc8d5e412",
+              "split": "policy_regression"
+            }
+          ],
+          "objective_value_ceiling": 1.0,
+          "minimum_improvement": 0.1
+        },
+        "definition_digest": "c3b4086356c3471a2b53c7db176e13f5b700dcbc4235ae9fdd2d73c50fb72055",
+        "registered_at": "2026-01-02T00:00:00.000000Z",
+        "observed_at": "2026-01-02T00:00:00.000000Z",
+        "exposed_at": null,
+        "policy_status": "registered",
+        "preparation": {
+          "schema_version": "1",
+          "definition_digest": "c3b4086356c3471a2b53c7db176e13f5b700dcbc4235ae9fdd2d73c50fb72055",
+          "evaluator_identity": "independent-fixture",
+          "independent": true,
+          "input_revision": "frozen-data",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "status": "current",
+          "evidence_ref": "fixture-check"
+        },
+        "evaluation": null,
+        "assessment": null,
+        "objective_improvement_lower_bound": null,
+        "reasons": [],
+        "authorization": null,
+        "previous_policy_revision": null,
+        "used_routes": 0
+      }
+    },
+    "accepted": false
+  }
+]

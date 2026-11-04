@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "available_cpu": {
+      "minimum": 0,
+      "title": "Available Cpu",
+      "type": "integer"
+    },
+    "available_memory_bytes": {
+      "minimum": 0,
+      "title": "Available Memory Bytes",
+      "type": "integer"
+    },
+    "candidate_plan_digests": {
+      "items": {
+        "pattern": "^[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "minItems": 2,
+      "title": "Candidate Plan Digests",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "context_available": {
+      "title": "Context Available",
+      "type": "boolean"
+    },
+    "context_hash": {
+      "title": "Context Hash",
+      "type": "string"
+    },
+    "declared_capabilities": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Declared Capabilities",
+      "type": "array"
+    },
+    "execution_target_id": {
+      "title": "Execution Target Id",
+      "type": "string"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "pattern": "Z$",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "harness_id": {
+      "title": "Harness Id",
+      "type": "string"
+    },
+    "isolation_ref": {
+      "title": "Isolation Ref",
+      "type": "string"
+    },
+    "local_execution": {
+      "title": "Local Execution",
+      "type": "boolean"
+    },
+    "max_concurrency": {
+      "minimum": 0,
+      "title": "Max Concurrency",
+      "type": "integer"
+    },
+    "runtime_capabilities": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Runtime Capabilities",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "spend_bound_verified": {
+      "title": "Spend Bound Verified",
+      "type": "boolean"
+    },
+    "upper_cost_microusd": {
+      "maximum": 1000000000000,
+      "minimum": 0,
+      "title": "Upper Cost Microusd",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "available_cpu",
+    "available_memory_bytes",
+    "candidate_plan_digests",
+    "context_available",
+    "context_hash",
+    "declared_capabilities",
+    "execution_target_id",
+    "expires_at",
+    "harness_id",
+    "isolation_ref",
+    "local_execution",
+    "max_concurrency",
+    "runtime_capabilities",
+    "schema_version",
+    "spend_bound_verified",
+    "upper_cost_microusd"
+  ],
+  "title": "ExperimentReadiness",
+  "type": "object"
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "phase": "ROUTE",
+  "status": "passed",
+  "errors": [],
+  "input_digest": "12a557b817531d43141152069b7f0f823803776ef391a02f22848b28e2044e83",
+  "platforms": [
+    "Darwin",
+    "Linux",
+    "Windows"
+  ]
+}

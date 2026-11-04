@@ -1,0 +1,2287 @@
+{
+  "schema_version": 1,
+  "origin": "software_only_scripted_observer",
+  "status": "passed",
+  "protocol_digest": "b7bf60057cf3861ec285c22ba859b0f8081651c28b30d450fcf11e491c302bb6",
+  "performance_claims": "insufficient_evidence",
+  "produced_if_gates": [],
+  "controls": {
+    "always_admit_rejected": true,
+    "all_default_rejected": true,
+    "damaged_artifacts_rejected": true
+  },
+  "cases": [
+    {
+      "case_id": "array-bounds-implementation",
+      "related_group": "array-bounds",
+      "family": "implementation",
+      "discovery": {
+        "status": "selected_guidance",
+        "details": {
+          "discovery_id": "7617fdce-3235-4bf7-8e9f-8ebe35ef5181",
+          "work_objective_id": "a5f7c58a-1deb-555a-ac2d-f52655183368",
+          "guidance_refs": [
+            {
+              "content_hash": "e650734e2e3234b79f2371ad79bd360fd48b6da421ffcbe313bab01431416147",
+              "resource_id": "bounds",
+              "revision": "v1"
+            }
+          ],
+          "required_guidance": [],
+          "assembled_instructions": [
+            "Validate nonnegative integer bounds before accessing an array. Preserve all inputs."
+          ],
+          "alternatives": [],
+          "uncertainty": [],
+          "termination_reason": "complete",
+          "trace_digest": "66fe23be8772b8ba36d3d20bd16117a34513aa70e020cb794b69c62e06b85191",
+          "revisions": {
+            "authorization_digest": "455ce44427b8b24438000580806655eeec970ff680963494ee5ca021162e715e",
+            "catalog_digest": "9afb642732e6da31796b04f95173ca609e41cc3d59839c236c40841f86c001d2",
+            "catalog_revision": "discovery-development-v1-20261009",
+            "content_revision": "content-v1",
+            "descriptions_digest": "b72d6bce2b42d5162fd79b61bcf45ef6b113e723f0782b411637cb70ef625915",
+            "policy_digest": "b925a03ee58800df6c1485a8083c19af6aa14f1cadc913a2e45118097407d474",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8",
+            "taxonomy_revision": "taxonomy-v1"
+          }
+        }
+      },
+      "decision": {
+        "status": "ready",
+        "details": {
+          "schema_version": "1",
+          "routing_decision_id": "2a6b2a10-1f44-5280-825b-4a3b423a678f",
+          "request_id": "a5f7c58a-1deb-555a-ac2d-f52655183368",
+          "task_id": "a5f7c58a-1deb-555a-ac2d-f52655183368",
+          "created_at": "2026-09-28T00:00:00Z",
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "versions": {
+            "catalog_revision": "discovery-development-v1-20261009",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+          },
+          "diagnostics": [],
+          "capability_mismatches": [],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ],
+          "exclusions": [],
+          "alternatives": [
+            "cheap:90a98773e30c",
+            "fast:377a0f672f66",
+            "fast:90a98773e30c"
+          ],
+          "close_calls": [],
+          "setup_proposals": [],
+          "notices": [],
+          "human_summary": "Routing assessment; readiness does not authorize execution.",
+          "acceptance_rationale": "Feasibility requires sufficient versioned evidence.",
+          "cost_estimate": {
+            "raw_token_cost": {
+              "amount": "0.002361",
+              "currency": "USD"
+            },
+            "adjusted_token_cost": null,
+            "observed_cost": null,
+            "missing_reason": null,
+            "rate_revision": "rates-v1",
+            "assumptions": [
+              "estimated cost, not a guaranteed execution spending bound",
+              "UTF-8 byte input upper bound",
+              "routing overhead is separate from execution estimate"
+            ]
+          },
+          "measurements": [],
+          "reused_decision_id": null,
+          "discovery_ref": {
+            "discovery_id": "7617fdce-3235-4bf7-8e9f-8ebe35ef5181",
+            "work_objective_id": "a5f7c58a-1deb-555a-ac2d-f52655183368",
+            "trace_digest": "66fe23be8772b8ba36d3d20bd16117a34513aa70e020cb794b69c62e06b85191"
+          },
+          "discovery_termination": "complete",
+          "discovery_uncertainty": []
+        },
+        "execution_plan": {
+          "execution_plan_id": "db5a7bc6-58de-53e4-b2c4-339164f4b050",
+          "predecessor_plan_id": null,
+          "model_id": "model-cheap",
+          "resolved_model_revision": "model-cheap-v1",
+          "provider": "local",
+          "access_route": "synthetic",
+          "native_effort": {
+            "kind": "provider_default"
+          },
+          "optional_guidance": [],
+          "required_guidance": [],
+          "guidance_action": "none",
+          "required_capabilities": [
+            "text"
+          ],
+          "harness_id": "fixture",
+          "execution_target_id": "fixture"
+        },
+        "fallback_used": false,
+        "readiness": {
+          "verified_at": "2026-01-01T00:00:00Z",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "inventory_revision": "fixture",
+          "checked_capabilities": [
+            "text"
+          ],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ]
+        }
+      },
+      "selection_acceptable": true,
+      "software_selection_overhead_ms": 274.4749670382589,
+      "scripted_judgment_calls": 6,
+      "baselines": {
+        "fixed_default": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "cheapest_feasible": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "no_guidance": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "previous_policy": {
+          "applicable": false,
+          "reason": "No separately verified previous candidate-ordering policy exists for this new public group."
+        },
+        "simple_retrieval": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        }
+      },
+      "reference_checks": {
+        "regression_results": true
+      },
+      "actual_outcome": null,
+      "actual_cost": null,
+      "actual_total_time": null,
+      "missing_reason": "software-only scripted observer and independent reference artifacts"
+    },
+    {
+      "case_id": "array-bounds-review",
+      "related_group": "array-bounds",
+      "family": "review",
+      "discovery": {
+        "status": "selected_guidance",
+        "details": {
+          "discovery_id": "c5d8c488-f59c-4e70-bada-2f53a018050c",
+          "work_objective_id": "07363a47-86fb-5cde-b83f-213abdc78baa",
+          "guidance_refs": [
+            {
+              "content_hash": "8517b3429650ab0f7e9dd4e798fa5df308e8e7e77769501a5035da5040927329",
+              "resource_id": "review-integrity",
+              "revision": "v1"
+            }
+          ],
+          "required_guidance": [],
+          "assembled_instructions": [
+            "Report only demonstrated defects. Mark data loss critical and give a specific repair."
+          ],
+          "alternatives": [],
+          "uncertainty": [],
+          "termination_reason": "complete",
+          "trace_digest": "a933b6108d5d8e0d56d80b6d443c65f12d008aeb904e88ac45af7f8237d19b6a",
+          "revisions": {
+            "authorization_digest": "455ce44427b8b24438000580806655eeec970ff680963494ee5ca021162e715e",
+            "catalog_digest": "9afb642732e6da31796b04f95173ca609e41cc3d59839c236c40841f86c001d2",
+            "catalog_revision": "discovery-development-v1-20261009",
+            "content_revision": "content-v1",
+            "descriptions_digest": "b72d6bce2b42d5162fd79b61bcf45ef6b113e723f0782b411637cb70ef625915",
+            "policy_digest": "b925a03ee58800df6c1485a8083c19af6aa14f1cadc913a2e45118097407d474",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8",
+            "taxonomy_revision": "taxonomy-v1"
+          }
+        }
+      },
+      "decision": {
+        "status": "ready",
+        "details": {
+          "schema_version": "1",
+          "routing_decision_id": "c95a8516-7f73-5351-b2d2-dfaa6682a434",
+          "request_id": "07363a47-86fb-5cde-b83f-213abdc78baa",
+          "task_id": "07363a47-86fb-5cde-b83f-213abdc78baa",
+          "created_at": "2026-09-28T00:00:00Z",
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "versions": {
+            "catalog_revision": "discovery-development-v1-20261009",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+          },
+          "diagnostics": [],
+          "capability_mismatches": [],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ],
+          "exclusions": [],
+          "alternatives": [
+            "cheap:8c60cb37e610",
+            "fast:377a0f672f66",
+            "fast:8c60cb37e610"
+          ],
+          "close_calls": [],
+          "setup_proposals": [],
+          "notices": [],
+          "human_summary": "Routing assessment; readiness does not authorize execution.",
+          "acceptance_rationale": "Feasibility requires sufficient versioned evidence.",
+          "cost_estimate": {
+            "raw_token_cost": {
+              "amount": "0.002469",
+              "currency": "USD"
+            },
+            "adjusted_token_cost": null,
+            "observed_cost": null,
+            "missing_reason": null,
+            "rate_revision": "rates-v1",
+            "assumptions": [
+              "estimated cost, not a guaranteed execution spending bound",
+              "UTF-8 byte input upper bound",
+              "routing overhead is separate from execution estimate"
+            ]
+          },
+          "measurements": [],
+          "reused_decision_id": null,
+          "discovery_ref": {
+            "discovery_id": "c5d8c488-f59c-4e70-bada-2f53a018050c",
+            "work_objective_id": "07363a47-86fb-5cde-b83f-213abdc78baa",
+            "trace_digest": "a933b6108d5d8e0d56d80b6d443c65f12d008aeb904e88ac45af7f8237d19b6a"
+          },
+          "discovery_termination": "complete",
+          "discovery_uncertainty": []
+        },
+        "execution_plan": {
+          "execution_plan_id": "b1f4101b-c6b0-51ba-8e49-69aeef58ae3f",
+          "predecessor_plan_id": null,
+          "model_id": "model-cheap",
+          "resolved_model_revision": "model-cheap-v1",
+          "provider": "local",
+          "access_route": "synthetic",
+          "native_effort": {
+            "kind": "provider_default"
+          },
+          "optional_guidance": [],
+          "required_guidance": [],
+          "guidance_action": "none",
+          "required_capabilities": [
+            "text"
+          ],
+          "harness_id": "fixture",
+          "execution_target_id": "fixture"
+        },
+        "fallback_used": false,
+        "readiness": {
+          "verified_at": "2026-01-01T00:00:00Z",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "inventory_revision": "fixture",
+          "checked_capabilities": [
+            "text"
+          ],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ]
+        }
+      },
+      "selection_acceptable": true,
+      "software_selection_overhead_ms": 320.003918139264,
+      "scripted_judgment_calls": 15,
+      "baselines": {
+        "fixed_default": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "cheapest_feasible": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "no_guidance": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "previous_policy": {
+          "applicable": false,
+          "reason": "No separately verified previous candidate-ordering policy exists for this new public group."
+        },
+        "simple_retrieval": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [
+            "bounds"
+          ],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        }
+      },
+      "reference_checks": {
+        "defect_recall": true,
+        "false_positives": true,
+        "severity_action": true
+      },
+      "actual_outcome": null,
+      "actual_cost": null,
+      "actual_total_time": null,
+      "missing_reason": "software-only scripted observer and independent reference artifacts"
+    },
+    {
+      "case_id": "array-bounds-documentation",
+      "related_group": "array-bounds",
+      "family": "documentation",
+      "discovery": {
+        "status": "selected_guidance",
+        "details": {
+          "discovery_id": "26a09f0c-14a6-4827-b013-eeef6551d8d6",
+          "work_objective_id": "43eaafaf-e806-5759-a394-0d28630c6078",
+          "guidance_refs": [
+            {
+              "content_hash": "e4eee52734ebe12c3f5fdb0b84b2424214afc88cb8d5c5892cf9f573fcec9e0d",
+              "resource_id": "api-docs",
+              "revision": "v1"
+            }
+          ],
+          "required_guidance": [],
+          "assembled_instructions": [
+            "State preconditions and facts precisely. Include a public specification reference and checked examples."
+          ],
+          "alternatives": [],
+          "uncertainty": [],
+          "termination_reason": "complete",
+          "trace_digest": "c253152b4b78975fc2221cb3b98321eae4a62b3621b1e890072a50143e0cbdd5",
+          "revisions": {
+            "authorization_digest": "455ce44427b8b24438000580806655eeec970ff680963494ee5ca021162e715e",
+            "catalog_digest": "9afb642732e6da31796b04f95173ca609e41cc3d59839c236c40841f86c001d2",
+            "catalog_revision": "discovery-development-v1-20261009",
+            "content_revision": "content-v1",
+            "descriptions_digest": "b72d6bce2b42d5162fd79b61bcf45ef6b113e723f0782b411637cb70ef625915",
+            "policy_digest": "b925a03ee58800df6c1485a8083c19af6aa14f1cadc913a2e45118097407d474",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8",
+            "taxonomy_revision": "taxonomy-v1"
+          }
+        }
+      },
+      "decision": {
+        "status": "ready",
+        "details": {
+          "schema_version": "1",
+          "routing_decision_id": "b9b2b5b7-4b8d-5ae0-ba4c-ebae78587a6c",
+          "request_id": "43eaafaf-e806-5759-a394-0d28630c6078",
+          "task_id": "43eaafaf-e806-5759-a394-0d28630c6078",
+          "created_at": "2026-09-28T00:00:00Z",
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "versions": {
+            "catalog_revision": "discovery-development-v1-20261009",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+          },
+          "diagnostics": [],
+          "capability_mismatches": [],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ],
+          "exclusions": [],
+          "alternatives": [
+            "cheap:6fd0fc5a8b65",
+            "fast:377a0f672f66",
+            "fast:6fd0fc5a8b65"
+          ],
+          "close_calls": [],
+          "setup_proposals": [],
+          "notices": [],
+          "human_summary": "Routing assessment; readiness does not authorize execution.",
+          "acceptance_rationale": "Feasibility requires sufficient versioned evidence.",
+          "cost_estimate": {
+            "raw_token_cost": {
+              "amount": "0.002721",
+              "currency": "USD"
+            },
+            "adjusted_token_cost": null,
+            "observed_cost": null,
+            "missing_reason": null,
+            "rate_revision": "rates-v1",
+            "assumptions": [
+              "estimated cost, not a guaranteed execution spending bound",
+              "UTF-8 byte input upper bound",
+              "routing overhead is separate from execution estimate"
+            ]
+          },
+          "measurements": [],
+          "reused_decision_id": null,
+          "discovery_ref": {
+            "discovery_id": "26a09f0c-14a6-4827-b013-eeef6551d8d6",
+            "work_objective_id": "43eaafaf-e806-5759-a394-0d28630c6078",
+            "trace_digest": "c253152b4b78975fc2221cb3b98321eae4a62b3621b1e890072a50143e0cbdd5"
+          },
+          "discovery_termination": "complete",
+          "discovery_uncertainty": []
+        },
+        "execution_plan": {
+          "execution_plan_id": "4e9b4942-c1f6-5b5e-9e29-5d76f3fe0a89",
+          "predecessor_plan_id": null,
+          "model_id": "model-cheap",
+          "resolved_model_revision": "model-cheap-v1",
+          "provider": "local",
+          "access_route": "synthetic",
+          "native_effort": {
+            "kind": "provider_default"
+          },
+          "optional_guidance": [],
+          "required_guidance": [],
+          "guidance_action": "none",
+          "required_capabilities": [
+            "text"
+          ],
+          "harness_id": "fixture",
+          "execution_target_id": "fixture"
+        },
+        "fallback_used": false,
+        "readiness": {
+          "verified_at": "2026-01-01T00:00:00Z",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "inventory_revision": "fixture",
+          "checked_capabilities": [
+            "text"
+          ],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ]
+        }
+      },
+      "selection_acceptable": true,
+      "software_selection_overhead_ms": 388.0955639760941,
+      "scripted_judgment_calls": 15,
+      "baselines": {
+        "fixed_default": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "cheapest_feasible": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "no_guidance": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "previous_policy": {
+          "applicable": false,
+          "reason": "No separately verified previous candidate-ordering policy exists for this new public group."
+        },
+        "simple_retrieval": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [
+            "bounds"
+          ],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        }
+      },
+      "reference_checks": {
+        "facts": true,
+        "requirements": true,
+        "references": true,
+        "examples": true
+      },
+      "actual_outcome": null,
+      "actual_cost": null,
+      "actual_total_time": null,
+      "missing_reason": "software-only scripted observer and independent reference artifacts"
+    },
+    {
+      "case_id": "durable-queue-implementation",
+      "related_group": "durable-queue",
+      "family": "implementation",
+      "discovery": {
+        "status": "selected_guidance",
+        "details": {
+          "discovery_id": "e0118358-2a6a-4f49-a26f-1a5fa9c3af87",
+          "work_objective_id": "0ee7942e-e933-530b-846c-e7f8435fbe3a",
+          "guidance_refs": [
+            {
+              "content_hash": "580cc90ffd3f046b6140a66b16d8d22c0ecbbd8191979d77e0720dbe0bcaa00a",
+              "resource_id": "pure-contract",
+              "revision": "v1"
+            }
+          ],
+          "required_guidance": [],
+          "assembled_instructions": [
+            "Implement only the supplied specification. Preserve all input data and ordering. Distinguish exact model and rubric revisions; check empty inputs and conflicts."
+          ],
+          "alternatives": [],
+          "uncertainty": [],
+          "termination_reason": "complete",
+          "trace_digest": "badbf9842741799c694e384fde59230a47e2c01ca5344ee0b8a85d053d97eed6",
+          "revisions": {
+            "authorization_digest": "455ce44427b8b24438000580806655eeec970ff680963494ee5ca021162e715e",
+            "catalog_digest": "9afb642732e6da31796b04f95173ca609e41cc3d59839c236c40841f86c001d2",
+            "catalog_revision": "discovery-development-v1-20261009",
+            "content_revision": "content-v1",
+            "descriptions_digest": "b72d6bce2b42d5162fd79b61bcf45ef6b113e723f0782b411637cb70ef625915",
+            "policy_digest": "b925a03ee58800df6c1485a8083c19af6aa14f1cadc913a2e45118097407d474",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8",
+            "taxonomy_revision": "taxonomy-v1"
+          }
+        }
+      },
+      "decision": {
+        "status": "ready",
+        "details": {
+          "schema_version": "1",
+          "routing_decision_id": "9627f1b8-a3fd-5673-aded-e0d26bedf003",
+          "request_id": "0ee7942e-e933-530b-846c-e7f8435fbe3a",
+          "task_id": "0ee7942e-e933-530b-846c-e7f8435fbe3a",
+          "created_at": "2026-09-28T00:00:00Z",
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "versions": {
+            "catalog_revision": "discovery-development-v1-20261009",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+          },
+          "diagnostics": [],
+          "capability_mismatches": [],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ],
+          "exclusions": [
+            {
+              "candidate_id": "cheap:377a0f672f66",
+              "reasons": [
+                "completion_time_limit"
+              ]
+            },
+            {
+              "candidate_id": "cheap:cb0a91a3d85c",
+              "reasons": [
+                "completion_time_limit"
+              ]
+            }
+          ],
+          "alternatives": [
+            "fast:cb0a91a3d85c"
+          ],
+          "close_calls": [],
+          "setup_proposals": [],
+          "notices": [],
+          "human_summary": "Routing assessment; readiness does not authorize execution.",
+          "acceptance_rationale": "Feasibility requires sufficient versioned evidence.",
+          "cost_estimate": {
+            "raw_token_cost": {
+              "amount": "2.882048",
+              "currency": "USD"
+            },
+            "adjusted_token_cost": null,
+            "observed_cost": null,
+            "missing_reason": null,
+            "rate_revision": "rates-v1",
+            "assumptions": [
+              "estimated cost, not a guaranteed execution spending bound",
+              "UTF-8 byte input upper bound",
+              "routing overhead is separate from execution estimate"
+            ]
+          },
+          "measurements": [],
+          "reused_decision_id": null,
+          "discovery_ref": {
+            "discovery_id": "e0118358-2a6a-4f49-a26f-1a5fa9c3af87",
+            "work_objective_id": "0ee7942e-e933-530b-846c-e7f8435fbe3a",
+            "trace_digest": "badbf9842741799c694e384fde59230a47e2c01ca5344ee0b8a85d053d97eed6"
+          },
+          "discovery_termination": "complete",
+          "discovery_uncertainty": []
+        },
+        "execution_plan": {
+          "execution_plan_id": "0fa3fcf0-6f03-5e00-9f3f-924e8655eb29",
+          "predecessor_plan_id": null,
+          "model_id": "model-fast",
+          "resolved_model_revision": "model-fast-v1",
+          "provider": "local",
+          "access_route": "synthetic",
+          "native_effort": {
+            "kind": "provider_default"
+          },
+          "optional_guidance": [],
+          "required_guidance": [],
+          "guidance_action": "none",
+          "required_capabilities": [
+            "text"
+          ],
+          "harness_id": "fixture",
+          "execution_target_id": "fixture"
+        },
+        "fallback_used": false,
+        "readiness": {
+          "verified_at": "2026-01-01T00:00:00Z",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "inventory_revision": "fixture",
+          "checked_capabilities": [
+            "text"
+          ],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ]
+        }
+      },
+      "selection_acceptable": true,
+      "software_selection_overhead_ms": 451.8463520798832,
+      "scripted_judgment_calls": 15,
+      "baselines": {
+        "fixed_default": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "cheapest_feasible": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "no_guidance": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "previous_policy": {
+          "applicable": false,
+          "reason": "No separately verified previous candidate-ordering policy exists for this new public group."
+        },
+        "simple_retrieval": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [
+            "bounds"
+          ],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        }
+      },
+      "reference_checks": {
+        "regression_results": true
+      },
+      "actual_outcome": null,
+      "actual_cost": null,
+      "actual_total_time": null,
+      "missing_reason": "software-only scripted observer and independent reference artifacts"
+    },
+    {
+      "case_id": "durable-queue-review",
+      "related_group": "durable-queue",
+      "family": "review",
+      "discovery": {
+        "status": "selected_guidance",
+        "details": {
+          "discovery_id": "44f69466-63fa-4f25-8b28-3136b4ef90a1",
+          "work_objective_id": "9d4a6df4-8a07-55ec-827e-0295eb6b4e35",
+          "guidance_refs": [
+            {
+              "content_hash": "580cc90ffd3f046b6140a66b16d8d22c0ecbbd8191979d77e0720dbe0bcaa00a",
+              "resource_id": "pure-contract",
+              "revision": "v1"
+            },
+            {
+              "content_hash": "8517b3429650ab0f7e9dd4e798fa5df308e8e7e77769501a5035da5040927329",
+              "resource_id": "review-integrity",
+              "revision": "v1"
+            }
+          ],
+          "required_guidance": [],
+          "assembled_instructions": [
+            "Implement only the supplied specification. Preserve all input data and ordering. Distinguish exact model and rubric revisions; check empty inputs and conflicts.",
+            "Report only demonstrated defects. Mark data loss critical and give a specific repair."
+          ],
+          "alternatives": [],
+          "uncertainty": [],
+          "termination_reason": "complete",
+          "trace_digest": "166915e77a239024f939e12462b13e51acf74992db15f6cd209c40e4da6d429c",
+          "revisions": {
+            "authorization_digest": "455ce44427b8b24438000580806655eeec970ff680963494ee5ca021162e715e",
+            "catalog_digest": "9afb642732e6da31796b04f95173ca609e41cc3d59839c236c40841f86c001d2",
+            "catalog_revision": "discovery-development-v1-20261009",
+            "content_revision": "content-v1",
+            "descriptions_digest": "b72d6bce2b42d5162fd79b61bcf45ef6b113e723f0782b411637cb70ef625915",
+            "policy_digest": "b925a03ee58800df6c1485a8083c19af6aa14f1cadc913a2e45118097407d474",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8",
+            "taxonomy_revision": "taxonomy-v1"
+          }
+        }
+      },
+      "decision": {
+        "status": "ready",
+        "details": {
+          "schema_version": "1",
+          "routing_decision_id": "e06b6b6d-6a58-516a-ac3b-f72eb83f1e17",
+          "request_id": "9d4a6df4-8a07-55ec-827e-0295eb6b4e35",
+          "task_id": "9d4a6df4-8a07-55ec-827e-0295eb6b4e35",
+          "created_at": "2026-09-28T00:00:00Z",
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "versions": {
+            "catalog_revision": "discovery-development-v1-20261009",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+          },
+          "diagnostics": [],
+          "capability_mismatches": [],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ],
+          "exclusions": [],
+          "alternatives": [
+            "cheap:763859cda50d",
+            "cheap:1818e5e06ae2",
+            "cheap:efa81af3cdd5",
+            "fast:377a0f672f66",
+            "fast:763859cda50d",
+            "fast:1818e5e06ae2",
+            "fast:efa81af3cdd5"
+          ],
+          "close_calls": [],
+          "setup_proposals": [],
+          "notices": [],
+          "human_summary": "Routing assessment; readiness does not authorize execution.",
+          "acceptance_rationale": "Feasibility requires sufficient versioned evidence.",
+          "cost_estimate": {
+            "raw_token_cost": {
+              "amount": "0.002450",
+              "currency": "USD"
+            },
+            "adjusted_token_cost": null,
+            "observed_cost": null,
+            "missing_reason": null,
+            "rate_revision": "rates-v1",
+            "assumptions": [
+              "estimated cost, not a guaranteed execution spending bound",
+              "UTF-8 byte input upper bound",
+              "routing overhead is separate from execution estimate"
+            ]
+          },
+          "measurements": [],
+          "reused_decision_id": null,
+          "discovery_ref": {
+            "discovery_id": "44f69466-63fa-4f25-8b28-3136b4ef90a1",
+            "work_objective_id": "9d4a6df4-8a07-55ec-827e-0295eb6b4e35",
+            "trace_digest": "166915e77a239024f939e12462b13e51acf74992db15f6cd209c40e4da6d429c"
+          },
+          "discovery_termination": "complete",
+          "discovery_uncertainty": []
+        },
+        "execution_plan": {
+          "execution_plan_id": "52a7a4d7-a316-5cc7-a4ef-53a520a6c766",
+          "predecessor_plan_id": null,
+          "model_id": "model-cheap",
+          "resolved_model_revision": "model-cheap-v1",
+          "provider": "local",
+          "access_route": "synthetic",
+          "native_effort": {
+            "kind": "provider_default"
+          },
+          "optional_guidance": [],
+          "required_guidance": [],
+          "guidance_action": "none",
+          "required_capabilities": [
+            "text"
+          ],
+          "harness_id": "fixture",
+          "execution_target_id": "fixture"
+        },
+        "fallback_used": false,
+        "readiness": {
+          "verified_at": "2026-01-01T00:00:00Z",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "inventory_revision": "fixture",
+          "checked_capabilities": [
+            "text"
+          ],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ]
+        }
+      },
+      "selection_acceptable": true,
+      "software_selection_overhead_ms": 372.1819040365517,
+      "scripted_judgment_calls": 15,
+      "baselines": {
+        "fixed_default": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "cheapest_feasible": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "no_guidance": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "previous_policy": {
+          "applicable": false,
+          "reason": "No separately verified previous candidate-ordering policy exists for this new public group."
+        },
+        "simple_retrieval": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        }
+      },
+      "reference_checks": {
+        "defect_recall": true,
+        "false_positives": true,
+        "severity_action": true
+      },
+      "actual_outcome": null,
+      "actual_cost": null,
+      "actual_total_time": null,
+      "missing_reason": "software-only scripted observer and independent reference artifacts"
+    },
+    {
+      "case_id": "durable-queue-documentation",
+      "related_group": "durable-queue",
+      "family": "documentation",
+      "discovery": {
+        "status": "selected_guidance",
+        "details": {
+          "discovery_id": "b2a490e2-660d-448c-9985-9c17fb338af1",
+          "work_objective_id": "7bda1598-a610-5601-9a2c-056c51b6258d",
+          "guidance_refs": [
+            {
+              "content_hash": "e4eee52734ebe12c3f5fdb0b84b2424214afc88cb8d5c5892cf9f573fcec9e0d",
+              "resource_id": "api-docs",
+              "revision": "v1"
+            }
+          ],
+          "required_guidance": [],
+          "assembled_instructions": [
+            "State preconditions and facts precisely. Include a public specification reference and checked examples."
+          ],
+          "alternatives": [],
+          "uncertainty": [],
+          "termination_reason": "complete",
+          "trace_digest": "404925f27583bbe7dd59ea181bf72e2da57a188b47b6569724d7973e782c7b1f",
+          "revisions": {
+            "authorization_digest": "455ce44427b8b24438000580806655eeec970ff680963494ee5ca021162e715e",
+            "catalog_digest": "9afb642732e6da31796b04f95173ca609e41cc3d59839c236c40841f86c001d2",
+            "catalog_revision": "discovery-development-v1-20261009",
+            "content_revision": "content-v1",
+            "descriptions_digest": "b72d6bce2b42d5162fd79b61bcf45ef6b113e723f0782b411637cb70ef625915",
+            "policy_digest": "b925a03ee58800df6c1485a8083c19af6aa14f1cadc913a2e45118097407d474",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8",
+            "taxonomy_revision": "taxonomy-v1"
+          }
+        }
+      },
+      "decision": {
+        "status": "ready",
+        "details": {
+          "schema_version": "1",
+          "routing_decision_id": "fe495497-1e41-5d64-b2c4-2d3cbfcf111a",
+          "request_id": "7bda1598-a610-5601-9a2c-056c51b6258d",
+          "task_id": "7bda1598-a610-5601-9a2c-056c51b6258d",
+          "created_at": "2026-09-28T00:00:00Z",
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "versions": {
+            "catalog_revision": "discovery-development-v1-20261009",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+          },
+          "diagnostics": [],
+          "capability_mismatches": [],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ],
+          "exclusions": [],
+          "alternatives": [
+            "cheap:26fa879854a5",
+            "fast:377a0f672f66",
+            "fast:26fa879854a5"
+          ],
+          "close_calls": [],
+          "setup_proposals": [],
+          "notices": [],
+          "human_summary": "Routing assessment; readiness does not authorize execution.",
+          "acceptance_rationale": "Feasibility requires sufficient versioned evidence.",
+          "cost_estimate": {
+            "raw_token_cost": {
+              "amount": "0.002756",
+              "currency": "USD"
+            },
+            "adjusted_token_cost": null,
+            "observed_cost": null,
+            "missing_reason": null,
+            "rate_revision": "rates-v1",
+            "assumptions": [
+              "estimated cost, not a guaranteed execution spending bound",
+              "UTF-8 byte input upper bound",
+              "routing overhead is separate from execution estimate"
+            ]
+          },
+          "measurements": [],
+          "reused_decision_id": null,
+          "discovery_ref": {
+            "discovery_id": "b2a490e2-660d-448c-9985-9c17fb338af1",
+            "work_objective_id": "7bda1598-a610-5601-9a2c-056c51b6258d",
+            "trace_digest": "404925f27583bbe7dd59ea181bf72e2da57a188b47b6569724d7973e782c7b1f"
+          },
+          "discovery_termination": "complete",
+          "discovery_uncertainty": []
+        },
+        "execution_plan": {
+          "execution_plan_id": "d5fdca92-dd6c-5477-9b5d-c3cd261c7eb0",
+          "predecessor_plan_id": null,
+          "model_id": "model-cheap",
+          "resolved_model_revision": "model-cheap-v1",
+          "provider": "local",
+          "access_route": "synthetic",
+          "native_effort": {
+            "kind": "provider_default"
+          },
+          "optional_guidance": [],
+          "required_guidance": [],
+          "guidance_action": "none",
+          "required_capabilities": [
+            "text"
+          ],
+          "harness_id": "fixture",
+          "execution_target_id": "fixture"
+        },
+        "fallback_used": false,
+        "readiness": {
+          "verified_at": "2026-01-01T00:00:00Z",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "inventory_revision": "fixture",
+          "checked_capabilities": [
+            "text"
+          ],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ]
+        }
+      },
+      "selection_acceptable": true,
+      "software_selection_overhead_ms": 295.59287801384926,
+      "scripted_judgment_calls": 15,
+      "baselines": {
+        "fixed_default": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "cheapest_feasible": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "no_guidance": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "previous_policy": {
+          "applicable": false,
+          "reason": "No separately verified previous candidate-ordering policy exists for this new public group."
+        },
+        "simple_retrieval": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        }
+      },
+      "reference_checks": {
+        "facts": true,
+        "requirements": true,
+        "references": true,
+        "examples": true
+      },
+      "actual_outcome": null,
+      "actual_cost": null,
+      "actual_total_time": null,
+      "missing_reason": "software-only scripted observer and independent reference artifacts"
+    },
+    {
+      "case_id": "public-api-implementation",
+      "related_group": "public-api",
+      "family": "implementation",
+      "discovery": {
+        "status": "selected_guidance",
+        "details": {
+          "discovery_id": "0d3b59dd-e7be-465e-81e3-134090adbfcb",
+          "work_objective_id": "8030e9fe-af38-53d5-98a4-296f005a03bc",
+          "guidance_refs": [
+            {
+              "content_hash": "580cc90ffd3f046b6140a66b16d8d22c0ecbbd8191979d77e0720dbe0bcaa00a",
+              "resource_id": "pure-contract",
+              "revision": "v1"
+            }
+          ],
+          "required_guidance": [],
+          "assembled_instructions": [
+            "Implement only the supplied specification. Preserve all input data and ordering. Distinguish exact model and rubric revisions; check empty inputs and conflicts."
+          ],
+          "alternatives": [],
+          "uncertainty": [],
+          "termination_reason": "complete",
+          "trace_digest": "bc65ae6d040277ef42caafaa108e18d4c3a0681980977fdc6a39aaf9724e0df9",
+          "revisions": {
+            "authorization_digest": "455ce44427b8b24438000580806655eeec970ff680963494ee5ca021162e715e",
+            "catalog_digest": "9afb642732e6da31796b04f95173ca609e41cc3d59839c236c40841f86c001d2",
+            "catalog_revision": "discovery-development-v1-20261009",
+            "content_revision": "content-v1",
+            "descriptions_digest": "b72d6bce2b42d5162fd79b61bcf45ef6b113e723f0782b411637cb70ef625915",
+            "policy_digest": "b925a03ee58800df6c1485a8083c19af6aa14f1cadc913a2e45118097407d474",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8",
+            "taxonomy_revision": "taxonomy-v1"
+          }
+        }
+      },
+      "decision": {
+        "status": "ready",
+        "details": {
+          "schema_version": "1",
+          "routing_decision_id": "b84ab74e-50ac-55ab-993d-85b009674c6f",
+          "request_id": "decea1bd-ae1e-5347-b4f8-6eff3c5909ad",
+          "task_id": "decea1bd-ae1e-5347-b4f8-6eff3c5909ad",
+          "created_at": "2026-09-28T00:00:00Z",
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "versions": {
+            "catalog_revision": "discovery-development-v1-20261009",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+          },
+          "diagnostics": [],
+          "capability_mismatches": [],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ],
+          "exclusions": [],
+          "alternatives": [
+            "cheap:5a6c2767fcf3",
+            "fast:377a0f672f66",
+            "fast:5a6c2767fcf3"
+          ],
+          "close_calls": [],
+          "setup_proposals": [],
+          "notices": [],
+          "human_summary": "Routing assessment; readiness does not authorize execution.",
+          "acceptance_rationale": "Feasibility requires sufficient versioned evidence.",
+          "cost_estimate": {
+            "raw_token_cost": {
+              "amount": "0.002398",
+              "currency": "USD"
+            },
+            "adjusted_token_cost": null,
+            "observed_cost": null,
+            "missing_reason": null,
+            "rate_revision": "rates-v1",
+            "assumptions": [
+              "estimated cost, not a guaranteed execution spending bound",
+              "UTF-8 byte input upper bound",
+              "routing overhead is separate from execution estimate"
+            ]
+          },
+          "measurements": [],
+          "reused_decision_id": null,
+          "discovery_ref": {
+            "discovery_id": "0d3b59dd-e7be-465e-81e3-134090adbfcb",
+            "work_objective_id": "8030e9fe-af38-53d5-98a4-296f005a03bc",
+            "trace_digest": "bc65ae6d040277ef42caafaa108e18d4c3a0681980977fdc6a39aaf9724e0df9"
+          },
+          "discovery_termination": "complete",
+          "discovery_uncertainty": []
+        },
+        "execution_plan": {
+          "execution_plan_id": "c56219ed-6736-5211-a002-d96609b78251",
+          "predecessor_plan_id": null,
+          "model_id": "model-cheap",
+          "resolved_model_revision": "model-cheap-v1",
+          "provider": "local",
+          "access_route": "synthetic",
+          "native_effort": {
+            "kind": "provider_default"
+          },
+          "optional_guidance": [],
+          "required_guidance": [],
+          "guidance_action": "none",
+          "required_capabilities": [
+            "text"
+          ],
+          "harness_id": "fixture",
+          "execution_target_id": "fixture"
+        },
+        "fallback_used": false,
+        "readiness": {
+          "verified_at": "2026-01-01T00:00:00Z",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "inventory_revision": "fixture",
+          "checked_capabilities": [
+            "text"
+          ],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ]
+        }
+      },
+      "selection_acceptable": true,
+      "software_selection_overhead_ms": 365.8094780985266,
+      "scripted_judgment_calls": 15,
+      "baselines": {
+        "fixed_default": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "cheapest_feasible": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "no_guidance": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "previous_policy": {
+          "applicable": false,
+          "reason": "No separately verified previous candidate-ordering policy exists for this new public group."
+        },
+        "simple_retrieval": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [
+            "bounds"
+          ],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        }
+      },
+      "reference_checks": {
+        "regression_results": true
+      },
+      "actual_outcome": null,
+      "actual_cost": null,
+      "actual_total_time": null,
+      "missing_reason": "software-only scripted observer and independent reference artifacts"
+    },
+    {
+      "case_id": "public-api-review",
+      "related_group": "public-api",
+      "family": "review",
+      "discovery": {
+        "status": "selected_guidance",
+        "details": {
+          "discovery_id": "977ac946-b6f8-48bb-8cb7-96c8ecc79ffe",
+          "work_objective_id": "8030e9fe-af38-53d5-98a4-296f005a03bc",
+          "guidance_refs": [
+            {
+              "content_hash": "8517b3429650ab0f7e9dd4e798fa5df308e8e7e77769501a5035da5040927329",
+              "resource_id": "review-integrity",
+              "revision": "v1"
+            }
+          ],
+          "required_guidance": [],
+          "assembled_instructions": [
+            "Report only demonstrated defects. Mark data loss critical and give a specific repair."
+          ],
+          "alternatives": [],
+          "uncertainty": [],
+          "termination_reason": "complete",
+          "trace_digest": "453c10568bbbbaf799e2e8341bb9946afddc8b69d0504e1d0714586df87b7cc2",
+          "revisions": {
+            "authorization_digest": "455ce44427b8b24438000580806655eeec970ff680963494ee5ca021162e715e",
+            "catalog_digest": "9afb642732e6da31796b04f95173ca609e41cc3d59839c236c40841f86c001d2",
+            "catalog_revision": "discovery-development-v1-20261009",
+            "content_revision": "content-v1",
+            "descriptions_digest": "b72d6bce2b42d5162fd79b61bcf45ef6b113e723f0782b411637cb70ef625915",
+            "policy_digest": "b925a03ee58800df6c1485a8083c19af6aa14f1cadc913a2e45118097407d474",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8",
+            "taxonomy_revision": "taxonomy-v1"
+          }
+        }
+      },
+      "decision": {
+        "status": "ready",
+        "details": {
+          "schema_version": "1",
+          "routing_decision_id": "7b81d044-0191-5912-ae4c-7bbde344e7a5",
+          "request_id": "8915f35d-cc49-5d9e-925f-575ce3ef6f69",
+          "task_id": "8915f35d-cc49-5d9e-925f-575ce3ef6f69",
+          "created_at": "2026-09-28T00:00:00Z",
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "versions": {
+            "catalog_revision": "discovery-development-v1-20261009",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+          },
+          "diagnostics": [],
+          "capability_mismatches": [],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ],
+          "exclusions": [],
+          "alternatives": [
+            "cheap:9dff6fb5498a",
+            "fast:377a0f672f66",
+            "fast:9dff6fb5498a"
+          ],
+          "close_calls": [],
+          "setup_proposals": [],
+          "notices": [],
+          "human_summary": "Routing assessment; readiness does not authorize execution.",
+          "acceptance_rationale": "Feasibility requires sufficient versioned evidence.",
+          "cost_estimate": {
+            "raw_token_cost": {
+              "amount": "0.002502",
+              "currency": "USD"
+            },
+            "adjusted_token_cost": null,
+            "observed_cost": null,
+            "missing_reason": null,
+            "rate_revision": "rates-v1",
+            "assumptions": [
+              "estimated cost, not a guaranteed execution spending bound",
+              "UTF-8 byte input upper bound",
+              "routing overhead is separate from execution estimate"
+            ]
+          },
+          "measurements": [],
+          "reused_decision_id": null,
+          "discovery_ref": {
+            "discovery_id": "977ac946-b6f8-48bb-8cb7-96c8ecc79ffe",
+            "work_objective_id": "8030e9fe-af38-53d5-98a4-296f005a03bc",
+            "trace_digest": "453c10568bbbbaf799e2e8341bb9946afddc8b69d0504e1d0714586df87b7cc2"
+          },
+          "discovery_termination": "complete",
+          "discovery_uncertainty": []
+        },
+        "execution_plan": {
+          "execution_plan_id": "9eca10b2-efb1-56bf-a1be-db3c52bd0077",
+          "predecessor_plan_id": null,
+          "model_id": "model-cheap",
+          "resolved_model_revision": "model-cheap-v1",
+          "provider": "local",
+          "access_route": "synthetic",
+          "native_effort": {
+            "kind": "provider_default"
+          },
+          "optional_guidance": [],
+          "required_guidance": [],
+          "guidance_action": "none",
+          "required_capabilities": [
+            "text"
+          ],
+          "harness_id": "fixture",
+          "execution_target_id": "fixture"
+        },
+        "fallback_used": false,
+        "readiness": {
+          "verified_at": "2026-01-01T00:00:00Z",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "inventory_revision": "fixture",
+          "checked_capabilities": [
+            "text"
+          ],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ]
+        }
+      },
+      "selection_acceptable": true,
+      "software_selection_overhead_ms": 326.1312460526824,
+      "scripted_judgment_calls": 15,
+      "baselines": {
+        "fixed_default": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "cheapest_feasible": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "no_guidance": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "previous_policy": {
+          "applicable": false,
+          "reason": "No separately verified previous candidate-ordering policy exists for this new public group."
+        },
+        "simple_retrieval": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        }
+      },
+      "reference_checks": {
+        "defect_recall": true,
+        "false_positives": true,
+        "severity_action": true
+      },
+      "actual_outcome": null,
+      "actual_cost": null,
+      "actual_total_time": null,
+      "missing_reason": "software-only scripted observer and independent reference artifacts"
+    },
+    {
+      "case_id": "public-api-documentation",
+      "related_group": "public-api",
+      "family": "documentation",
+      "discovery": {
+        "status": "no_optional_guidance",
+        "details": {
+          "discovery_id": "d30e5491-4b42-4ae5-a995-a0723179746f",
+          "work_objective_id": "5d07bc15-d6c7-5d40-8dd3-1108cbc2ed71",
+          "guidance_refs": [],
+          "required_guidance": [],
+          "assembled_instructions": [],
+          "alternatives": [],
+          "uncertainty": [],
+          "termination_reason": "complete",
+          "trace_digest": "2085dd7bd2d6853646ea8bf8f1c2cb5f13a33fcbcf2320fbb9108e1444de4945",
+          "revisions": {
+            "authorization_digest": "455ce44427b8b24438000580806655eeec970ff680963494ee5ca021162e715e",
+            "catalog_digest": "9afb642732e6da31796b04f95173ca609e41cc3d59839c236c40841f86c001d2",
+            "catalog_revision": "discovery-development-v1-20261009",
+            "content_revision": "content-v1",
+            "descriptions_digest": "b72d6bce2b42d5162fd79b61bcf45ef6b113e723f0782b411637cb70ef625915",
+            "policy_digest": "b925a03ee58800df6c1485a8083c19af6aa14f1cadc913a2e45118097407d474",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8",
+            "taxonomy_revision": "taxonomy-v1"
+          }
+        }
+      },
+      "decision": {
+        "status": "ready",
+        "details": {
+          "schema_version": "1",
+          "routing_decision_id": "aee7a165-ad0f-5842-8347-bb1ab6f4168f",
+          "request_id": "5d07bc15-d6c7-5d40-8dd3-1108cbc2ed71",
+          "task_id": "5d07bc15-d6c7-5d40-8dd3-1108cbc2ed71",
+          "created_at": "2026-09-28T00:00:00Z",
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "versions": {
+            "catalog_revision": "discovery-development-v1-20261009",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+          },
+          "diagnostics": [],
+          "capability_mismatches": [],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ],
+          "exclusions": [],
+          "alternatives": [
+            "fast:377a0f672f66"
+          ],
+          "close_calls": [],
+          "setup_proposals": [],
+          "notices": [],
+          "human_summary": "Routing assessment; readiness does not authorize execution.",
+          "acceptance_rationale": "Feasibility requires sufficient versioned evidence.",
+          "cost_estimate": {
+            "raw_token_cost": {
+              "amount": "0.002804",
+              "currency": "USD"
+            },
+            "adjusted_token_cost": null,
+            "observed_cost": null,
+            "missing_reason": null,
+            "rate_revision": "rates-v1",
+            "assumptions": [
+              "estimated cost, not a guaranteed execution spending bound",
+              "UTF-8 byte input upper bound",
+              "routing overhead is separate from execution estimate"
+            ]
+          },
+          "measurements": [],
+          "reused_decision_id": null,
+          "discovery_ref": {
+            "discovery_id": "d30e5491-4b42-4ae5-a995-a0723179746f",
+            "work_objective_id": "5d07bc15-d6c7-5d40-8dd3-1108cbc2ed71",
+            "trace_digest": "2085dd7bd2d6853646ea8bf8f1c2cb5f13a33fcbcf2320fbb9108e1444de4945"
+          },
+          "discovery_termination": "complete",
+          "discovery_uncertainty": []
+        },
+        "execution_plan": {
+          "execution_plan_id": "d5255752-a802-5e84-9c38-5567203bc058",
+          "predecessor_plan_id": null,
+          "model_id": "model-cheap",
+          "resolved_model_revision": "model-cheap-v1",
+          "provider": "local",
+          "access_route": "synthetic",
+          "native_effort": {
+            "kind": "provider_default"
+          },
+          "optional_guidance": [],
+          "required_guidance": [],
+          "guidance_action": "none",
+          "required_capabilities": [
+            "text"
+          ],
+          "harness_id": "fixture",
+          "execution_target_id": "fixture"
+        },
+        "fallback_used": false,
+        "readiness": {
+          "verified_at": "2026-01-01T00:00:00Z",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "inventory_revision": "fixture",
+          "checked_capabilities": [
+            "text"
+          ],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ]
+        }
+      },
+      "selection_acceptable": true,
+      "software_selection_overhead_ms": 465.7274701166898,
+      "scripted_judgment_calls": 15,
+      "baselines": {
+        "fixed_default": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "cheapest_feasible": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": true,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "no_guidance": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": true,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "previous_policy": {
+          "applicable": false,
+          "reason": "No separately verified previous candidate-ordering policy exists for this new public group."
+        },
+        "simple_retrieval": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": true,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        }
+      },
+      "reference_checks": {
+        "facts": true,
+        "requirements": true,
+        "references": true,
+        "examples": true
+      },
+      "actual_outcome": null,
+      "actual_cost": null,
+      "actual_total_time": null,
+      "missing_reason": "software-only scripted observer and independent reference artifacts"
+    },
+    {
+      "case_id": "source-identity-implementation",
+      "related_group": "source-identity",
+      "family": "implementation",
+      "discovery": {
+        "status": "selected_guidance",
+        "details": {
+          "discovery_id": "16a84685-898b-4700-9904-467e084ea022",
+          "work_objective_id": "8ee3bbd2-04d2-566c-b541-aa17d4786299",
+          "guidance_refs": [
+            {
+              "content_hash": "580cc90ffd3f046b6140a66b16d8d22c0ecbbd8191979d77e0720dbe0bcaa00a",
+              "resource_id": "pure-contract",
+              "revision": "v1"
+            }
+          ],
+          "required_guidance": [],
+          "assembled_instructions": [
+            "Implement only the supplied specification. Preserve all input data and ordering. Distinguish exact model and rubric revisions; check empty inputs and conflicts."
+          ],
+          "alternatives": [],
+          "uncertainty": [],
+          "termination_reason": "complete",
+          "trace_digest": "0e2e3637da7184f0f1023aebdbeb4036186291d9e92035ef27447966ff07a16f",
+          "revisions": {
+            "authorization_digest": "455ce44427b8b24438000580806655eeec970ff680963494ee5ca021162e715e",
+            "catalog_digest": "9afb642732e6da31796b04f95173ca609e41cc3d59839c236c40841f86c001d2",
+            "catalog_revision": "discovery-development-v1-20261009",
+            "content_revision": "content-v1",
+            "descriptions_digest": "b72d6bce2b42d5162fd79b61bcf45ef6b113e723f0782b411637cb70ef625915",
+            "policy_digest": "b925a03ee58800df6c1485a8083c19af6aa14f1cadc913a2e45118097407d474",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8",
+            "taxonomy_revision": "taxonomy-v1"
+          }
+        }
+      },
+      "decision": {
+        "status": "ready",
+        "details": {
+          "schema_version": "1",
+          "routing_decision_id": "c03caef3-ffe4-56c4-b1c6-03a17e1f5dd7",
+          "request_id": "8ee3bbd2-04d2-566c-b541-aa17d4786299",
+          "task_id": "8ee3bbd2-04d2-566c-b541-aa17d4786299",
+          "created_at": "2026-09-28T00:00:00Z",
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "versions": {
+            "catalog_revision": "discovery-development-v1-20261009",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+          },
+          "diagnostics": [],
+          "capability_mismatches": [],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ],
+          "exclusions": [
+            {
+              "candidate_id": "cheap:377a0f672f66",
+              "reasons": [
+                "completion_time_limit"
+              ]
+            },
+            {
+              "candidate_id": "cheap:9a321d097538",
+              "reasons": [
+                "completion_time_limit"
+              ]
+            }
+          ],
+          "alternatives": [
+            "fast:9a321d097538"
+          ],
+          "close_calls": [],
+          "setup_proposals": [],
+          "notices": [],
+          "human_summary": "Routing assessment; readiness does not authorize execution.",
+          "acceptance_rationale": "Feasibility requires sufficient versioned evidence.",
+          "cost_estimate": {
+            "raw_token_cost": {
+              "amount": "3.212048",
+              "currency": "USD"
+            },
+            "adjusted_token_cost": null,
+            "observed_cost": null,
+            "missing_reason": null,
+            "rate_revision": "rates-v1",
+            "assumptions": [
+              "estimated cost, not a guaranteed execution spending bound",
+              "UTF-8 byte input upper bound",
+              "routing overhead is separate from execution estimate"
+            ]
+          },
+          "measurements": [],
+          "reused_decision_id": null,
+          "discovery_ref": {
+            "discovery_id": "16a84685-898b-4700-9904-467e084ea022",
+            "work_objective_id": "8ee3bbd2-04d2-566c-b541-aa17d4786299",
+            "trace_digest": "0e2e3637da7184f0f1023aebdbeb4036186291d9e92035ef27447966ff07a16f"
+          },
+          "discovery_termination": "complete",
+          "discovery_uncertainty": []
+        },
+        "execution_plan": {
+          "execution_plan_id": "7cb5041d-9b9e-5078-adce-26c2b9289395",
+          "predecessor_plan_id": null,
+          "model_id": "model-fast",
+          "resolved_model_revision": "model-fast-v1",
+          "provider": "local",
+          "access_route": "synthetic",
+          "native_effort": {
+            "kind": "provider_default"
+          },
+          "optional_guidance": [],
+          "required_guidance": [],
+          "guidance_action": "none",
+          "required_capabilities": [
+            "text"
+          ],
+          "harness_id": "fixture",
+          "execution_target_id": "fixture"
+        },
+        "fallback_used": false,
+        "readiness": {
+          "verified_at": "2026-01-01T00:00:00Z",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "inventory_revision": "fixture",
+          "checked_capabilities": [
+            "text"
+          ],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ]
+        }
+      },
+      "selection_acceptable": true,
+      "software_selection_overhead_ms": 705.9623249806464,
+      "scripted_judgment_calls": 15,
+      "baselines": {
+        "fixed_default": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "cheapest_feasible": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "no_guidance": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "previous_policy": {
+          "applicable": false,
+          "reason": "No separately verified previous candidate-ordering policy exists for this new public group."
+        },
+        "simple_retrieval": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [
+            "bounds"
+          ],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        }
+      },
+      "reference_checks": {
+        "regression_results": true
+      },
+      "actual_outcome": null,
+      "actual_cost": null,
+      "actual_total_time": null,
+      "missing_reason": "software-only scripted observer and independent reference artifacts"
+    },
+    {
+      "case_id": "source-identity-review",
+      "related_group": "source-identity",
+      "family": "review",
+      "discovery": {
+        "status": "selected_guidance",
+        "details": {
+          "discovery_id": "c282200a-c8f6-4eaa-a41d-a615d6cd14c0",
+          "work_objective_id": "aec8d8c0-248f-5d23-8b19-40b54dd9892f",
+          "guidance_refs": [
+            {
+              "content_hash": "8517b3429650ab0f7e9dd4e798fa5df308e8e7e77769501a5035da5040927329",
+              "resource_id": "review-integrity",
+              "revision": "v1"
+            }
+          ],
+          "required_guidance": [],
+          "assembled_instructions": [
+            "Report only demonstrated defects. Mark data loss critical and give a specific repair."
+          ],
+          "alternatives": [],
+          "uncertainty": [],
+          "termination_reason": "complete",
+          "trace_digest": "a03f7955388d260c46c0e6f58f2bc83004bcc79af754fe3866593fba17f1e7f9",
+          "revisions": {
+            "authorization_digest": "455ce44427b8b24438000580806655eeec970ff680963494ee5ca021162e715e",
+            "catalog_digest": "9afb642732e6da31796b04f95173ca609e41cc3d59839c236c40841f86c001d2",
+            "catalog_revision": "discovery-development-v1-20261009",
+            "content_revision": "content-v1",
+            "descriptions_digest": "b72d6bce2b42d5162fd79b61bcf45ef6b113e723f0782b411637cb70ef625915",
+            "policy_digest": "b925a03ee58800df6c1485a8083c19af6aa14f1cadc913a2e45118097407d474",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8",
+            "taxonomy_revision": "taxonomy-v1"
+          }
+        }
+      },
+      "decision": {
+        "status": "ready",
+        "details": {
+          "schema_version": "1",
+          "routing_decision_id": "d0f8a7ab-aa80-5752-9f0e-4200a7d39056",
+          "request_id": "aec8d8c0-248f-5d23-8b19-40b54dd9892f",
+          "task_id": "aec8d8c0-248f-5d23-8b19-40b54dd9892f",
+          "created_at": "2026-09-28T00:00:00Z",
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "versions": {
+            "catalog_revision": "discovery-development-v1-20261009",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+          },
+          "diagnostics": [],
+          "capability_mismatches": [],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ],
+          "exclusions": [],
+          "alternatives": [
+            "cheap:8453a2b38f6f",
+            "fast:377a0f672f66",
+            "fast:8453a2b38f6f"
+          ],
+          "close_calls": [],
+          "setup_proposals": [],
+          "notices": [],
+          "human_summary": "Routing assessment; readiness does not authorize execution.",
+          "acceptance_rationale": "Feasibility requires sufficient versioned evidence.",
+          "cost_estimate": {
+            "raw_token_cost": {
+              "amount": "0.002521",
+              "currency": "USD"
+            },
+            "adjusted_token_cost": null,
+            "observed_cost": null,
+            "missing_reason": null,
+            "rate_revision": "rates-v1",
+            "assumptions": [
+              "estimated cost, not a guaranteed execution spending bound",
+              "UTF-8 byte input upper bound",
+              "routing overhead is separate from execution estimate"
+            ]
+          },
+          "measurements": [],
+          "reused_decision_id": null,
+          "discovery_ref": {
+            "discovery_id": "c282200a-c8f6-4eaa-a41d-a615d6cd14c0",
+            "work_objective_id": "aec8d8c0-248f-5d23-8b19-40b54dd9892f",
+            "trace_digest": "a03f7955388d260c46c0e6f58f2bc83004bcc79af754fe3866593fba17f1e7f9"
+          },
+          "discovery_termination": "complete",
+          "discovery_uncertainty": []
+        },
+        "execution_plan": {
+          "execution_plan_id": "ad588eec-e82f-5edf-b6c1-336fe661c54f",
+          "predecessor_plan_id": null,
+          "model_id": "model-cheap",
+          "resolved_model_revision": "model-cheap-v1",
+          "provider": "local",
+          "access_route": "synthetic",
+          "native_effort": {
+            "kind": "provider_default"
+          },
+          "optional_guidance": [],
+          "required_guidance": [],
+          "guidance_action": "none",
+          "required_capabilities": [
+            "text"
+          ],
+          "harness_id": "fixture",
+          "execution_target_id": "fixture"
+        },
+        "fallback_used": false,
+        "readiness": {
+          "verified_at": "2026-01-01T00:00:00Z",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "inventory_revision": "fixture",
+          "checked_capabilities": [
+            "text"
+          ],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ]
+        }
+      },
+      "selection_acceptable": true,
+      "software_selection_overhead_ms": 277.0119300112128,
+      "scripted_judgment_calls": 15,
+      "baselines": {
+        "fixed_default": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "cheapest_feasible": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "no_guidance": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "previous_policy": {
+          "applicable": false,
+          "reason": "No separately verified previous candidate-ordering policy exists for this new public group."
+        },
+        "simple_retrieval": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        }
+      },
+      "reference_checks": {
+        "defect_recall": true,
+        "false_positives": true,
+        "severity_action": true
+      },
+      "actual_outcome": null,
+      "actual_cost": null,
+      "actual_total_time": null,
+      "missing_reason": "software-only scripted observer and independent reference artifacts"
+    },
+    {
+      "case_id": "source-identity-documentation",
+      "related_group": "source-identity",
+      "family": "documentation",
+      "discovery": {
+        "status": "selected_guidance",
+        "details": {
+          "discovery_id": "882dfe28-9349-4db0-a8f6-30804508e26a",
+          "work_objective_id": "f84ec0bb-1476-5d0b-9d83-20013899f969",
+          "guidance_refs": [
+            {
+              "content_hash": "e4eee52734ebe12c3f5fdb0b84b2424214afc88cb8d5c5892cf9f573fcec9e0d",
+              "resource_id": "api-docs",
+              "revision": "v1"
+            }
+          ],
+          "required_guidance": [],
+          "assembled_instructions": [
+            "State preconditions and facts precisely. Include a public specification reference and checked examples."
+          ],
+          "alternatives": [],
+          "uncertainty": [],
+          "termination_reason": "complete",
+          "trace_digest": "a1baec2374ccfac044297c4dcdf3d2cdcc433c4623d1881f6a643860e406fb79",
+          "revisions": {
+            "authorization_digest": "455ce44427b8b24438000580806655eeec970ff680963494ee5ca021162e715e",
+            "catalog_digest": "9afb642732e6da31796b04f95173ca609e41cc3d59839c236c40841f86c001d2",
+            "catalog_revision": "discovery-development-v1-20261009",
+            "content_revision": "content-v1",
+            "descriptions_digest": "b72d6bce2b42d5162fd79b61bcf45ef6b113e723f0782b411637cb70ef625915",
+            "policy_digest": "b925a03ee58800df6c1485a8083c19af6aa14f1cadc913a2e45118097407d474",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8",
+            "taxonomy_revision": "taxonomy-v1"
+          }
+        }
+      },
+      "decision": {
+        "status": "ready",
+        "details": {
+          "schema_version": "1",
+          "routing_decision_id": "ff37b31f-c1bf-591e-924a-cf406b6f0c7a",
+          "request_id": "f84ec0bb-1476-5d0b-9d83-20013899f969",
+          "task_id": "f84ec0bb-1476-5d0b-9d83-20013899f969",
+          "created_at": "2026-09-28T00:00:00Z",
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "versions": {
+            "catalog_revision": "discovery-development-v1-20261009",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "377a0f672f66d9c1f778275404da357c06dc59f7c06c3f31d82b864cd366bdb8"
+          },
+          "diagnostics": [],
+          "capability_mismatches": [],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ],
+          "exclusions": [],
+          "alternatives": [
+            "cheap:3a3d39a2a5bc",
+            "fast:377a0f672f66",
+            "fast:3a3d39a2a5bc"
+          ],
+          "close_calls": [],
+          "setup_proposals": [],
+          "notices": [],
+          "human_summary": "Routing assessment; readiness does not authorize execution.",
+          "acceptance_rationale": "Feasibility requires sufficient versioned evidence.",
+          "cost_estimate": {
+            "raw_token_cost": {
+              "amount": "0.002904",
+              "currency": "USD"
+            },
+            "adjusted_token_cost": null,
+            "observed_cost": null,
+            "missing_reason": null,
+            "rate_revision": "rates-v1",
+            "assumptions": [
+              "estimated cost, not a guaranteed execution spending bound",
+              "UTF-8 byte input upper bound",
+              "routing overhead is separate from execution estimate"
+            ]
+          },
+          "measurements": [],
+          "reused_decision_id": null,
+          "discovery_ref": {
+            "discovery_id": "882dfe28-9349-4db0-a8f6-30804508e26a",
+            "work_objective_id": "f84ec0bb-1476-5d0b-9d83-20013899f969",
+            "trace_digest": "a1baec2374ccfac044297c4dcdf3d2cdcc433c4623d1881f6a643860e406fb79"
+          },
+          "discovery_termination": "complete",
+          "discovery_uncertainty": []
+        },
+        "execution_plan": {
+          "execution_plan_id": "abe2b035-f2fc-5167-b6b3-64e8a83e6bcf",
+          "predecessor_plan_id": null,
+          "model_id": "model-cheap",
+          "resolved_model_revision": "model-cheap-v1",
+          "provider": "local",
+          "access_route": "synthetic",
+          "native_effort": {
+            "kind": "provider_default"
+          },
+          "optional_guidance": [],
+          "required_guidance": [],
+          "guidance_action": "none",
+          "required_capabilities": [
+            "text"
+          ],
+          "harness_id": "fixture",
+          "execution_target_id": "fixture"
+        },
+        "fallback_used": false,
+        "readiness": {
+          "verified_at": "2026-01-01T00:00:00Z",
+          "valid_until": "2099-01-01T00:00:00Z",
+          "inventory_revision": "fixture",
+          "checked_capabilities": [
+            "text"
+          ],
+          "evidence_refs": [
+            "synthetic-measurement"
+          ]
+        }
+      },
+      "selection_acceptable": true,
+      "software_selection_overhead_ms": 512.0172980241477,
+      "scripted_judgment_calls": 15,
+      "baselines": {
+        "fixed_default": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-fast",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "cheapest_feasible": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "no_guidance": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        },
+        "previous_policy": {
+          "applicable": false,
+          "reason": "No separately verified previous candidate-ordering policy exists for this new public group."
+        },
+        "simple_retrieval": {
+          "applicable": true,
+          "status": "ready",
+          "model_id": "model-cheap",
+          "guidance": [],
+          "selection_acceptable": false,
+          "downstream_quality": null,
+          "missing_reason": "no authorized model execution"
+        }
+      },
+      "reference_checks": {
+        "facts": true,
+        "requirements": true,
+        "references": true,
+        "examples": true
+      },
+      "actual_outcome": null,
+      "actual_cost": null,
+      "actual_total_time": null,
+      "missing_reason": "software-only scripted observer and independent reference artifacts"
+    }
+  ]
+}

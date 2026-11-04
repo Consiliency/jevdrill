@@ -1,0 +1,10 @@
+{
+  "taskId": "node:delegated-task:command%3Amcp%3A25bcfaa6-921d-4fba-8b02-80d7f853a312%3Adelegate-task%3Ajevdrill-merge-review-20261016-r11-346e800-astra",
+  "childThreadId": "thread:delegated-task:command%3Amcp%3A25bcfaa6-921d-4fba-8b02-80d7f853a312%3Adelegate-task%3Ajevdrill-merge-review-20261016-r11-346e800-astra",
+  "status": "failed",
+  "hasPendingChildRuns": false,
+  "providerInstanceId": "codex",
+  "model": "gpt-6-astra",
+  "summary": "This content was flagged for possible cybersecurity risk. If this seems wrong, try rephrasing your request. Otherwise, confirm that the access_programs.cyber parameter is set to the appropriate tier, and note that some cybersecurity requests are still limited, even when Daybreak is on.",
+  "standingVerdict": null
+}

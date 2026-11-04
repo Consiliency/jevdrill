@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "authorization_revision": "discovery-development-new-20261009-v1",
+  "enabled": true,
+  "study_id": "discovery-development-proposed-20261009-v1",
+  "source_digest": "1b55174c7c906276e17708ba9edf337d0a8aee24d3690b8e8ae083be70a17ea3",
+  "protocol_digest": "b7bf60057cf3861ec285c22ba859b0f8081651c28b30d450fcf11e491c302bb6",
+  "scope": {
+    "project_id": "721fe5d6-7c3b-555b-968a-6f2e6c9bbef6",
+    "workspace_id": "721fe5d6-7c3b-555b-968a-6f2e6c9bbef6",
+    "producer": "jevdrill"
+  },
+  "operations": [
+    "discover",
+    "route",
+    "experiment"
+  ],
+  "expires_at": "2026-10-15T00:00:00Z",
+  "candidate_revisions": [
+    "gpt-4.1-mini-2025-04-14",
+    "gpt-4.1-nano-2025-04-14"
+  ],
+  "judgment_revision": "jev-1.13.0",
+  "max_candidate_calls": 60,
+  "max_judgment_calls": 768,
+  "candidate_spend_microusd": 26000000,
+  "judgment_spend_microusd": 2200000,
+  "total_spend_microusd": 28200000,
+  "whole_study_deadline_ms": 2400000,
+  "candidate_output_tokens": 512,
+  "request_bytes": 8192,
+  "receive_bytes": 65536,
+  "attempts": 1,
+  "concurrency": 1,
+  "cpu": 2,
+  "memory_bytes": 2147483648,
+  "pids": 64,
+  "image_id": "sha256:70af8b01bcbd3a008522f36ea07b679f14f9ad3fb721868cf0cc3f80b7e3f958",
+  "promotion_authorized": false,
+  "holdouts_opened": false,
+  "calibration_collection_only": true
+}

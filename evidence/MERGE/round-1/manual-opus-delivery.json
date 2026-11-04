@@ -1,0 +1,7 @@
+{
+  "model": "claude-opus-5-5",
+  "tools_enabled": true,
+  "status": "interrupted",
+  "usable_verdict": false,
+  "detail": "Launcher exited during intentional turn interruption; partial public commentary only, no final result. Fresh seat required."
+}

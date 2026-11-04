@@ -1,0 +1,22 @@
+{
+  "schema": "spec_delta_closeout.v1",
+  "phase": "EXPERIMENT",
+  "decision": "no_spec_delta",
+  "target_surfaces": [
+    "docs/experiment-interfaces.md",
+    "docs/experiment-readiness.md",
+    "docs/evaluation-protocol.md"
+  ],
+  "evidence_paths": [
+    "evidence/EXPERIMENT/spec-delta.json",
+    "evidence/EXPERIMENT/verification.json",
+    "evidence/EXPERIMENT/closeout.json"
+  ],
+  "redaction_posture": "metadata_only",
+  "downstream_handling": "none",
+  "canonical_adoption": false,
+  "publication_performed": false,
+  "holdouts_opened": false,
+  "promotion_eligible": false,
+  "closeout_status": "software_verification_pending_empirical_required"
+}

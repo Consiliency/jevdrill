@@ -1,0 +1,127 @@
+[
+  {
+    "id": "route-application-valid",
+    "contract": "RouteInputs",
+    "accepted": true,
+    "payload": {
+      "schema_version": "1",
+      "request": {
+        "active_guidance": [],
+        "attachment_refs": [],
+        "capabilities": {
+          "declared": [
+            "text"
+          ],
+          "expires_at": "2099-01-01T00:00:00Z",
+          "inventory_revision": "fixture",
+          "runtime": [
+            "text"
+          ],
+          "verified_at": "2026-01-01T00:00:00Z"
+        },
+        "envelope": {
+          "created_at": "2026-09-28T00:00:00Z",
+          "execution_target_id": "fixture",
+          "extensions": {},
+          "harness_id": "fixture",
+          "idempotency_key": "fixture",
+          "operation": "route",
+          "project_id": "00000000-0000-4000-8000-000000000001",
+          "request_id": "00000000-0000-4000-8000-000000000001",
+          "schema_version": "1",
+          "workspace_id": "00000000-0000-4000-8000-000000000001"
+        },
+        "execution_mode": "main",
+        "hard_constraints": {
+          "allowed_providers": [],
+          "context_token_limit": 32768,
+          "governing_instruction_refs": [],
+          "local_only": false,
+          "max_attempts": 1,
+          "spending_ceiling": null,
+          "total_deadline_ms": 5000
+        },
+        "optimization_objective": {
+          "acceptance_requirements": [],
+          "direction": "minimize",
+          "metric_id": "raw_token_cost",
+          "objective_id": "fixture",
+          "routing_cost_basis": "raw",
+          "version": "fixture"
+        },
+        "recursion_bypass": false,
+        "representation_source": "fixture",
+        "retry_context": null,
+        "task_id": "00000000-0000-4000-8000-000000000001",
+        "task_representation": "fixture",
+        "versions": {
+          "catalog_revision": "fixture",
+          "context_revision": "fixture",
+          "evidence_revision": "fixture",
+          "policy_revision": "fixture",
+          "settings_revision": "fixture"
+        }
+      },
+      "inventory": {
+        "schema_version": "1",
+        "revision": "fixture",
+        "target": "fixture",
+        "source_version": "synthetic-v1",
+        "verified_at": "2026-01-01T00:00:00Z",
+        "expires_at": "2099-01-01T00:00:00Z",
+        "candidates": [
+          {
+            "candidate_id": "candidate-a",
+            "model_id": "model-a",
+            "resolved_model_revision": "model-a-v1",
+            "provider": "local",
+            "access_route": "synthetic",
+            "local": true,
+            "native_effort": {
+              "kind": "provider_default"
+            },
+            "supported_efforts": [],
+            "declared_capabilities": [
+              "text"
+            ],
+            "runtime_capabilities": [
+              "text"
+            ],
+            "required_capabilities": [
+              "text"
+            ],
+            "verified_at": "2026-01-01T00:00:00Z",
+            "expires_at": "2099-01-01T00:00:00Z",
+            "source": "synthetic-host",
+            "context_token_limit": 32768,
+            "output_token_limit": 1024,
+            "token_counter_revision": "utf8-bytes-upper-bound-v1",
+            "quality_sufficient": true,
+            "satisfied_requirements": [],
+            "completion_time_ms": 1000,
+            "evidence_strength": "measured",
+            "evidence_refs": [
+              "synthetic-measurement"
+            ],
+            "rates": {
+              "revision": "rates-v1",
+              "currency": "USD",
+              "input_rate": "0.000001",
+              "output_rate": "0.000002",
+              "verified_at": "2026-01-01T00:00:00Z",
+              "expires_at": "2099-01-01T00:00:00Z",
+              "subscription_multiplier": null
+            },
+            "default": false,
+            "guidance_options": [],
+            "addresses_failures": []
+          }
+        ]
+      },
+      "catalog": null,
+      "settings_layers": [],
+      "judgment_policy": null
+    },
+    "digest": "21d590779097925dd4fbbbd1bc4ad6ec50a31a94c3b5e1c0cd9903157ab96be9"
+  }
+]

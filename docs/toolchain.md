@@ -2,7 +2,7 @@
 
 Initial implementation targets CPython 3.13, the minor used by the isolated BAML proof. Other Python minors remain unsupported until their complete compatibility matrix is recorded; the earlier 3.12–3.14 range was a proposal.
 
-Use `uv sync --locked` and `npm ci`. Runtime dependencies and developer tools are locked in `uv.lock`; Node is a development-only cross-language schema consumer. There is no routing command until ROUTE implements it.
+Use `uv sync --locked` and `npm ci`. Runtime dependencies and developer tools are locked in `uv.lock`; Node is a development-only cross-language schema consumer. The installed CLI exposes the implemented routing and discovery commands.
 
 BAML compiler and bridge must both be 0.20.1. Set `BAML_CLI` to the verified compiler executable; generation checks reject a different version. Generated package imports currently initialize the bridge. This dependency is explicit, not a runtime-free contract claim. Generated files and schema exports are checked in; never edit them manually.
 

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "owner_identity": "user",
+  "approval_reference": "current conversation owner reply to structured study authorization question",
+  "approval_text": "Approve calibration collection (Recommended) \u2014 Authorize the exact proposed limits; collect development data without promotion or holdout exposure.",
+  "approval_received_before_observation": "2026-10-09T23:33:44Z",
+  "exact_message_timestamp": "unknown",
+  "recorded_at": "2026-10-09T23:35:59.081560+00:00",
+  "study_id": "discovery-development-proposed-20261009-v1",
+  "grant_sha256": "8aec81743df5a95af900b40983b9c559829d4d764d63a389d566b4cd765567f2",
+  "grant_canonical_digest": "3222d0ff55a48afdb44a21ef912855c9e7d8a61e443ba875d3265d07c5e9b994",
+  "scope_statement": "Exact proposed $28.20 total: $26 candidates and $2.20 JEV, 12 public cases, <=60 candidates and <=768 judgments, one attempt and no retries, concurrency 1, 40 minutes, expires 2026-10-15T00:00:00Z, calibration only, no promotion or holdouts.",
+  "credential_scope_resolution": "Parent confirmed generic shared OpenAI OPENAI_API_KEY and Typesafe AI Agent Harness API Key credential in Consiliency Deploy Secrets appropriate for owner-authorized operational validation. Unrelated specialized fields and production project items excluded."
+}

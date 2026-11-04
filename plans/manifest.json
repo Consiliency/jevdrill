@@ -1,6 +1,97 @@
 {
   "plans": [
     {
+      "acceptance_criteria_count": null,
+      "created_at": "2026-10-06T04:26:06.511345+00:00",
+      "file": "plans/amendment-baml-usage-repair-20261006.md",
+      "handoff_ref": ".dev-skills/handoffs/codex-execute-detailed/BAML-usage-repair-20261006.md",
+      "if_gates_produced": [],
+      "lanes": [],
+      "lifecycle": [
+        {
+          "at": "2026-10-06T04:26:06Z",
+          "by": "codex-execute-detailed",
+          "metadata": {
+            "note": "Amendment lifecycle recorded at closeout; terminal parent entry cannot be reopened.",
+            "run_id": "BAML-usage-repair-20261006"
+          },
+          "transition": "executing"
+        },
+        {
+          "at": "2026-10-06T04:26:06Z",
+          "by": "codex-execute-detailed",
+          "metadata": {
+            "dirty_path_classification": "evidence/EXPERIMENT/baml-usage-repair-20261006/dirty-path-classification.json",
+            "doc_delta_decision": "docs_updated",
+            "parent_pending_criteria": [
+              "AC8"
+            ],
+            "publication_performed": false,
+            "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-detailed/reflections/d97f5b6b30d2/codex-v0-linux/BAML-usage-repair-20261006.md",
+            "run_id": "BAML-usage-repair-20261006",
+            "tests_passed": 927,
+            "verification_artifact_path": "evidence/EXPERIMENT/baml-usage-repair-20261006/verification.json",
+            "verification_status": "passed"
+          },
+          "transition": "completed"
+        }
+      ],
+      "owner_skill": "codex-execute-detailed",
+      "phase_alias": null,
+      "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-detailed/reflections/d97f5b6b30d2/codex-v0-linux/BAML-usage-repair-20261006.md",
+      "roadmap_ref": null,
+      "slug": "amendment-baml-usage-repair-20261006",
+      "status": "completed",
+      "task_summary": "Owner-approved pinned BAML usage repair and smaller offline smoke proposal",
+      "type": "detailed",
+      "updated_at": "2026-10-06T04:26:06Z"
+    },
+    {
+      "acceptance_criteria_count": null,
+      "created_at": "2026-10-06T06:34:31.924747+00:00",
+      "file": "plans/amendment-calibration-smoke-runner-20261006.md",
+      "handoff_ref": ".dev-skills/handoffs/codex-execute-detailed/CALIBRATION-smoke-20261006.md",
+      "if_gates_produced": [],
+      "lanes": [],
+      "lifecycle": [
+        {
+          "at": "2026-10-06T06:34:31Z",
+          "by": "codex-execute-detailed",
+          "metadata": {
+            "note": "Lifecycle recorded at closeout for completed continuation.",
+            "run_id": "CALIBRATION-smoke-20261006"
+          },
+          "transition": "executing"
+        },
+        {
+          "at": "2026-10-06T06:34:31Z",
+          "by": "codex-execute-detailed",
+          "metadata": {
+            "accepted_outputs": 1,
+            "dirty_path_classification": "evidence/EXPERIMENT/calibration-smoke-20261006/dirty-path-classification.json",
+            "doc_delta_decision": "docs_updated",
+            "live_calls": 9,
+            "promotion_eligible": false,
+            "publication_performed": false,
+            "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-detailed/reflections/d97f5b6b30d2/codex-v0-linux/CALIBRATION-smoke-20261006.md",
+            "run_id": "CALIBRATION-smoke-20261006",
+            "verification_artifact_path": "evidence/EXPERIMENT/calibration-smoke-20261006/verification.json",
+            "verification_status": "passed"
+          },
+          "transition": "completed"
+        }
+      ],
+      "owner_skill": "codex-execute-detailed",
+      "phase_alias": null,
+      "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-detailed/reflections/d97f5b6b30d2/codex-v0-linux/CALIBRATION-smoke-20261006.md",
+      "roadmap_ref": null,
+      "slug": "amendment-calibration-smoke-runner-20261006",
+      "status": "completed",
+      "task_summary": "Bounded one-case live smoke runner, owner-authorized execution and immutable replay",
+      "type": "detailed",
+      "updated_at": "2026-10-06T06:34:31Z"
+    },
+    {
       "acceptance_criteria_count": 5,
       "created_at": "2026-10-02T19:29:45.509761+00:00",
       "file": "plans/detailed-accounting-smoke-20261002.md",
@@ -321,6 +412,80 @@
       "task_summary": "Owner-authorized local Gemma development study without paid quota or whole-study deadline",
       "type": "detailed",
       "updated_at": "2026-10-04T00:07:46Z"
+    },
+    {
+      "acceptance_criteria_count": 8,
+      "created_at": "2026-10-05T17:36:19Z",
+      "file": "plans/detailed-pre-gepa-repairs-20261005-1336.md",
+      "handoff_ref": ".dev-skills/handoffs/codex-plan-detailed/PRE-GEPA-plan-20261005-1336.md",
+      "if_gates_produced": [],
+      "lanes": [],
+      "lifecycle": [
+        {
+          "at": "2026-10-05T17:36:19Z",
+          "by": "codex-plan-detailed",
+          "metadata": {
+            "advisory_review": {
+              "artifact": "research/pre-gepa-review/result.json",
+              "governed_gate_passed": false,
+              "implementation_performed": false,
+              "plan_sha256": "1c4f72d3178f9d07d2ed9ee9ae7cff437f1bbb83fe3b3241f8e040416ff73ca7",
+              "president": "Opus 5.5",
+              "rounds": 3,
+              "status": "agree"
+            },
+            "git_commit_created": false,
+            "planning_only": true,
+            "verification_status": "not_run"
+          },
+          "transition": "committed"
+        },
+        {
+          "at": "2026-10-06T00:08:50Z",
+          "by": "codex-execute-detailed",
+          "metadata": {
+            "local_only": true,
+            "owner_authority": "implement the plan",
+            "plan": "plans/detailed-pre-gepa-repairs-20261005-1336.md",
+            "run_id": "PRE-GEPA-20261005"
+          },
+          "transition": "executing"
+        },
+        {
+          "at": "2026-10-06T00:41:51Z",
+          "by": "codex-execute-detailed",
+          "metadata": {
+            "blocked_criteria": [
+              "AC3"
+            ],
+            "diagnostic": "acceptance criterion unmet: planned stop at BAML counter-decoding blocker; live calibration pending",
+            "dirty_path_classification": "evidence/EXPERIMENT/pre-gepa-20261005/dirty-path-classification.json",
+            "doc_delta_decision": "docs_updated",
+            "implementation_checks_passed": true,
+            "local_only": true,
+            "pending_criteria": [
+              "AC8"
+            ],
+            "publication_performed": false,
+            "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-detailed/reflections/d97f5b6b30d2/codex-v0-linux/PRE-GEPA-20261005.md",
+            "run_id": "PRE-GEPA-20261005",
+            "satisfied_criteria": 6,
+            "tests_passed": 899,
+            "verification_artifact_path": "evidence/EXPERIMENT/pre-gepa-20261005/verification.json",
+            "verification_status": "blocked"
+          },
+          "transition": "failed"
+        }
+      ],
+      "owner_skill": "codex-plan-detailed",
+      "phase_alias": null,
+      "reflection_ref": "/home/viperjuice/.codex/skills/codex-plan-detailed/reflections/d97f5b6b30d2/codex-v0-linux/PRE-GEPA-plan-20261005-1336.md",
+      "roadmap_ref": null,
+      "slug": "detailed-pre-gepa-repairs-20261005-1336",
+      "status": "failed",
+      "task_summary": "Repair task contracts, JEV usage capture, and suitability calibration before GEPA",
+      "type": "detailed",
+      "updated_at": "2026-10-06T00:41:51Z"
     },
     {
       "acceptance_criteria_count": 5,
@@ -964,6 +1129,246 @@
       "updated_at": "2026-10-03T23:27:21Z"
     },
     {
+      "acceptance_criteria_count": 4,
+      "created_at": "2026-10-09T21:04:05Z",
+      "file": "plans/phase-plan-v1-EXPERIMENT.md",
+      "handoff_ref": ".dev-skills/handoffs/codex-plan-phase/experiment-drill-replan-20261009.md",
+      "if_gates_produced": [],
+      "lanes": [
+        "SL-0",
+        "SL-1",
+        "SL-2",
+        "SL-3"
+      ],
+      "lifecycle": [
+        {
+          "at": "2026-10-09T21:10:00Z",
+          "by": "codex-execute-phase",
+          "metadata": {
+            "if_gates_produced": [],
+            "run_id": "experiment-drill-execute-20261009"
+          },
+          "transition": "executing"
+        },
+        {
+          "at": "2026-10-09T23:13:42Z",
+          "by": "codex-execute-phase",
+          "metadata": {
+            "blocker_class": "product_decision_missing",
+            "blocker_summary": "New exact28.20USD calibration-only candidate/JEV authority and later preregistered family tolerances/fresh evaluation are required; software/native/operational errors are empty.",
+            "calibration_collection_only": true,
+            "dirty_worktree_summary": "Phase-owned implementation and declared planning/control changes only; inherited source index and55historical evidence files preserved. No commit authority.",
+            "doc_delta_decision": "docs_updated",
+            "handoff_ref": ".dev-skills/handoffs/codex-execute-phase/experiment-drill-execute-20261009.md",
+            "human_required": true,
+            "if_gates_produced": [],
+            "issue_dispositions": [],
+            "issue_inventory": [],
+            "next_command": "none",
+            "next_phase": "EXPERIMENT",
+            "next_skill": "none",
+            "phase_alias": "EXPERIMENT",
+            "produced_if_gates": [],
+            "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-phase/reflections/626cf486eb665885/codex--route-discovery/experiment-drill-execute-20261009.md",
+            "review_ratified": false,
+            "run_id": "experiment-drill-execute-20261009",
+            "software_verification_status": "passed",
+            "spec_delta_decision": "no_spec_delta",
+            "terminal_status": "awaiting_owner_decision",
+            "verification_artifact_path": ".phase-loop/runs/experiment-drill-execute-20261009-verified/verification.json",
+            "verification_ref": "evidence/EXPERIMENT/verification.json",
+            "verification_status": "blocked"
+          },
+          "transition": "failed"
+        }
+      ],
+      "owner_skill": "codex-plan-phase",
+      "ownership_amendments": [
+        {
+          "allowed_change": "TemporaryDirectory(delete=False) preserves the public verification generation outside the review tree",
+          "at": "2026-10-09T22:51:12Z",
+          "file": "scripts/verify_route_phase.py",
+          "human_required": false,
+          "lane": "SL-3",
+          "literal_plan_validation_findings": [],
+          "new_execution_authority": false,
+          "original_suite_and_production_cleanup_unchanged": true,
+          "ownership_conflicts": [],
+          "plan_sha256": "4a472a92320d1181c4ad0d5066e2bd56b2ea7c571c828f2f01de4c45f1038084",
+          "reason": "Windows310-character verification teardown fails; extended namespaces break inherited child-launch controls"
+        }
+      ],
+      "phase_alias": "EXPERIMENT",
+      "reflection_ref": "/home/viperjuice/.codex/skills/codex-plan-phase/reflections/626cf486eb665885/codex--route-discovery/experiment-drill-replan-20261009.md",
+      "roadmap_ref": {
+        "file": "specs/phase-plans-v1.md",
+        "slug": "phase-plans-v1",
+        "status": "committed",
+        "type": "roadmap"
+      },
+      "slug": "experiment-drill-replan-20261009",
+      "status": "failed",
+      "task_summary": "Implement amended EXPERIMENT offline safeguards and prepare concrete discovery/routing calibration study; preserve unverified empirical gates.",
+      "type": "phase",
+      "updated_at": "2026-10-09T23:13:42Z"
+    },
+    {
+      "acceptance_criteria_count": 5,
+      "artifact_tracking": "staged_uncommitted",
+      "created_at": "2026-10-08T22:15:38.795583+00:00",
+      "expected_if_gates": [
+        "IF-0-HOST-1"
+      ],
+      "file": "plans/phase-plan-v1-HOST.md",
+      "handoff_ref": "/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/.dev-skills/handoffs/codex-plan-phase/host-drill-replan-20261008.md",
+      "if_gates_produced": [],
+      "lanes": [
+        "SL-0",
+        "SL-1",
+        "SL-2",
+        "SL-3",
+        "SL-4"
+      ],
+      "lifecycle": [
+        {
+          "at": "2026-10-09T09:52:17Z",
+          "by": "codex-execute-phase",
+          "metadata": {
+            "run_id": "host-discovery-execute-20261009"
+          },
+          "transition": "executing"
+        },
+        {
+          "at": "2026-10-09T11:03:08Z",
+          "by": "codex-execute-phase",
+          "metadata": {
+            "artifact_state": "staged",
+            "dirty_worktree_summary": "phase-owned staged output and preserved ROUTE baseline; uncommitted",
+            "doc_delta_decision": "docs_updated",
+            "handoff_ref": ".dev-skills/handoffs/codex-execute-phase/host-discovery-execute-20261009.md",
+            "human_required": false,
+            "if_gates_produced": [
+              "IF-0-HOST-1"
+            ],
+            "issue_dispositions": [],
+            "issue_inventory": [],
+            "next_command": "codex-plan-phase specs/phase-plans-v1.md LEARN",
+            "next_skill": "codex-plan-phase",
+            "phase_alias": "HOST",
+            "produced_gate_metadata": {
+              "source": "evidence/HOST/verification.json",
+              "status": "passed"
+            },
+            "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-phase/reflections/626cf486eb665885/codex--route-discovery/host-discovery-execute-20261009.md",
+            "run_id": "host-discovery-execute-20261009",
+            "spec_delta_decision": "roadmap_amendment",
+            "terminal_status": "awaiting_phase_closeout",
+            "verification_artifact_path": "evidence/HOST/verification.json",
+            "verification_status": "passed",
+            "verification_summary_line": "\"status\": \"passed\""
+          },
+          "transition": "completed"
+        }
+      ],
+      "owner_skill": "codex-plan-phase",
+      "phase_alias": "HOST",
+      "reflection_ref": "/home/viperjuice/.codex/skills/codex-plan-phase/reflections/21a4b7224269/codex--route-discovery/host-drill-replan-20261008.md",
+      "review_kind": "planner_self_review",
+      "review_ratified": false,
+      "roadmap_ref": {
+        "file": "specs/phase-plans-v1.md",
+        "slug": "phase-plans-v1",
+        "status": "committed",
+        "type": "roadmap"
+      },
+      "slug": "host-drill-replan-20261008",
+      "status": "completed",
+      "task_summary": "Replan HOST against implemented progressive discovery and linked route-v2, covering EC-HOST-1\u20134.",
+      "type": "phase",
+      "updated_at": "2026-10-09T11:03:08Z"
+    },
+    {
+      "acceptance_criteria_count": 5,
+      "created_at": "2026-10-09T20:16:38Z",
+      "file": "plans/phase-plan-v1-LEARN.md",
+      "handoff_ref": ".dev-skills/handoffs/codex-plan-phase/learn-drill-replan-20261009.md",
+      "if_gates_produced": [
+        "IF-0-LEARN-1"
+      ],
+      "lanes": [
+        "SL-0",
+        "SL-1",
+        "SL-2",
+        "SL-3"
+      ],
+      "lifecycle": [
+        {
+          "at": "2026-10-09T20:19:25Z",
+          "by": "codex-execute-phase",
+          "metadata": {
+            "phase": "LEARN",
+            "run_id": "learn-drill-execute-20261009"
+          },
+          "transition": "executing"
+        },
+        {
+          "at": "2026-10-09T21:00:07Z",
+          "by": "codex-execute-phase",
+          "metadata": {
+            "canonical_control_state": {
+              "LEARN": "unplanned",
+              "current_phase": "CONTRACT",
+              "reconciliation_pending": true
+            },
+            "closeout_ref": "evidence/LEARN/closeout.json",
+            "dirty_worktree_summary": {
+              "authorized_baseline_preserved": true,
+              "commits_authorized": false,
+              "terminal_status": "awaiting_phase_closeout",
+              "unowned_paths": []
+            },
+            "doc_delta_decision": "docs_updated",
+            "handoff_ref": ".dev-skills/handoffs/codex-execute-phase/learn-drill-execute-20261009.md",
+            "if_gates_produced": [
+              "IF-0-LEARN-1"
+            ],
+            "issue_dispositions": [],
+            "issue_inventory": [],
+            "phase_alias": "LEARN",
+            "produced_gate_metadata": {
+              "native_platforms": [
+                "Linux",
+                "Darwin",
+                "Windows"
+              ],
+              "source_digest": "55cda60e68f377e4bbb4dd5af514a5184be3804306509f3969779ccd19dbb199"
+            },
+            "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-phase/reflections/626cf486eb665885/codex--route-discovery/learn-drill-execute-20261009.md",
+            "run_id": "learn-drill-execute-20261009",
+            "spec_delta_decision": "no_spec_delta",
+            "verification_artifact_path": ".phase-loop/runs/learn-drill-execute-20261009-verified/verification.json",
+            "verification_ref": "evidence/LEARN/verification.json",
+            "verification_status": "passed"
+          },
+          "transition": "completed"
+        }
+      ],
+      "owner_skill": "codex-plan-phase",
+      "phase_alias": "LEARN",
+      "reflection_ref": "/home/viperjuice/.codex/skills/codex-plan-phase/reflections/626cf486eb665885/codex--route-discovery/learn-drill-replan-20261009.md",
+      "roadmap_ref": {
+        "file": "specs/phase-plans-v1.md",
+        "slug": "phase-plans-v1",
+        "status": "committed",
+        "type": "roadmap"
+      },
+      "slug": "learn-drill-replan-20261009",
+      "status": "completed",
+      "task_summary": "Replan all five LEARN criteria against verified HOST discovery/task lineage",
+      "type": "phase",
+      "updated_at": "2026-10-09T21:00:07Z"
+    },
+    {
       "acceptance_criteria_count": null,
       "blocker_class": "dirty_worktree_conflict",
       "created_at": "2026-09-28T15:38:54Z",
@@ -1252,171 +1657,6 @@
       "updated_at": "2026-09-29T00:33:35.190017+00:00"
     },
     {
-      "acceptance_criteria_count": 8,
-      "created_at": "2026-10-05T17:36:19Z",
-      "file": "plans/detailed-pre-gepa-repairs-20261005-1336.md",
-      "handoff_ref": ".dev-skills/handoffs/codex-plan-detailed/PRE-GEPA-plan-20261005-1336.md",
-      "if_gates_produced": [],
-      "lanes": [],
-      "lifecycle": [
-        {
-          "at": "2026-10-05T17:36:19Z",
-          "by": "codex-plan-detailed",
-          "metadata": {
-            "advisory_review": {
-              "artifact": "research/pre-gepa-review/result.json",
-              "governed_gate_passed": false,
-              "implementation_performed": false,
-              "plan_sha256": "1c4f72d3178f9d07d2ed9ee9ae7cff437f1bbb83fe3b3241f8e040416ff73ca7",
-              "president": "Opus 5.5",
-              "rounds": 3,
-              "status": "agree"
-            },
-            "git_commit_created": false,
-            "planning_only": true,
-            "verification_status": "not_run"
-          },
-          "transition": "committed"
-        },
-        {
-          "at": "2026-10-06T00:08:50Z",
-          "by": "codex-execute-detailed",
-          "metadata": {
-            "local_only": true,
-            "owner_authority": "implement the plan",
-            "plan": "plans/detailed-pre-gepa-repairs-20261005-1336.md",
-            "run_id": "PRE-GEPA-20261005"
-          },
-          "transition": "executing"
-        },
-        {
-          "at": "2026-10-06T00:41:51Z",
-          "by": "codex-execute-detailed",
-          "metadata": {
-            "blocked_criteria": [
-              "AC3"
-            ],
-            "diagnostic": "acceptance criterion unmet: planned stop at BAML counter-decoding blocker; live calibration pending",
-            "dirty_path_classification": "evidence/EXPERIMENT/pre-gepa-20261005/dirty-path-classification.json",
-            "doc_delta_decision": "docs_updated",
-            "implementation_checks_passed": true,
-            "local_only": true,
-            "pending_criteria": [
-              "AC8"
-            ],
-            "publication_performed": false,
-            "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-detailed/reflections/d97f5b6b30d2/codex-v0-linux/PRE-GEPA-20261005.md",
-            "run_id": "PRE-GEPA-20261005",
-            "satisfied_criteria": 6,
-            "tests_passed": 899,
-            "verification_artifact_path": "evidence/EXPERIMENT/pre-gepa-20261005/verification.json",
-            "verification_status": "blocked"
-          },
-          "transition": "failed"
-        }
-      ],
-      "owner_skill": "codex-plan-detailed",
-      "phase_alias": null,
-      "reflection_ref": "/home/viperjuice/.codex/skills/codex-plan-detailed/reflections/d97f5b6b30d2/codex-v0-linux/PRE-GEPA-plan-20261005-1336.md",
-      "roadmap_ref": null,
-      "slug": "detailed-pre-gepa-repairs-20261005-1336",
-      "status": "failed",
-      "task_summary": "Repair task contracts, JEV usage capture, and suitability calibration before GEPA",
-      "type": "detailed",
-      "updated_at": "2026-10-06T00:41:51Z"
-    },
-    {
-      "acceptance_criteria_count": null,
-      "created_at": "2026-10-06T04:26:06.511345+00:00",
-      "file": "plans/amendment-baml-usage-repair-20261006.md",
-      "handoff_ref": ".dev-skills/handoffs/codex-execute-detailed/BAML-usage-repair-20261006.md",
-      "if_gates_produced": [],
-      "lanes": [],
-      "lifecycle": [
-        {
-          "at": "2026-10-06T04:26:06Z",
-          "by": "codex-execute-detailed",
-          "metadata": {
-            "note": "Amendment lifecycle recorded at closeout; terminal parent entry cannot be reopened.",
-            "run_id": "BAML-usage-repair-20261006"
-          },
-          "transition": "executing"
-        },
-        {
-          "at": "2026-10-06T04:26:06Z",
-          "by": "codex-execute-detailed",
-          "metadata": {
-            "dirty_path_classification": "evidence/EXPERIMENT/baml-usage-repair-20261006/dirty-path-classification.json",
-            "doc_delta_decision": "docs_updated",
-            "parent_pending_criteria": [
-              "AC8"
-            ],
-            "publication_performed": false,
-            "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-detailed/reflections/d97f5b6b30d2/codex-v0-linux/BAML-usage-repair-20261006.md",
-            "run_id": "BAML-usage-repair-20261006",
-            "tests_passed": 927,
-            "verification_artifact_path": "evidence/EXPERIMENT/baml-usage-repair-20261006/verification.json",
-            "verification_status": "passed"
-          },
-          "transition": "completed"
-        }
-      ],
-      "owner_skill": "codex-execute-detailed",
-      "phase_alias": null,
-      "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-detailed/reflections/d97f5b6b30d2/codex-v0-linux/BAML-usage-repair-20261006.md",
-      "roadmap_ref": null,
-      "slug": "amendment-baml-usage-repair-20261006",
-      "status": "completed",
-      "task_summary": "Owner-approved pinned BAML usage repair and smaller offline smoke proposal",
-      "type": "detailed",
-      "updated_at": "2026-10-06T04:26:06Z"
-    },
-    {
-      "acceptance_criteria_count": null,
-      "created_at": "2026-10-06T06:34:31.924747+00:00",
-      "file": "plans/amendment-calibration-smoke-runner-20261006.md",
-      "handoff_ref": ".dev-skills/handoffs/codex-execute-detailed/CALIBRATION-smoke-20261006.md",
-      "if_gates_produced": [],
-      "lanes": [],
-      "lifecycle": [
-        {
-          "at": "2026-10-06T06:34:31Z",
-          "by": "codex-execute-detailed",
-          "metadata": {
-            "note": "Lifecycle recorded at closeout for completed continuation.",
-            "run_id": "CALIBRATION-smoke-20261006"
-          },
-          "transition": "executing"
-        },
-        {
-          "at": "2026-10-06T06:34:31Z",
-          "by": "codex-execute-detailed",
-          "metadata": {
-            "accepted_outputs": 1,
-            "dirty_path_classification": "evidence/EXPERIMENT/calibration-smoke-20261006/dirty-path-classification.json",
-            "doc_delta_decision": "docs_updated",
-            "live_calls": 9,
-            "promotion_eligible": false,
-            "publication_performed": false,
-            "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-detailed/reflections/d97f5b6b30d2/codex-v0-linux/CALIBRATION-smoke-20261006.md",
-            "run_id": "CALIBRATION-smoke-20261006",
-            "verification_artifact_path": "evidence/EXPERIMENT/calibration-smoke-20261006/verification.json",
-            "verification_status": "passed"
-          },
-          "transition": "completed"
-        }
-      ],
-      "owner_skill": "codex-execute-detailed",
-      "phase_alias": null,
-      "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-detailed/reflections/d97f5b6b30d2/codex-v0-linux/CALIBRATION-smoke-20261006.md",
-      "roadmap_ref": null,
-      "slug": "amendment-calibration-smoke-runner-20261006",
-      "status": "completed",
-      "task_summary": "Bounded one-case live smoke runner, owner-authorized execution and immutable replay",
-      "type": "detailed",
-      "updated_at": "2026-10-06T06:34:31Z"
-    },
-    {
       "acceptance_criteria_count": null,
       "created_at": "2026-10-07T01:08:44.690911+00:00",
       "file": "plans/phase-plan-v1-ROUTE.md",
@@ -1432,7 +1672,39 @@
         "SL-3",
         "SL-4"
       ],
-      "lifecycle": [],
+      "lifecycle": [
+        {
+          "at": "2026-10-08T21:55:05Z",
+          "by": "codex-execute-phase",
+          "metadata": {
+            "artifact": "plans/phase-plan-v1-ROUTE.md",
+            "branch": "codex/route-discovery",
+            "phase_alias": "ROUTE",
+            "run_id": "route-discovery-20261008"
+          },
+          "transition": "executing"
+        },
+        {
+          "at": "2026-10-08T22:01:24Z",
+          "by": "codex-execute-phase",
+          "metadata": {
+            "dirty_worktree_summary": "Only phase-owned implementation and planning/control paths; no commit authorization. Native verification passed.",
+            "doc_delta_decision": "docs_updated",
+            "if_gates_produced": [],
+            "issue_dispositions": [],
+            "issue_inventory": [],
+            "next_command": "codex-plan-phase specs/phase-plans-v1.md HOST",
+            "next_phase": "HOST",
+            "phase_alias": "ROUTE",
+            "reflection_ref": "/home/viperjuice/.codex/skills/codex-execute-phase/reflections/21a4b7224269/codex--route-discovery/route-discovery-20261008.md",
+            "run_id": "route-discovery-20261008",
+            "terminal_status": "awaiting_phase_closeout",
+            "verification_artifact_path": "evidence/ROUTE/verification.json",
+            "verification_status": "passed"
+          },
+          "transition": "completed"
+        }
+      ],
       "owner_skill": "codex-plan-phase",
       "phase_alias": "ROUTE",
       "reflection_ref": null,
@@ -1443,10 +1715,10 @@
         "type": "roadmap"
       },
       "slug": "route-drill-replan-20261007",
-      "status": "committed",
+      "status": "completed",
       "task_summary": null,
       "type": "phase",
-      "updated_at": "2026-10-07T01:08:44.690911+00:00"
+      "updated_at": "2026-10-08T22:01:24Z"
     }
   ],
   "schema_version": 1

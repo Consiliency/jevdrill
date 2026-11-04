@@ -1,0 +1,46 @@
+{
+  "source_manifest_sha256": "13ffc320fbacec67cf6627e5c98a7ccbc0fc6d90ece00b68e385d90603ef6dfd",
+  "platform": "Linux; no new native macOS or Windows receipts",
+  "full_suite": {
+    "passed": 841,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_seconds": 390.24,
+    "command": ".venv/bin/python -m pytest --junitxml=/tmp/jevdrill-panel-r2-full.xml",
+    "log": "/tmp/jevdrill-panel-r2-full.log",
+    "log_sha256": "9243699ecf73a18faf789a0d0fdf8883b6073ccedb0887d5bd919848a87c302b",
+    "junit": "/tmp/jevdrill-panel-r2-full.xml",
+    "junit_sha256": "413215303359dfa45e980363eb5a652c95f7c3afbab93db9d7c1429098a68d49",
+    "environment": {
+      "JEVDRILL_AGENT_HARNESS_ROOT": "/mnt/workspace/worktrees/viperjuice/agent-harness-jevdrill-discovery-host",
+      "JEVDRILL_AGENT_HARNESS_PYTHON": "/mnt/workspace/worktrees/viperjuice/agent-harness-jevdrill-discovery-host/phase-loop-runtime/.venv/bin/python",
+      "JEVDRILL_TEST_CLI": "/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/.venv/bin/jevdrill",
+      "JEVDRILL_TEST_PYTHON": "/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery/.venv/bin/python",
+      "PHASE_LOOP_TDD_EXPECT_SCHED": "1",
+      "BAML_CLI": "/home/viperjuice/workspace/worktrees/route-compiler-0.20.1/bin/baml-cli"
+    }
+  },
+  "targeted_suite": {
+    "passed": 97,
+    "independent_reviewer": "Astra round-2/astra.md",
+    "initial_attempt": "96 passed, 1 failed: test incorrectly required a fresh retrieval judgment with no lexical hit",
+    "correction": "Receipt assertion now depends on whether retrieval selected any resources; the isolated test passed, then Astra reran all 97 successfully",
+    "initial_log": "/tmp/jevdrill-panel-r2-targeted.log"
+  },
+  "ruff_lint_and_format": "passed for six changed files",
+  "mypy": "passed for 23 src/jevdrill files",
+  "pinned_generation_parity": "passed: 147 generated files, 78 schemas, write=false; independently repeated by Astra",
+  "offline_build": {
+    "command": "uv build --offline --out-dir /tmp/jevdrill-panel-r2-dist",
+    "status": "passed",
+    "wheel_sha256": "79f372e9c0e278e8330e0bfe8a7f349b214622a9f082e3e580f8d03ad66f461d",
+    "sdist_sha256": "3ae485ba47191fe2385fb7dfb5b7d23f949337198c09cf95d16f7a502bab7b7b"
+  },
+  "git_diff_check": "passed",
+  "inherited_staged_index": "unchanged against /tmp/jevdrill-inline-index-before",
+  "source_hashes": "all 11 match frozen round-2 manifest",
+  "paid_study_calls": 0,
+  "empirical_acceptance": false,
+  "D1_status": "pending owner decision; no public revision or template amendment implemented"
+}

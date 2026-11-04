@@ -151,6 +151,27 @@
       "title": "Capabilities",
       "type": "object"
     },
+    "ExecutionTokenLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "input_tokens": {
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "input_tokens",
+        "output_tokens"
+      ],
+      "title": "ExecutionTokenLimits",
+      "type": "object"
+    },
     "GuidanceRevision": {
       "additionalProperties": false,
       "properties": {
@@ -230,6 +251,16 @@
           "minimum": 1,
           "title": "Context Token Limit",
           "type": "integer"
+        },
+        "execution_token_limits": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExecutionTokenLimits"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "governing_instruction_refs": {
           "items": {

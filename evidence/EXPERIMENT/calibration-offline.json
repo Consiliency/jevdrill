@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "origin": "software_only_evaluator_diagnostic",
+  "status": "passed",
+  "protocol_digest": "b7bf60057cf3861ec285c22ba859b0f8081651c28b30d450fcf11e491c302bb6",
+  "controls": {
+    "always_admit_rejected": true,
+    "all_default_rejected": true,
+    "damaged_artifacts_rejected": true
+  },
+  "empirical_calibration": "pending_Q12_Q13",
+  "promotion_authorized": false,
+  "produced_if_gates": []
+}

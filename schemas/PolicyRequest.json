@@ -1,0 +1,447 @@
+{
+  "$defs": {
+    "AcceptanceRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "evaluator_ref": {
+          "title": "Evaluator Ref",
+          "type": "string"
+        },
+        "requirement_id": {
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "user",
+              "type": "string"
+            },
+            {
+              "const": "task_family",
+              "type": "string"
+            },
+            {
+              "const": "inferred",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "description",
+        "evaluator_ref",
+        "requirement_id",
+        "source"
+      ],
+      "title": "AcceptanceRequirement",
+      "type": "object"
+    },
+    "CommandScope": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "anyOf": [
+            {
+              "const": "route",
+              "type": "string"
+            },
+            {
+              "const": "report",
+              "type": "string"
+            }
+          ],
+          "title": "Operation"
+        },
+        "producer": {
+          "title": "Producer",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "workspace_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation",
+        "producer",
+        "project_id",
+        "workspace_id"
+      ],
+      "title": "CommandScope",
+      "type": "object"
+    },
+    "OptimizationObjective": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptance_requirements": {
+          "items": {
+            "$ref": "#/$defs/AcceptanceRequirement"
+          },
+          "title": "Acceptance Requirements",
+          "type": "array"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "const": "minimize",
+              "type": "string"
+            },
+            {
+              "const": "maximize",
+              "type": "string"
+            }
+          ],
+          "title": "Direction"
+        },
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "objective_id": {
+          "title": "Objective Id",
+          "type": "string"
+        },
+        "routing_cost_basis": {
+          "anyOf": [
+            {
+              "const": "raw",
+              "type": "string"
+            },
+            {
+              "const": "adjusted",
+              "type": "string"
+            }
+          ],
+          "title": "Routing Cost Basis"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "acceptance_requirements",
+        "direction",
+        "metric_id",
+        "objective_id",
+        "routing_cost_basis",
+        "version"
+      ],
+      "title": "OptimizationObjective",
+      "type": "object"
+    },
+    "PolicyCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Candidate Fingerprint",
+          "type": "string"
+        },
+        "candidate_id": {
+          "minLength": 1,
+          "title": "Candidate Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_fingerprint",
+        "candidate_id"
+      ],
+      "title": "PolicyCandidate",
+      "type": "object"
+    },
+    "PolicyCaseAssignment": {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "related_group": {
+          "title": "Related Group",
+          "type": "string"
+        },
+        "split": {
+          "anyOf": [
+            {
+              "const": "policy_holdout",
+              "type": "string"
+            },
+            {
+              "const": "policy_regression",
+              "type": "string"
+            }
+          ],
+          "title": "Split"
+        },
+        "task_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "case_id",
+        "related_group",
+        "split",
+        "task_id"
+      ],
+      "title": "PolicyCaseAssignment",
+      "type": "object"
+    },
+    "PolicyDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline_policy_revision": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Baseline Policy Revision",
+          "type": "string"
+        },
+        "calibration": {
+          "$ref": "#/$defs/QualityCalibration"
+        },
+        "candidate_order": {
+          "items": {
+            "$ref": "#/$defs/PolicyCandidate"
+          },
+          "maxItems": 64,
+          "minItems": 2,
+          "title": "Candidate Order",
+          "type": "array"
+        },
+        "cases": {
+          "items": {
+            "$ref": "#/$defs/PolicyCaseAssignment"
+          },
+          "maxItems": 100000,
+          "minItems": 4,
+          "title": "Cases",
+          "type": "array"
+        },
+        "minimum_improvement": {
+          "exclusiveMinimum": 0,
+          "title": "Minimum Improvement",
+          "type": "number"
+        },
+        "objective": {
+          "$ref": "#/$defs/OptimizationObjective"
+        },
+        "objective_value_ceiling": {
+          "exclusiveMinimum": 0,
+          "title": "Objective Value Ceiling",
+          "type": "number"
+        },
+        "policy_revision": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Policy Revision",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "task_group": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Task Group",
+          "type": "string"
+        }
+      },
+      "required": [
+        "baseline_policy_revision",
+        "calibration",
+        "candidate_order",
+        "cases",
+        "minimum_improvement",
+        "objective",
+        "objective_value_ceiling",
+        "policy_revision",
+        "schema_version",
+        "task_group"
+      ],
+      "title": "PolicyDefinition",
+      "type": "object"
+    },
+    "QualityCalibration": {
+      "additionalProperties": false,
+      "properties": {
+        "calibration_revision": {
+          "title": "Calibration Revision",
+          "type": "string"
+        },
+        "calibration_source": {
+          "title": "Calibration Source",
+          "type": "string"
+        },
+        "confidence": {
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0.5,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "critical_requirements": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Critical Requirements",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "dataset_revision": {
+          "title": "Dataset Revision",
+          "type": "string"
+        },
+        "evaluator_ref": {
+          "title": "Evaluator Ref",
+          "type": "string"
+        },
+        "frozen_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Frozen At",
+          "type": "string"
+        },
+        "maximum_quality_loss": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Maximum Quality Loss",
+          "type": "number"
+        },
+        "minimum_pairs": {
+          "maximum": 1000000,
+          "minimum": 2,
+          "title": "Minimum Pairs",
+          "type": "integer"
+        },
+        "quality_floor": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Quality Floor",
+          "type": "number"
+        },
+        "rubric_revision": {
+          "title": "Rubric Revision",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "task_family": {
+          "anyOf": [
+            {
+              "const": "implementation",
+              "type": "string"
+            },
+            {
+              "const": "review",
+              "type": "string"
+            },
+            {
+              "const": "documentation",
+              "type": "string"
+            }
+          ],
+          "title": "Task Family"
+        }
+      },
+      "required": [
+        "calibration_revision",
+        "calibration_source",
+        "confidence",
+        "critical_requirements",
+        "dataset_revision",
+        "evaluator_ref",
+        "frozen_at",
+        "maximum_quality_loss",
+        "minimum_pairs",
+        "quality_floor",
+        "rubric_revision",
+        "schema_version",
+        "task_family"
+      ],
+      "title": "QualityCalibration",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "anyOf": [
+        {
+          "const": "register",
+          "type": "string"
+        },
+        {
+          "const": "evaluate",
+          "type": "string"
+        },
+        {
+          "const": "promote",
+          "type": "string"
+        },
+        {
+          "const": "inspect",
+          "type": "string"
+        },
+        {
+          "const": "suspend",
+          "type": "string"
+        }
+      ],
+      "title": "Action"
+    },
+    "definition": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PolicyDefinition"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "policy_revision": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Policy Revision",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/CommandScope"
+    }
+  },
+  "required": [
+    "action",
+    "definition",
+    "policy_revision",
+    "schema_version",
+    "scope"
+  ],
+  "title": "PolicyRequest",
+  "type": "object"
+}

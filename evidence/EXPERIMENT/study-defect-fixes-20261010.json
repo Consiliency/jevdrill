@@ -1,0 +1,52 @@
+{
+  "branch": "codex/route-discovery",
+  "changed_file_sha256": {
+    "baml_src/jev.baml": "1c3b05ab35c02beeb00bc935aaa33e5676135398bd031eddf61a7fa7aa0fbc6e",
+    "scripts/verify_discovery_calibration.py": "4282279c3eaa83cb891a29307be50b3c22282e46595703e2b4c49acc5e1ac557",
+    "src/baml_sdk/.baml-generator-output.json": "4d87f7f5d5b03313df1d4a1f9681ee1edf5c61d42cb93b1878fd4429db1ce40e",
+    "src/baml_sdk/_baml_sources.py": "cb1997d0002b97596e5b542fc679402c4ebc96ef6eefe12492af2f2572d24858",
+    "src/baml_sdk/_inlinedbaml.py": "1f721b8e909b3916e3427b5511f45d36081652c6dbc255e24025d51431ff565e",
+    "src/jevdrill/application.py": "c240753647b86ddc00ffd7300dcf977c0fd621a98bad2a34346a37f4d9621529",
+    "src/jevdrill/integrations/development.py": "d886e7cb5ed4d357a172cd656e2e042262f7195a130a6148bd2605e9452b3ebc",
+    "tests/application/test_route_integration.py": "20bf89dbcab235e6811d1fece8fa1a335b11f96edd90e2d9150e65277b74d00a",
+    "tests/contracts/test_jev_boundary.py": "f2d0b033b0a9e8176d36c38fa22d3d85a278279f70ea08d910cf6873018df08f",
+    "tests/experiments/test_development_judge.py": "79bcb9e795c1a64408d18e7aae7f883b459c7153bbcabe823e02e096e66c440c",
+    "tests/verification/test_discovery_calibration.py": "6bd9521aaca306e687b3ad476a65053a901320d75db0d5d74bd31c46f9ce662f"
+  },
+  "collection_policy_changed": false,
+  "commit_created": false,
+  "credentials_accessed": false,
+  "fixes": [
+    "Project development JEV usage through generated JevUsageObservation and map routing token counters into objective totals; cached usage stays unknown when unavailable.",
+    "Include exact selected guidance instructions and authorized governing references in the prospective suitability request; preserve false judgments and unknown quality evidence.",
+    "Require lexical-retrieval baseline resources as active guidance, disable optional expansion for baseline arms, and validate the exact executed retrieval resource list."
+  ],
+  "grant_reused": false,
+  "historical_evidence_unchanged": true,
+  "inherited_index_unchanged": true,
+  "paid_calls": 0,
+  "phase_acceptance": "empirical EXPERIMENT acceptance remains blocked; no PREPARE authority; no fresh macOS/Windows receipts",
+  "recorded_at": "2026-10-10T21:20:58.496410+00:00",
+  "schema_version": 1,
+  "scope": "three reviewed study defects; offline fixes only",
+  "verification": {
+    "checks_passed": [
+      "pinned BAML 0.20.1 regeneration parity",
+      "TypeScript contract consumer",
+      "ruff lint and format",
+      "mypy",
+      "import boundaries",
+      "vocabulary generation and lint",
+      "wheel and source distribution build",
+      "CLI help",
+      "git diff whitespace"
+    ],
+    "host_retry_log_sha256": "dc20c619d4fce18ab12f03d6ee5898a8a1c1a0c2813233a16f6520ae7e1ec120",
+    "initial_suite_log_sha256": "383f5a23aefa976cb388eab49d68a0aa6e8013700cd8355cb0b9552a2769542c",
+    "learning_usage_retry_log_sha256": "503b5c11ffbda1c3a09bf1069fe6cc23e9edef44dcc5e3baa623a557f41cbacc",
+    "platform": "Linux / CPython 3.13",
+    "suite_execution": "809 passed in the initial full run; 19 missing-environment failures resolved by configured companion reruns (7 host conformance tests and 12 learning/usage tests).",
+    "suite_tests_verified": 828,
+    "targeted_tests_passed": 84
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "spec_delta_closeout.v1",
+  "phase": "LEARN",
+  "decision": "no_spec_delta",
+  "target_surfaces": [
+    "docs/learn-interfaces.md",
+    "docs/learn-readiness.md"
+  ],
+  "evidence_paths": [
+    "evidence/LEARN/spec-delta.json",
+    "evidence/LEARN/verification.json",
+    "evidence/LEARN/closeout.json"
+  ],
+  "redaction_posture": "metadata_only",
+  "downstream_handling": "none",
+  "canonical_adoption": false,
+  "publication_performed": false,
+  "holdouts_opened": false,
+  "promotion_eligible": false,
+  "closeout_status": "verification_pending"
+}
