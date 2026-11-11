@@ -1,0 +1,1629 @@
+{
+  "schema": "learn_owned_baseline_audit.v1",
+  "redaction_posture": "metadata_only",
+  "baseline_path": "/mnt/workspace/users/viperjuice/tmp/jevdrill-learn-baseline-20261009",
+  "baseline_file_count": 612,
+  "baseline_deleted": [],
+  "changed_path_count": 71,
+  "changed_paths": [
+    {
+      "path": ".dev-skills/handoffs/codex-execute-phase/latest.md",
+      "classification": "planning/control",
+      "baseline": "modified"
+    },
+    {
+      "path": ".dev-skills/handoffs/codex-execute-phase/learn-drill-execute-20261009.md",
+      "classification": "planning/control",
+      "baseline": "new"
+    },
+    {
+      "path": ".github/workflows/learn.yml",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "README.md",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "baml_src/boundary.json",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "baml_src/contracts.baml",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "docs/learn-interfaces.md",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "docs/learn-readiness.md",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "docs/vocabulary.md",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "docs/vocabulary.yaml",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "evidence/LEARN/closeout.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "evidence/LEARN/coverage.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "evidence/LEARN/evaluation.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "evidence/LEARN/history/initial-Darwin-3.13.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "evidence/LEARN/history/initial-Linux-3.13.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "evidence/LEARN/history/initial-Windows-3.13.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "evidence/LEARN/history/initial-verification.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "evidence/LEARN/owned-audit.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "evidence/LEARN/platforms/Darwin-3.13.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "evidence/LEARN/platforms/Linux-3.13.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "evidence/LEARN/platforms/Windows-3.13.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "evidence/LEARN/spec-delta.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "evidence/LEARN/verification.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "plans/manifest.json",
+      "classification": "planning/control",
+      "baseline": "modified"
+    },
+    {
+      "path": "pyproject.toml",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "schemas/AnalysisRequest.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/AnalysisResult.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/EvidenceGroup.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/EvidenceMetric.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/LearningContext.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/MaintenanceRequest.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/MaintenanceResult.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/ObjectiveAssessment.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/ObservationSource.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/RecoveryArtifact.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/RecoveryBundle.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/RecoveryDecision.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/RecoveryDiscovery.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/RecoveryEvent.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/RecoveryRequest.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/RecoveryResult.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "schemas/boundary.json",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "scripts/contract_consumer.mjs",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "scripts/verify_learn_phase.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "src/baml_sdk/.baml-generator-output.json",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "src/baml_sdk/__init__.py",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "src/baml_sdk/__init__.pyi",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "src/baml_sdk/_baml_sources.py",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "src/baml_sdk/_boundary_schemas.json",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "src/baml_sdk/_inlinedbaml.py",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "src/baml_sdk/_typemap.py",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "src/jevdrill/analysis.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "src/jevdrill/application.py",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "src/jevdrill/cli.py",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "src/jevdrill/contracts.py",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "src/jevdrill/integrations/archive.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "src/jevdrill/maintenance.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "src/jevdrill/storage.py",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    },
+    {
+      "path": "tests/analysis/test_observations.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "tests/application/test_learning.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "tests/cli/test_learning.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "tests/contracts/fixtures/learn.json",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "tests/contracts/test_learn_contracts.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "tests/maintenance/test_maintenance.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "tests/maintenance/test_recovery.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "tests/privacy/test_learning.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "tests/retention/test_retention.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "tests/storage/test_learning.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "tests/storage/test_learning_lineage.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "tests/verification/test_learn_phase.py",
+      "classification": "phase-owned",
+      "baseline": "new"
+    },
+    {
+      "path": "uv.lock",
+      "classification": "phase-owned",
+      "baseline": "modified"
+    }
+  ],
+  "unowned_changes": [],
+  "dirty_paths": [
+    {
+      "path": ".dev-skills/handoffs/codex-execute-phase/host-discovery-execute-20261009.md",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": ".dev-skills/handoffs/codex-execute-phase/latest.md",
+      "git_status": "A ",
+      "classification": "planning/control"
+    },
+    {
+      "path": ".dev-skills/handoffs/codex-execute-phase/learn-drill-execute-20261009.md",
+      "git_status": "A ",
+      "classification": "planning/control"
+    },
+    {
+      "path": ".dev-skills/handoffs/codex-plan-phase/latest.md",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": ".dev-skills/handoffs/codex-plan-phase/learn-drill-replan-20261009.md",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": ".github/workflows/host.yml",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "README.md",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "baml_src/boundary.json",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "baml_src/contracts.baml",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "baml_src/jev.baml",
+      "git_status": " M",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "docs/contracts.md",
+      "git_status": " M",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "docs/drill-roadmap-map.md",
+      "git_status": " M",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "docs/host-interfaces.md",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "docs/host-readiness.md",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "docs/roadmap-status.md",
+      "git_status": " M",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "docs/vocabulary.md",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "docs/vocabulary.yaml",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/CONTRACT/coverage.json",
+      "git_status": " M",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/adapter-handoff.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/closeout.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/companion/Darwin.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/companion/Linux.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/companion/Windows.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/companion/extra-Darwin.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/companion/extra-Linux.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/companion/extra-Windows.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/coverage.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/evaluation.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/history/initial-extra-Windows.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/history/initial-failed-Darwin-3.13.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/history/initial-failed-Linux-3.13.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/history/intermediate-Linux-3.13.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/history/latest-inherited-Linux.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/history/pre-fixture-Darwin-3.13.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/history/pre-fixture-Linux-3.13.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/history/pre-fixture-Windows-3.13.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/platforms/Darwin-3.13.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/platforms/Linux-3.13.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/platforms/Windows-3.13.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/spec-delta.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/HOST/verification.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "plans/manifest.json",
+      "git_status": "M ",
+      "classification": "planning/control"
+    },
+    {
+      "path": "plans/phase-plan-v1-HOST.md",
+      "git_status": "M ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "plans/phase-plan-v1-HOST_reviews.md",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "plans/phase-plan-v1-LEARN.md",
+      "git_status": "M ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "plans/phase-plan-v1-LEARN_reviews.md",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "plans/phase-plan-v1-ROUTE.md",
+      "git_status": "M ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "pyproject.toml",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "research/evaluation/host/protocol.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "research/evaluation/host/test_baseline_probe.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "research/evaluation/host/test_bridge_probe.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/CandidateSnapshot.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/CatalogResource.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/CatalogSnapshot.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/CommandScope.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DeleteRequest.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryBudget.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryDeleteRequest.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryDescription.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryEnvelope.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryGuidanceRef.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryInputs.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryInspectRequest.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryJudgmentPolicy.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryJudgmentRecord.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryLimits.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryOption.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryQuestion.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryRef.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryResult.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryRevisions.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryRouteInputs.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryScope.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryState.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryTrace.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/DiscoveryTransition.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/InspectRequest.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/InventorySnapshot.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/JudgmentPolicy.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/JudgmentRecord.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/NoticeInbox.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/NoticeRequest.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/ReplayBundle.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/RouteInputs.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/RouteRequest.json",
+      "git_status": "M ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/RoutingDecision.json",
+      "git_status": "M ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/Settings.json",
+      "git_status": "M ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/SettingsLayer.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/boundary.json",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "scripts/check_generated_contracts.py",
+      "git_status": " M",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "scripts/contract_consumer.mjs",
+      "git_status": " M",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "scripts/verify_host_phase.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "specs/phase-plans-v1.md",
+      "git_status": "M ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/baml_sdk/.baml-generator-output.json",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/baml_sdk/__init__.py",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/baml_sdk/__init__.pyi",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/baml_sdk/_baml_sources.py",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/baml_sdk/_boundary_schemas.json",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/baml_sdk/_function_registry.py",
+      "git_status": "M ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/baml_sdk/_inlinedbaml.py",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/baml_sdk/_typemap.py",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/baml_sdk/typesafe_patch/__init__.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/baml_sdk/typesafe_patch/__init__.pyi",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/baml_sdk/typesafe_patch/internal/__init__.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/baml_sdk/typesafe_patch/internal/__init__.pyi",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/application.py",
+      "git_status": "AM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/jevdrill/cli.py",
+      "git_status": "AM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/jevdrill/contracts.py",
+      "git_status": "MM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/jevdrill/evaluation.py",
+      "git_status": "M ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/storage.py",
+      "git_status": "AM",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/jevdrill/telemetry.py",
+      "git_status": " M",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/application/test_host_notices.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/cli/test_host_notices.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/conformance/conftest.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/conformance/fixtures/codex-0.159.2-v2-usage.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/conformance/test_discovery_handoff.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/conformance/test_launch_paths.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/conformance/test_notices.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/conformance/test_transport_queue.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/conformance/test_usage_reporting.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/contracts/fixtures/host.json",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/contracts/test_boundaries.py",
+      "git_status": " M",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/contracts/test_generation.py",
+      "git_status": " M",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/contracts/test_host_contracts.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/contracts/test_jev_boundary.py",
+      "git_status": " M",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/contracts/test_package.py",
+      "git_status": " M",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/evaluation/test_host_acceptance.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/storage/test_host_notices.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/verification/test_host_phase.py",
+      "git_status": "A ",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "uv.lock",
+      "git_status": " M",
+      "classification": "phase-owned"
+    },
+    {
+      "path": ".github/workflows/learn.yml",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": ".github/workflows/route.yml",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": ".phase-loop-generated-outputs.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "baml_src/discovery.baml",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "baml_src/ns_typesafe_patch/LICENSE",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "baml_src/ns_typesafe_patch/UPSTREAM.md",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "baml_src/ns_typesafe_patch/client.baml",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "baml_src/ns_typesafe_patch/ns_internal/jev.baml",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "docs/learn-interfaces.md",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "docs/learn-readiness.md",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "docs/route-interfaces.md",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "docs/route-readiness.md",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/LEARN/closeout.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/LEARN/coverage.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/LEARN/evaluation.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/LEARN/history/initial-Darwin-3.13.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/LEARN/history/initial-Linux-3.13.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/LEARN/history/initial-Windows-3.13.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/LEARN/history/initial-verification.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/LEARN/owned-audit.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/LEARN/platforms/Darwin-3.13.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/LEARN/platforms/Linux-3.13.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/LEARN/platforms/Windows-3.13.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/LEARN/spec-delta.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/LEARN/verification.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "evidence/ROUTE/closeout.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/coverage.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/history/contract-coverage-f67ad654f.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/history/legacy-9a1a94f81/closeout.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/history/legacy-9a1a94f81/coverage.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/history/legacy-9a1a94f81/platforms/Darwin-3.13.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/history/legacy-9a1a94f81/platforms/Linux-3.13.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/history/legacy-9a1a94f81/platforms/Windows-3.13.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/history/legacy-9a1a94f81/repair.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/history/legacy-9a1a94f81/spec-delta.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/history/legacy-9a1a94f81/verification.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/history/native-before-source-path-repair/Darwin-3.13.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/history/native-before-source-path-repair/Linux-3.13.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/history/native-before-source-path-repair/Windows-3.13.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/platforms/Darwin-3.13.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/platforms/Linux-3.13.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/platforms/Windows-3.13.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/spec-delta.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "evidence/ROUTE/verification.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "research/evaluation/cases.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "schemas/AnalysisRequest.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/AnalysisResult.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/EvidenceGroup.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/EvidenceMetric.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/LearningContext.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/MaintenanceRequest.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/MaintenanceResult.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/ObjectiveAssessment.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/ObservationSource.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/RecoveryArtifact.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/RecoveryBundle.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/RecoveryDecision.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/RecoveryDiscovery.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/RecoveryEvent.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/RecoveryRequest.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "schemas/RecoveryResult.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "scripts/verify_learn_phase.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "scripts/verify_route_phase.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/BAML_TYPESAFE_LICENSE",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/BAML_TYPESAFE_NOTICE.md",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/analysis.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/jevdrill/catalog.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/context.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/costing.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/discovery.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/guidance.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/integrations/__init__.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/integrations/archive.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/jevdrill/integrations/jev.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/inventory.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/maintenance.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "src/jevdrill/routing.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "src/jevdrill/settings.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/analysis/test_observations.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "tests/application/test_application.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/application/test_discovery_application.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/application/test_learning.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "tests/application/test_route_integration.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/catalog/test_catalog.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/cli/test_cli.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/cli/test_discovery_cli.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/cli/test_learning.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "tests/conftest.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/context/test_context.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/contracts/fixtures/discovery-links.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/contracts/fixtures/discovery.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/contracts/fixtures/learn.json",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "tests/contracts/fixtures/route-application.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/contracts/fixtures/route-inputs.json",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/contracts/test_discovery_contracts.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/contracts/test_learn_contracts.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "tests/contracts/test_route_ports.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/costing/test_costing.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/discovery/test_navigation.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/guidance/test_guidance.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/integrations/test_discovery_jev.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/integrations/test_jev.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/inventory/test_inventory.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/maintenance/test_maintenance.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "tests/maintenance/test_recovery.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "tests/privacy/test_application_privacy.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/privacy/test_context_privacy.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/privacy/test_discovery_privacy.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/privacy/test_jev_privacy.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/privacy/test_learning.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "tests/privacy/test_storage_privacy.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/retention/test_retention.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "tests/routing/test_routing.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/settings/test_settings.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/storage/test_discovery_recovery.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/storage/test_learning.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "tests/storage/test_learning_lineage.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "tests/storage/test_recovery.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/storage/test_storage.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    },
+    {
+      "path": "tests/verification/test_learn_phase.py",
+      "git_status": "??",
+      "classification": "phase-owned"
+    },
+    {
+      "path": "tests/verification/test_route_phase.py",
+      "git_status": "??",
+      "classification": "pre-existing authorized baseline"
+    }
+  ],
+  "historical_source_bound_receipts": "preserved",
+  "original_checkout": "no writes performed; only pre-existing untracked research remains",
+  "companion_source": "read-only; original content-bound digest preserved",
+  "index_posture": "Only declared planning/control artifacts were staged during closeout, including the explicitly owned resolver handoff. Mixed inherited source/index classifications are retained; full initial index and worktree patches remain preserved.",
+  "ignored_output_audit_exit_code": 0,
+  "control_artifact_state": "staged"
+}

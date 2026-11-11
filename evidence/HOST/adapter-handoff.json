@@ -1,0 +1,65 @@
+{
+  "api": {
+    "decompose": "runner.discover_jevdrill_work_units(adapter, inputs, *, plan_objective)",
+    "delete_objective": "(scope, work_objective_id)",
+    "discover_objective": "(inputs, *, started_at=None) -> DiscoveryResult",
+    "inputs_for": "(context) -> DiscoveryRouteInputs | RouteInputs"
+  },
+  "claim_scope": "synthetic_conformance_only",
+  "companion_plan": "plans/detailed-jevdrill-discovery-host.md",
+  "companion_root": "/mnt/workspace/worktrees/viperjuice/agent-harness-jevdrill-discovery-host",
+  "controls": [
+    "installed-discovery",
+    "harness-plan-ir",
+    "two-task-route-v2",
+    "task-local-guidance",
+    "objective-tombstone",
+    "cross-producer-delete",
+    "real-launch-constructors",
+    "durable-ack",
+    "native-private-queue"
+  ],
+  "fixtures": {
+    "discovery.json": "bd7ab28f593a0f0c315100bd79824f4a7253fd1b4eeb645f501ec99c761a155c",
+    "host.json": "3848643a7908e4eabdf7ec03b36c81ce680f8abb36a4e761573c33f22620914b",
+    "route-inputs.json": "4909089c96ba240115ad40790d8682e52021818685be8a14d7d78418cb97e335"
+  },
+  "ledger_fields": [
+    "project",
+    "workspace",
+    "producer",
+    "objective",
+    "discovery",
+    "trace_digest",
+    "task",
+    "decision",
+    "run"
+  ],
+  "management_responses": "Strict DiscoveryResult or exact not_found/deleted acknowledgment",
+  "phase": "HOST",
+  "schema_version": 1,
+  "schemas": {
+    "DeleteRequest.json": "b73dae5ab2c84affa3e9e36f2d7b7a037fc0f0d0691e478fae43376987616b56",
+    "DiscoveryDeleteRequest.json": "a0c73f997341bb42918fa998070e17cb3917a114eb8d20e7a20f92320d5a79ac",
+    "DiscoveryInputs.json": "539b985dae8c201d01b322def4afc2489d963e27afabb730c66d19abefbc8c34",
+    "DiscoveryInspectRequest.json": "258421859735d01bb54af2037254cba54c3c813f4910c945650193409cb83a65",
+    "DiscoveryRef.json": "5302029a3184161dce924c9883dbd47c282a14fcdb40c0e0de4d988140337600",
+    "DiscoveryResult.json": "6683d79caad8599c8d013f35323a79d4832210c84a1573208c868082f7484fb4",
+    "DiscoveryRouteInputs.json": "4c9844369d8e18bb2071fcb76a3b39b7524281a99872f50387733f90c7860336",
+    "ExecutionRun.json": "b8c2b2666ec86964772940ff8afe04718b104bbb5d7d764a98c7f7e7d242ca43",
+    "NoticeInbox.json": "1e76e034794ffaa7c575272255cc8dcefdffef69a7913d43dd9728bc70a857e4",
+    "NoticeRequest.json": "98c1ff015797206756222360b0f745702891a77f337eb6c117a41b31bbe9d733",
+    "ReportAcknowledgment.json": "5317f574fdf57759343bb6293abbbd1119d6d2848cb5c89d5da99e23683a1002",
+    "ReportRequest.json": "3958d5acb8819f53a743f3f98787e53b84541aeebdc76f3a756058f95a06ad71",
+    "RouteInputs.json": "dad0771fa0007401e3c54d0ad4aad8ad126e03be4e929b99db5d2514912c978c",
+    "RoutingDecision.json": "02d21959290c0d468228b5dd75dee313355db49619e9f422a4dd4de63ea07cef"
+  },
+  "companion_modules": {
+    "jevdrill_adapter": "1514d6a79686984905c55a97164404ecd2115716ba1aae9825ef173d58bcd6b4",
+    "jevdrill_queue": "554a4b9e12b86881b127518a518aa5f5d53e8f2d6d24eb8603dc4a8bb695e371",
+    "runner": "d4d61f7ab017931ad1ba8b0e4fac0c58830b4c691718e6747510d2c7e1255a80",
+    "launcher": "c7732d3a73c9af2bef6e8f54a9531b82bc7471227a0e790df154b6eee2d4603c",
+    "observability": "7ca6d4d529724a7df04b36386ab78889b3189aa57b5696771f708ecb1137a9b5"
+  },
+  "companion_runtime_version": "0.7.20"
+}

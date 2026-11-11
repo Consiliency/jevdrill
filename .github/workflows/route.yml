@@ -1,0 +1,60 @@
+name: ROUTE verification
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-latest, platform: Linux}
+          - {os: macos-latest, platform: Darwin}
+          - {os: windows-latest, platform: Windows}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - run: uv sync --locked
+      - run: npm ci
+      - id: compiler
+        shell: bash
+        run: |
+          result="$(uv run python scripts/install_contract_compiler.py --directory "$RUNNER_TEMP/jevdrill-baml")"
+          path="$(python -c 'import json, sys; print(json.loads(sys.argv[1])["path"])' "$result")"
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+      - run: uv run python scripts/verify_route_phase.py --local-only
+        env:
+          BAML_CLI: ${{ steps.compiler.outputs.path }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: route-native-${{ matrix.os }}
+          path: evidence/ROUTE/platforms/${{ matrix.platform }}-3.13.json
+          if-no-files-found: error
+
+  reduce:
+    needs: native
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: route-native-*
+          path: evidence/ROUTE/platforms
+          merge-multiple: true
+      - run: uv run python scripts/verify_route_phase.py --reduce-only
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: route-verification
+          path: evidence/ROUTE/verification.json
+          if-no-files-found: error

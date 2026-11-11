@@ -1,0 +1,30 @@
+{
+  "head": "d20819f88977d6aa78c371287ca8ee8cb2ab67ea",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 38324059889,
+      "headSha": "d20819f88977d6aa78c371287ca8ee8cb2ab67ea",
+      "status": "completed",
+      "url": "https://github.com/Consiliency/jevdrill/actions/runs/38324059889",
+      "workflowName": "Contract conformance"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 38324059803,
+      "headSha": "d20819f88977d6aa78c371287ca8ee8cb2ab67ea",
+      "status": "completed",
+      "url": "https://github.com/Consiliency/jevdrill/actions/runs/38324059803",
+      "workflowName": "ROUTE verification"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 38324059791,
+      "headSha": "d20819f88977d6aa78c371287ca8ee8cb2ab67ea",
+      "status": "completed",
+      "url": "https://github.com/Consiliency/jevdrill/actions/runs/38324059791",
+      "workflowName": "EXPERIMENT offline boundaries"
+    }
+  ],
+  "all_nine_distinct_checks_passed": true
+}

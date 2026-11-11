@@ -1,10 +1,23 @@
 # JEV Drill
 
-The contract foundation is under implementation. The router, durable host reporting and local learning are roadmap work. See [CONTRACT readiness](docs/contract-readiness.md) and the [roadmap](specs/phase-plans-v1.md).
+Governed comparisons and recorded policy evaluation are available through the installed experiment commands with explicit trusted adapter configuration. Defaults grant no execution or promotion authority. See [EXPERIMENT interfaces](docs/experiment-interfaces.md), [readiness](docs/experiment-readiness.md) and the [new development study proposal](evidence/EXPERIMENT/study-proposal.json).
+
+JEV Drill provides progressive guidance discovery, independent task routing and durable local reporting/replay. Discovery returns admitted guidance and uncertainty; the harness owns decomposition and execution. See [ROUTE readiness](docs/route-readiness.md), [HOST readiness](docs/host-readiness.md), [host interfaces](docs/host-interfaces.md) and the [roadmap](specs/phase-plans-v1.md). The explicit agent-harness companion connects discovery to host-produced task lanes and existing launch constructors. Later phases require replanning against these linked observations.
 
 For local development, install CPython 3.13 and run `uv sync --locked` and `npm ci`. Set `BAML_CLI` to the verified BAML 0.20.1 compiler, then run `uv run python scripts/verify_contract_phase.py`. Missing platform evidence keeps the phase open. [Toolchain details](docs/toolchain.md) and [contract rules](docs/contracts.md) describe the generated package and strict validation boundary.
 
+Use `jevdrill discover` with `DiscoveryInputs`, then pass its discovery identity and trace digest with each task's `DiscoveryRouteInputs` to `jevdrill route`. JSON travels through stdin/stdout. `inspect-discovery --discovery-id ID --scope JSON --replay` replays recorded transitions without a provider call; `delete-discovery --work-objective-id ID --scope JSON` permanently tombstones the objective. Legacy route-v1 inputs remain supported. Run `uv run python scripts/verify_route_phase.py --local-only` for local evidence; the reducer requires matching native Linux/macOS/Windows reports for all seven criteria.
+
+`jevdrill notices` reads a strict NoticeRequest from stdin and returns pending project/workspace notices without acknowledging them. Run `uv run python scripts/verify_host_phase.py --agent-harness PATH --local-only` with the separately installed companion and pinned compiler; full acceptance requires all three native receipts. Passing synthetic checks establish software behavior. Model quality, guidance effectiveness and performance gains remain insufficient evidence.
+
 ## Existing research
+
+`jevdrill analyze`, `maintenance` and `recovery` provide consent-scoped observational
+evidence, bounded retention and authenticated portable recovery. See
+[LEARN interfaces](docs/learn-interfaces.md) and [LEARN readiness](docs/learn-readiness.md).
+Local and user-wide learning require explicit consent. Scheduler configurations
+are generated for inspection; OS keys and scheduler installation remain host
+setup actions. Observations supply no causal benefit or policy promotion authority.
 
 Source discovery, versioned ingestion, model triage, independent domain review and paired evaluation for a prospective Jev advisor router. Research began on 2026-09-26. GPT-6 Sol performs the main reviews; a matched GPT-6 Luna experiment is retained separately.
 

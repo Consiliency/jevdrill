@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "status": "passed_pre_dispatch_integrity",
+  "checks": {
+    "grant_exact_preview_enabled_only": true,
+    "artifact_hashes_match": true,
+    "study_directory_absent": true,
+    "paid_calls_zero": true,
+    "reservations_zero": true,
+    "index_preserved": true,
+    "review_tree_baml_cache_absent": true,
+    "owner_calibration_only": true
+  },
+  "closeout_sha256": "65f9d7cc9af46e7cc05e3ec98ccc901354ff0aa2bc48595abccc6f1822e6d6ba",
+  "access_blocker": {
+    "request_kind": "model_metadata",
+    "status_code": 401,
+    "revision": "gpt-4.1-mini-2025-04-14",
+    "paid_calls": 0,
+    "source": "already observed safe error.code diagnostic; no further probe",
+    "provider_response_body_logged": false
+  },
+  "empirical_study_status": "not_collected_access_blocked"
+}

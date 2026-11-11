@@ -1,0 +1,372 @@
+{
+  "head": "4c3a9fee43677709e96456ecee22e9c75b1de138",
+  "run_id": 39059707177,
+  "attempt": 1,
+  "conclusion": "failure",
+  "platforms": [
+    {
+      "schema_version": 1,
+      "phase": "ROUTE",
+      "execution_kind": "native",
+      "os": "Darwin",
+      "architecture": "arm64",
+      "python_minor": "3.13",
+      "python_version": "3.13.16",
+      "bridge_version": "0.20.1",
+      "compiler_version": "baml-cli 0.20.1",
+      "runner_identity": "39059707177",
+      "timestamp": "2026-10-17T18:55:37.433109+00:00",
+      "input_digest": "005f4959dc3bfedfea4134270ea60b70293c897a9ab8a9afa97c52b94eb456cc",
+      "source_stable": true,
+      "tests": {
+        "total": 20855,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0
+      },
+      "assertions_sha256": "994208bc206115e611d5dd25a7ece1fac3e0d506282532c1e7c1d6eb6a9c138d",
+      "duration_seconds": 413.348,
+      "proof_cost_target_exceeded": true,
+      "checks": [
+        {
+          "name": "tests",
+          "command_sha256": "c43e74657e3dda9afb4d9564f9fc862330d6c61d6f0c0392d1bc80570f720127",
+          "exit_code": 0,
+          "output_sha256": "3fe07bcfdaa5b9746b4586c5da39665bc1b01c54fa4f80de578c1f3e0a566020",
+          "duration_seconds": 396.168
+        },
+        {
+          "name": "contracts",
+          "command_sha256": "4a8a2a0eed87e0d9d6cdaa5568d4dcac7dbc9f2dc3c2c2c6738d2ad9bbab501f",
+          "exit_code": 0,
+          "output_sha256": "d9bd5a650c1ea8d38b966cc2e2a78380b785197c7704b6c10c1f2c553ee18de3",
+          "duration_seconds": 1.272
+        },
+        {
+          "name": "generation",
+          "command_sha256": "2723ba87d58e7e5f4271e2a7097132f735758f8f984228340287b44b8a16e9c5",
+          "exit_code": 0,
+          "output_sha256": "68bd6ababffc62334695f7bb458c8ff65085ff792441dbb88e249947a3b1b305",
+          "duration_seconds": 3.09
+        },
+        {
+          "name": "vocabulary",
+          "command_sha256": "78cdbaec1b8775d81f1071643ba6e5e3ae16bd4350cbc4bf88abb1d94314cb2d",
+          "exit_code": 0,
+          "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "duration_seconds": 0.07
+        },
+        {
+          "name": "imports",
+          "command_sha256": "90c24596ce3281bd7067eb1b81d0395456f4ed077ca9771e35d65939eeb3f52b",
+          "exit_code": 0,
+          "output_sha256": "8bd2e937f15b750ff2e18abc445df9e143156651f4415267b0c018c4b07a051b",
+          "duration_seconds": 0.163
+        },
+        {
+          "name": "lint",
+          "command_sha256": "00946c999c119baca1aa683c8c14e19216466c67ddade5b4cb07345541ba9526",
+          "exit_code": 0,
+          "output_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+          "duration_seconds": 0.184
+        },
+        {
+          "name": "format",
+          "command_sha256": "2d6ff6601b3ce469512a1a097947504054c4033a608e36b7467055f26b5c8e54",
+          "exit_code": 0,
+          "output_sha256": "e5d285e654af339bd79aedd43f7389a16ff483c0cdb5376a5926eb5a93d4a4d4",
+          "duration_seconds": 0.067
+        },
+        {
+          "name": "types",
+          "command_sha256": "7e28b85dbd5dbeac7444d28041583cc71790d86c813d752c7bbb0a9080a945bf",
+          "exit_code": 0,
+          "output_sha256": "7f43e759c997a0af903a210f4a10fd709457c5a5125336929ab037d3ed6702ce",
+          "duration_seconds": 3.696
+        },
+        {
+          "name": "build",
+          "command_sha256": "00f5d13fd96f2239b85a181bf4e05cdb9705acd420a34272f9a3dea95bd93400",
+          "exit_code": 0,
+          "output_sha256": "bae20732edd9f261475f31e224e6089d5f2a0f84298a8c6ecedaa2c64de23845",
+          "duration_seconds": 3.331
+        },
+        {
+          "name": "cli",
+          "command_sha256": "b050e181b642928a251c4b1662d378afc4b469e36219d72f28eae3e15c1d6a99",
+          "exit_code": 0,
+          "output_sha256": "62d750535d9758e5961a4914fa155b0d249b0a59bb26695650588e06de683256",
+          "duration_seconds": 0.041
+        },
+        {
+          "name": "vocabulary_lint",
+          "command_sha256": "a8a379b20cc85b75bb7ee360d13615c5993060e14ed888bd1e44fd8dab51193c",
+          "exit_code": 0,
+          "output_sha256": "8bd2e937f15b750ff2e18abc445df9e143156651f4415267b0c018c4b07a051b",
+          "duration_seconds": 0.143
+        },
+        {
+          "name": "installed_package",
+          "command_sha256": "63614e2b74ae7218e02c9496e510c257c235260b1cdc2cc70487c381a58404e3",
+          "exit_code": 0,
+          "output_sha256": "e6c8375ab339766113cb7fdfa34047cf36555205d43df9dbd674f48e19a7df87",
+          "duration_seconds": 4.374
+        },
+        {
+          "name": "cold_cli",
+          "command_sha256": "14f744d25c14bb6aac2e55a2d11721a434b821d7ad615cc6f6e1ae7e4596e221",
+          "exit_code": 0,
+          "output_sha256": "0b1e08445cc5ab3867abeb31496d4eb178f28b6c5431c5e5602d9608c4a50280",
+          "duration_seconds": 0.35,
+          "response_status": "ready"
+        }
+      ],
+      "artifact_sha256": "0bf1cda39991bb479af19d0bd057f00237d3ed27e1f2fb01b2575644ab8b36c8"
+    },
+    {
+      "schema_version": 1,
+      "phase": "ROUTE",
+      "execution_kind": "native",
+      "os": "Linux",
+      "architecture": "x86_64",
+      "python_minor": "3.13",
+      "python_version": "3.13.16",
+      "bridge_version": "0.20.1",
+      "compiler_version": "baml-cli 0.20.1",
+      "runner_identity": "39059707177",
+      "timestamp": "2026-10-17T18:56:02.469379+00:00",
+      "input_digest": "005f4959dc3bfedfea4134270ea60b70293c897a9ab8a9afa97c52b94eb456cc",
+      "source_stable": true,
+      "tests": {
+        "total": 20855,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0
+      },
+      "assertions_sha256": "994208bc206115e611d5dd25a7ece1fac3e0d506282532c1e7c1d6eb6a9c138d",
+      "duration_seconds": 449.494,
+      "proof_cost_target_exceeded": true,
+      "checks": [
+        {
+          "name": "tests",
+          "command_sha256": "f7300ce263251d920485b2f92650678d20e39afe0debe09556fab6ae7085cc27",
+          "exit_code": 0,
+          "output_sha256": "11a08219bcde410ce5387608dd6becdcd15f6bd5202a24ef54b73372d7927429",
+          "duration_seconds": 431.842
+        },
+        {
+          "name": "contracts",
+          "command_sha256": "4a8a2a0eed87e0d9d6cdaa5568d4dcac7dbc9f2dc3c2c2c6738d2ad9bbab501f",
+          "exit_code": 0,
+          "output_sha256": "d9bd5a650c1ea8d38b966cc2e2a78380b785197c7704b6c10c1f2c553ee18de3",
+          "duration_seconds": 0.919
+        },
+        {
+          "name": "generation",
+          "command_sha256": "3721d93d6aa5279446af4bcd7a785266bde468d672ab53e9c23252d51582db17",
+          "exit_code": 0,
+          "output_sha256": "68bd6ababffc62334695f7bb458c8ff65085ff792441dbb88e249947a3b1b305",
+          "duration_seconds": 2.53
+        },
+        {
+          "name": "vocabulary",
+          "command_sha256": "3469e01ee88cdb9f0d2916a1a2560565413eb2c532e4a410a8fc902502b27568",
+          "exit_code": 0,
+          "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "duration_seconds": 0.074
+        },
+        {
+          "name": "imports",
+          "command_sha256": "e912bd7529ddb9d11a93a71cffc6b47ff509d4e92a164b77978d46abd7275c79",
+          "exit_code": 0,
+          "output_sha256": "8bd2e937f15b750ff2e18abc445df9e143156651f4415267b0c018c4b07a051b",
+          "duration_seconds": 0.232
+        },
+        {
+          "name": "lint",
+          "command_sha256": "b597af5e252eb556084a1c00d66d5dcccbf61b8ce4b95af0250169f0ddd558f2",
+          "exit_code": 0,
+          "output_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+          "duration_seconds": 0.051
+        },
+        {
+          "name": "format",
+          "command_sha256": "58c3c038e0cc0ae7c3a2b00bac07dcca8603d2d1482fb3aebba56e1c09d16de2",
+          "exit_code": 0,
+          "output_sha256": "e5d285e654af339bd79aedd43f7389a16ff483c0cdb5376a5926eb5a93d4a4d4",
+          "duration_seconds": 0.048
+        },
+        {
+          "name": "types",
+          "command_sha256": "af8f33e0623bfbc9fee51e5c8b41d77ff2d54a4dc6d283071d5e9f11f0161635",
+          "exit_code": 0,
+          "output_sha256": "7f43e759c997a0af903a210f4a10fd709457c5a5125336929ab037d3ed6702ce",
+          "duration_seconds": 4.607
+        },
+        {
+          "name": "build",
+          "command_sha256": "667d7b547c652d2e8c8bc9437fc2874b8f05d25a084f072ebf0e2da0e020095b",
+          "exit_code": 0,
+          "output_sha256": "2b502d3a8d83173baa71e6a30b2d8094104e740974ad87fcf99172a176b14051",
+          "duration_seconds": 2.874
+        },
+        {
+          "name": "cli",
+          "command_sha256": "75403607840592de9adb839c3c5b88d80af0d5d56dcefe070f999fc99840d262",
+          "exit_code": 0,
+          "output_sha256": "62d750535d9758e5961a4914fa155b0d249b0a59bb26695650588e06de683256",
+          "duration_seconds": 0.044
+        },
+        {
+          "name": "vocabulary_lint",
+          "command_sha256": "0c461e0db72dbc098dc1fde44169e1e62ab9078330bd1a65a7adb3bc644156e6",
+          "exit_code": 0,
+          "output_sha256": "8bd2e937f15b750ff2e18abc445df9e143156651f4415267b0c018c4b07a051b",
+          "duration_seconds": 0.233
+        },
+        {
+          "name": "installed_package",
+          "command_sha256": "d0bb331650109df04a8fc946117f25046c7e2a27c6ee676394eb3e1615809d73",
+          "exit_code": 0,
+          "output_sha256": "7d62b3b613d40e91467d2ecb6c0dc5c522f80a7677f83abedbfd98bd62ea1c4d",
+          "duration_seconds": 4.473
+        },
+        {
+          "name": "cold_cli",
+          "command_sha256": "a55c67940ca6e7f47ac9633c5468cfe208e0f2c034754b24c9cfba0f103b6628",
+          "exit_code": 0,
+          "output_sha256": "0b1e08445cc5ab3867abeb31496d4eb178f28b6c5431c5e5602d9608c4a50280",
+          "duration_seconds": 0.598,
+          "response_status": "ready"
+        },
+        {
+          "name": "catalog",
+          "command_sha256": "1f1d53356155b134a47d4e28e7a918e424a7e2050d48b2ac2cedcbb568a7173c",
+          "exit_code": 0,
+          "output_sha256": "a233ef473964e71b3c17b5c2bea0c42fc0a2d4893622622bc1210da1c5c3e5a9",
+          "duration_seconds": 0.533
+        }
+      ],
+      "artifact_sha256": "02efb0ef836b63cee4927fff884c2bda0a93861b1aa7555c368ac8e3a477786c"
+    },
+    {
+      "schema_version": 1,
+      "phase": "ROUTE",
+      "execution_kind": "native",
+      "os": "Windows",
+      "architecture": "AMD64",
+      "python_minor": "3.13",
+      "python_version": "3.13.16",
+      "bridge_version": "0.20.1",
+      "compiler_version": "baml-cli 0.20.1",
+      "runner_identity": "39059707177",
+      "timestamp": "2026-10-17T18:58:54.844105+00:00",
+      "input_digest": "005f4959dc3bfedfea4134270ea60b70293c897a9ab8a9afa97c52b94eb456cc",
+      "source_stable": true,
+      "tests": {
+        "total": 20855,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0
+      },
+      "assertions_sha256": "994208bc206115e611d5dd25a7ece1fac3e0d506282532c1e7c1d6eb6a9c138d",
+      "duration_seconds": 600.685,
+      "proof_cost_target_exceeded": true,
+      "checks": [
+        {
+          "name": "tests",
+          "command_sha256": "f5bd240ed7a53746880983aa648e12e07b9bc0ab4372b35e44af7dfee35ab0f1",
+          "exit_code": 0,
+          "output_sha256": "0cd073048795b098b6a9b33ff7d3cd6738c64eccc6695211933579f1c0196d95",
+          "duration_seconds": 590.693
+        },
+        {
+          "name": "contracts",
+          "command_sha256": "4a8a2a0eed87e0d9d6cdaa5568d4dcac7dbc9f2dc3c2c2c6738d2ad9bbab501f",
+          "exit_code": 0,
+          "output_sha256": "d9bd5a650c1ea8d38b966cc2e2a78380b785197c7704b6c10c1f2c553ee18de3",
+          "duration_seconds": 1.191
+        },
+        {
+          "name": "generation",
+          "command_sha256": "e8cbc5c1b9b29d3502b60504e9dd9293d28b99f7bbac814f8b17aade985f445f",
+          "exit_code": 0,
+          "output_sha256": "cc4b68d9c2c420bac42bd18f599175f9cc0ce170374fd7dfebf61b7b41073125",
+          "duration_seconds": 5.256
+        },
+        {
+          "name": "vocabulary",
+          "command_sha256": "f06e70b574cdc0ca53b211a4da57776061366c9f9dc0adfb8370bc0135d230d1",
+          "exit_code": 0,
+          "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "duration_seconds": 0.116
+        },
+        {
+          "name": "imports",
+          "command_sha256": "d6e33b599ffbfe4313165a2c8690c80eba9bb1dfad7d4ef01bc8a8c5a39c9fa1",
+          "exit_code": 0,
+          "output_sha256": "ac9da0dbb4cfb01d3ecaefff7b88e8b373e3f6edbdec9357ac927877cbb94ad4",
+          "duration_seconds": 0.257
+        },
+        {
+          "name": "lint",
+          "command_sha256": "6e4337358735bcd8c2d4910f402a59f90e59e7a335e6ed66d99cdc4976091a9a",
+          "exit_code": 0,
+          "output_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+          "duration_seconds": 0.132
+        },
+        {
+          "name": "format",
+          "command_sha256": "52a01bf04840523ec0a1d1955b2d1b264b0fd6f90df0564ee823eaf87ff6807c",
+          "exit_code": 0,
+          "output_sha256": "e5d285e654af339bd79aedd43f7389a16ff483c0cdb5376a5926eb5a93d4a4d4",
+          "duration_seconds": 0.11
+        },
+        {
+          "name": "types",
+          "command_sha256": "62902c65ddf3f09655ed01285345cdce31ed3e81011c7182eb54e9a516505706",
+          "exit_code": 125,
+          "output_sha256": "bb1c4c0f4fbadb4b3a6f5b6c359d4dc2509565daf7adba4aae96dcc3b2353f54",
+          "duration_seconds": 2.043
+        },
+        {
+          "name": "build",
+          "command_sha256": "5d6ad11754f6b1da347c4bdba7e9066985c854addd4c020b7afe877408a92382",
+          "exit_code": 125,
+          "output_sha256": "bb1c4c0f4fbadb4b3a6f5b6c359d4dc2509565daf7adba4aae96dcc3b2353f54",
+          "duration_seconds": 0.013
+        },
+        {
+          "name": "cli",
+          "command_sha256": "48e69c95ceab376712030385cf52256bb1befaa434e8014d1a7460f4c81dcb3f",
+          "exit_code": 125,
+          "output_sha256": "bb1c4c0f4fbadb4b3a6f5b6c359d4dc2509565daf7adba4aae96dcc3b2353f54",
+          "duration_seconds": 0.016
+        },
+        {
+          "name": "vocabulary_lint",
+          "command_sha256": "1796b79f17475208a3566d839e3708e8c2e24ba4ac375d2e07f2808fadc25719",
+          "exit_code": 125,
+          "output_sha256": "bb1c4c0f4fbadb4b3a6f5b6c359d4dc2509565daf7adba4aae96dcc3b2353f54",
+          "duration_seconds": 0.015
+        },
+        {
+          "name": "installed_package",
+          "command_sha256": "402389541129a5227953f40feebc8fc75a9e01e5e9158aef797f3584d822e2a9",
+          "exit_code": 125,
+          "output_sha256": "bb1c4c0f4fbadb4b3a6f5b6c359d4dc2509565daf7adba4aae96dcc3b2353f54",
+          "duration_seconds": 0.016
+        },
+        {
+          "name": "cold_cli",
+          "command_sha256": "d8bf9ecaf8f7522b7977242eb22d807c9acde3323dec29e105f3a5dc6082e360",
+          "exit_code": 125,
+          "output_sha256": "bb1c4c0f4fbadb4b3a6f5b6c359d4dc2509565daf7adba4aae96dcc3b2353f54",
+          "duration_seconds": 0.006,
+          "response_status": "unavailable"
+        }
+      ],
+      "artifact_sha256": "a5672b160a06fcdb8731c6820a4b16266685a67f1cc58eba3ba1a74310f36891"
+    }
+  ]
+}

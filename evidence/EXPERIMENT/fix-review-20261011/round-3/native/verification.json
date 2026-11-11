@@ -1,0 +1,18 @@
+{
+  "status": "passed_for_isolated_pricing_guard_candidate",
+  "input_digest": "1aa527566ae49ee427019efa701c8234d6555fcd71ed0d9c829d219a324081bc",
+  "reducer": "scripts/verify_contract_phase.py:reduce_manifests",
+  "reducer_errors": [],
+  "execution_kind": "native",
+  "platforms": ["Linux", "Darwin", "Windows"],
+  "tests_per_platform": 322,
+  "skipped": 0,
+  "all_named_checks": "passed; tests, generation, coverage, vocabulary, glossary, imports, lint, format, types and build; Linux also catalog",
+  "pricing_guard_targeted": "2 passed in 0.33s on the isolated candidate",
+  "candidate_delta_from_round_3_review_head": "One independent forbidden-pricing/menu assertion in tests/application/test_route_integration.py. Production code, schemas and generated SDK unchanged.",
+  "worktree_patch": "not applied while Grok review is active; final binding must be verified after all seats finish",
+  "tool_pins": {"compiler": "0.20.1", "bridge": "0.20.1", "python_minor": "3.13"},
+  "compiler_archive_sha256": {"Darwin": "baa9793aae8a4b3472a8c9f34043b213e0170cf4eee8a7ecf03806cbd8713db8", "Windows": "14c71c0724064ad66004a6d934d669c5acc1e6fdd2bbd77129d693302a3bb795"},
+  "setup_corrections": ["Python framework CA lookup used the existing system CA bundle; TLS verification stayed enabled", "Uncached pinned dependencies downloaded to private verification environments", "Node dependencies installed from the lockfile", "Copied documentation and exposed catalog fixture needed by named coverage/catalog validators"],
+  "scope": "Isolated native copies; existing CONTRACT/HOST/ROUTE phase receipts and actual historical study evidence unchanged. No publishing or actual study calls."
+}

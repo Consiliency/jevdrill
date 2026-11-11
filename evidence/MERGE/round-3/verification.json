@@ -1,0 +1,76 @@
+{
+  "binding": {
+    "head": "d20819f88977d6aa78c371287ca8ee8cb2ab67ea",
+    "delta_base": "a92d65ca021672100d53ff50001f1a2a8f9d85ac",
+    "pr_base": "f67ad654ff224d6b343ab366260d9184150d822f",
+    "tracked_files": 753,
+    "manifest_sha256": "5c02541e79f37e0353f41bab4e06dd7d0369be8d20628c14636f58ad8106d8db",
+    "round": 3,
+    "cap": 3,
+    "source_frozen": true,
+    "standing_agree_votes": 0
+  },
+  "receipts": {
+    "initial_full": {
+      "path": "/tmp/jevdrill-merge-r3-final-full.xml",
+      "sha256": "51a7d77bfcda0f97967ff7fd6b43515ba388f8ba23e477e00de51d32b4a181da",
+      "tests": 895,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "final_delta": {
+      "path": "/tmp/jevdrill-merge-r3-final-binding.xml",
+      "sha256": "15481b10783eec269c9af5d9daf47d40a27f552fe65659fc214d6b2f00c4c05f",
+      "tests": 28,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "final_full": {
+      "path": "/tmp/jevdrill-merge-r3-frozen-full.xml",
+      "sha256": "5e5176b0621034275c0fbc60e26a21d7a1a7997506fdb76f6401692b0bfad7ab",
+      "tests": 897,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "initial_full_limit": "895 passed; superseded by final parameter-identity/hard-output controls",
+  "lint": "passed",
+  "format": "40 files passed",
+  "mypy": "23sourcefiles passed",
+  "generation": "147 outputs / 78 schemas, write=false",
+  "current_head_ci": {
+    "head": "d20819f88977d6aa78c371287ca8ee8cb2ab67ea",
+    "status": "all nine distinct checks passed",
+    "runs": [
+      {
+        "conclusion": "success",
+        "databaseId": 38324059889,
+        "headSha": "d20819f88977d6aa78c371287ca8ee8cb2ab67ea",
+        "status": "completed",
+        "url": "https://github.com/Consiliency/jevdrill/actions/runs/38324059889",
+        "workflowName": "Contract conformance"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 38324059803,
+        "headSha": "d20819f88977d6aa78c371287ca8ee8cb2ab67ea",
+        "status": "completed",
+        "url": "https://github.com/Consiliency/jevdrill/actions/runs/38324059803",
+        "workflowName": "ROUTE verification"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 38324059791,
+        "headSha": "d20819f88977d6aa78c371287ca8ee8cb2ab67ea",
+        "status": "completed",
+        "url": "https://github.com/Consiliency/jevdrill/actions/runs/38324059791",
+        "workflowName": "EXPERIMENT offline boundaries"
+      }
+    ]
+  },
+  "all_source_frozen": true,
+  "merge_status": "blocked: round3 redteam request-spending-ceiling bypass, other seats pending"
+}

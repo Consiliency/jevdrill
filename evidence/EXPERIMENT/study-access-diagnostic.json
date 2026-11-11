@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-09T23:38:09.824647+00:00",
+  "study_id": "discovery-development-proposed-20261009-v1",
+  "status": "blocked_before_paid_dispatch",
+  "access_attempts": [
+    {
+      "operation": "vault_metadata_default_account",
+      "status": "not_signed_in",
+      "mitigation": "explicit_account=my spaced CLI flags"
+    },
+    {
+      "operation": "vault_metadata_explicit_account",
+      "status": "verified",
+      "vault": "Consiliency Deploy Secrets",
+      "Consiliency Development": "absent",
+      "Development": "empty"
+    },
+    {
+      "operation": "approved_shared_items_metadata",
+      "status": "verified",
+      "candidate_item": "OpenAI",
+      "candidate_field": "OPENAI_API_KEY",
+      "judgment_item": "Typesafe AI Agent Harness API Key",
+      "judgment_field": "credential",
+      "field_presence": true
+    },
+    {
+      "operation": "credential_lookup_worktree_launch_context",
+      "status": "not_signed_in",
+      "preserved_artifacts": [
+        "study-access-preflight.json",
+        "study-access-preflight-v2.json",
+        "study-access-preflight-v3.json"
+      ]
+    },
+    {
+      "operation": "credential_lookup_inherited_authorized_launch_context",
+      "status": "verified",
+      "runner_working_directory": "/mnt/workspace/worktrees/viperjuice/jevdrill-route-discovery",
+      "credential_values_logged": false,
+      "credential_values_written": false
+    },
+    {
+      "operation": "candidate_snapshot_metadata_only_GET",
+      "revision": "gpt-4.1-mini-2025-04-14",
+      "status_code": 401,
+      "status": "credential_rejected",
+      "response_body": "not_read_or_logged",
+      "paid": false,
+      "attempts": 2
+    },
+    {
+      "operation": "candidate_snapshot_metadata_only_GET",
+      "revision": "gpt-4.1-nano-2025-04-14",
+      "status": "not_attempted_after_mini_rejection",
+      "paid": false
+    },
+    {
+      "operation": "restricted_image_metadata_and_container_custody",
+      "status": "verified",
+      "image_id": "sha256:70af8b01bcbd3a008522f36ea07b679f14f9ad3fb721868cf0cc3f80b7e3f958",
+      "platform": "linux/amd64",
+      "active_study_containers": 0
+    }
+  ],
+  "scope_expansion": false,
+  "unrelated_specialized_or_project_credentials_used": false
+}

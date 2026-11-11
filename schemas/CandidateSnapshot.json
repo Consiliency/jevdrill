@@ -1,0 +1,439 @@
+{
+  "$defs": {
+    "DefaultEffort": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "provider_default",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "DefaultEffort",
+      "type": "object"
+    },
+    "ExecutionTokenLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "input_tokens": {
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "input_tokens",
+        "output_tokens"
+      ],
+      "title": "ExecutionTokenLimits",
+      "type": "object"
+    },
+    "ExplicitEffort": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "explicit",
+          "title": "Kind",
+          "type": "string"
+        },
+        "native_value": {
+          "title": "Native Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "native_value"
+      ],
+      "title": "ExplicitEffort",
+      "type": "object"
+    },
+    "GuidanceRevision": {
+      "additionalProperties": false,
+      "properties": {
+        "admission": {
+          "anyOf": [
+            {
+              "const": "policy_admitted",
+              "type": "string"
+            },
+            {
+              "const": "explicitly_enabled",
+              "type": "string"
+            }
+          ],
+          "title": "Admission"
+        },
+        "authority": {
+          "title": "Authority",
+          "type": "string"
+        },
+        "content_hash": {
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "resource_id": {
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "token_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Token Count"
+        }
+      },
+      "required": [
+        "admission",
+        "authority",
+        "content_hash",
+        "resource_id",
+        "revision",
+        "role",
+        "task_id",
+        "token_count"
+      ],
+      "title": "GuidanceRevision",
+      "type": "object"
+    },
+    "RateCard": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "input_rate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Input Rate"
+        },
+        "output_rate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Output Rate"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "string"
+        },
+        "subscription_multiplier": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Subscription Multiplier"
+        },
+        "verified_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Verified At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "currency",
+        "expires_at",
+        "input_rate",
+        "output_rate",
+        "revision",
+        "subscription_multiplier",
+        "verified_at"
+      ],
+      "title": "RateCard",
+      "type": "object"
+    },
+    "UnsupportedEffort": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "unsupported",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "UnsupportedEffort",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "access_route": {
+      "title": "Access Route",
+      "type": "string"
+    },
+    "addresses_failures": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Addresses Failures",
+      "type": "array"
+    },
+    "candidate_id": {
+      "minLength": 1,
+      "title": "Candidate Id",
+      "type": "string"
+    },
+    "completion_time_ms": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "minimum": 0,
+      "title": "Completion Time Ms"
+    },
+    "context_token_limit": {
+      "minimum": 1,
+      "title": "Context Token Limit",
+      "type": "integer"
+    },
+    "declared_capabilities": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Declared Capabilities",
+      "type": "array"
+    },
+    "default": {
+      "title": "Default",
+      "type": "boolean"
+    },
+    "evidence_refs": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "evidence_strength": {
+      "anyOf": [
+        {
+          "const": "measured",
+          "type": "string"
+        },
+        {
+          "const": "judgment",
+          "type": "string"
+        },
+        {
+          "const": "unknown",
+          "type": "string"
+        }
+      ],
+      "title": "Evidence Strength"
+    },
+    "execution_token_limits": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExecutionTokenLimits"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "expires_at": {
+      "format": "date-time",
+      "pattern": "Z$",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "guidance_options": {
+      "items": {
+        "$ref": "#/$defs/GuidanceRevision"
+      },
+      "maxItems": 2,
+      "title": "Guidance Options",
+      "type": "array"
+    },
+    "local": {
+      "title": "Local",
+      "type": "boolean"
+    },
+    "model_id": {
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "native_effort": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExplicitEffort"
+        },
+        {
+          "$ref": "#/$defs/DefaultEffort"
+        },
+        {
+          "$ref": "#/$defs/UnsupportedEffort"
+        }
+      ],
+      "title": "Native Effort"
+    },
+    "output_token_limit": {
+      "minimum": 1,
+      "title": "Output Token Limit",
+      "type": "integer"
+    },
+    "provider": {
+      "title": "Provider",
+      "type": "string"
+    },
+    "quality_sufficient": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Quality Sufficient"
+    },
+    "rates": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RateCard"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "required_capabilities": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Required Capabilities",
+      "type": "array"
+    },
+    "resolved_model_revision": {
+      "minLength": 1,
+      "title": "Resolved Model Revision",
+      "type": "string"
+    },
+    "runtime_capabilities": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Runtime Capabilities",
+      "type": "array"
+    },
+    "satisfied_requirements": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Satisfied Requirements",
+      "type": "array"
+    },
+    "source": {
+      "title": "Source",
+      "type": "string"
+    },
+    "supported_efforts": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Supported Efforts",
+      "type": "array"
+    },
+    "token_counter_revision": {
+      "title": "Token Counter Revision",
+      "type": "string"
+    },
+    "verified_at": {
+      "format": "date-time",
+      "pattern": "Z$",
+      "title": "Verified At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "access_route",
+    "addresses_failures",
+    "candidate_id",
+    "completion_time_ms",
+    "context_token_limit",
+    "declared_capabilities",
+    "default",
+    "evidence_refs",
+    "evidence_strength",
+    "expires_at",
+    "guidance_options",
+    "local",
+    "model_id",
+    "native_effort",
+    "output_token_limit",
+    "provider",
+    "quality_sufficient",
+    "rates",
+    "required_capabilities",
+    "resolved_model_revision",
+    "runtime_capabilities",
+    "satisfied_requirements",
+    "source",
+    "supported_efforts",
+    "token_counter_revision",
+    "verified_at"
+  ],
+  "title": "CandidateSnapshot",
+  "type": "object"
+}

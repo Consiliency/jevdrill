@@ -1,0 +1,21 @@
+{
+  "status": "blocked",
+  "access_attempts": [
+    {
+      "operation": "credential_environment_diagnostic",
+      "status": "worktree_context_not_signed_in",
+      "prior_artifacts": [
+        "study-access-preflight.json",
+        "study-access-preflight-v2.json"
+      ],
+      "mitigation": "read_only_op_subprocess_cwd_original_repo; all study execution remains assigned worktree"
+    },
+    {
+      "operation": "approved_shared_field_lookup",
+      "provider": "candidate",
+      "item_id": "hxhazlzxeu7nmwetekiiwcouhq",
+      "field": "OPENAI_API_KEY",
+      "status": "unavailable"
+    }
+  ]
+}

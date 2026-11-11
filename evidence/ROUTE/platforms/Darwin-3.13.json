@@ -1,0 +1,1679 @@
+{
+  "schema_version": 1,
+  "phase": "ROUTE",
+  "execution_kind": "native",
+  "os": "Darwin",
+  "architecture": "arm64",
+  "python_minor": "3.13",
+  "python_version": "3.13.7",
+  "bridge_version": "0.20.1",
+  "compiler_version": "baml-cli 0.20.1",
+  "runner_identity": "macmini",
+  "timestamp": "2026-10-08T22:00:30.762021+00:00",
+  "input_digest": "12a557b817531d43141152069b7f0f823803776ef391a02f22848b28e2044e83",
+  "source_stable": true,
+  "checks": [
+    {
+      "name": "tests",
+      "command": [
+        "/Users/viperjuice/workspace/verification/jevdrill-route-20261008/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--junitxml=/tmp/jevdrill-route-8wto9uf1/tests.xml",
+        "--basetemp=/tmp/jevdrill-route-8wto9uf1/pytest"
+      ],
+      "command_sha256": "c9725edec0cb12f20d2c94ab7345d658d826627c7cd0b55b84228dac4bd189c0",
+      "exit_code": 0,
+      "output_sha256": "3abdd13315c8308b2b4db62ff568d674c08ab6f08ec8b24ba491075fb9b8da48",
+      "duration_seconds": 30.168
+    },
+    {
+      "name": "contracts",
+      "command": [
+        "node",
+        "scripts/contract_consumer.mjs",
+        "tests/contracts/fixtures"
+      ],
+      "command_sha256": "4a8a2a0eed87e0d9d6cdaa5568d4dcac7dbc9f2dc3c2c2c6738d2ad9bbab501f",
+      "exit_code": 0,
+      "output_sha256": "c9fe062ac27f54135b2cf417017a5402773881556984735272a21354fce07850",
+      "duration_seconds": 0.194
+    },
+    {
+      "name": "generation",
+      "command": [
+        "/Users/viperjuice/workspace/verification/jevdrill-route-20261008/.venv/bin/python",
+        "scripts/check_generated_contracts.py"
+      ],
+      "command_sha256": "6db75c31a63d65bcfe3f6505782fe1b8458d51c401ef6daa8b9a23e6d3006a7f",
+      "exit_code": 0,
+      "output_sha256": "0b1017b5abdef0391c814fa1598a0d49fef24123ff67c9d8bcc34d7b05e02a3c",
+      "duration_seconds": 1.387
+    },
+    {
+      "name": "vocabulary",
+      "command": [
+        "/Users/viperjuice/workspace/verification/jevdrill-route-20261008/.venv/bin/python",
+        "scripts/render_vocabulary.py",
+        "--check"
+      ],
+      "command_sha256": "4e240e9809cc9a7c025369880e7e53e92152e266e057508befdaccb499df455f",
+      "exit_code": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.035
+    },
+    {
+      "name": "imports",
+      "command": [
+        "/Users/viperjuice/workspace/verification/jevdrill-route-20261008/.venv/bin/python",
+        "scripts/check_import_boundaries.py"
+      ],
+      "command_sha256": "f350c6d6ad3bc78bb77f56687683b6b388199e179c98c7919e29761677d9812a",
+      "exit_code": 0,
+      "output_sha256": "8bd2e937f15b750ff2e18abc445df9e143156651f4415267b0c018c4b07a051b",
+      "duration_seconds": 0.055
+    },
+    {
+      "name": "lint",
+      "command": [
+        "/Users/viperjuice/workspace/verification/jevdrill-route-20261008/.venv/bin/python",
+        "-m",
+        "ruff",
+        "check",
+        "src/jevdrill",
+        "tests/contracts",
+        "tests/evaluation",
+        "tests/storage",
+        "tests/catalog",
+        "tests/discovery",
+        "tests/conftest.py",
+        "tests/inventory",
+        "tests/context",
+        "tests/settings",
+        "tests/routing",
+        "tests/costing",
+        "tests/guidance",
+        "tests/integrations",
+        "tests/application",
+        "tests/cli",
+        "tests/privacy",
+        "tests/verification"
+      ],
+      "command_sha256": "03d4fd6355f66bf43541a8ae6e1dc723dcc9352f9d64d851596d76b5a69daffe",
+      "exit_code": 0,
+      "output_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "duration_seconds": 0.027
+    },
+    {
+      "name": "format",
+      "command": [
+        "/Users/viperjuice/workspace/verification/jevdrill-route-20261008/.venv/bin/python",
+        "-m",
+        "ruff",
+        "format",
+        "--check",
+        "src/jevdrill",
+        "tests/contracts",
+        "tests/evaluation",
+        "tests/storage",
+        "tests/catalog",
+        "tests/discovery",
+        "tests/conftest.py",
+        "tests/inventory",
+        "tests/context",
+        "tests/settings",
+        "tests/routing",
+        "tests/costing",
+        "tests/guidance",
+        "tests/integrations",
+        "tests/application",
+        "tests/cli",
+        "tests/privacy",
+        "tests/verification"
+      ],
+      "command_sha256": "057e8154555c881e4a32febc75b3e84312aedd0d021045c8101d7643a3e9fc3c",
+      "exit_code": 0,
+      "output_sha256": "eb27c90aa064a61ea9229c3acedb339696979cc4f1b6d1e8e8dd6eab0c1292a7",
+      "duration_seconds": 0.025
+    },
+    {
+      "name": "types",
+      "command": [
+        "/Users/viperjuice/workspace/verification/jevdrill-route-20261008/.venv/bin/python",
+        "-m",
+        "mypy",
+        "src/jevdrill"
+      ],
+      "command_sha256": "87b48cc172cad3156bf48a0104d5ec6271e1f0713b3fbea1e72f2b57270c858d",
+      "exit_code": 0,
+      "output_sha256": "59cc4d21606d1f60735af82101c6094ef4d27a1054cb5061988711c9db04c37e",
+      "duration_seconds": 0.091
+    },
+    {
+      "name": "build",
+      "command": [
+        "uv",
+        "build",
+        "--out-dir",
+        "/tmp/jevdrill-route-8wto9uf1/dist"
+      ],
+      "command_sha256": "9aaa6dff2983ae3390d123e3df2cc3c9b8567903e222b08d710b43eb34abc591",
+      "exit_code": 0,
+      "output_sha256": "f5d5ec2dde8fb9eb1cf48582e9b333e76e8b1c9109cf0f09f1a91575188ba189",
+      "duration_seconds": 1.557
+    },
+    {
+      "name": "cli",
+      "command": [
+        "/Users/viperjuice/workspace/verification/jevdrill-route-20261008/.venv/bin/python",
+        "-m",
+        "jevdrill.cli",
+        "--help"
+      ],
+      "command_sha256": "856c6f5fd02eef1f84960c12e9ed1bdc169deeb4ba239be4eadaac2e4ec2764a",
+      "exit_code": 0,
+      "output_sha256": "682f6f44bd15b723d5136378ec6be17119a91ada1d54339bc85e7ce09c25b9a2",
+      "duration_seconds": 0.024
+    },
+    {
+      "name": "vocabulary_lint",
+      "command": [
+        "/Users/viperjuice/workspace/verification/jevdrill-route-20261008/.venv/bin/python",
+        "scripts/lint_vocabulary.py"
+      ],
+      "command_sha256": "fbf8b5712068431f165685aa36dd69f14f62f7baedacf5f259c0499ab7fecc0b",
+      "exit_code": 0,
+      "output_sha256": "8bd2e937f15b750ff2e18abc445df9e143156651f4415267b0c018c4b07a051b",
+      "duration_seconds": 0.055
+    },
+    {
+      "name": "installed_package",
+      "command": [
+        "/Users/viperjuice/workspace/verification/jevdrill-route-20261008/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/contracts/test_package.py",
+        "-k",
+        "installed",
+        "--basetemp=/tmp/jevdrill-route-8wto9uf1/installed-pytest"
+      ],
+      "command_sha256": "53f7237b0e888e6515856696e2b2c27de7e7111348a7d4b7dae304e6f90dec13",
+      "exit_code": 0,
+      "output_sha256": "4d2b70d129deeaaa7149a4ffbf6fb507b9732933bba475906387e6aed9843b4c",
+      "duration_seconds": 2.167
+    },
+    {
+      "name": "cold_cli",
+      "command": [
+        "/Users/viperjuice/workspace/verification/jevdrill-route-20261008/.venv/bin/python",
+        "-m",
+        "jevdrill.cli",
+        "--storage",
+        "/tmp/jevdrill-route-8wto9uf1/cold.sqlite3",
+        "route"
+      ],
+      "command_sha256": "31be457a9c4754dfa4a1cde8cb346fa53bb91c93e0ce956a86e2c1ddd057eaef",
+      "exit_code": 0,
+      "output_sha256": "d580ea2df23db0507a0638a51189ab368cc0a38b296ced559cd10451cae5edf3",
+      "duration_seconds": 0.2,
+      "response_status": "ready"
+    }
+  ],
+  "tests": {
+    "total": 361,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0
+  },
+  "assertions": [
+    {
+      "node_id": "tests/application/test_application.py::test_application_deletion_spans_route_report_producers",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_application.py::test_commit_failure_cannot_escape_as_ready",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_application.py::test_completion_limit_is_enforced_through_application",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_application.py::test_cross_request_cache_preserves_validity_and_authority_invalidates",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_application.py::test_idempotency_replays_exact_result_and_changed_authority_conflicts",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_application.py::test_missing_inventory_never_invents_a_free_local_model",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_application.py::test_prepared_candidate_hard_constraints_fail_closed[oversize]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_application.py::test_prepared_candidate_hard_constraints_fail_closed[stale]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_application.py::test_prepared_candidate_hard_constraints_fail_closed[unavailable]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_application.py::test_prepared_candidate_hard_constraints_fail_closed[unknown_cost]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_application.py::test_report_is_a_versioned_durable_acknowledgment",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_application.py::test_route_commits_before_ready_and_replays",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_all_discovery_statuses_gate_quality_sufficient_route[context-needs_context]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_all_discovery_statuses_gate_quality_sufficient_route[empty-no_optional_guidance]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_all_discovery_statuses_gate_quality_sufficient_route[reject-no_optional_guidance]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_all_discovery_statuses_gate_quality_sufficient_route[required-constraint_conflict]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_all_discovery_statuses_gate_quality_sufficient_route[unknown-discovery_failed]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_all_zero_one_two_combinations_skip_catalog_narrow",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_bad_links_never_enter_prepare[catalog]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_bad_links_never_enter_prepare[digest]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_bad_links_never_enter_prepare[hash]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_bad_links_never_enter_prepare[objective]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_bad_links_never_enter_prepare[producer]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_bad_links_never_enter_prepare[project]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_bad_links_never_enter_prepare[query]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_bad_links_never_enter_prepare[workspace]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_changing_objective_changes_supported_guidance",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_constraint_inheritance_every_field[allowed_providers-parent4-strict4-relaxed4]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_constraint_inheritance_every_field[context_token_limit-32768-32000-40000]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_constraint_inheritance_every_field[execution_token_limits-parent7-strict7-None]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_constraint_inheritance_every_field[governing_instruction_refs-parent5-strict5-relaxed5]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_constraint_inheritance_every_field[local_only-True-True-False]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_constraint_inheritance_every_field[max_attempts-2-1-3]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_constraint_inheritance_every_field[spending_ceiling-parent6-strict6-None]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_constraint_inheritance_every_field[total_deadline_ms-4000-3000-5000]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_deletion_invalidates_all_keys_retry_cache_and_late_commit",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_discovery_exhaustion_keeps_actual_work_within_allowance[max_calls-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_discovery_exhaustion_keeps_actual_work_within_allowance[max_candidates-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_discovery_exhaustion_keeps_actual_work_within_allowance[max_input_tokens-1]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_discovery_exhaustion_keeps_actual_work_within_allowance[max_rounds-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_false_initial_category_recovers_useful_alternate_branch",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_oversized_description_and_reduced_setting_remain_unknown",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_production_construction_empty_catalog_without_provider",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_public_discovery_two_independent_tasks_and_replay",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_required_guidance_rebinds_coalesces_and_rejects_conflicts",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_route_commit_rechecks_concurrent_objective_deletion",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_discovery_application.py::test_uncertain_supported_selection_can_route",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_route_integration.py::test_exact_catalog_frontier_and_admission_enter_application",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_route_integration.py::test_local_authority_bypasses_enabled_judgment_through_application",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_route_integration.py::test_recorded_judgments_are_replayed_without_a_new_call",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/application/test_route_integration.py::test_retry_requires_recorded_run_and_remaining_attempt_authority",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/catalog/test_catalog.py::test_catalog_digest_is_order_independent_and_rejects_duplicate_revisions",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_cli.py::test_five_route_outcomes_and_cold_deadline[constraint_conflict]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_cli.py::test_five_route_outcomes_and_cold_deadline[needs_context]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_cli.py::test_five_route_outcomes_and_cold_deadline[no_compatible_plan]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_cli.py::test_five_route_outcomes_and_cold_deadline[ready]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_cli.py::test_five_route_outcomes_and_cold_deadline[routing_failed]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_cli.py::test_invalid_input_is_one_redacted_json_response[array]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_cli.py::test_invalid_input_is_one_redacted_json_response[duplicate-key]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_cli.py::test_invalid_input_is_one_redacted_json_response[malformed]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_cli.py::test_invalid_input_is_one_redacted_json_response[oversized]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_cli.py::test_report_acknowledgments_inspect_and_delete",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_cli.py::test_route_cli_emits_one_json_response",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_cli.py::test_storage_creation_failure_and_stalled_input_are_bounded",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_discovery_cli.py::test_cli_discovery_rejects_unsupported_version_and_raw_duplicate_answers",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/cli/test_discovery_cli.py::test_cold_discover_inspect_replay_delete_commands",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/context/test_context.py::test_excluded_and_unauthorized_attachments_are_not_collected",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_non_python_consumer",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_nonportable_values[1.8014398509481984e+16]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_nonportable_values[18014398509481984]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_nonportable_values[\\ud800]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_nonportable_values[inf]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_nonportable_values[nan]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[CapabilityMismatch-0-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[CapabilityMismatch-0-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[CapabilityMismatch-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ComparisonExperiment-0-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ComparisonExperiment-0-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ComparisonExperiment-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ExecutionEvent-0-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ExecutionEvent-0-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ExecutionEvent-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ExecutionPlan-0-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ExecutionPlan-0-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ExecutionPlan-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ExecutionRun-0-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ExecutionRun-0-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ExecutionRun-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[LocalNotice-0-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[LocalNotice-0-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[LocalNotice-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[Measurement-0-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[Measurement-0-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[Measurement-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportAcknowledgment-0-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportAcknowledgment-0-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportAcknowledgment-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportAcknowledgment-1-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportAcknowledgment-1-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportAcknowledgment-1]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportAcknowledgment-2-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportAcknowledgment-2-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportAcknowledgment-2]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportAcknowledgment-3-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportAcknowledgment-3-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportAcknowledgment-3]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportRequest-0-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportRequest-0-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[ReportRequest-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RouteRequest-0-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RouteRequest-0-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RouteRequest-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-0-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-0-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-1-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-1-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-1]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-2-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-2-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-2]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-3-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-3-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-3]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-4-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-4-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[RoutingDecision-4]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[Settings-0-missing_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[Settings-0-unknown_field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[Settings-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[bool_integer]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[effective_permission]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[experiment_without_authority]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[extension_namespace]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[guidance_action]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[missing_nullable]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[nested_extra]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[numeric_string]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[self_correction]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[subset_without_parent]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[unicode_digest]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[unsupported_major]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[whitespace_numeric_string]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[wrong_operation]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_public_parser[wrong_status]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_snapshot_cannot_be_changed_through_generated_view",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_boundaries.py::test_terminal_events_and_experiment_authority_transitions",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_coverage.py::test_deferral_requires_reason_owner_phase",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_coverage.py::test_missing_and_duplicate_requirements",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_coverage.py::test_repository_mapping",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_coverage.py::test_stale_source_and_fabricated_completion",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_coverage.py::test_unknown_criterion_and_missing_review",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_coverage.py::test_wrong_criterion_text",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[bad-description-limit]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[bad-link-identity]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[caller-selected-instructions]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[coerced-call-count]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[discovery-result-constraint_conflict]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[discovery-result-discovery_failed]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[discovery-result-needs_context]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[discovery-result-no_optional_guidance]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[discovery-result-selected_guidance]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[discovery-valid]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[empty-selected]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[excess-width]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[invalid-link-digest]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[linked-route-valid]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[mixed-union]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[negative-calls]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[nested-catalog-query]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[nested-discover-operation]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[positive-empty]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[spoofed-description-hash]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[uncertain-empty]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[unknown-link-version]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[unsupported-version]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[wrong-operation]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity[wrong-policy]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_policy_families_reject_each_other",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_discovery_contracts.py::test_shared_discovery_node_fixtures",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_generation.py::test_generation_is_reproducible",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_generation.py::test_nested_source_filename_normalization_preserves_authored_text",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_generation.py::test_normalization_checks_hash_and_only_declared_paths",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_generation.py::test_wrong_compiler_fails_closed",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_import_boundaries.py::test_forbidden_relative_and_absolute_imports",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_import_boundaries.py::test_repository_imports",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_import_boundaries.py::test_unknown_module",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_async_cancellation",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_event_surface",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_invalid_response_is_typed_failure",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_partial_usage[None-None-not_reported]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_partial_usage[usage0-1-None]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_partial_usage[usage1-0-None]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_partial_usage[usage2-None-not_reported]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_partial_usage[usage3-None-not_reported]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_partial_usage[usage4-None-not_reported]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_partial_usage[usage6-None-incomplete]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_partial_usage[usage7-None-incomplete]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_partial_usage[usage8-None-incomplete]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_partial_usage[usage9-None-incomplete]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_request_and_boolean_parity[0.49]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_request_and_boolean_parity[0.51]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_request_and_boolean_parity[0.5]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_request_and_boolean_parity[0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_request_and_boolean_parity[1]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_observed_timeout_and_cancellation",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_request_alias_and_decoding",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_route_adapter_uses_baml_timeout_and_sanitized_events",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_timeout",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_usage_survives_answer_decode_failure[None]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_usage_survives_answer_decode_failure[answers0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_jev_boundary.py::test_usage_survives_answer_decode_failure[answers2]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_package.py::test_bridge_matches_contract_pin",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_package.py::test_distribution_contains_only_application_files",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_package.py::test_installed_wheel_cli_outside_checkout",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_package.py::test_package_import_outside_checkout",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_phase_verification.py::test_reducer_aggregates_independent_failures",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_phase_verification.py::test_reducer_rejects_invalid_evidence[bridge_version-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_phase_verification.py::test_reducer_rejects_invalid_evidence[checks-value6]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_phase_verification.py::test_reducer_rejects_invalid_evidence[compiler_version-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_phase_verification.py::test_reducer_rejects_invalid_evidence[execution_kind-proxy]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_phase_verification.py::test_reducer_rejects_invalid_evidence[input_digest-stale]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_phase_verification.py::test_reducer_rejects_invalid_evidence[python_minor-3.12]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_phase_verification.py::test_reducer_rejects_invalid_evidence[runner_identity-]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_phase_verification.py::test_reducer_rejects_invalid_evidence[tests-value7]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_phase_verification.py::test_reducer_requires_all_platforms",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_contracts[delete-invalid-scope]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_contracts[delete-valid]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_contracts[inspect-invalid-identity]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_contracts[inspect-valid]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_contracts[inventory-coerced-boolean]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_contracts[inventory-invalid-time]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_contracts[inventory-missing-resolved-model]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_contracts[inventory-negative-price]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_contracts[inventory-unknown-field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_contracts[inventory-valid]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_contracts[inventory-wrong-version]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_contracts[settings-unknown-field]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_contracts[settings-valid]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_node_parity",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_input_snapshot_is_immutable",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_route_ports.py::test_route_port_signatures_are_frozen",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_vocabulary.py::test_forbidden_public_fields_and_historical_exemption",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_vocabulary.py::test_glossary_is_current",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_vocabulary.py::test_owned_usage",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/contracts/test_vocabulary.py::test_stale_glossary_rejected",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/costing/test_costing.py::test_counter_binds_method_and_counts_utf8_not_characters",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/costing/test_costing.py::test_estimates_are_bounded_adjusted_and_never_observed",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/costing/test_costing.py::test_nonfinite_negative_rates_rejected[-1]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/costing/test_costing.py::test_nonfinite_negative_rates_rejected[Infinity]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/costing/test_costing.py::test_nonfinite_negative_rates_rejected[NaN]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/costing/test_costing.py::test_nonfinite_negative_rates_rejected[invalid]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/discovery/test_navigation.py::test_absent_description_is_unknown_not_negative",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/discovery/test_navigation.py::test_bad_description_reference_rejected",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/discovery/test_navigation.py::test_binding_unknown_duplicate_and_stale_answers",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/discovery/test_navigation.py::test_exact_and_ambiguous_aliases_remain_suitability_questions",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/discovery/test_navigation.py::test_explicit_bounds[max_candidates-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/discovery/test_navigation.py::test_explicit_bounds[max_rounds-0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/discovery/test_navigation.py::test_false_domain_children_follow_already_queued_alternate_domains",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/discovery/test_navigation.py::test_successive_questions_false_categories_recover_and_permutations",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/discovery/test_navigation.py::test_swapping_answers_changes_fifo_service",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/evaluation/test_metrics.py::test_cost_includes_failed_attempts_and_unknowns",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/evaluation/test_metrics.py::test_dataset_leakage_and_exposure",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/evaluation/test_metrics.py::test_metric_definition_and_unknown_rejection",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/evaluation/test_metrics.py::test_parallel_elapsed_not_sum",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/evaluation/test_metrics.py::test_token_subsets_not_double_counted",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/guidance/test_guidance.py::test_no_guidance_and_required_never_truncated",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/guidance/test_guidance.py::test_reinjection_roles_and_admission_are_checked",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_discovery_jev.py::test_discovery_call_rechecks_authorization_before_http[cloud_allowed]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_discovery_jev.py::test_discovery_call_rechecks_authorization_before_http[enabled]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_discovery_jev.py::test_discovery_call_rechecks_authorization_before_http[expired_rates]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_discovery_jev.py::test_failed_answer_keeps_usage_and_reserved_attempt",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_discovery_jev.py::test_generated_baml_discovery_application_loopback_and_partial_usage",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_discovery_jev.py::test_unsupported_requested_bounds_reject_before_http[expired_rates]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_discovery_jev.py::test_unsupported_requested_bounds_reject_before_http[output]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_discovery_jev.py::test_unsupported_requested_bounds_reject_before_http[positive_output_rate]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_discovery_jev.py::test_unsupported_requested_bounds_reject_before_http[too_small_spend]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_discovery_jev.py::test_unsupported_requested_bounds_reject_before_http[unknown_input_rate]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_jev.py::test_expired_judgment_never_calls_provider",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_jev.py::test_optional_frontier_shrinks_without_truncating_task",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_jev.py::test_usage_sources_reconcile_without_adding[3-3-False-expected2]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_jev.py::test_usage_sources_reconcile_without_adding[3-4-False-expected3]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_jev.py::test_usage_sources_reconcile_without_adding[3-None-False-expected0]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_jev.py::test_usage_sources_reconcile_without_adding[None-3-False-expected1]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_jev.py::test_usage_sources_reconcile_without_adding[None-3-True-expected4]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/integrations/test_jev.py::test_usage_sources_reconcile_without_adding[None-None-False-expected5]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/inventory/test_inventory.py::test_expired_candidate_and_unsupported_native_effort",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/inventory/test_inventory.py::test_snapshot_intersects_declared_and_runtime_capabilities",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/inventory/test_inventory.py::test_snapshot_rechecks_after_host_setup",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/inventory/test_inventory.py::test_stale_price_does_not_fabricate_cost_or_expire_capability",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/privacy/test_application_privacy.py::test_private_context_is_excluded_before_provider_and_retention",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/privacy/test_context_privacy.py::test_credentials_and_excluded_path_descendants_are_removed",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/privacy/test_context_privacy.py::test_workspace_paths_are_distinct_and_symlinks_resolve",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/privacy/test_discovery_privacy.py::test_discovery_forbidden_provider_traffic_never_dispatches[cloud]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/privacy/test_discovery_privacy.py::test_discovery_forbidden_provider_traffic_never_dispatches[hard_output]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/privacy/test_discovery_privacy.py::test_discovery_forbidden_provider_traffic_never_dispatches[local]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/privacy/test_discovery_privacy.py::test_discovery_forbidden_provider_traffic_never_dispatches[provider]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/privacy/test_discovery_privacy.py::test_discovery_forbidden_provider_traffic_never_dispatches[spend]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/privacy/test_discovery_privacy.py::test_metadata_replay_has_no_raw_objective_description_or_provider_payload",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/privacy/test_jev_privacy.py::test_no_policy_never_calls_provider",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/privacy/test_storage_privacy.py::test_raw_controls_and_archive_key_failure",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/routing/test_routing.py::test_costs_quality_time_and_boolean_default_are_permutation_invariant",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/routing/test_routing.py::test_foreign_currency_cannot_prove_a_hard_cap",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/routing/test_routing.py::test_stable_model_id_breaks_ties",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/routing/test_routing.py::test_unknown_cost_cannot_satisfy_hard_cap",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/settings/test_settings.py::test_layer_order_is_declared_and_restrictions_cannot_be_widened",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/settings/test_settings.py::test_settings_keep_winning_sources_and_intersect_permissions",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_discovery_recovery.py::test_concurrent_recovery_commits_one_result_and_deletion_wins_afterward",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_discovery_recovery.py::test_distinct_keys_have_independent_fixed_allowances",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_discovery_recovery.py::test_late_answer_cannot_replace_terminal_failure",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_discovery_recovery.py::test_observed_partial_recovery_terminal_and_late_answers_audit_only",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_discovery_recovery.py::test_replay_reconstructs_selection_and_rejects_resigned_tampering",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_discovery_recovery.py::test_reservation_crash_recovery_never_dispatches_or_replenishes",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_discovery_recovery.py::test_same_key_conflict_and_commit_failure_no_success",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_recovery.py::test_concurrent_corrections_cannot_fork_an_immutable_chain",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_recovery.py::test_missing_key_preserves_indexed_source_for_later_archival",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_recovery.py::test_tombstone_is_durable_before_artifact_cleanup",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_storage.py::test_artifact_recovery_after_failed_replace_and_deletion",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_storage.py::test_contention_uses_remaining_deadline",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_storage.py::test_decision_is_scoped_idempotent_and_replayable",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_storage.py::test_delete_prevents_delayed_event_resurrection",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_storage.py::test_deletion_covers_producers_operations_but_isolates_workspaces",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_storage.py::test_immutable_decision_identity_and_operation_scoped_keys",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_storage.py::test_migration_failure_is_atomic",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_storage.py::test_process_exit_at_transaction_boundary[False]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_storage.py::test_process_exit_at_transaction_boundary[True]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/storage/test_storage.py::test_projection_preserves_originals_and_rejects_invalid_corrections",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_input_binding_includes_nested_pinned_patch",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_local_only_does_not_suppress_missing_assertions",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_local_only_ignores_only_absent_other_platforms",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_malformed_manifests_block_without_crashing[None]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_malformed_manifests_block_without_crashing[row1]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_malformed_manifests_block_without_crashing[row2]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_malformed_manifests_block_without_crashing[row3]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_partial_coverage_remains_blocked_with_all_platforms",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reduce_only_reports_corrupt_json",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_failed_or_proxy_evidence",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_forged_or_malformed_success[bad_name]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_forged_or_malformed_success[cold_deadline]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_forged_or_malformed_success[command_digest]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_forged_or_malformed_success[duplicate]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_forged_or_malformed_success[error_assertion]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_forged_or_malformed_success[failed_assertion]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_forged_or_malformed_success[malformed]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_forged_or_malformed_success[no_assertions]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_forged_or_malformed_success[output_digest]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_forged_or_malformed_success[skipped_assertion]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_forged_or_malformed_success[stale_input]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_forged_or_malformed_success[tool_version]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_forged_or_malformed_success[wrong_command]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_four_criterion_coverage",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_inputs_changed_during_collection[False]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_rejects_inputs_changed_during_collection[None]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_requires_each_native_platform",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_requires_executed_controls[digest]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_requires_executed_controls[duplicates]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_requires_executed_controls[missing]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_requires_executed_controls[parameter]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_requires_executed_controls[skipped]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_requires_full_metadata_records[coverage.json]",
+      "outcome": "passed"
+    },
+    {
+      "node_id": "tests/verification/test_route_phase.py::test_reducer_requires_full_metadata_records[spec-delta.json]",
+      "outcome": "passed"
+    }
+  ],
+  "assertions_sha256": "e673c66eafa5b3ef808883263c1b5d697d8b0efdebd9f6196195b09855734a7b",
+  "duration_seconds": 36.114,
+  "proof_cost_target_exceeded": false
+}

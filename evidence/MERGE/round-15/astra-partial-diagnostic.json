@@ -1,0 +1,50 @@
+[
+  {
+    "id": "name:-'\"'-False",
+    "text": "Ordinary context.\nname:\n  \"chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "output": "Ordinary context.\nname:\n  \"chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "leak": true
+  },
+  {
+    "id": "name:-'\"'-True",
+    "text": "Ordinary context.\nname:\n# ordinary comment\n  \"chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "output": "Ordinary context.\nname:\n# ordinary comment\n  \"chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "leak": true
+  },
+  {
+    "id": "name:-\"'\"-False",
+    "text": "Ordinary context.\nname:\n  'chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "output": "Ordinary context.\nname:\n  'chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "leak": true
+  },
+  {
+    "id": "name:-\"'\"-True",
+    "text": "Ordinary context.\nname:\n# ordinary comment\n  'chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "output": "Ordinary context.\nname:\n# ordinary comment\n  'chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "leak": true
+  },
+  {
+    "id": "?-'\"'-False",
+    "text": "Ordinary context.\n?\n  \"chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "output": "Ordinary context.\n?\n  \"chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "leak": true
+  },
+  {
+    "id": "?-'\"'-True",
+    "text": "Ordinary context.\n?\n# ordinary comment\n  \"chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "output": "Ordinary context.\n?\n# ordinary comment\n  \"chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "leak": true
+  },
+  {
+    "id": "?-\"'\"-False",
+    "text": "Ordinary context.\n?\n  'chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "output": "Ordinary context.\n?\n  'chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "leak": true
+  },
+  {
+    "id": "?-\"'\"-True",
+    "text": "Ordinary context.\n?\n# ordinary comment\n  'chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "output": "Ordinary context.\n?\n# ordinary comment\n  'chr(65) + chr(117) + chr(116) + chr(104) + chr(111) + chr(114) + chr(105) + chr(122) + chr(97) + chr(116) + chr(105) + chr(111) + chr(110)\nvalue: SYNTHETIC_R15_ASTRA_SENTINEL",
+    "leak": true
+  }
+]

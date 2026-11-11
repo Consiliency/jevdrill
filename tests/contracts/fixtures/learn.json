@@ -1,0 +1,293 @@
+[
+  {
+    "id": "learn-record",
+    "contract": "AnalysisRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "11111111-1111-1111-1111-111111111111",
+        "workspace_id": "22222222-2222-2222-2222-222222222222",
+        "producer": "synthetic",
+        "operation": "route"
+      },
+      "action": "record",
+      "context": {
+        "task_id": "33333333-3333-3333-3333-333333333333",
+        "routing_decision_id": "44444444-4444-4444-4444-444444444444",
+        "discovery_ref": null,
+        "task_family": "implementation",
+        "task_group": "syntax",
+        "environment_revision": "v1",
+        "isolation_revision": "v1",
+        "evaluator_ref": "checks-v1",
+        "rubric_revision": "v1",
+        "local_analysis_enabled": true,
+        "share_user_wide": false
+      },
+      "objectives": [],
+      "minimum_batch": 2,
+      "interval_seconds": 60,
+      "include_user_wide": false,
+      "settings_layers": []
+    },
+    "accepted": true
+  },
+  {
+    "id": "learn-reject-coercion",
+    "contract": "AnalysisRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "11111111-1111-1111-1111-111111111111",
+        "workspace_id": "22222222-2222-2222-2222-222222222222",
+        "producer": "synthetic",
+        "operation": "route"
+      },
+      "action": "record",
+      "context": {
+        "task_id": "33333333-3333-3333-3333-333333333333",
+        "routing_decision_id": "44444444-4444-4444-4444-444444444444",
+        "discovery_ref": null,
+        "task_family": "implementation",
+        "task_group": "syntax",
+        "environment_revision": "v1",
+        "isolation_revision": "v1",
+        "evaluator_ref": "checks-v1",
+        "rubric_revision": "v1",
+        "local_analysis_enabled": true,
+        "share_user_wide": false
+      },
+      "objectives": [],
+      "minimum_batch": "2",
+      "interval_seconds": 60,
+      "include_user_wide": false,
+      "settings_layers": []
+    },
+    "accepted": false
+  },
+  {
+    "id": "learn-reject-unknown",
+    "contract": "AnalysisRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "11111111-1111-1111-1111-111111111111",
+        "workspace_id": "22222222-2222-2222-2222-222222222222",
+        "producer": "synthetic",
+        "operation": "route"
+      },
+      "action": "record",
+      "context": {
+        "task_id": "33333333-3333-3333-3333-333333333333",
+        "routing_decision_id": "44444444-4444-4444-4444-444444444444",
+        "discovery_ref": null,
+        "task_family": "implementation",
+        "task_group": "syntax",
+        "environment_revision": "v1",
+        "isolation_revision": "v1",
+        "evaluator_ref": "checks-v1",
+        "rubric_revision": "v1",
+        "local_analysis_enabled": true,
+        "share_user_wide": false
+      },
+      "objectives": [],
+      "minimum_batch": 2,
+      "interval_seconds": 60,
+      "include_user_wide": false,
+      "settings_layers": [],
+      "unexpected": true
+    },
+    "accepted": false
+  },
+  {
+    "id": "learn-reject-zero_batch",
+    "contract": "AnalysisRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "11111111-1111-1111-1111-111111111111",
+        "workspace_id": "22222222-2222-2222-2222-222222222222",
+        "producer": "synthetic",
+        "operation": "route"
+      },
+      "action": "record",
+      "context": {
+        "task_id": "33333333-3333-3333-3333-333333333333",
+        "routing_decision_id": "44444444-4444-4444-4444-444444444444",
+        "discovery_ref": null,
+        "task_family": "implementation",
+        "task_group": "syntax",
+        "environment_revision": "v1",
+        "isolation_revision": "v1",
+        "evaluator_ref": "checks-v1",
+        "rubric_revision": "v1",
+        "local_analysis_enabled": true,
+        "share_user_wide": false
+      },
+      "objectives": [],
+      "minimum_batch": 0,
+      "interval_seconds": 60,
+      "include_user_wide": false,
+      "settings_layers": []
+    },
+    "accepted": false
+  },
+  {
+    "id": "learn-reject-missing_context",
+    "contract": "AnalysisRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "11111111-1111-1111-1111-111111111111",
+        "workspace_id": "22222222-2222-2222-2222-222222222222",
+        "producer": "synthetic",
+        "operation": "route"
+      },
+      "action": "record",
+      "context": null,
+      "objectives": [],
+      "minimum_batch": 2,
+      "interval_seconds": 60,
+      "include_user_wide": false,
+      "settings_layers": []
+    },
+    "accepted": false
+  },
+  {
+    "id": "learn-reject-forged_identity",
+    "contract": "AnalysisRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "11111111-1111-1111-1111-111111111111",
+        "workspace_id": "22222222-2222-2222-2222-222222222222",
+        "producer": "synthetic",
+        "operation": "route"
+      },
+      "action": "record",
+      "context": {
+        "task_id": "fake",
+        "routing_decision_id": "44444444-4444-4444-4444-444444444444",
+        "discovery_ref": null,
+        "task_family": "implementation",
+        "task_group": "syntax",
+        "environment_revision": "v1",
+        "isolation_revision": "v1",
+        "evaluator_ref": "checks-v1",
+        "rubric_revision": "v1",
+        "local_analysis_enabled": true,
+        "share_user_wide": false
+      },
+      "objectives": [],
+      "minimum_batch": 2,
+      "interval_seconds": 60,
+      "include_user_wide": false,
+      "settings_layers": []
+    },
+    "accepted": false
+  },
+  {
+    "id": "learn-reject-consent",
+    "contract": "AnalysisRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "11111111-1111-1111-1111-111111111111",
+        "workspace_id": "22222222-2222-2222-2222-222222222222",
+        "producer": "synthetic",
+        "operation": "route"
+      },
+      "action": "record",
+      "context": {
+        "task_id": "33333333-3333-3333-3333-333333333333",
+        "routing_decision_id": "44444444-4444-4444-4444-444444444444",
+        "discovery_ref": null,
+        "task_family": "implementation",
+        "task_group": "syntax",
+        "environment_revision": "v1",
+        "isolation_revision": "v1",
+        "evaluator_ref": "checks-v1",
+        "rubric_revision": "v1",
+        "local_analysis_enabled": false,
+        "share_user_wide": true
+      },
+      "objectives": [],
+      "minimum_batch": 2,
+      "interval_seconds": 60,
+      "include_user_wide": false,
+      "settings_layers": []
+    },
+    "accepted": false
+  },
+  {
+    "id": "learn-reject-empty_family",
+    "contract": "AnalysisRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "11111111-1111-1111-1111-111111111111",
+        "workspace_id": "22222222-2222-2222-2222-222222222222",
+        "producer": "synthetic",
+        "operation": "route"
+      },
+      "action": "record",
+      "context": {
+        "task_id": "33333333-3333-3333-3333-333333333333",
+        "routing_decision_id": "44444444-4444-4444-4444-444444444444",
+        "discovery_ref": null,
+        "task_family": "",
+        "task_group": "syntax",
+        "environment_revision": "v1",
+        "isolation_revision": "v1",
+        "evaluator_ref": "checks-v1",
+        "rubric_revision": "v1",
+        "local_analysis_enabled": true,
+        "share_user_wide": false
+      },
+      "objectives": [],
+      "minimum_batch": 2,
+      "interval_seconds": 60,
+      "include_user_wide": false,
+      "settings_layers": []
+    },
+    "accepted": false
+  },
+  {
+    "id": "learn-maintenance",
+    "contract": "MaintenanceRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "11111111-1111-1111-1111-111111111111",
+        "workspace_id": "22222222-2222-2222-2222-222222222222",
+        "producer": "synthetic",
+        "operation": "route"
+      },
+      "action": "run",
+      "interactive_busy": false,
+      "max_items": 10,
+      "archive_retention_days": 365,
+      "request_path": null
+    },
+    "accepted": true
+  },
+  {
+    "id": "learn-maintenance-bound",
+    "contract": "MaintenanceRequest",
+    "payload": {
+      "schema_version": "1",
+      "scope": {
+        "project_id": "11111111-1111-1111-1111-111111111111",
+        "workspace_id": "22222222-2222-2222-2222-222222222222",
+        "producer": "synthetic",
+        "operation": "route"
+      },
+      "action": "run",
+      "interactive_busy": false,
+      "max_items": 1001,
+      "archive_retention_days": 365,
+      "request_path": null
+    },
+    "accepted": false
+  }
+]

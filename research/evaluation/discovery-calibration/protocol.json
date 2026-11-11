@@ -1,0 +1,828 @@
+{
+  "schema_version": 1,
+  "revision": "discovery-development-v1-20261009",
+  "rights": "CC0-1.0; purpose-built public authored synthetic tasks",
+  "purpose": "exposed development calibration and evaluator diagnostics only",
+  "exposed": true,
+  "holdouts_opened": false,
+  "promotion_eligible": false,
+  "performance_claims": "insufficient_evidence",
+  "evaluator_revision": "structured-independent-v1",
+  "rubric_revision": "1",
+  "resources": [
+    {
+      "id": "bounds",
+      "domain": "software",
+      "family": "implementation",
+      "description": "Implement pure array access with explicit bounds; preserve inputs.",
+      "instructions": "Validate nonnegative integer bounds before accessing an array. Preserve all inputs."
+    },
+    {
+      "id": "review-integrity",
+      "domain": "security",
+      "family": "review",
+      "description": "Review mutation and data integrity defects with severity and actionable findings.",
+      "instructions": "Report only demonstrated defects. Mark data loss critical and give a specific repair."
+    },
+    {
+      "id": "api-docs",
+      "domain": "documentation",
+      "family": "documentation",
+      "description": "Document API preconditions, public references and executable examples.",
+      "instructions": "State preconditions and facts precisely. Include a public specification reference and checked examples."
+    },
+    {
+      "id": "pure-contract",
+      "domain": "software",
+      "family": "implementation",
+      "description": "Implement exact pure contracts, preserve input order and identity, and test empty or conflicting cases.",
+      "instructions": "Implement only the supplied specification. Preserve all input data and ordering. Distinguish exact model and rubric revisions; check empty inputs and conflicts."
+    }
+  ],
+  "cases": [
+    {
+      "id": "array-bounds-implementation",
+      "related_group": "array-bounds",
+      "task_family": "implementation",
+      "scenario": "ambiguous-alias",
+      "objective": "shared",
+      "acceptable_guidance": [
+        [
+          "bounds"
+        ]
+      ],
+      "acceptable_model_ids": [
+        "model-cheap"
+      ],
+      "completion_time_limit_ms": null,
+      "expected": {
+        "results": [
+          3,
+          null
+        ]
+      },
+      "reference_artifact": {
+        "results": [
+          3,
+          null
+        ]
+      },
+      "unacceptable_artifact": {},
+      "task_prompt": "Implement JavaScript solve with no dependencies or external I/O. Return only the function declaration. Return array[index] only for a nonnegative integer index smaller than array length; return null otherwise. Do not mutate inputs.",
+      "baseline_applicability": {
+        "fixed_default": true,
+        "cheapest_feasible": true,
+        "no_guidance": true,
+        "previous_policy": false,
+        "simple_retrieval": true
+      },
+      "previous_policy_inapplicable_reason": "No separately verified previous candidate-ordering policy exists for this new public group.",
+      "reference_program": "function solve(a,i){return Number.isInteger(i)&&i>=0&&i<a.length?a[i]:null;}",
+      "inputs": [
+        [
+          [
+            3
+          ],
+          0
+        ],
+        [
+          [
+            3
+          ],
+          -1
+        ]
+      ],
+      "expected_answers": [
+        3,
+        null
+      ],
+      "study_completion_time_limit_ms": null
+    },
+    {
+      "id": "array-bounds-review",
+      "related_group": "array-bounds",
+      "task_family": "review",
+      "scenario": "ordinary",
+      "objective": "array-bounds: review; Review mutation and data integrity defects with severity and actionable findings.",
+      "acceptable_guidance": [
+        [
+          "review-integrity"
+        ]
+      ],
+      "acceptable_model_ids": [
+        "model-cheap"
+      ],
+      "completion_time_limit_ms": null,
+      "expected": {
+        "findings": {
+          "wrong_result": {
+            "severity": "critical",
+            "action": "preserve the specified behavior and input integrity"
+          }
+        }
+      },
+      "reference_artifact": {
+        "findings": {
+          "wrong_result": {
+            "severity": "critical",
+            "action": "preserve the specified behavior and input integrity"
+          }
+        }
+      },
+      "unacceptable_artifact": {},
+      "task_prompt": "Review the supplied JavaScript against the public specification; return JSON with findings mapping each demonstrated defect id to severity and an actionable repair. Return array[index] only for a nonnegative integer index smaller than array length; return null otherwise. Do not mutate inputs. Code: function solve(a,i){return a[i]||null;}",
+      "baseline_applicability": {
+        "fixed_default": true,
+        "cheapest_feasible": true,
+        "no_guidance": true,
+        "previous_policy": false,
+        "simple_retrieval": true
+      },
+      "previous_policy_inapplicable_reason": "No separately verified previous candidate-ordering policy exists for this new public group.",
+      "study_completion_time_limit_ms": null
+    },
+    {
+      "id": "array-bounds-documentation",
+      "related_group": "array-bounds",
+      "task_family": "documentation",
+      "scenario": "ordinary",
+      "objective": "array-bounds: documentation; Document API preconditions, public references and executable examples.",
+      "acceptable_guidance": [
+        [
+          "api-docs"
+        ]
+      ],
+      "acceptable_model_ids": [
+        "model-cheap"
+      ],
+      "completion_time_limit_ms": null,
+      "expected": {
+        "facts": {
+          "behavior": "Return array[index] only for a nonnegative integer index smaller than array length; return null otherwise. Do not mutate inputs."
+        },
+        "requirements": [
+          "preserve specified behavior",
+          "no external I/O"
+        ],
+        "references": [
+          "public-array-bounds-spec-v1"
+        ],
+        "examples": [
+          {
+            "input": [
+              [
+                3
+              ],
+              0
+            ],
+            "output": 3
+          }
+        ]
+      },
+      "reference_artifact": {
+        "facts": {
+          "behavior": "Return array[index] only for a nonnegative integer index smaller than array length; return null otherwise. Do not mutate inputs."
+        },
+        "requirements": [
+          "preserve specified behavior",
+          "no external I/O"
+        ],
+        "references": [
+          "public-array-bounds-spec-v1"
+        ],
+        "examples": [
+          {
+            "input": [
+              [
+                3
+              ],
+              0
+            ],
+            "output": 3
+          }
+        ]
+      },
+      "unacceptable_artifact": {},
+      "task_prompt": "Return only JSON with facts, requirements, references and examples preserving this public specification. Return array[index] only for a nonnegative integer index smaller than array length; return null otherwise. Do not mutate inputs. Required record: {\"facts\": {\"behavior\": \"Return array[index] only for a nonnegative integer index smaller than array length; return null otherwise. Do not mutate inputs.\"}, \"requirements\": [\"preserve specified behavior\", \"no external I/O\"], \"references\": [\"public-array-bounds-spec-v1\"], \"examples\": [{\"input\": [[3], 0], \"output\": 3}]}",
+      "baseline_applicability": {
+        "fixed_default": true,
+        "cheapest_feasible": true,
+        "no_guidance": true,
+        "previous_policy": false,
+        "simple_retrieval": true
+      },
+      "previous_policy_inapplicable_reason": "No separately verified previous candidate-ordering policy exists for this new public group.",
+      "study_completion_time_limit_ms": null
+    },
+    {
+      "id": "durable-queue-implementation",
+      "related_group": "durable-queue",
+      "task_family": "implementation",
+      "scenario": "shared-skill-different-task",
+      "objective": "durable-queue: implementation; Implement pure array access with explicit bounds; preserve inputs.",
+      "acceptable_guidance": [
+        [
+          "pure-contract"
+        ]
+      ],
+      "acceptable_model_ids": [
+        "model-fast"
+      ],
+      "completion_time_limit_ms": 20,
+      "expected": {
+        "results": [
+          "a",
+          null
+        ]
+      },
+      "reference_artifact": {
+        "results": [
+          "a",
+          null
+        ]
+      },
+      "unacceptable_artifact": {},
+      "task_prompt": "Implement JavaScript solve with no dependencies or external I/O. Return only the function declaration. Return the id of the first queued job in input order; return null if none. Never remove or modify jobs.",
+      "baseline_applicability": {
+        "fixed_default": true,
+        "cheapest_feasible": true,
+        "no_guidance": true,
+        "previous_policy": false,
+        "simple_retrieval": true
+      },
+      "previous_policy_inapplicable_reason": "No separately verified previous candidate-ordering policy exists for this new public group.",
+      "reference_program": "function solve(jobs){const x=jobs.find(j=>j.state===\"queued\");return x?x.id:null;}",
+      "inputs": [
+        [
+          [
+            {
+              "id": "done",
+              "state": "completed"
+            },
+            {
+              "id": "a",
+              "state": "queued"
+            }
+          ]
+        ],
+        [
+          []
+        ]
+      ],
+      "expected_answers": [
+        "a",
+        null
+      ],
+      "study_completion_time_limit_ms": 10000
+    },
+    {
+      "id": "durable-queue-review",
+      "related_group": "durable-queue",
+      "task_family": "review",
+      "scenario": "cross-domain",
+      "objective": "durable-queue: review; Review mutation and data integrity defects with severity and actionable findings. Verify the pure input-preserving contract as well as the demonstrated integrity defect.",
+      "acceptable_guidance": [
+        [
+          "pure-contract",
+          "review-integrity"
+        ]
+      ],
+      "acceptable_model_ids": [
+        "model-cheap"
+      ],
+      "completion_time_limit_ms": null,
+      "expected": {
+        "findings": {
+          "input_mutation": {
+            "severity": "critical",
+            "action": "preserve the specified behavior and input integrity"
+          }
+        }
+      },
+      "reference_artifact": {
+        "findings": {
+          "input_mutation": {
+            "severity": "critical",
+            "action": "preserve the specified behavior and input integrity"
+          }
+        }
+      },
+      "unacceptable_artifact": {},
+      "task_prompt": "Review the supplied JavaScript against the public specification; return JSON with findings mapping each demonstrated defect id to severity and an actionable repair. Return the id of the first queued job in input order; return null if none. Never remove or modify jobs. Code: function solve(jobs){return jobs.shift().id;}",
+      "baseline_applicability": {
+        "fixed_default": true,
+        "cheapest_feasible": true,
+        "no_guidance": true,
+        "previous_policy": false,
+        "simple_retrieval": true
+      },
+      "previous_policy_inapplicable_reason": "No separately verified previous candidate-ordering policy exists for this new public group.",
+      "study_completion_time_limit_ms": null
+    },
+    {
+      "id": "durable-queue-documentation",
+      "related_group": "durable-queue",
+      "task_family": "documentation",
+      "scenario": "ordinary",
+      "objective": "durable-queue: documentation; Document API preconditions, public references and executable examples.",
+      "acceptable_guidance": [
+        [
+          "api-docs"
+        ]
+      ],
+      "acceptable_model_ids": [
+        "model-cheap"
+      ],
+      "completion_time_limit_ms": null,
+      "expected": {
+        "facts": {
+          "behavior": "Return the id of the first queued job in input order; return null if none. Never remove or modify jobs."
+        },
+        "requirements": [
+          "preserve specified behavior",
+          "no external I/O"
+        ],
+        "references": [
+          "public-durable-queue-spec-v1"
+        ],
+        "examples": [
+          {
+            "input": [
+              [
+                {
+                  "id": "done",
+                  "state": "completed"
+                },
+                {
+                  "id": "a",
+                  "state": "queued"
+                }
+              ]
+            ],
+            "output": "a"
+          }
+        ]
+      },
+      "reference_artifact": {
+        "facts": {
+          "behavior": "Return the id of the first queued job in input order; return null if none. Never remove or modify jobs."
+        },
+        "requirements": [
+          "preserve specified behavior",
+          "no external I/O"
+        ],
+        "references": [
+          "public-durable-queue-spec-v1"
+        ],
+        "examples": [
+          {
+            "input": [
+              [
+                {
+                  "id": "done",
+                  "state": "completed"
+                },
+                {
+                  "id": "a",
+                  "state": "queued"
+                }
+              ]
+            ],
+            "output": "a"
+          }
+        ]
+      },
+      "unacceptable_artifact": {},
+      "task_prompt": "Return only JSON with facts, requirements, references and examples preserving this public specification. Return the id of the first queued job in input order; return null if none. Never remove or modify jobs. Required record: {\"facts\": {\"behavior\": \"Return the id of the first queued job in input order; return null if none. Never remove or modify jobs.\"}, \"requirements\": [\"preserve specified behavior\", \"no external I/O\"], \"references\": [\"public-durable-queue-spec-v1\"], \"examples\": [{\"input\": [[{\"id\": \"done\", \"state\": \"completed\"}, {\"id\": \"a\", \"state\": \"queued\"}]], \"output\": \"a\"}]}",
+      "baseline_applicability": {
+        "fixed_default": true,
+        "cheapest_feasible": true,
+        "no_guidance": true,
+        "previous_policy": false,
+        "simple_retrieval": true
+      },
+      "previous_policy_inapplicable_reason": "No separately verified previous candidate-ordering policy exists for this new public group.",
+      "study_completion_time_limit_ms": null
+    },
+    {
+      "id": "public-api-implementation",
+      "related_group": "public-api",
+      "task_family": "implementation",
+      "scenario": "changed-objective-before",
+      "objective": "public-api: implementation; Implement pure array access with explicit bounds; preserve inputs.",
+      "acceptable_guidance": [
+        [
+          "pure-contract"
+        ]
+      ],
+      "acceptable_model_ids": [
+        "model-cheap"
+      ],
+      "completion_time_limit_ms": null,
+      "expected": {
+        "results": [
+          "a b",
+          ""
+        ]
+      },
+      "reference_artifact": {
+        "results": [
+          "a b",
+          ""
+        ]
+      },
+      "unacceptable_artifact": {},
+      "task_prompt": "Implement JavaScript solve with no dependencies or external I/O. Return only the function declaration. Return a string with surrounding whitespace removed and every internal whitespace run collapsed to one space; empty whitespace returns empty string. No external I/O.",
+      "baseline_applicability": {
+        "fixed_default": true,
+        "cheapest_feasible": true,
+        "no_guidance": true,
+        "previous_policy": false,
+        "simple_retrieval": true
+      },
+      "previous_policy_inapplicable_reason": "No separately verified previous candidate-ordering policy exists for this new public group.",
+      "reference_program": "function solve(s){return s.trim().replace(/\\s+/g,\" \");}",
+      "inputs": [
+        [
+          " a   b "
+        ],
+        [
+          "   "
+        ]
+      ],
+      "expected_answers": [
+        "a b",
+        ""
+      ],
+      "objective_chain_id": "public-api-changed-objective",
+      "objective_revision": 1,
+      "study_completion_time_limit_ms": null
+    },
+    {
+      "id": "public-api-review",
+      "related_group": "public-api",
+      "task_family": "review",
+      "scenario": "changed-objective-after",
+      "objective": "public-api: review; Review mutation and data integrity defects with severity and actionable findings.",
+      "acceptable_guidance": [
+        [
+          "review-integrity"
+        ]
+      ],
+      "acceptable_model_ids": [
+        "model-cheap"
+      ],
+      "completion_time_limit_ms": null,
+      "expected": {
+        "findings": {
+          "wrong_result": {
+            "severity": "critical",
+            "action": "preserve the specified behavior and input integrity"
+          }
+        }
+      },
+      "reference_artifact": {
+        "findings": {
+          "wrong_result": {
+            "severity": "critical",
+            "action": "preserve the specified behavior and input integrity"
+          }
+        }
+      },
+      "unacceptable_artifact": {},
+      "task_prompt": "Review the supplied JavaScript against the public specification; return JSON with findings mapping each demonstrated defect id to severity and an actionable repair. Return a string with surrounding whitespace removed and every internal whitespace run collapsed to one space; empty whitespace returns empty string. No external I/O. Code: function solve(s){return s.trim();}",
+      "baseline_applicability": {
+        "fixed_default": true,
+        "cheapest_feasible": true,
+        "no_guidance": true,
+        "previous_policy": false,
+        "simple_retrieval": true
+      },
+      "previous_policy_inapplicable_reason": "No separately verified previous candidate-ordering policy exists for this new public group.",
+      "objective_chain_id": "public-api-changed-objective",
+      "objective_revision": 2,
+      "study_completion_time_limit_ms": null
+    },
+    {
+      "id": "public-api-documentation",
+      "related_group": "public-api",
+      "task_family": "documentation",
+      "scenario": "no-useful-guidance",
+      "objective": "public-api: documentation; Document API preconditions, public references and executable examples.",
+      "acceptable_guidance": [
+        []
+      ],
+      "acceptable_model_ids": [
+        "model-cheap"
+      ],
+      "completion_time_limit_ms": null,
+      "expected": {
+        "facts": {
+          "behavior": "Return a string with surrounding whitespace removed and every internal whitespace run collapsed to one space; empty whitespace returns empty string. No external I/O."
+        },
+        "requirements": [
+          "preserve specified behavior",
+          "no external I/O"
+        ],
+        "references": [
+          "public-public-api-spec-v1"
+        ],
+        "examples": [
+          {
+            "input": [
+              " a   b "
+            ],
+            "output": "a b"
+          }
+        ]
+      },
+      "reference_artifact": {
+        "facts": {
+          "behavior": "Return a string with surrounding whitespace removed and every internal whitespace run collapsed to one space; empty whitespace returns empty string. No external I/O."
+        },
+        "requirements": [
+          "preserve specified behavior",
+          "no external I/O"
+        ],
+        "references": [
+          "public-public-api-spec-v1"
+        ],
+        "examples": [
+          {
+            "input": [
+              " a   b "
+            ],
+            "output": "a b"
+          }
+        ]
+      },
+      "unacceptable_artifact": {},
+      "task_prompt": "Return only JSON with facts, requirements, references and examples preserving this public specification. Return a string with surrounding whitespace removed and every internal whitespace run collapsed to one space; empty whitespace returns empty string. No external I/O. Required record: {\"facts\": {\"behavior\": \"Return a string with surrounding whitespace removed and every internal whitespace run collapsed to one space; empty whitespace returns empty string. No external I/O.\"}, \"requirements\": [\"preserve specified behavior\", \"no external I/O\"], \"references\": [\"public-public-api-spec-v1\"], \"examples\": [{\"input\": [\" a   b \"], \"output\": \"a b\"}]}",
+      "baseline_applicability": {
+        "fixed_default": true,
+        "cheapest_feasible": true,
+        "no_guidance": true,
+        "previous_policy": false,
+        "simple_retrieval": true
+      },
+      "previous_policy_inapplicable_reason": "No separately verified previous candidate-ordering policy exists for this new public group.",
+      "study_completion_time_limit_ms": null
+    },
+    {
+      "id": "source-identity-implementation",
+      "related_group": "source-identity",
+      "task_family": "implementation",
+      "scenario": "shared-skill-different-task",
+      "objective": "source-identity: implementation; Implement pure array access with explicit bounds; preserve inputs.",
+      "acceptable_guidance": [
+        [
+          "pure-contract"
+        ]
+      ],
+      "acceptable_model_ids": [
+        "model-fast"
+      ],
+      "completion_time_limit_ms": 20,
+      "expected": {
+        "results": [
+          [
+            "a"
+          ]
+        ]
+      },
+      "reference_artifact": {
+        "results": [
+          [
+            "a"
+          ]
+        ]
+      },
+      "unacceptable_artifact": {},
+      "task_prompt": "Implement JavaScript solve with no dependencies or external I/O. Return only the function declaration. Return ids in input order only when both model_revision and rubric_revision equal the supplied strings exactly. Preserve all input rows.",
+      "baseline_applicability": {
+        "fixed_default": true,
+        "cheapest_feasible": true,
+        "no_guidance": true,
+        "previous_policy": false,
+        "simple_retrieval": true
+      },
+      "previous_policy_inapplicable_reason": "No separately verified previous candidate-ordering policy exists for this new public group.",
+      "reference_program": "function solve(rows,m,r){return rows.filter(x=>x.model_revision===m&&x.rubric_revision===r).map(x=>x.id);}",
+      "inputs": [
+        [
+          [
+            {
+              "id": "a",
+              "model_revision": "m1",
+              "rubric_revision": "r1"
+            },
+            {
+              "id": "b",
+              "model_revision": "m1",
+              "rubric_revision": "r2"
+            }
+          ],
+          "m1",
+          "r1"
+        ]
+      ],
+      "expected_answers": [
+        [
+          "a"
+        ]
+      ],
+      "study_completion_time_limit_ms": 10000
+    },
+    {
+      "id": "source-identity-review",
+      "related_group": "source-identity",
+      "task_family": "review",
+      "scenario": "ordinary",
+      "objective": "source-identity: review; Review mutation and data integrity defects with severity and actionable findings.",
+      "acceptable_guidance": [
+        [
+          "review-integrity"
+        ]
+      ],
+      "acceptable_model_ids": [
+        "model-cheap"
+      ],
+      "completion_time_limit_ms": null,
+      "expected": {
+        "findings": {
+          "wrong_revision": {
+            "severity": "critical",
+            "action": "preserve the specified behavior and input integrity"
+          }
+        }
+      },
+      "reference_artifact": {
+        "findings": {
+          "wrong_revision": {
+            "severity": "critical",
+            "action": "preserve the specified behavior and input integrity"
+          }
+        }
+      },
+      "unacceptable_artifact": {},
+      "task_prompt": "Review the supplied JavaScript against the public specification; return JSON with findings mapping each demonstrated defect id to severity and an actionable repair. Return ids in input order only when both model_revision and rubric_revision equal the supplied strings exactly. Preserve all input rows. Code: function solve(rows,m,r){return rows.filter(x=>x.model_revision===m).map(x=>x.id);}",
+      "baseline_applicability": {
+        "fixed_default": true,
+        "cheapest_feasible": true,
+        "no_guidance": true,
+        "previous_policy": false,
+        "simple_retrieval": true
+      },
+      "previous_policy_inapplicable_reason": "No separately verified previous candidate-ordering policy exists for this new public group.",
+      "study_completion_time_limit_ms": null
+    },
+    {
+      "id": "source-identity-documentation",
+      "related_group": "source-identity",
+      "task_family": "documentation",
+      "scenario": "ordinary",
+      "objective": "source-identity: documentation; Document API preconditions, public references and executable examples.",
+      "acceptable_guidance": [
+        [
+          "api-docs"
+        ]
+      ],
+      "acceptable_model_ids": [
+        "model-cheap"
+      ],
+      "completion_time_limit_ms": null,
+      "expected": {
+        "facts": {
+          "behavior": "Return ids in input order only when both model_revision and rubric_revision equal the supplied strings exactly. Preserve all input rows."
+        },
+        "requirements": [
+          "preserve specified behavior",
+          "no external I/O"
+        ],
+        "references": [
+          "public-source-identity-spec-v1"
+        ],
+        "examples": [
+          {
+            "input": [
+              [
+                {
+                  "id": "a",
+                  "model_revision": "m1",
+                  "rubric_revision": "r1"
+                },
+                {
+                  "id": "b",
+                  "model_revision": "m1",
+                  "rubric_revision": "r2"
+                }
+              ],
+              "m1",
+              "r1"
+            ],
+            "output": [
+              "a"
+            ]
+          }
+        ]
+      },
+      "reference_artifact": {
+        "facts": {
+          "behavior": "Return ids in input order only when both model_revision and rubric_revision equal the supplied strings exactly. Preserve all input rows."
+        },
+        "requirements": [
+          "preserve specified behavior",
+          "no external I/O"
+        ],
+        "references": [
+          "public-source-identity-spec-v1"
+        ],
+        "examples": [
+          {
+            "input": [
+              [
+                {
+                  "id": "a",
+                  "model_revision": "m1",
+                  "rubric_revision": "r1"
+                },
+                {
+                  "id": "b",
+                  "model_revision": "m1",
+                  "rubric_revision": "r2"
+                }
+              ],
+              "m1",
+              "r1"
+            ],
+            "output": [
+              "a"
+            ]
+          }
+        ]
+      },
+      "unacceptable_artifact": {},
+      "task_prompt": "Return only JSON with facts, requirements, references and examples preserving this public specification. Return ids in input order only when both model_revision and rubric_revision equal the supplied strings exactly. Preserve all input rows. Required record: {\"facts\": {\"behavior\": \"Return ids in input order only when both model_revision and rubric_revision equal the supplied strings exactly. Preserve all input rows.\"}, \"requirements\": [\"preserve specified behavior\", \"no external I/O\"], \"references\": [\"public-source-identity-spec-v1\"], \"examples\": [{\"input\": [[{\"id\": \"a\", \"model_revision\": \"m1\", \"rubric_revision\": \"r1\"}, {\"id\": \"b\", \"model_revision\": \"m1\", \"rubric_revision\": \"r2\"}], \"m1\", \"r1\"], \"output\": [\"a\"]}]}",
+      "baseline_applicability": {
+        "fixed_default": true,
+        "cheapest_feasible": true,
+        "no_guidance": true,
+        "previous_policy": false,
+        "simple_retrieval": true
+      },
+      "previous_policy_inapplicable_reason": "No separately verified previous candidate-ordering policy exists for this new public group.",
+      "study_completion_time_limit_ms": null
+    }
+  ],
+  "baselines": [
+    "fixed_default",
+    "cheapest_feasible",
+    "no_guidance",
+    "previous_policy",
+    "simple_retrieval"
+  ],
+  "unsuitable_controls": [
+    "always_admit",
+    "all_default",
+    "executor_scores_only"
+  ],
+  "critical_rule": "No additional critical failures compared with the paired applicable baseline.",
+  "calibration": {
+    "implementation": {
+      "quality_floor": null,
+      "maximum_quality_loss": null,
+      "practical_equivalence": null,
+      "minimum_pairs": null,
+      "confidence": null
+    },
+    "review": {
+      "quality_floor": null,
+      "maximum_quality_loss": null,
+      "practical_equivalence": null,
+      "minimum_pairs": null,
+      "confidence": null
+    },
+    "documentation": {
+      "quality_floor": null,
+      "maximum_quality_loss": null,
+      "practical_equivalence": null,
+      "minimum_pairs": null,
+      "confidence": null
+    }
+  },
+  "analysis": {
+    "sampling_unit": "related_group",
+    "paired": true,
+    "metrics": [
+      "guidance_acceptability",
+      "unnecessary_injection",
+      "independent_quality",
+      "critical_failures",
+      "raw_cost_including_failed_attempts",
+      "total_elapsed_including_discovery_routing_execution_grading",
+      "tokens_with_missing_reasons"
+    ],
+    "unknowns": "Missing counters and outcomes remain unknown, never zero.",
+    "uncertainty": "Report per-family paired differences, group-level intervals and denominators; four related groups cannot establish broad generalization or policy acceptance."
+  }
+}

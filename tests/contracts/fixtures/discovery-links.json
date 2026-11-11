@@ -1,0 +1,1588 @@
+[
+  {
+    "id": "discovery-result-selected_guidance",
+    "contract": "DiscoveryResult",
+    "payload": {
+      "status": "selected_guidance",
+      "details": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "guidance_refs": [
+          {
+            "resource_id": "alpha",
+            "revision": "v1",
+            "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae"
+          }
+        ],
+        "required_guidance": [],
+        "assembled_instructions": [
+          "Synthetic alpha instructions."
+        ],
+        "alternatives": [],
+        "uncertainty": [],
+        "termination_reason": "complete",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "revisions": {
+          "catalog_revision": "fixture",
+          "catalog_digest": "fixture",
+          "taxonomy_revision": "fixture",
+          "content_revision": "fixture",
+          "descriptions_digest": "fixture",
+          "settings_revision": "fixture",
+          "policy_digest": "fixture",
+          "authorization_digest": "fixture"
+        }
+      }
+    },
+    "accepted": true
+  },
+  {
+    "id": "discovery-result-no_optional_guidance",
+    "contract": "DiscoveryResult",
+    "payload": {
+      "status": "no_optional_guidance",
+      "details": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "guidance_refs": [],
+        "required_guidance": [],
+        "assembled_instructions": [],
+        "alternatives": [],
+        "uncertainty": [],
+        "termination_reason": "complete",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "revisions": {
+          "catalog_revision": "fixture",
+          "catalog_digest": "fixture",
+          "taxonomy_revision": "fixture",
+          "content_revision": "fixture",
+          "descriptions_digest": "fixture",
+          "settings_revision": "fixture",
+          "policy_digest": "fixture",
+          "authorization_digest": "fixture"
+        }
+      }
+    },
+    "accepted": true
+  },
+  {
+    "id": "discovery-result-needs_context",
+    "contract": "DiscoveryResult",
+    "payload": {
+      "status": "needs_context",
+      "details": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "guidance_refs": [],
+        "required_guidance": [],
+        "assembled_instructions": [],
+        "alternatives": [],
+        "uncertainty": [],
+        "termination_reason": "complete",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "revisions": {
+          "catalog_revision": "fixture",
+          "catalog_digest": "fixture",
+          "taxonomy_revision": "fixture",
+          "content_revision": "fixture",
+          "descriptions_digest": "fixture",
+          "settings_revision": "fixture",
+          "policy_digest": "fixture",
+          "authorization_digest": "fixture"
+        }
+      },
+      "missing_facts": [
+        "authorized context"
+      ]
+    },
+    "accepted": true
+  },
+  {
+    "id": "discovery-result-constraint_conflict",
+    "contract": "DiscoveryResult",
+    "payload": {
+      "status": "constraint_conflict",
+      "details": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "guidance_refs": [],
+        "required_guidance": [],
+        "assembled_instructions": [],
+        "alternatives": [],
+        "uncertainty": [],
+        "termination_reason": "complete",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "revisions": {
+          "catalog_revision": "fixture",
+          "catalog_digest": "fixture",
+          "taxonomy_revision": "fixture",
+          "content_revision": "fixture",
+          "descriptions_digest": "fixture",
+          "settings_revision": "fixture",
+          "policy_digest": "fixture",
+          "authorization_digest": "fixture"
+        }
+      },
+      "conflicting_requirements": [
+        "missing required guidance"
+      ]
+    },
+    "accepted": true
+  },
+  {
+    "id": "discovery-result-discovery_failed",
+    "contract": "DiscoveryResult",
+    "payload": {
+      "status": "discovery_failed",
+      "details": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "guidance_refs": [],
+        "required_guidance": [],
+        "assembled_instructions": [],
+        "alternatives": [],
+        "uncertainty": [],
+        "termination_reason": "complete",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "revisions": {
+          "catalog_revision": "fixture",
+          "catalog_digest": "fixture",
+          "taxonomy_revision": "fixture",
+          "content_revision": "fixture",
+          "descriptions_digest": "fixture",
+          "settings_revision": "fixture",
+          "policy_digest": "fixture",
+          "authorization_digest": "fixture"
+        }
+      },
+      "error_code": "interrupted"
+    },
+    "accepted": true
+  },
+  {
+    "id": "empty-selected",
+    "contract": "DiscoveryResult",
+    "payload": {
+      "status": "selected_guidance",
+      "details": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "guidance_refs": [],
+        "required_guidance": [],
+        "assembled_instructions": [
+          "Synthetic alpha instructions."
+        ],
+        "alternatives": [],
+        "uncertainty": [],
+        "termination_reason": "complete",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "revisions": {
+          "catalog_revision": "fixture",
+          "catalog_digest": "fixture",
+          "taxonomy_revision": "fixture",
+          "content_revision": "fixture",
+          "descriptions_digest": "fixture",
+          "settings_revision": "fixture",
+          "policy_digest": "fixture",
+          "authorization_digest": "fixture"
+        }
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "positive-empty",
+    "contract": "DiscoveryResult",
+    "payload": {
+      "status": "no_optional_guidance",
+      "details": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "guidance_refs": [
+          {
+            "resource_id": "alpha",
+            "revision": "v1",
+            "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae"
+          }
+        ],
+        "required_guidance": [],
+        "assembled_instructions": [],
+        "alternatives": [],
+        "uncertainty": [],
+        "termination_reason": "complete",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "revisions": {
+          "catalog_revision": "fixture",
+          "catalog_digest": "fixture",
+          "taxonomy_revision": "fixture",
+          "content_revision": "fixture",
+          "descriptions_digest": "fixture",
+          "settings_revision": "fixture",
+          "policy_digest": "fixture",
+          "authorization_digest": "fixture"
+        }
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "uncertain-empty",
+    "contract": "DiscoveryResult",
+    "payload": {
+      "status": "no_optional_guidance",
+      "details": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "guidance_refs": [],
+        "required_guidance": [],
+        "assembled_instructions": [],
+        "alternatives": [],
+        "uncertainty": [
+          "unexamined"
+        ],
+        "termination_reason": "complete",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "revisions": {
+          "catalog_revision": "fixture",
+          "catalog_digest": "fixture",
+          "taxonomy_revision": "fixture",
+          "content_revision": "fixture",
+          "descriptions_digest": "fixture",
+          "settings_revision": "fixture",
+          "policy_digest": "fixture",
+          "authorization_digest": "fixture"
+        }
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "mixed-union",
+    "contract": "DiscoveryResult",
+    "payload": {
+      "status": "selected_guidance",
+      "details": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "guidance_refs": [
+          {
+            "resource_id": "alpha",
+            "revision": "v1",
+            "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae"
+          }
+        ],
+        "required_guidance": [],
+        "assembled_instructions": [
+          "Synthetic alpha instructions."
+        ],
+        "alternatives": [],
+        "uncertainty": [],
+        "termination_reason": "complete",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "revisions": {
+          "catalog_revision": "fixture",
+          "catalog_digest": "fixture",
+          "taxonomy_revision": "fixture",
+          "content_revision": "fixture",
+          "descriptions_digest": "fixture",
+          "settings_revision": "fixture",
+          "policy_digest": "fixture",
+          "authorization_digest": "fixture"
+        }
+      },
+      "error_code": "failure"
+    },
+    "accepted": false
+  },
+  {
+    "id": "linked-route-valid",
+    "contract": "DiscoveryRouteInputs",
+    "payload": {
+      "schema_version": "2",
+      "route_inputs": {
+        "schema_version": "1",
+        "request": {
+          "active_guidance": [],
+          "attachment_refs": [],
+          "capabilities": {
+            "declared": [
+              "text"
+            ],
+            "expires_at": "2099-01-01T00:00:00Z",
+            "inventory_revision": "fixture",
+            "runtime": [
+              "text"
+            ],
+            "verified_at": "2026-01-01T00:00:00Z"
+          },
+          "envelope": {
+            "created_at": "2026-09-28T00:00:00Z",
+            "execution_target_id": "fixture",
+            "extensions": {},
+            "harness_id": "fixture",
+            "idempotency_key": "fixture",
+            "operation": "route",
+            "project_id": "00000000-0000-4000-8000-000000000001",
+            "request_id": "00000000-0000-4000-8000-000000000001",
+            "schema_version": "1",
+            "workspace_id": "00000000-0000-4000-8000-000000000001"
+          },
+          "execution_mode": "main",
+          "hard_constraints": {
+            "allowed_providers": [],
+            "context_token_limit": 32768,
+            "governing_instruction_refs": [],
+            "local_only": false,
+            "max_attempts": 1,
+            "spending_ceiling": null,
+            "total_deadline_ms": 5000
+          },
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "recursion_bypass": false,
+          "representation_source": "fixture",
+          "retry_context": null,
+          "task_id": "00000000-0000-4000-8000-000000000001",
+          "task_representation": "fixture",
+          "versions": {
+            "catalog_revision": "fixture",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "fixture"
+          }
+        },
+        "inventory": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "target": "fixture",
+          "source_version": "synthetic-v1",
+          "verified_at": "2026-01-01T00:00:00Z",
+          "expires_at": "2099-01-01T00:00:00Z",
+          "candidates": [
+            {
+              "candidate_id": "candidate-a",
+              "model_id": "model-a",
+              "resolved_model_revision": "model-a-v1",
+              "provider": "local",
+              "access_route": "synthetic",
+              "local": true,
+              "native_effort": {
+                "kind": "provider_default"
+              },
+              "supported_efforts": [],
+              "declared_capabilities": [
+                "text"
+              ],
+              "runtime_capabilities": [
+                "text"
+              ],
+              "required_capabilities": [
+                "text"
+              ],
+              "verified_at": "2026-01-01T00:00:00Z",
+              "expires_at": "2099-01-01T00:00:00Z",
+              "source": "synthetic-host",
+              "context_token_limit": 32768,
+              "output_token_limit": 1024,
+              "token_counter_revision": "utf8-bytes-upper-bound-v1",
+              "quality_sufficient": true,
+              "satisfied_requirements": [],
+              "completion_time_ms": 1000,
+              "evidence_strength": "measured",
+              "evidence_refs": [
+                "synthetic-measurement"
+              ],
+              "rates": {
+                "revision": "rates-v1",
+                "currency": "USD",
+                "input_rate": "0.000001",
+                "output_rate": "0.000002",
+                "verified_at": "2026-01-01T00:00:00Z",
+                "expires_at": "2099-01-01T00:00:00Z",
+                "subscription_multiplier": null
+              },
+              "default": false,
+              "guidance_options": [],
+              "addresses_failures": []
+            }
+          ]
+        },
+        "catalog": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "resources": [
+            {
+              "resource_id": "alpha",
+              "revision": "v1",
+              "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "alpha alias"
+              ],
+              "domain": "alpha",
+              "specialty": "alpha specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic alpha instructions.",
+              "conflicts": []
+            },
+            {
+              "resource_id": "beta",
+              "revision": "v1",
+              "content_hash": "d83697bc6cba54c3757bf1474bc82a933e4f78085166e3066aa4b98127304d21",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "beta alias"
+              ],
+              "domain": "beta",
+              "specialty": "beta specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic beta instructions.",
+              "conflicts": []
+            }
+          ]
+        },
+        "settings_layers": [],
+        "judgment_policy": null
+      },
+      "discovery_ref": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    "accepted": true
+  },
+  {
+    "id": "unknown-link-version",
+    "contract": "DiscoveryRouteInputs",
+    "payload": {
+      "schema_version": "3",
+      "route_inputs": {
+        "schema_version": "1",
+        "request": {
+          "active_guidance": [],
+          "attachment_refs": [],
+          "capabilities": {
+            "declared": [
+              "text"
+            ],
+            "expires_at": "2099-01-01T00:00:00Z",
+            "inventory_revision": "fixture",
+            "runtime": [
+              "text"
+            ],
+            "verified_at": "2026-01-01T00:00:00Z"
+          },
+          "envelope": {
+            "created_at": "2026-09-28T00:00:00Z",
+            "execution_target_id": "fixture",
+            "extensions": {},
+            "harness_id": "fixture",
+            "idempotency_key": "fixture",
+            "operation": "route",
+            "project_id": "00000000-0000-4000-8000-000000000001",
+            "request_id": "00000000-0000-4000-8000-000000000001",
+            "schema_version": "1",
+            "workspace_id": "00000000-0000-4000-8000-000000000001"
+          },
+          "execution_mode": "main",
+          "hard_constraints": {
+            "allowed_providers": [],
+            "context_token_limit": 32768,
+            "governing_instruction_refs": [],
+            "local_only": false,
+            "max_attempts": 1,
+            "spending_ceiling": null,
+            "total_deadline_ms": 5000
+          },
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "recursion_bypass": false,
+          "representation_source": "fixture",
+          "retry_context": null,
+          "task_id": "00000000-0000-4000-8000-000000000001",
+          "task_representation": "fixture",
+          "versions": {
+            "catalog_revision": "fixture",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "fixture"
+          }
+        },
+        "inventory": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "target": "fixture",
+          "source_version": "synthetic-v1",
+          "verified_at": "2026-01-01T00:00:00Z",
+          "expires_at": "2099-01-01T00:00:00Z",
+          "candidates": [
+            {
+              "candidate_id": "candidate-a",
+              "model_id": "model-a",
+              "resolved_model_revision": "model-a-v1",
+              "provider": "local",
+              "access_route": "synthetic",
+              "local": true,
+              "native_effort": {
+                "kind": "provider_default"
+              },
+              "supported_efforts": [],
+              "declared_capabilities": [
+                "text"
+              ],
+              "runtime_capabilities": [
+                "text"
+              ],
+              "required_capabilities": [
+                "text"
+              ],
+              "verified_at": "2026-01-01T00:00:00Z",
+              "expires_at": "2099-01-01T00:00:00Z",
+              "source": "synthetic-host",
+              "context_token_limit": 32768,
+              "output_token_limit": 1024,
+              "token_counter_revision": "utf8-bytes-upper-bound-v1",
+              "quality_sufficient": true,
+              "satisfied_requirements": [],
+              "completion_time_ms": 1000,
+              "evidence_strength": "measured",
+              "evidence_refs": [
+                "synthetic-measurement"
+              ],
+              "rates": {
+                "revision": "rates-v1",
+                "currency": "USD",
+                "input_rate": "0.000001",
+                "output_rate": "0.000002",
+                "verified_at": "2026-01-01T00:00:00Z",
+                "expires_at": "2099-01-01T00:00:00Z",
+                "subscription_multiplier": null
+              },
+              "default": false,
+              "guidance_options": [],
+              "addresses_failures": []
+            }
+          ]
+        },
+        "catalog": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "resources": [
+            {
+              "resource_id": "alpha",
+              "revision": "v1",
+              "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "alpha alias"
+              ],
+              "domain": "alpha",
+              "specialty": "alpha specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic alpha instructions.",
+              "conflicts": []
+            },
+            {
+              "resource_id": "beta",
+              "revision": "v1",
+              "content_hash": "d83697bc6cba54c3757bf1474bc82a933e4f78085166e3066aa4b98127304d21",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "beta alias"
+              ],
+              "domain": "beta",
+              "specialty": "beta specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic beta instructions.",
+              "conflicts": []
+            }
+          ]
+        },
+        "settings_layers": [],
+        "judgment_policy": null
+      },
+      "discovery_ref": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "caller-selected-instructions",
+    "contract": "DiscoveryRouteInputs",
+    "payload": {
+      "schema_version": "2",
+      "route_inputs": {
+        "schema_version": "1",
+        "request": {
+          "active_guidance": [],
+          "attachment_refs": [],
+          "capabilities": {
+            "declared": [
+              "text"
+            ],
+            "expires_at": "2099-01-01T00:00:00Z",
+            "inventory_revision": "fixture",
+            "runtime": [
+              "text"
+            ],
+            "verified_at": "2026-01-01T00:00:00Z"
+          },
+          "envelope": {
+            "created_at": "2026-09-28T00:00:00Z",
+            "execution_target_id": "fixture",
+            "extensions": {},
+            "harness_id": "fixture",
+            "idempotency_key": "fixture",
+            "operation": "route",
+            "project_id": "00000000-0000-4000-8000-000000000001",
+            "request_id": "00000000-0000-4000-8000-000000000001",
+            "schema_version": "1",
+            "workspace_id": "00000000-0000-4000-8000-000000000001"
+          },
+          "execution_mode": "main",
+          "hard_constraints": {
+            "allowed_providers": [],
+            "context_token_limit": 32768,
+            "governing_instruction_refs": [],
+            "local_only": false,
+            "max_attempts": 1,
+            "spending_ceiling": null,
+            "total_deadline_ms": 5000
+          },
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "recursion_bypass": false,
+          "representation_source": "fixture",
+          "retry_context": null,
+          "task_id": "00000000-0000-4000-8000-000000000001",
+          "task_representation": "fixture",
+          "versions": {
+            "catalog_revision": "fixture",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "fixture"
+          }
+        },
+        "inventory": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "target": "fixture",
+          "source_version": "synthetic-v1",
+          "verified_at": "2026-01-01T00:00:00Z",
+          "expires_at": "2099-01-01T00:00:00Z",
+          "candidates": [
+            {
+              "candidate_id": "candidate-a",
+              "model_id": "model-a",
+              "resolved_model_revision": "model-a-v1",
+              "provider": "local",
+              "access_route": "synthetic",
+              "local": true,
+              "native_effort": {
+                "kind": "provider_default"
+              },
+              "supported_efforts": [],
+              "declared_capabilities": [
+                "text"
+              ],
+              "runtime_capabilities": [
+                "text"
+              ],
+              "required_capabilities": [
+                "text"
+              ],
+              "verified_at": "2026-01-01T00:00:00Z",
+              "expires_at": "2099-01-01T00:00:00Z",
+              "source": "synthetic-host",
+              "context_token_limit": 32768,
+              "output_token_limit": 1024,
+              "token_counter_revision": "utf8-bytes-upper-bound-v1",
+              "quality_sufficient": true,
+              "satisfied_requirements": [],
+              "completion_time_ms": 1000,
+              "evidence_strength": "measured",
+              "evidence_refs": [
+                "synthetic-measurement"
+              ],
+              "rates": {
+                "revision": "rates-v1",
+                "currency": "USD",
+                "input_rate": "0.000001",
+                "output_rate": "0.000002",
+                "verified_at": "2026-01-01T00:00:00Z",
+                "expires_at": "2099-01-01T00:00:00Z",
+                "subscription_multiplier": null
+              },
+              "default": false,
+              "guidance_options": [],
+              "addresses_failures": []
+            }
+          ]
+        },
+        "catalog": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "resources": [
+            {
+              "resource_id": "alpha",
+              "revision": "v1",
+              "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "alpha alias"
+              ],
+              "domain": "alpha",
+              "specialty": "alpha specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic alpha instructions.",
+              "conflicts": []
+            },
+            {
+              "resource_id": "beta",
+              "revision": "v1",
+              "content_hash": "d83697bc6cba54c3757bf1474bc82a933e4f78085166e3066aa4b98127304d21",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "beta alias"
+              ],
+              "domain": "beta",
+              "specialty": "beta specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic beta instructions.",
+              "conflicts": []
+            }
+          ]
+        },
+        "settings_layers": [],
+        "judgment_policy": null
+      },
+      "discovery_ref": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "assembled_instructions": [
+        "spoof"
+      ]
+    },
+    "accepted": false
+  },
+  {
+    "id": "invalid-link-digest",
+    "contract": "DiscoveryRouteInputs",
+    "payload": {
+      "schema_version": "2",
+      "route_inputs": {
+        "schema_version": "1",
+        "request": {
+          "active_guidance": [],
+          "attachment_refs": [],
+          "capabilities": {
+            "declared": [
+              "text"
+            ],
+            "expires_at": "2099-01-01T00:00:00Z",
+            "inventory_revision": "fixture",
+            "runtime": [
+              "text"
+            ],
+            "verified_at": "2026-01-01T00:00:00Z"
+          },
+          "envelope": {
+            "created_at": "2026-09-28T00:00:00Z",
+            "execution_target_id": "fixture",
+            "extensions": {},
+            "harness_id": "fixture",
+            "idempotency_key": "fixture",
+            "operation": "route",
+            "project_id": "00000000-0000-4000-8000-000000000001",
+            "request_id": "00000000-0000-4000-8000-000000000001",
+            "schema_version": "1",
+            "workspace_id": "00000000-0000-4000-8000-000000000001"
+          },
+          "execution_mode": "main",
+          "hard_constraints": {
+            "allowed_providers": [],
+            "context_token_limit": 32768,
+            "governing_instruction_refs": [],
+            "local_only": false,
+            "max_attempts": 1,
+            "spending_ceiling": null,
+            "total_deadline_ms": 5000
+          },
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "recursion_bypass": false,
+          "representation_source": "fixture",
+          "retry_context": null,
+          "task_id": "00000000-0000-4000-8000-000000000001",
+          "task_representation": "fixture",
+          "versions": {
+            "catalog_revision": "fixture",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "fixture"
+          }
+        },
+        "inventory": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "target": "fixture",
+          "source_version": "synthetic-v1",
+          "verified_at": "2026-01-01T00:00:00Z",
+          "expires_at": "2099-01-01T00:00:00Z",
+          "candidates": [
+            {
+              "candidate_id": "candidate-a",
+              "model_id": "model-a",
+              "resolved_model_revision": "model-a-v1",
+              "provider": "local",
+              "access_route": "synthetic",
+              "local": true,
+              "native_effort": {
+                "kind": "provider_default"
+              },
+              "supported_efforts": [],
+              "declared_capabilities": [
+                "text"
+              ],
+              "runtime_capabilities": [
+                "text"
+              ],
+              "required_capabilities": [
+                "text"
+              ],
+              "verified_at": "2026-01-01T00:00:00Z",
+              "expires_at": "2099-01-01T00:00:00Z",
+              "source": "synthetic-host",
+              "context_token_limit": 32768,
+              "output_token_limit": 1024,
+              "token_counter_revision": "utf8-bytes-upper-bound-v1",
+              "quality_sufficient": true,
+              "satisfied_requirements": [],
+              "completion_time_ms": 1000,
+              "evidence_strength": "measured",
+              "evidence_refs": [
+                "synthetic-measurement"
+              ],
+              "rates": {
+                "revision": "rates-v1",
+                "currency": "USD",
+                "input_rate": "0.000001",
+                "output_rate": "0.000002",
+                "verified_at": "2026-01-01T00:00:00Z",
+                "expires_at": "2099-01-01T00:00:00Z",
+                "subscription_multiplier": null
+              },
+              "default": false,
+              "guidance_options": [],
+              "addresses_failures": []
+            }
+          ]
+        },
+        "catalog": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "resources": [
+            {
+              "resource_id": "alpha",
+              "revision": "v1",
+              "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "alpha alias"
+              ],
+              "domain": "alpha",
+              "specialty": "alpha specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic alpha instructions.",
+              "conflicts": []
+            },
+            {
+              "resource_id": "beta",
+              "revision": "v1",
+              "content_hash": "d83697bc6cba54c3757bf1474bc82a933e4f78085166e3066aa4b98127304d21",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "beta alias"
+              ],
+              "domain": "beta",
+              "specialty": "beta specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic beta instructions.",
+              "conflicts": []
+            }
+          ]
+        },
+        "settings_layers": [],
+        "judgment_policy": null
+      },
+      "discovery_ref": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "trace_digest": "invalid"
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "bad-link-identity",
+    "contract": "DiscoveryRouteInputs",
+    "payload": {
+      "schema_version": "2",
+      "route_inputs": {
+        "schema_version": "1",
+        "request": {
+          "active_guidance": [],
+          "attachment_refs": [],
+          "capabilities": {
+            "declared": [
+              "text"
+            ],
+            "expires_at": "2099-01-01T00:00:00Z",
+            "inventory_revision": "fixture",
+            "runtime": [
+              "text"
+            ],
+            "verified_at": "2026-01-01T00:00:00Z"
+          },
+          "envelope": {
+            "created_at": "2026-09-28T00:00:00Z",
+            "execution_target_id": "fixture",
+            "extensions": {},
+            "harness_id": "fixture",
+            "idempotency_key": "fixture",
+            "operation": "route",
+            "project_id": "00000000-0000-4000-8000-000000000001",
+            "request_id": "00000000-0000-4000-8000-000000000001",
+            "schema_version": "1",
+            "workspace_id": "00000000-0000-4000-8000-000000000001"
+          },
+          "execution_mode": "main",
+          "hard_constraints": {
+            "allowed_providers": [],
+            "context_token_limit": 32768,
+            "governing_instruction_refs": [],
+            "local_only": false,
+            "max_attempts": 1,
+            "spending_ceiling": null,
+            "total_deadline_ms": 5000
+          },
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "recursion_bypass": false,
+          "representation_source": "fixture",
+          "retry_context": null,
+          "task_id": "00000000-0000-4000-8000-000000000001",
+          "task_representation": "fixture",
+          "versions": {
+            "catalog_revision": "fixture",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "fixture"
+          }
+        },
+        "inventory": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "target": "fixture",
+          "source_version": "synthetic-v1",
+          "verified_at": "2026-01-01T00:00:00Z",
+          "expires_at": "2099-01-01T00:00:00Z",
+          "candidates": [
+            {
+              "candidate_id": "candidate-a",
+              "model_id": "model-a",
+              "resolved_model_revision": "model-a-v1",
+              "provider": "local",
+              "access_route": "synthetic",
+              "local": true,
+              "native_effort": {
+                "kind": "provider_default"
+              },
+              "supported_efforts": [],
+              "declared_capabilities": [
+                "text"
+              ],
+              "runtime_capabilities": [
+                "text"
+              ],
+              "required_capabilities": [
+                "text"
+              ],
+              "verified_at": "2026-01-01T00:00:00Z",
+              "expires_at": "2099-01-01T00:00:00Z",
+              "source": "synthetic-host",
+              "context_token_limit": 32768,
+              "output_token_limit": 1024,
+              "token_counter_revision": "utf8-bytes-upper-bound-v1",
+              "quality_sufficient": true,
+              "satisfied_requirements": [],
+              "completion_time_ms": 1000,
+              "evidence_strength": "measured",
+              "evidence_refs": [
+                "synthetic-measurement"
+              ],
+              "rates": {
+                "revision": "rates-v1",
+                "currency": "USD",
+                "input_rate": "0.000001",
+                "output_rate": "0.000002",
+                "verified_at": "2026-01-01T00:00:00Z",
+                "expires_at": "2099-01-01T00:00:00Z",
+                "subscription_multiplier": null
+              },
+              "default": false,
+              "guidance_options": [],
+              "addresses_failures": []
+            }
+          ]
+        },
+        "catalog": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "resources": [
+            {
+              "resource_id": "alpha",
+              "revision": "v1",
+              "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "alpha alias"
+              ],
+              "domain": "alpha",
+              "specialty": "alpha specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic alpha instructions.",
+              "conflicts": []
+            },
+            {
+              "resource_id": "beta",
+              "revision": "v1",
+              "content_hash": "d83697bc6cba54c3757bf1474bc82a933e4f78085166e3066aa4b98127304d21",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "beta alias"
+              ],
+              "domain": "beta",
+              "specialty": "beta specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic beta instructions.",
+              "conflicts": []
+            }
+          ]
+        },
+        "settings_layers": [],
+        "judgment_policy": null
+      },
+      "discovery_ref": {
+        "discovery_id": "spoof",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "nested-catalog-query",
+    "contract": "DiscoveryRouteInputs",
+    "payload": {
+      "schema_version": "2",
+      "route_inputs": {
+        "schema_version": "1",
+        "request": {
+          "active_guidance": [],
+          "attachment_refs": [],
+          "capabilities": {
+            "declared": [
+              "text"
+            ],
+            "expires_at": "2099-01-01T00:00:00Z",
+            "inventory_revision": "fixture",
+            "runtime": [
+              "text"
+            ],
+            "verified_at": "2026-01-01T00:00:00Z"
+          },
+          "envelope": {
+            "created_at": "2026-09-28T00:00:00Z",
+            "execution_target_id": "fixture",
+            "extensions": {},
+            "harness_id": "fixture",
+            "idempotency_key": "fixture",
+            "operation": "route",
+            "project_id": "00000000-0000-4000-8000-000000000001",
+            "request_id": "00000000-0000-4000-8000-000000000001",
+            "schema_version": "1",
+            "workspace_id": "00000000-0000-4000-8000-000000000001"
+          },
+          "execution_mode": "main",
+          "hard_constraints": {
+            "allowed_providers": [],
+            "context_token_limit": 32768,
+            "governing_instruction_refs": [],
+            "local_only": false,
+            "max_attempts": 1,
+            "spending_ceiling": null,
+            "total_deadline_ms": 5000
+          },
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "recursion_bypass": false,
+          "representation_source": "fixture",
+          "retry_context": null,
+          "task_id": "00000000-0000-4000-8000-000000000001",
+          "task_representation": "fixture",
+          "versions": {
+            "catalog_revision": "fixture",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "fixture"
+          }
+        },
+        "inventory": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "target": "fixture",
+          "source_version": "synthetic-v1",
+          "verified_at": "2026-01-01T00:00:00Z",
+          "expires_at": "2099-01-01T00:00:00Z",
+          "candidates": [
+            {
+              "candidate_id": "candidate-a",
+              "model_id": "model-a",
+              "resolved_model_revision": "model-a-v1",
+              "provider": "local",
+              "access_route": "synthetic",
+              "local": true,
+              "native_effort": {
+                "kind": "provider_default"
+              },
+              "supported_efforts": [],
+              "declared_capabilities": [
+                "text"
+              ],
+              "runtime_capabilities": [
+                "text"
+              ],
+              "required_capabilities": [
+                "text"
+              ],
+              "verified_at": "2026-01-01T00:00:00Z",
+              "expires_at": "2099-01-01T00:00:00Z",
+              "source": "synthetic-host",
+              "context_token_limit": 32768,
+              "output_token_limit": 1024,
+              "token_counter_revision": "utf8-bytes-upper-bound-v1",
+              "quality_sufficient": true,
+              "satisfied_requirements": [],
+              "completion_time_ms": 1000,
+              "evidence_strength": "measured",
+              "evidence_refs": [
+                "synthetic-measurement"
+              ],
+              "rates": {
+                "revision": "rates-v1",
+                "currency": "USD",
+                "input_rate": "0.000001",
+                "output_rate": "0.000002",
+                "verified_at": "2026-01-01T00:00:00Z",
+                "expires_at": "2099-01-01T00:00:00Z",
+                "subscription_multiplier": null
+              },
+              "default": false,
+              "guidance_options": [],
+              "addresses_failures": []
+            }
+          ]
+        },
+        "catalog": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "resources": [
+            {
+              "resource_id": "alpha",
+              "revision": "v1",
+              "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "alpha alias"
+              ],
+              "domain": "alpha",
+              "specialty": "alpha specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic alpha instructions.",
+              "conflicts": []
+            },
+            {
+              "resource_id": "beta",
+              "revision": "v1",
+              "content_hash": "d83697bc6cba54c3757bf1474bc82a933e4f78085166e3066aa4b98127304d21",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "beta alias"
+              ],
+              "domain": "beta",
+              "specialty": "beta specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic beta instructions.",
+              "conflicts": []
+            }
+          ]
+        },
+        "settings_layers": [],
+        "judgment_policy": null,
+        "catalog_query": {
+          "domain": "alpha",
+          "specialty": "alpha",
+          "task_family": "implementation",
+          "facets": [],
+          "max_branches": 1
+        }
+      },
+      "discovery_ref": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "nested-discover-operation",
+    "contract": "DiscoveryRouteInputs",
+    "payload": {
+      "schema_version": "2",
+      "route_inputs": {
+        "schema_version": "1",
+        "request": {
+          "active_guidance": [],
+          "attachment_refs": [],
+          "capabilities": {
+            "declared": [
+              "text"
+            ],
+            "expires_at": "2099-01-01T00:00:00Z",
+            "inventory_revision": "fixture",
+            "runtime": [
+              "text"
+            ],
+            "verified_at": "2026-01-01T00:00:00Z"
+          },
+          "envelope": {
+            "created_at": "2026-09-28T00:00:00Z",
+            "execution_target_id": "fixture",
+            "extensions": {},
+            "harness_id": "fixture",
+            "idempotency_key": "fixture",
+            "operation": "discover",
+            "project_id": "00000000-0000-4000-8000-000000000001",
+            "request_id": "00000000-0000-4000-8000-000000000001",
+            "schema_version": "1",
+            "workspace_id": "00000000-0000-4000-8000-000000000001"
+          },
+          "execution_mode": "main",
+          "hard_constraints": {
+            "allowed_providers": [],
+            "context_token_limit": 32768,
+            "governing_instruction_refs": [],
+            "local_only": false,
+            "max_attempts": 1,
+            "spending_ceiling": null,
+            "total_deadline_ms": 5000
+          },
+          "optimization_objective": {
+            "acceptance_requirements": [],
+            "direction": "minimize",
+            "metric_id": "raw_token_cost",
+            "objective_id": "fixture",
+            "routing_cost_basis": "raw",
+            "version": "fixture"
+          },
+          "recursion_bypass": false,
+          "representation_source": "fixture",
+          "retry_context": null,
+          "task_id": "00000000-0000-4000-8000-000000000001",
+          "task_representation": "fixture",
+          "versions": {
+            "catalog_revision": "fixture",
+            "context_revision": "fixture",
+            "evidence_revision": "fixture",
+            "policy_revision": "fixture",
+            "settings_revision": "fixture"
+          }
+        },
+        "inventory": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "target": "fixture",
+          "source_version": "synthetic-v1",
+          "verified_at": "2026-01-01T00:00:00Z",
+          "expires_at": "2099-01-01T00:00:00Z",
+          "candidates": [
+            {
+              "candidate_id": "candidate-a",
+              "model_id": "model-a",
+              "resolved_model_revision": "model-a-v1",
+              "provider": "local",
+              "access_route": "synthetic",
+              "local": true,
+              "native_effort": {
+                "kind": "provider_default"
+              },
+              "supported_efforts": [],
+              "declared_capabilities": [
+                "text"
+              ],
+              "runtime_capabilities": [
+                "text"
+              ],
+              "required_capabilities": [
+                "text"
+              ],
+              "verified_at": "2026-01-01T00:00:00Z",
+              "expires_at": "2099-01-01T00:00:00Z",
+              "source": "synthetic-host",
+              "context_token_limit": 32768,
+              "output_token_limit": 1024,
+              "token_counter_revision": "utf8-bytes-upper-bound-v1",
+              "quality_sufficient": true,
+              "satisfied_requirements": [],
+              "completion_time_ms": 1000,
+              "evidence_strength": "measured",
+              "evidence_refs": [
+                "synthetic-measurement"
+              ],
+              "rates": {
+                "revision": "rates-v1",
+                "currency": "USD",
+                "input_rate": "0.000001",
+                "output_rate": "0.000002",
+                "verified_at": "2026-01-01T00:00:00Z",
+                "expires_at": "2099-01-01T00:00:00Z",
+                "subscription_multiplier": null
+              },
+              "default": false,
+              "guidance_options": [],
+              "addresses_failures": []
+            }
+          ]
+        },
+        "catalog": {
+          "schema_version": "1",
+          "revision": "fixture",
+          "resources": [
+            {
+              "resource_id": "alpha",
+              "revision": "v1",
+              "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "alpha alias"
+              ],
+              "domain": "alpha",
+              "specialty": "alpha specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic alpha instructions.",
+              "conflicts": []
+            },
+            {
+              "resource_id": "beta",
+              "revision": "v1",
+              "content_hash": "d83697bc6cba54c3757bf1474bc82a933e4f78085166e3066aa4b98127304d21",
+              "rights": "synthetic-owned",
+              "admission": "explicitly_enabled",
+              "source_occurrences": [
+                "synthetic"
+              ],
+              "aliases": [
+                "shared",
+                "beta alias"
+              ],
+              "domain": "beta",
+              "specialty": "beta specialty",
+              "task_family": "implementation",
+              "facets": [],
+              "benchmark_protocol": null,
+              "benchmark_split": null,
+              "benchmark_effort": null,
+              "instructions": "Synthetic beta instructions.",
+              "conflicts": []
+            }
+          ]
+        },
+        "settings_layers": [],
+        "judgment_policy": null
+      },
+      "discovery_ref": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    "accepted": false
+  }
+]

@@ -1,0 +1,96 @@
+name: LEARN native verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      companion_ref:
+        description: Content-matching agent-harness companion revision
+        required: true
+      dotfiles_ref:
+        description: Public tracked launcher regression fixture revision
+        default: 23865b61af7f3a405a37bd4984fe80d63b95797a
+        required: true
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-latest, platform: Linux}
+          - {os: macos-latest, platform: Darwin}
+          - {os: windows-latest, platform: Windows}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Consiliency/agent-harness
+          ref: ${{ inputs.companion_ref }}
+          path: .host/companion
+      - uses: actions/checkout@v4
+        with:
+          repository: Consiliency/dotfiles
+          ref: ${{ inputs.dotfiles_ref }}
+          path: .host/dotfiles
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: uv sync --locked
+      - run: npm ci
+      - shell: python
+        run: |
+          import shutil
+          from pathlib import Path
+          source = Path('.host/companion/phase-loop-runtime')
+          target = Path('.host/dotfiles/vendor/phase-loop-runtime')
+          target.mkdir(parents=True, exist_ok=True)
+          for name in ('src', 'tests', 'pyproject.toml', 'uv.lock', 'README.md'):
+              path = source / name
+              if path.is_dir():
+                  shutil.copytree(path, target / name, dirs_exist_ok=True)
+              else:
+                  shutil.copy2(path, target / name)
+      - run: uv sync --project .host/dotfiles/vendor/phase-loop-runtime --group test --locked
+      - id: compiler
+        shell: bash
+        run: |
+          result="$(uv run python scripts/install_contract_compiler.py --directory "$RUNNER_TEMP/jevdrill-baml")"
+          path="$(python -c 'import json, sys; print(json.loads(sys.argv[1])["path"])' "$result")"
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+      - run: uv run python scripts/verify_learn_phase.py --local-only --agent-harness .host/dotfiles/vendor
+        env:
+          BAML_CLI: ${{ steps.compiler.outputs.path }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: learn-native-${{ matrix.platform }}
+          path: evidence/LEARN/platforms/${{ matrix.platform }}-3.13.json
+          if-no-files-found: error
+
+  reduce:
+    needs: native
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Consiliency/agent-harness
+          ref: ${{ inputs.companion_ref }}
+          path: .host/companion
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: learn-native-*
+          path: evidence/LEARN/platforms
+          merge-multiple: true
+      - run: uv run python scripts/verify_learn_phase.py --reduce-only --agent-harness .host/companion
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: learn-verification
+          path: evidence/LEARN/verification.json

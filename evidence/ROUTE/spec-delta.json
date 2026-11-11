@@ -1,0 +1,23 @@
+{
+  "schema": "spec_delta_closeout.v1",
+  "phase": "ROUTE",
+  "decision": "canonical_spec_update",
+  "redaction_posture": "metadata_only",
+  "target_surfaces": [
+    "docs/contracts.md",
+    "docs/route-interfaces.md",
+    "docs/vocabulary.yaml",
+    "docs/vocabulary.md"
+  ],
+  "evidence_paths": [
+    "evidence/ROUTE/spec-delta.json",
+    "evidence/ROUTE/verification.json",
+    "evidence/ROUTE/coverage.json"
+  ],
+  "downstream_handling": "replan_HOST",
+  "canonical_adoption": false,
+  "publication_performed": false,
+  "if_gates_produced": [],
+  "closeout_status": "verification_pending",
+  "doc_delta_decision": "docs_updated"
+}

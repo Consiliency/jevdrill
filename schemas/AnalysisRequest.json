@@ -1,0 +1,503 @@
+{
+  "$defs": {
+    "AcceptanceRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "evaluator_ref": {
+          "title": "Evaluator Ref",
+          "type": "string"
+        },
+        "requirement_id": {
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "user",
+              "type": "string"
+            },
+            {
+              "const": "task_family",
+              "type": "string"
+            },
+            {
+              "const": "inferred",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "description",
+        "evaluator_ref",
+        "requirement_id",
+        "source"
+      ],
+      "title": "AcceptanceRequirement",
+      "type": "object"
+    },
+    "CommandScope": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "anyOf": [
+            {
+              "const": "route",
+              "type": "string"
+            },
+            {
+              "const": "report",
+              "type": "string"
+            }
+          ],
+          "title": "Operation"
+        },
+        "producer": {
+          "title": "Producer",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "workspace_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation",
+        "producer",
+        "project_id",
+        "workspace_id"
+      ],
+      "title": "CommandScope",
+      "type": "object"
+    },
+    "DiscoveryRef": {
+      "additionalProperties": false,
+      "properties": {
+        "discovery_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Discovery Id",
+          "type": "string"
+        },
+        "trace_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Trace Digest",
+          "type": "string"
+        },
+        "work_objective_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Work Objective Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "discovery_id",
+        "trace_digest",
+        "work_objective_id"
+      ],
+      "title": "DiscoveryRef",
+      "type": "object"
+    },
+    "LearningContext": {
+      "additionalProperties": false,
+      "properties": {
+        "discovery_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiscoveryRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "environment_revision": {
+          "minLength": 1,
+          "title": "Environment Revision",
+          "type": "string"
+        },
+        "evaluator_ref": {
+          "minLength": 1,
+          "title": "Evaluator Ref",
+          "type": "string"
+        },
+        "isolation_revision": {
+          "minLength": 1,
+          "title": "Isolation Revision",
+          "type": "string"
+        },
+        "local_analysis_enabled": {
+          "title": "Local Analysis Enabled",
+          "type": "boolean"
+        },
+        "routing_decision_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Routing Decision Id",
+          "type": "string"
+        },
+        "rubric_revision": {
+          "minLength": 1,
+          "title": "Rubric Revision",
+          "type": "string"
+        },
+        "share_user_wide": {
+          "title": "Share User Wide",
+          "type": "boolean"
+        },
+        "task_family": {
+          "minLength": 1,
+          "title": "Task Family",
+          "type": "string"
+        },
+        "task_group": {
+          "minLength": 1,
+          "title": "Task Group",
+          "type": "string"
+        },
+        "task_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "discovery_ref",
+        "environment_revision",
+        "evaluator_ref",
+        "isolation_revision",
+        "local_analysis_enabled",
+        "routing_decision_id",
+        "rubric_revision",
+        "share_user_wide",
+        "task_family",
+        "task_group",
+        "task_id"
+      ],
+      "title": "LearningContext",
+      "type": "object"
+    },
+    "OptimizationObjective": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptance_requirements": {
+          "items": {
+            "$ref": "#/$defs/AcceptanceRequirement"
+          },
+          "title": "Acceptance Requirements",
+          "type": "array"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "const": "minimize",
+              "type": "string"
+            },
+            {
+              "const": "maximize",
+              "type": "string"
+            }
+          ],
+          "title": "Direction"
+        },
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "objective_id": {
+          "title": "Objective Id",
+          "type": "string"
+        },
+        "routing_cost_basis": {
+          "anyOf": [
+            {
+              "const": "raw",
+              "type": "string"
+            },
+            {
+              "const": "adjusted",
+              "type": "string"
+            }
+          ],
+          "title": "Routing Cost Basis"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "acceptance_requirements",
+        "direction",
+        "metric_id",
+        "objective_id",
+        "routing_cost_basis",
+        "version"
+      ],
+      "title": "OptimizationObjective",
+      "type": "object"
+    },
+    "SettingsLayer": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "anyOf": [
+            {
+              "const": "product",
+              "type": "string"
+            },
+            {
+              "const": "user",
+              "type": "string"
+            },
+            {
+              "const": "project",
+              "type": "string"
+            },
+            {
+              "const": "directory",
+              "type": "string"
+            },
+            {
+              "const": "personal_project",
+              "type": "string"
+            },
+            {
+              "const": "request",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        },
+        "values": {
+          "$ref": "#/$defs/SettingsOverride"
+        }
+      },
+      "required": [
+        "source",
+        "values"
+      ],
+      "title": "SettingsLayer",
+      "type": "object"
+    },
+    "SettingsOverride": {
+      "additionalProperties": false,
+      "properties": {
+        "default_plan_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Default Plan Id"
+        },
+        "excluded_paths": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Excluded Paths"
+        },
+        "experiment_enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Experiment Enabled"
+        },
+        "local_analysis_enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Local Analysis Enabled"
+        },
+        "max_description_utf8_bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "maximum": 2048,
+          "minimum": 1,
+          "title": "Max Description Utf8 Bytes"
+        },
+        "model_analysis_enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Model Analysis Enabled"
+        },
+        "retain_raw_outputs": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Retain Raw Outputs"
+        },
+        "retain_raw_tasks": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Retain Raw Tasks"
+        },
+        "routing_cost_basis": {
+          "anyOf": [
+            {
+              "const": "raw",
+              "type": "string"
+            },
+            {
+              "const": "adjusted",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Routing Cost Basis"
+        },
+        "routing_deadline_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "minimum": 1,
+          "title": "Routing Deadline Ms"
+        }
+      },
+      "required": [],
+      "title": "SettingsOverride",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "anyOf": [
+        {
+          "const": "record",
+          "type": "string"
+        },
+        {
+          "const": "analyze",
+          "type": "string"
+        },
+        {
+          "const": "inspect",
+          "type": "string"
+        }
+      ],
+      "title": "Action"
+    },
+    "context": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LearningContext"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "include_user_wide": {
+      "title": "Include User Wide",
+      "type": "boolean"
+    },
+    "interval_seconds": {
+      "minimum": 1,
+      "title": "Interval Seconds",
+      "type": "integer"
+    },
+    "minimum_batch": {
+      "minimum": 1,
+      "title": "Minimum Batch",
+      "type": "integer"
+    },
+    "objectives": {
+      "items": {
+        "$ref": "#/$defs/OptimizationObjective"
+      },
+      "title": "Objectives",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/CommandScope"
+    },
+    "settings_layers": {
+      "items": {
+        "$ref": "#/$defs/SettingsLayer"
+      },
+      "title": "Settings Layers",
+      "type": "array"
+    }
+  },
+  "required": [
+    "action",
+    "context",
+    "include_user_wide",
+    "interval_seconds",
+    "minimum_batch",
+    "objectives",
+    "schema_version",
+    "scope",
+    "settings_layers"
+  ],
+  "title": "AnalysisRequest",
+  "type": "object"
+}
