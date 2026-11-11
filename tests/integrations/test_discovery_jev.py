@@ -40,7 +40,11 @@ def discovery_provider(monkeypatch):
                 ).encode()
             )
 
-    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    # HTTPServer resolves its bound host for display metadata. This provider
+    # is loopback-only and must not depend on the runner's reverse DNS service.
+    with monkeypatch.context() as local_dns:
+        local_dns.setattr("socket.getfqdn", lambda address: address)
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     monkeypatch.setenv("JEVDRILL_TEST_URL", f"http://127.0.0.1:{server.server_port}")
