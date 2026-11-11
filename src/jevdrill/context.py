@@ -54,7 +54,10 @@ ESCAPED_LABEL_COLON = re.compile(rf"(?:{INDENT}|{LINE_BREAK}|\#{LINE_TEXT}*{LINE
 AUGMENTED_OPERATOR = r"(?:\*\*|//|<<|>>|\|\||&&|\?\?|or|and|[+\-*/%@&|^?.])"
 ASSIGNMENT_OPERATOR = rf"(?:{AUGMENTED_OPERATOR}?=|<<-|<-)"
 PERL_HASH_OWNER = r"(?:\$[\w.]+\s*+(?:->\s*+)?|[}\]]\s*+(?:->\s*+)?|->\s*+)"
-CREDENTIAL_WORD = rf"[\w.-]*(?:{CREDENTIAL_LABEL})[\w.-]*"
+# Commit to the complete credential-bearing word once found. Retrying every
+# internal occurrence after a missing operator is quadratic on repeated labels.
+# A directional arrow belongs to the owner tail, never to the word itself.
+CREDENTIAL_WORD = rf"(?>[\w.-]*(?:{CREDENTIAL_LABEL})(?:(?!->)[\w.-])*)"
 ESCAPED_LABEL_ASSIGNMENT = re.compile(
     rf"[^\S\r\n\x85\u2028\u2029]*\][^\S\r\n\x85\u2028\u2029]*{ASSIGNMENT_OPERATOR}"
 )
@@ -2147,7 +2150,7 @@ def _assignment_in_owner_tail(
     operator = re.compile(rf"(?<![=!<>]){ASSIGNMENT_OPERATOR}(?!=)")
     quote = None
     i = start
-    while i < len(text) and text[i] != ";":
+    while i < len(text):
         charge[0] += 1
         if charge[0] > 16 * len(text) + 100_000:
             raise ContractError("context fragment work exceeds sanitization limit")
@@ -2163,7 +2166,9 @@ def _assignment_in_owner_tail(
                     raise ContractError("context fragment work exceeds sanitization limit")
                 i += 1
             if quote is not None or not (
-                text.startswith("->", i) or text[i : i + 1] in ("{", "[") or operator.match(text, i)
+                text.startswith("->", i)
+                or text[i : i + 1] in ("{", "[", "#")
+                or operator.match(text, i)
             ):
                 return False
             continue
@@ -2175,8 +2180,18 @@ def _assignment_in_owner_tail(
                 quote = None
         elif ch in "\"'`":
             quote = ch
-        elif ch == "#":
+        elif ch == ";":
             break
+        elif ch == "#" and (i == 0 or text[i - 1] != "$"):
+            # Comments do not terminate a continued target. Leave the physical
+            # break for the same continuation check used by uncommented lines.
+            while i < len(text) and text[i] not in "\r\n\x85\u2028\u2029":
+                _check_deadline(deadline)
+                charge[0] += 1
+                if charge[0] > 16 * len(text) + 100_000:
+                    raise ContractError("context fragment work exceeds sanitization limit")
+                i += 1
+            continue
         elif operator.match(text, i):
             return True
         i += 1
@@ -2192,8 +2207,8 @@ def _guard_directional_assignment_owners(text: str, deadline: float | None) -> N
     """
     charge = [0]
     for key_match in re.finditer(
-        rf"(?i){PERL_HASH_OWNER}\{{{INDENT}*[\"']?{CREDENTIAL_WORD}"
-        rf"[\"']?{INDENT}*\}}",
+        rf"(?i){PERL_HASH_OWNER}\{{\s*+[\"']?{CREDENTIAL_WORD}"
+        rf"[\"']?\s*+\}}",
         text,
     ):
         # Direct named hash owners already have a complete-value sanitizer.
@@ -2203,7 +2218,9 @@ def _guard_directional_assignment_owners(text: str, deadline: float | None) -> N
         assert tail is not None
         cursor = tail.end()
         if text[key_match.start()] not in "}]" and not (
-            text.startswith("->", cursor) or text[cursor : cursor + 1] in ("{", "[")
+            text.startswith("->", cursor)
+            or text[cursor : cursor + 1] in ("{", "[", "#")
+            or re.search(LINE_BREAK, key_match.group())
         ):
             continue
         if _assignment_in_owner_tail(text, key_match.end(), deadline, charge):
@@ -2813,26 +2830,82 @@ def _guard_multiline_assignment_ownership(text: str, deadline: float | None) -> 
                         raise ContractError("unsupported multiline credential assignment")
 
 
-def _guard_emphasized_credentials(text: str, deadline: float | None) -> None:
-    # Maximal delimiter runs bound disjoint label bodies. Unlike overlapping
-    # wildcard matches, this scan remains linear on underscores and snake_case.
-    previous = None
-    operator = re.compile(rf"{INDENT}*(?:{LINE_BREAK}{INDENT}*)?(?::=?|{ASSIGNMENT_OPERATOR})(?!=)")
-    for delimiter in re.finditer(r"[*_~]++", text):
+def _emphasis_has_operator(
+    text: str, start: int, deadline: float | None, charge: list[int]
+) -> bool:
+    """Bound overlapping presentation lookahead across the entire guard."""
+    cursor = start
+    parenthetical = False
+    depth = 0
+    while cursor < len(text):
         _check_deadline(deadline)
+        charge[0] += 1
+        if charge[0] > 16 * len(text) + 100_000:
+            raise ContractError("context fragment work exceeds sanitization limit")
+        ch = text[cursor]
+        if depth:
+            if ch in "\r\n\x85\u2028\u2029":
+                return False
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+        elif ch.isspace():
+            pass
+        elif ch == "(" and not parenthetical:
+            parenthetical = True
+            depth = 1
+        else:
+            return (
+                re.compile(rf"(?::=?|{ASSIGNMENT_OPERATOR})(?!=)").match(text, cursor) is not None
+            )
+        cursor += 1
+    return False
+
+
+def _guard_emphasized_credentials(text: str, deadline: float | None) -> None:
+    """Keep complete label ownership across nested presentation delimiters.
+
+    Each body span is inspected once. Closing an outer delimiter also closes
+    unmatched inner presentation, so inner markup cannot hide a sensitive word.
+    Completed unrelated labels do not lend ownership to a following public one.
+    """
+    stack: list[tuple[str, bool]] = []
+    positions: dict[str, int] = {}
+    end = 0
+    charge = [0]
+    for delimiter in re.finditer(r"\*++|_++|~++|`++", text):
+        _check_deadline(deadline)
+        token = delimiter.group()
         if (
-            not delimiter.group().strip("_")
+            not token.strip("_")
             and delimiter.start() > 0
             and delimiter.end() < len(text)
             and text[delimiter.start() - 1].isalnum()
             and text[delimiter.end()].isalnum()
         ):
             continue
-        if previous is not None and operator.match(text, delimiter.end()):
-            label = text[previous.end() : delimiter.start()]
-            if not re.search(LINE_BREAK, label) and _credential_label(label, deadline):
+        body = text[end : delimiter.start()]
+        if re.search(LINE_BREAK, body):
+            stack.clear()
+            positions.clear()
+        elif stack and _credential_label(body, deadline):
+            stack[-1] = (stack[-1][0], True)
+        if token in positions:
+            index = positions[token]
+            sensitive = False
+            while len(stack) > index:
+                opening, owned = stack.pop()
+                sensitive |= owned
+                del positions[opening]
+            if sensitive and _emphasis_has_operator(text, delimiter.end(), deadline, charge):
                 raise ContractError("unsupported credential assignment")
-        previous = delimiter
+            if stack and sensitive:
+                stack[-1] = (stack[-1][0], True)
+        else:
+            positions[token] = len(stack)
+            stack.append((token, False))
+        end = delimiter.end()
 
 
 def redact(text: str, deadline: float | None = None) -> str:
@@ -2845,7 +2918,7 @@ def redact(text: str, deadline: float | None = None) -> str:
         owner_charge = [0]
         for arrow_owner in re.finditer(
             rf"(?i)(?<![\w.-]){CREDENTIAL_WORD}"
-            rf"\s*->{INDENT}*(?:[A-Za-z_]\w*|[{{\[$@])",
+            rf"\s*+(?:\(\s*+\)\s*+)?->",
             text,
         ):
             if _assignment_in_owner_tail(text, arrow_owner.end(), deadline, owner_charge):

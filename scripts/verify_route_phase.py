@@ -88,6 +88,11 @@ REQUIRED_CONTROLS = {
         "tests/privacy/test_round41_learning.py::test_report_sensitive_map_key_rejects_before_persistence",
         "tests/privacy/test_round41_learning.py::test_route_optout_survives_failure_immediately_after_commit",
         "tests/privacy/test_round41_learning.py::test_second_objective_for_same_task_invalidates_learning",
+        "tests/privacy/test_round42_ownership.py::test_sensitive_owner_survives_presentation",
+        "tests/privacy/test_round42_ownership.py::test_public_twins_remain_unchanged",
+        "tests/privacy/test_round42_ownership.py::test_no_judgment_or_retention_effects",
+        "tests/privacy/test_round42_ownership.py::test_independent_public_records_remain_unchanged",
+        "tests/privacy/test_round42_ownership.py::test_repeated_labels_do_not_block_deadlines",
     ],
     "EC-ROUTE-5": [
         "tests/contracts/test_discovery_contracts.py::test_discovery_contract_parity",
@@ -112,6 +117,11 @@ REQUIRED_CONTROLS = {
     ],
 }
 CONTROL_COUNTS = {
+    "tests/privacy/test_round42_ownership.py::test_sensitive_owner_survives_presentation": 756,
+    "tests/privacy/test_round42_ownership.py::test_public_twins_remain_unchanged": 42,
+    "tests/privacy/test_round42_ownership.py::test_no_judgment_or_retention_effects": 84,
+    "tests/privacy/test_round42_ownership.py::test_independent_public_records_remain_unchanged": 5,
+    "tests/privacy/test_round42_ownership.py::test_repeated_labels_do_not_block_deadlines": 1,
     "tests/privacy/test_round41_ownership.py::test_continued_owners_do_not_release_values": 648,
     "tests/privacy/test_round41_ownership.py::test_public_twins_are_unchanged": 36,
     "tests/privacy/test_round41_ownership.py::test_rejects_before_judgment_and_storage": 84,
@@ -179,6 +189,7 @@ REQUIRED_TEST_PATHS = (
     "tests/privacy/test_round39_ownership.py",
     "tests/privacy/test_round40_ownership.py",
     "tests/privacy/test_round41_ownership.py",
+    "tests/privacy/test_round42_ownership.py",
     "tests/privacy/test_round41_learning.py",
 )
 
