@@ -372,7 +372,7 @@ class DevelopmentJudge:
                     (json.dumps(payload, sort_keys=True), identity),
                 )
             return bool(answer), measurements
-        except (OSError, ValueError, BamlError, subprocess.TimeoutExpired):
+        except OSError, ValueError, BamlError, subprocess.TimeoutExpired:
             raise ContractError("development_judgment_incomplete") from None
         finally:
             if process.poll() is None:
@@ -490,7 +490,7 @@ class IndependentDevelopmentGrader:
                     )
                     try:
                         artifact = json.loads(output) if output is not None else None
-                    except (ValueError, TypeError):
+                    except ValueError, TypeError:
                         artifact = None
                     self.last_artifacts.append(
                         {
@@ -744,7 +744,7 @@ class DevelopmentRunner:
         _, bound, _ = self._inputs(experiment, deadline_ms)
         try:
             self._runtime()
-        except (OSError, ValueError, subprocess.TimeoutExpired):
+        except OSError, ValueError, subprocess.TimeoutExpired:
             raise ContractError("development_runtime_unavailable") from None
         capabilities = [
             "text",
@@ -987,14 +987,14 @@ class DevelopmentRunner:
                     if all(r["status"] == "completed" for r in job["results"])
                     else "failed"
                 )
-            except (ContractError, BamlError, OSError, ValueError, subprocess.TimeoutExpired):
+            except ContractError, BamlError, OSError, ValueError, subprocess.TimeoutExpired:
                 # Never serialize SDK/provider exception text, which can contain credentials.
                 job["state"] = "failed"
             finally:
                 try:
                     self.container.cleanup(record["dispatch_token"])
                     job["cleanup"] = True
-                except (ContractError, OSError, subprocess.TimeoutExpired):
+                except ContractError, OSError, subprocess.TimeoutExpired:
                     # Recovery will retry cleanup under exclusive worker custody.
                     job["state"] = "executing"
                 self._checkpoint(job)

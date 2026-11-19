@@ -276,7 +276,7 @@ class Experiments:
                 scope, job["experiment"], job["background"], current["deadline_ms"]
             )
             return bool(canonical_digest(authority) == current["authorization_digest"])
-        except (ContractError, OSError):
+        except ContractError, OSError:
             return False
 
     def _advance(

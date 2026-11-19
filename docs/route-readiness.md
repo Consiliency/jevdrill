@@ -11,7 +11,7 @@ replanned against the interfaces in `docs/route-interfaces.md`.
 
 The current verdict is `evidence/ROUTE/verification.json`. Acceptance requires
 all seven EC-ROUTE criteria and IF-0-VC-2, matching current-source native
-Linux/macOS/Windows Python 3.13 manifests, pinned generation, shared fixtures,
+Linux/macOS/Windows Python 3.14 manifests, pinned generation, shared fixtures,
 privacy/crash controls, installed-package checks and the five-second cold CLI
 boundary. The reducer checks executed test identities and outcomes as well as
 command, source and assertion digests. Old four-criterion reports and skipped or

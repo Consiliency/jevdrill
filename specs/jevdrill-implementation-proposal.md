@@ -43,7 +43,7 @@ research/                          existing evidence remains explicitly unvalida
 
 The BAML source location is a proposal subject to the pinned v1 toolchain's packaging convention. Put generated types/bindings in a declared generated package; exclude its provider/runtime dependencies from the pure public-contract import path where the generator permits. Prove that this separation works rather than copying generated fields into handwritten types. Generated artifacts require a reproducible build step. Do not copy agent-harness's v0 BAML syntax or dependency pin into this package. The later `objectives` module is not required for stage 1; objective records are.
 
-CONTRACT selects CPython 3.13 with locked Pydantic 2 and BAML compiler/bridge 0.20.1. Linux/macOS/Windows support requires actual matrix results. Generated code lives in `src/baml_sdk` because the pinned compiler hardcodes that import namespace. Public contracts currently require the bridge. The enforced dependency graph is in `docs/vocabulary.yaml`, including explicit generated-package exceptions for contracts and telemetry. SQLite and platform-path selection remain ROUTE work.
+CONTRACT selects CPython 3.14 (moved from the originally verified 3.13 on November 19, 2026) with locked Pydantic 2 and BAML compiler/bridge 0.20.1. Linux/macOS/Windows support requires actual matrix results. Generated code lives in `src/baml_sdk` because the pinned compiler hardcodes that import namespace. Public contracts currently require the bridge. The enforced dependency graph is in `docs/vocabulary.yaml`, including explicit generated-package exceptions for contracts and telemetry. SQLite and platform-path selection remain ROUTE work.
 
 ## 2. Dependency direction
 

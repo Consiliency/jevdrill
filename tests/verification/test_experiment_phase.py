@@ -43,7 +43,7 @@ def synthetic_experiment(synthetic_reducer_input):
         "schema_version": 1,
         "phase": "EXPERIMENT",
         "os": "Linux",
-        "python_minor": "3.13",
+        "python_minor": "3.14",
         "input_digest": checks.input_digest(ROOT),
         "source_stable": True,
         "inherited_learn": inherited,
@@ -64,7 +64,7 @@ def reduce(receipts):
         receipts,
         checks.input_digest(ROOT),
         json.loads((ROOT / "evidence/HOST/verification.json").read_text())["companion_digest"],
-        required_platforms={("Linux", "3.13")},
+        required_platforms={("Linux", "3.14")},
     )
 
 

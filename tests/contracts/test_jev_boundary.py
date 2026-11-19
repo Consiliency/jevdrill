@@ -38,7 +38,7 @@ def provider():
             self.end_headers()
             try:
                 self.wfile.write(json.dumps(observations["body"]).encode())
-            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            except BrokenPipeError, ConnectionResetError, ConnectionAbortedError:
                 pass
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)

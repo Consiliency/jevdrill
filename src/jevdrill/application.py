@@ -354,7 +354,7 @@ class Application:
                             raise ContractError("discovery observation binding mismatch")
                         if not observation["judgments"]:
                             reason = "observation_failed"
-                    except (ContractError, OSError):
+                    except ContractError, OSError:
                         observation = {
                             "schema_version": "1",
                             "function_revision": "ObserveDiscoveryOption-v1",
@@ -858,7 +858,7 @@ class Application:
                                 row["candidate_id"]
                             ]
                             row["evidence_strength"] = "judgment"
-                    except (ContractError, OSError):
+                    except ContractError, OSError:
                         judgment_record = None
                         # Fallback is restricted to an already feasible configured default.
                         prepared = [

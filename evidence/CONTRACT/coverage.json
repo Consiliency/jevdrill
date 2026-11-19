@@ -559,6 +559,10 @@
         {
           "id": "EC-EXPERIMENT-3",
           "required_text": "Host preference remains separate from checks; measurements support reclassification. Policy changes require separate authority, blinded evaluation on policy-held-out/regression cases, recorded exposure, predefined quality floors/tolerances and bounded rollout; the release holdout remains untouched. Revalidate policies made stale by deletion. Regression rolls back affected scopes and suspends the version, with verified fallback."
+        },
+        {
+          "id": "EC-LEARN-5",
+          "required_text": "Policy writes remain limited to authorized candidate ordering"
         }
       ]
     },
@@ -1147,6 +1151,34 @@
         {
           "id": "EC-CONTRACT-1",
           "required_text": "Generate the common request envelope, route requests (including prior decision/run links for retries), five response variants, capability-mismatch diagnostics, immutable plan/run/event/experiment/settings contracts and portable schemas from BAML; negative fixtures reject unknown fields, scalar coercion (including numeric strings), unsupported versions, invalid status combinations and missing required-nullable fields. Distinguish explicitly omittable fields from required nullable fields. Namespaced extensions cannot alter execution."
+        }
+      ]
+    },
+    {
+      "id": "JD-083",
+      "source": "specs/jevdrill-design-input.md",
+      "source_sha256": "d3fa217044ad4621414379b1947657f1eab0166615a2c0bdf06df0bf2b936ffe",
+      "owner": "routing",
+      "phase": "ROUTE",
+      "status": "planned",
+      "criteria": [
+        {
+          "id": "EC-ROUTE-3",
+          "required_text": "hard constraints"
+        }
+      ]
+    },
+    {
+      "id": "JD-084",
+      "source": "specs/jevdrill-design-input.md",
+      "source_sha256": "c7b0365c75fbe00e9bf080fb71169ff1bbcc7b03daea7a7ae188ed5fa84ff6aa",
+      "owner": "integrations",
+      "phase": "HOST",
+      "status": "planned",
+      "criteria": [
+        {
+          "id": "EC-HOST-1",
+          "required_text": "permission restrictions"
         }
       ]
     },
@@ -3696,34 +3728,6 @@
         }
       ],
       "reason": "Open-decision inventory is refined by JD-001\u2013JD-082 and owned Q-01\u2013Q-14; unresolved questions block only their affected work."
-    },
-    {
-      "id": "JD-083",
-      "source": "specs/jevdrill-design-input.md",
-      "source_sha256": "d3fa217044ad4621414379b1947657f1eab0166615a2c0bdf06df0bf2b936ffe",
-      "owner": "routing",
-      "phase": "ROUTE",
-      "status": "planned",
-      "criteria": [
-        {
-          "id": "EC-ROUTE-3",
-          "required_text": "hard constraints"
-        }
-      ]
-    },
-    {
-      "id": "JD-084",
-      "source": "specs/jevdrill-design-input.md",
-      "source_sha256": "c7b0365c75fbe00e9bf080fb71169ff1bbcc7b03daea7a7ae188ed5fa84ff6aa",
-      "owner": "integrations",
-      "phase": "HOST",
-      "status": "planned",
-      "criteria": [
-        {
-          "id": "EC-HOST-1",
-          "required_text": "permission restrictions"
-        }
-      ]
     }
   ],
   "review_items": [
@@ -3937,7 +3941,9 @@
   ],
   "limitations": [
     "Criterion text and source digests detect drift; human review still assesses semantic coverage.",
-    "No implemented or passed product behavior is claimed by this map."
+    "No implemented or passed product behavior is claimed by this map.",
+    "JD-040, JD-078, JD-080 and JD-082 source digests were refreshed on 2026-11-19 after owner clarifications added on 2026-09-29/30; JD-082 wording is unchanged (its section boundary moved when JD-083 was added).",
+    "Checkbox criterion text does not yet verify the JD-078 development-pilot adapter caps, the JD-080 no-additional-critical-failures rule or the JD-084 native macOS leased-launch rejection and Linux-worker cleanup proofs. These obligations are stated only in the EXPERIMENT and HOST plan amendments; amend the owning EC text during those phase replans."
   ],
   "planning_reconciliation": {
     "commit": "f67ad654ff224d6b343ab366260d9184150d822f",

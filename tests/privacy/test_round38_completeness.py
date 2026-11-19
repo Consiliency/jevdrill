@@ -135,7 +135,7 @@ def test_many_inner_owners_obey_shared_work_and_deadline_bounds():
     started = monotonic()
     try:
         cleaned = redact(source, deadline=started + 2)
-    except (ContractError, TimeoutError):
+    except ContractError, TimeoutError:
         pass
     else:
         assert MARKER not in cleaned

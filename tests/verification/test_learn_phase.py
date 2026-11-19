@@ -20,9 +20,13 @@ spec.loader.exec_module(verifier)
 @pytest.fixture
 def synthetic_reducer_input(tmp_path, discovery_inputs):
     # A unit-test input, never a collection receipt or phase acceptance artifact.
-    inherited = json.loads((ROOT / "evidence/HOST/platforms/Linux-3.13.json").read_text())
+    inherited = json.loads(
+        (ROOT / "evidence/HOST/history/python-3.13/platforms/Linux-3.13.json").read_text()
+    )
     inherited["input_digest"] = verifier.host.input_digest(ROOT)
     inherited["route_regressions"]["input_digest"] = verifier.host.route.input_digest(ROOT)
+    # Historical HOST evidence was collected on Python 3.13; the current matrix is 3.14.
+    inherited["python_minor"] = inherited["route_regressions"]["python_minor"] = "3.14"
     commands = verifier.host.route.commands_for(
         "python", tmp_path, "Linux", extra_test_paths=verifier.TEST_PATHS
     )
@@ -183,7 +187,7 @@ def synthetic_reducer_input(tmp_path, discovery_inputs):
         "schema_version": 1,
         "phase": "LEARN",
         "os": "Linux",
-        "python_minor": "3.13",
+        "python_minor": "3.14",
         "input_digest": verifier.input_digest(ROOT),
         "source_stable": True,
         "inherited_host": inherited,
@@ -204,7 +208,7 @@ def reduce(receipts):
         "companion_digest"
     ]
     return verifier.reduce_manifests(
-        receipts, verifier.input_digest(ROOT), companion, required_platforms={("Linux", "3.13")}
+        receipts, verifier.input_digest(ROOT), companion, required_platforms={("Linux", "3.14")}
     )
 
 

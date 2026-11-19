@@ -141,7 +141,7 @@ class RestrictedContainerRunner:
                     return {"status": "failed", "answers": None}
                 try:
                     decoded = json.loads(payload)
-                except (ValueError, UnicodeError):
+                except ValueError, UnicodeError:
                     return {"status": "invalid_output", "answers": None}
                 if not isinstance(decoded, dict) or set(decoded) != {"answers", "inputs_unchanged"}:
                     return {"status": "invalid_output", "answers": None}

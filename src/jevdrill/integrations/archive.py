@@ -55,7 +55,7 @@ sys.stdout.write(value)
             return None
         Fernet(key)
         return key
-    except (OSError, subprocess.TimeoutExpired, ValueError):
+    except OSError, subprocess.TimeoutExpired, ValueError:
         return None
 
 

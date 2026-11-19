@@ -163,7 +163,7 @@ def score_review_components(
 
     try:
         actual = json.loads(output, object_pairs_hook=unique_object) if output is not None else None
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         return result
     if not isinstance(actual, dict):
         return result
@@ -173,7 +173,7 @@ def score_review_components(
             result["example_correct"] = canonical_digest(actual["example"]) == canonical_digest(
                 expected["example"]
             )
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             pass
     labels = actual.get("issues")
     if (
@@ -234,7 +234,7 @@ def grade_development_artifact(
         valid = isinstance(artifact, dict) and set(artifact) == keys
         checks = evaluate_host_artifact(family, expected, artifact if valid else {})
         checks["format_valid"] = valid
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         checks = evaluate_host_artifact(family, expected, {})
         checks["format_valid"] = False
     return {"quality": sum(checks.values()) / len(checks), "critical": checks}

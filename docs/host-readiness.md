@@ -2,7 +2,7 @@
 
 The current verdict is `evidence/HOST/verification.json`. HOST requires all four
 EC-HOST criteria, IF-0-HOST-1, inherited ROUTE regressions and matching native
-Linux/macOS/Windows Python 3.13 receipts. Missing companion configuration fails
+Linux/macOS/Windows Python 3.14 receipts. Missing companion configuration fails
 closed. Source/schema/fixture hashes, executed test identities and entered CLI,
 discovery, planner, task, launch and acknowledgment records bind each receipt.
 Historical ROUTE evidence remains unchanged.

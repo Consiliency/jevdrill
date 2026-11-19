@@ -350,7 +350,7 @@ def main():
     platforms.mkdir(parents=True, exist_ok=True)
     current = None if args.reduce_only else collect(ROOT, args.agent_harness.resolve())
     if current is not None:
-        destination = platforms / (platform.system() + "-3.13.json")
+        destination = platforms / (f"{platform.system()}-{sys.version_info.major}.{sys.version_info.minor}.json")
         if destination.exists():
             history = output / "history"
             history.mkdir(exist_ok=True)
@@ -365,7 +365,7 @@ def main():
         [current] if args.local_only and current else manifests,
         expected,
         companion,
-        required_platforms={(platform.system(), "3.13")} if args.local_only else None,
+        required_platforms={(platform.system(), f"{sys.version_info.major}.{sys.version_info.minor}")} if args.local_only else None,
     )
     operational = [] if args.local_only else operational_errors(ROOT, expected)
     empirical = [] if args.software_only else empirical_errors(ROOT)

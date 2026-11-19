@@ -534,7 +534,7 @@ def main():
     platforms.mkdir(parents=True, exist_ok=True)
     current = None if args.reduce_only else collect(ROOT, args.agent_harness.resolve())
     if current is not None:
-        (platforms / f"{platform.system()}-3.13.json").write_text(
+        (platforms / f"{platform.system()}-{sys.version_info.major}.{sys.version_info.minor}.json").write_text(
             json.dumps(current, indent=2) + "\n"
         )
         (output / "evaluation.json").write_text(json.dumps(current["witnesses"], indent=2) + "\n")
@@ -556,7 +556,7 @@ def main():
     print(json.dumps(report))
     if args.local_only and current is not None:
         errors = reduce_manifests(
-            [current], expected, companion_digest, required_platforms={(platform.system(), "3.13")}
+            [current], expected, companion_digest, required_platforms={(platform.system(), f"{sys.version_info.major}.{sys.version_info.minor}")}
         )
         print(json.dumps({"local_errors": errors}))
     return int(bool(errors))

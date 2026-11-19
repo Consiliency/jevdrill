@@ -116,7 +116,7 @@ def test_many_spaced_heredoc_owners_share_a_bounded_closer_index():
     start = monotonic()
     try:
         cleaned = redact(text, deadline=start + 2)
-    except (ContractError, TimeoutError):
+    except ContractError, TimeoutError:
         pass
     else:
         assert cleaned.count("Ordinary next line.") == 500

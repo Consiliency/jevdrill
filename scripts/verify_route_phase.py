@@ -17,7 +17,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MATRIX = {("Linux", "3.13"), ("Darwin", "3.13"), ("Windows", "3.13")}
+MATRIX = {("Linux", "3.14"), ("Darwin", "3.14"), ("Windows", "3.14")}
 CHECKS = {
     "tests",
     "contracts",
@@ -761,7 +761,7 @@ def main() -> int:
     print(json.dumps(report))
     if args.local_only and current is not None:
         local_errors = reduce_manifests(
-            [current], input_digest(ROOT), ROOT, required_platforms={(platform.system(), "3.13")}
+            [current], input_digest(ROOT), ROOT, required_platforms={(platform.system(), f"{sys.version_info.major}.{sys.version_info.minor}")}
         )
         return int(bool(local_errors))
     return int(bool(errors))

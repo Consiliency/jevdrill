@@ -170,10 +170,10 @@ def _credential_label(value: str, deadline: float | None = None) -> bool:
             except ValueError:
                 with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                     decoded = ast.literal_eval(value)
-        except (ValueError, SyntaxError):
+        except ValueError, SyntaxError:
             try:
                 decoded = _literal_string(ast.parse(value.strip(), mode="eval").body, deadline)
-            except (ValueError, SyntaxError):
+            except ValueError, SyntaxError:
                 break
             if decoded is None:
                 raise ContractError("unsupported computed string literal")
@@ -214,7 +214,7 @@ def _check_escaped_record_labels(text: str, deadline: float | None) -> None:
         try:
             with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                 readings.append(ast.literal_eval(quoted.group()))
-        except (SyntaxError, ValueError):
+        except SyntaxError, ValueError:
             pass
         try:
             readings.append(yaml.safe_load(quoted.group()))
@@ -248,7 +248,7 @@ def _supported_escaped_assignment(text: str, label_start: int, deadline: float |
     try:
         with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
             parsed = ast.parse(line)
-    except (SyntaxError, ValueError):
+    except SyntaxError, ValueError:
         return False
     if len(parsed.body) != 1 or not isinstance(
         parsed.body[0], (ast.Assign, ast.AnnAssign, ast.AugAssign)
@@ -299,7 +299,7 @@ def _complete_public_explicit_key(text: str, deadline: float | None) -> bool:
     try:
         with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
             alternate = _literal_string(ast.parse(match.group("key"), mode="eval").body, deadline)
-    except (SyntaxError, ValueError):
+    except SyntaxError, ValueError:
         alternate = None
     if alternate is not None and _credential_label(alternate, deadline):
         return False
@@ -309,7 +309,7 @@ def _complete_public_explicit_key(text: str, deadline: float | None) -> bool:
         try:
             with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                 composed = _literal_string(ast.parse("(" + key + "\n)", mode="eval").body, deadline)
-        except (SyntaxError, ValueError):
+        except SyntaxError, ValueError:
             return False
         if composed is None or _credential_label(composed, deadline):
             return False
@@ -384,7 +384,7 @@ def _redact_node(node: Node, seen: set[int], deadline: float | None) -> bool:
                     ).body,
                     deadline,
                 )
-            except (SyntaxError, ValueError):
+            except SyntaxError, ValueError:
                 literal = None
             if literal is not None:
                 if _credential_label(literal, deadline) or redact(literal, deadline) != literal:
@@ -440,7 +440,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
                                 loader.dispose()
                             with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                                 python_reading = ast.literal_eval(quoted.group())
-                        except (yaml.YAMLError, SyntaxError, ValueError):
+                        except yaml.YAMLError, SyntaxError, ValueError:
                             complete_public = False
                         else:
                             complete_public = yaml_reading == decoded == python_reading
@@ -529,7 +529,7 @@ def _structured(text: str, deadline: float | None) -> str | None:
                     try:
                         with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                             literal = ast.literal_eval(source)
-                    except (SyntaxError, ValueError):
+                    except SyntaxError, ValueError:
                         literal = None
                     if (
                         isinstance(literal, (str, bytes))
@@ -766,7 +766,7 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
                 _check_deadline(deadline)
                 if token.type not in {tokenize.NL, tokenize.NEWLINE, tokenize.ENDMARKER}:
                     significant.append((token.type, token.string))
-        except (tokenize.TokenError, IndentationError):
+        except tokenize.TokenError, IndentationError:
             malformed = True
         strings = sum(kind in {tokenize.STRING, tokenize.FSTRING_START} for kind, _ in significant)
         call = any(
@@ -803,7 +803,7 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
         try:
             with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                 key_node = ast.parse("(" + expression + "\n)", mode="eval").body
-        except (SyntaxError, ValueError):
+        except SyntaxError, ValueError:
             key_node = None
         if (
             key_node is not None
@@ -838,7 +838,7 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
             try:
                 with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                     literal = _literal_string(ast.parse(expression, mode="eval").body, deadline)
-            except (SyntaxError, ValueError):
+            except SyntaxError, ValueError:
                 literal = None
             for value in (decoded, literal):
                 if not isinstance(value, str):
@@ -854,7 +854,7 @@ def _validate_explicit_keys(text: str, deadline: float | None) -> None:
                         with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                             node = ast.parse("(" + value + "\n)", mode="eval").body
                         composed = _literal_string(node, deadline)
-                    except (SyntaxError, ValueError):
+                    except SyntaxError, ValueError:
                         pass
                 checked = composed if composed is not None else value
                 if _credential_label(checked, deadline) or redact(checked, deadline) != checked:
@@ -941,7 +941,7 @@ def _redact_assignments(
                 literal = _literal_string(
                     ast.parse("(" + original + "\n)", mode="eval").body, deadline
                 )
-            except (SyntaxError, ValueError):
+            except SyntaxError, ValueError:
                 literal = None
             if literal is not None:
                 if _credential_label(literal, deadline) or redact(literal, deadline) != literal:
@@ -992,7 +992,7 @@ def _redact_assignments(
                         else len(text)
                     )
                     break
-        except (tokenize.TokenError, IndentationError):
+        except tokenize.TokenError, IndentationError:
             incomplete = True
         groups.append((begin, finish, tokens, incomplete))
         if rows == base:
@@ -1017,7 +1017,7 @@ def _redact_assignments(
                     try:
                         with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                             value = ast.literal_eval(" ".join(literals))
-                    except (SyntaxError, ValueError):
+                    except SyntaxError, ValueError:
                         value = None
                     if isinstance(value, (str, bytes)) and _credential_label(str(value), deadline):
                         concatenated = True
@@ -1054,7 +1054,7 @@ def _redact_assignments(
         try:
             with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                 statement_group = ast.parse(_validation_view(text[begin:finish], deadline))
-        except (SyntaxError, ValueError):
+        except SyntaxError, ValueError:
             pass
         else:
             target_work = finish - begin
@@ -1145,7 +1145,7 @@ def _redact_assignments(
                                     and isinstance(candidate[0].targets[0], ast.Subscript)
                                     and ast.dump(candidate[0].targets[0]) in assignment_targets
                                 )
-                            except (SyntaxError, ValueError):
+                            except SyntaxError, ValueError:
                                 pass
                         if not assignment_target:
                             expressions.append((opening, cursor + 1))
@@ -1172,7 +1172,7 @@ def _redact_assignments(
             try:
                 with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                     expression = ast.parse(expression_source)
-            except (SyntaxError, ValueError):
+            except SyntaxError, ValueError:
                 if text[opening : opening + 1] != "(":
                     continue
                 try:
@@ -1181,7 +1181,7 @@ def _redact_assignments(
                             text[opening:closing], deadline
                         )
                         expression = ast.parse(expression_source)
-                except (SyntaxError, ValueError):
+                except SyntaxError, ValueError:
                     continue
             json_fragment = False
             if expression_source[:1] in {"{", "["}:
@@ -1371,7 +1371,7 @@ def _redact_assignments(
                     if not statements:
                         continue
                     statement = statements[-1]
-            except (SyntaxError, ValueError):
+            except SyntaxError, ValueError:
                 if quoted_credential:
                     raise ContractError("unsupported credential assignment") from None
                 for opening in sorted(
@@ -1391,7 +1391,7 @@ def _redact_assignments(
                             target_expression = ast.parse(
                                 text[opening:operator_start].strip(), mode="eval"
                             ).body
-                    except (SyntaxError, ValueError):
+                    except SyntaxError, ValueError:
                         continue
                     literal = _literal_string(target_expression, deadline)
                     if literal is not None:
@@ -1646,7 +1646,7 @@ def _credential_value_is_complete(
     try:
         with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
             tree = ast.parse(code, mode="exec")
-    except (SyntaxError, ValueError):
+    except SyntaxError, ValueError:
         return False
     _check_deadline(deadline)
     if len(tree.body) != 1:
@@ -1759,7 +1759,7 @@ def _guard_multiline_credential_values(text: str, deadline: float | None) -> Non
                         if isinstance(term, str) and closers.get(term, -1) > end:
                             raise ContractError("unsupported multiline credential assignment")
                     previous_shift = token.type == tokenize.OP and token.string == "<<"
-            except (tokenize.TokenError, SyntaxError, ValueError):
+            except tokenize.TokenError, SyntaxError, ValueError:
                 raise ContractError("unsupported multiline credential assignment") from None
         stripped = value.lstrip()
         quoted = _credential_quote_like_literal(stripped, deadline)
@@ -1816,7 +1816,7 @@ def _redact_plain(text: str, deadline: float | None) -> str:
                     _check_deadline(deadline)
                     if token.type == tokenize.ERRORTOKEN and token.string in {"'", '"'}:
                         raise ContractError("unsupported multiline credential assignment")
-            except (tokenize.TokenError, IndentationError):
+            except tokenize.TokenError, IndentationError:
                 raise ContractError("unsupported multiline credential assignment") from None
     cleaned = CREDENTIAL.sub("[redacted]", text)
     references = [
@@ -2069,7 +2069,7 @@ def _guard_sensitive_name_targets(text: str, deadline: float | None) -> None:
                 try:
                     with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                         parsed = ast.parse(fragment + " = None")
-                except (SyntaxError, ValueError):
+                except SyntaxError, ValueError:
                     pass
                 else:
                     if len(parsed.body) == 1 and isinstance(parsed.body[0], ast.Assign):
@@ -2384,7 +2384,7 @@ def _guard_local_assignment_owners(
         try:
             with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                 expression = ast.parse(fragment, mode="eval")
-        except (SyntaxError, ValueError):
+        except SyntaxError, ValueError:
             return False
         for node in ast.walk(expression):
             charge()
@@ -2466,7 +2466,7 @@ def _guard_local_assignment_owners(
                 try:
                     with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                         statement = ast.parse(view).body
-                except (SyntaxError, ValueError):
+                except SyntaxError, ValueError:
                     return None
                 if len(statement) != 1:
                     return None
@@ -2755,7 +2755,7 @@ def _guard_multiline_assignment_ownership(text: str, deadline: float | None) -> 
             elif token.type == tokenize.ENDMARKER:
                 if logical_start < len(line_ends):
                     boundaries.append((logical_start, len(line_ends) - 1))
-    except (tokenize.TokenError, IndentationError):
+    except tokenize.TokenError, IndentationError:
         # A malformed lexical prefix cannot safely establish the later
         # statement boundary.  Retain the existing conservative rejection.
         if re.search(CREDENTIAL_LABEL, text, re.IGNORECASE) is not None:
@@ -2790,7 +2790,7 @@ def _guard_multiline_assignment_ownership(text: str, deadline: float | None) -> 
         try:
             with warnings.catch_warnings(action="ignore", category=SyntaxWarning):
                 parsed = ast.parse(_validation_view(fragment, deadline))
-        except (SyntaxError, ValueError):
+        except SyntaxError, ValueError:
             continue
         covered = any(
             match.end() >= len(fragment) and "[" in fragment[match.start() : match.end()]

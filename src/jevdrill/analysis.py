@@ -297,7 +297,7 @@ class RecordedPolicyEvidence:
                     [definition["calibration"]["dataset_revision"], case["case_id"]]
                 )
                 grades = list(self.grade(grading_key, outputs))
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 raise ContractError("policy_grader_result_invalid") from None
             if len(grades) != 2 or any(
                 not isinstance(g, Mapping) or set(g) != {"quality", "critical"} for g in grades
@@ -654,7 +654,7 @@ class PolicyLifecycle:
                 self._authority(scope, prior)
                 if prior["used_routes"] >= prior["authorization"]["max_routes"]:
                     return {"status": "blocked"}
-            except (ContractError, OSError):
+            except ContractError, OSError:
                 return {"status": "blocked"}
             restored = dict(prior) | {"policy_status": "active", "previous_policy_revision": None}
             if not self.storage.store_policy(scope, restored, prior):

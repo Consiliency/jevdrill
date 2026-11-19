@@ -32,7 +32,7 @@ def manifest(name):
         "schema_version": 1,
         "execution_kind": "native",
         "os": name,
-        "python_minor": "3.13",
+        "python_minor": "3.14",
         "input_digest": "fixture",
         "source_stable": True,
         "duration_seconds": 1,
@@ -143,7 +143,7 @@ def test_native_download_excludes_prior_reduction_reports(phase):
     artifacts = {
         produced.replace("${{ matrix.os }}", row["os"]).replace(
             "${{ matrix.platform }}", row["platform"]
-        ): {"os": row["platform"], "python_minor": "3.13"}
+        ): {"os": row["platform"], "python_minor": "3.14"}
         for row in rows
     }
     artifacts[summary] = {"phase": phase, "status": "blocked"}
@@ -249,7 +249,7 @@ def test_reducer_rejects_forged_or_malformed_success(evidence_root, mutation):
     else:
         row["compiler_version"] = "baml-cli 0.226.2"
     assert runner.reduce_manifests(
-        [row], "fixture", evidence_root, required_platforms={("Linux", "3.13")}
+        [row], "fixture", evidence_root, required_platforms={("Linux", "3.14")}
     )
 
 
@@ -263,7 +263,7 @@ def test_reducer_rejects_inputs_changed_during_collection(evidence_root, stable)
     row = manifest("Linux")
     row["source_stable"] = stable
     assert "inputs changed during collection" in runner.reduce_manifests(
-        [row], "fixture", evidence_root, required_platforms={("Linux", "3.13")}
+        [row], "fixture", evidence_root, required_platforms={("Linux", "3.14")}
     )
 
 
@@ -346,7 +346,7 @@ def test_collection_timeout_retains_progress_and_stack_trace(
 def test_reduce_only_reports_corrupt_json(evidence_root, monkeypatch):
     directory = evidence_root / "evidence/ROUTE/platforms"
     directory.mkdir()
-    (directory / "Linux-3.13.json").write_text("{")
+    (directory / "Linux-3.14.json").write_text("{")
     monkeypatch.setattr(runner, "ROOT", evidence_root)
     monkeypatch.setattr("sys.argv", ["verify_route_phase.py", "--reduce-only"])
     assert runner.main() == 1
@@ -385,7 +385,7 @@ def test_reducer_requires_executed_controls(evidence_root, mutation):
         row["assertions"][0] = copy.deepcopy(row["assertions"][1])
         row["assertions_sha256"] = runner.command_digest(row["assertions"])
     assert runner.reduce_manifests(
-        [row], "fixture", evidence_root, required_platforms={("Linux", "3.13")}
+        [row], "fixture", evidence_root, required_platforms={("Linux", "3.14")}
     )
 
 
@@ -440,7 +440,7 @@ def test_reducer_rejects_one_missing_privacy_parameter(evidence_root, control):
     row["tests"]["total"] -= 1
     row["assertions_sha256"] = runner.command_digest(row["assertions"])
     assert "missing executed control: " + control in runner.reduce_manifests(
-        [row], "fixture", evidence_root, required_platforms={("Linux", "3.13")}
+        [row], "fixture", evidence_root, required_platforms={("Linux", "3.14")}
     )
 
 

@@ -76,7 +76,7 @@ class Maintenance:
     def _key(self, pair: str) -> bytes | None:
         try:
             return self.key_provider(canonical_digest(pair))
-        except (OSError, TimeoutError, ValueError):
+        except OSError, TimeoutError, ValueError:
             return None
 
     def run(self, request: Mapping[str, Any]) -> dict[str, Any]:

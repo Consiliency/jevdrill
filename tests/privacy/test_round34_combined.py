@@ -211,7 +211,7 @@ def assert_no_application_effects(tmp_path, text, field, *, allow_sanitized=Fals
         # to reach real local storage and the checked in-memory judge boundary.
         try:
             (app.route if field.startswith("route_") else app.discover)(payload)
-        except (ContractError, SanitizedBoundary):
+        except ContractError, SanitizedBoundary:
             pass
     else:
         with pytest.raises(ContractError):

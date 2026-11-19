@@ -3,7 +3,7 @@
 The current verdict is `evidence/LEARN/verification.json`. Acceptance requires
 five EC-LEARN criteria, inherited current-source ROUTE/HOST controls, a separately
 installed content-bound companion, and independent native Linux/Darwin/Windows
-Python 3.13 receipts. The collector runs the production inherited whole-suite
+Python 3.14 receipts. The collector runs the production inherited whole-suite
 collector once, adds installed discovery-to-analysis observations and requires
 native locking/liveness controls. Required controls cannot be skipped; missing
 configuration fails. Receipts bind commands, assertions, module origins, schema,

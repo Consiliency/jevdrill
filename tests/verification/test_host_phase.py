@@ -108,7 +108,7 @@ def test_reducer_rejects_invalid_receipts(monkeypatch, fault):
         "schema_version": 2,
         "phase": "HOST",
         "os": "Linux",
-        "python_minor": "3.13",
+        "python_minor": "3.14",
         "input_digest": "fixture",
         "source_stable": True,
         "route_regressions": inherited,
@@ -173,7 +173,7 @@ def test_reducer_rejects_invalid_receipts(monkeypatch, fault):
     manifest["witness_sha256"] = runner.digest_value(manifest["witnesses"])
     assert (
         runner.reduce_manifests(
-            [manifest], "fixture", "companion", required_platforms={("Linux", "3.13")}
+            [manifest], "fixture", "companion", required_platforms={("Linux", "3.14")}
         )
         == []
     )
@@ -226,7 +226,7 @@ def test_reducer_rejects_invalid_receipts(monkeypatch, fault):
     manifest["witness_sha256"] = runner.digest_value(manifest["witnesses"])
     receipts = [manifest, manifest] if fault == "duplicate" else [manifest]
     assert runner.reduce_manifests(
-        receipts, "fixture", "companion", required_platforms={("Linux", "3.13")}
+        receipts, "fixture", "companion", required_platforms={("Linux", "3.14")}
     )
 
 
