@@ -2,7 +2,7 @@
 
 The contract foundation is under implementation. The router, durable host reporting and local learning are roadmap work. See [CONTRACT readiness](docs/contract-readiness.md) and the [roadmap](specs/phase-plans-v1.md).
 
-For local development, install CPython 3.13 and run `uv sync --locked` and `npm ci`. Set `BAML_CLI` to the verified BAML 0.20.1 compiler, then run `uv run python scripts/verify_contract_phase.py`. Missing platform evidence keeps the phase open. [Toolchain details](docs/toolchain.md) and [contract rules](docs/contracts.md) describe the generated package and strict validation boundary.
+For local development, install CPython 3.14 and run `uv sync --locked` and `npm ci`. Set `BAML_CLI` to the verified BAML 0.20.1 compiler, then run `uv run python scripts/verify_contract_phase.py`. Missing platform evidence keeps the phase open. [Toolchain details](docs/toolchain.md) and [contract rules](docs/contracts.md) describe the generated package and strict validation boundary.
 
 ## Existing research
 

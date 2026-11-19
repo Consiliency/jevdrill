@@ -50,7 +50,7 @@ jobs:
         if: always()
         with:
           name: contract-${{ matrix.os }}
-          path: evidence/CONTRACT/platforms/${{ env.JEVDRILL_PLATFORM }}-3.13.json
+          path: evidence/CONTRACT/platforms/${{ env.JEVDRILL_PLATFORM }}-3.14.json
           if-no-files-found: error
   reduce:
     needs: platform

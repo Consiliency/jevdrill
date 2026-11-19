@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "jevdrill"
 version = "0.1.0.dev0"
 description = "Evidence-based model and guidance routing"
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.14"
 dependencies = ["baml-bridge==0.20.1", "pydantic==2.13.5", "PyYAML>=6,<7", "jsonschema>=4.23,<5"]
 
 [dependency-groups]
@@ -26,12 +26,12 @@ packages = ["src/jevdrill", "src/baml_sdk"]
 testpaths = ["tests/contracts", "tests/evaluation"]
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py314"
 line-length = 100
 extend-exclude = ["src/baml_sdk"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 strict = true
 exclude = ["src/baml_sdk"]
 
