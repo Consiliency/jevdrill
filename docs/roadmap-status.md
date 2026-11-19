@@ -1,5 +1,11 @@
 # Roadmap status and execution order
 
+## Current direction — November 19, 2026
+
+- `main` is on Python 3.14.
+- The implementation pull request (Consiliency/jevdrill#1) will be split into a six-PR reviewable stack after its Python 3.14 bounded proof (R43). Each PR gets a fresh review under a board whose president is Fable 5.2. See [the split plan](../plans/pr1-stack-split-20261119.md).
+- The 36 evaluation cases in `research/evaluation/cases.json` are treated as public development fixtures. A new private held-out set is required for any quality or benefit claim.
+
 ## Planning publication — October 8, 2026
 
 The planning documents and review records were consolidated from
