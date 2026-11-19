@@ -13,7 +13,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-MATRIX = {("Linux", "3.13"), ("Darwin", "3.13"), ("Windows", "3.13")}
+MATRIX = {("Linux", "3.14"), ("Darwin", "3.14"), ("Windows", "3.14")}
 CHECKS = {
     "tests", "generation", "coverage", "vocabulary", "glossary", "imports",
     "lint", "format", "types", "build",
