@@ -1,0 +1,171 @@
+{
+  "schema": "host_execution_closeout.v1",
+  "phase": "HOST",
+  "timestamp": "2026-10-09T11:02:17Z",
+  "run_id": "host-discovery-execute-20261009",
+  "automation": {
+    "status": "executed",
+    "terminal_status": "awaiting_phase_closeout",
+    "verification_status": "passed",
+    "artifact": "plans/phase-plan-v1-HOST.md",
+    "artifact_state": "staged",
+    "next_skill": "codex-plan-phase",
+    "next_command": "codex-plan-phase specs/phase-plans-v1.md LEARN",
+    "next_phase": "LEARN",
+    "next_model_hint": "plan",
+    "next_effort_hint": "high",
+    "human_required": false,
+    "blocker_class": null,
+    "blocker_summary": null,
+    "required_human_inputs": [],
+    "produced_if_gates": [
+      "IF-0-HOST-1"
+    ],
+    "review_ratified": false
+  },
+  "lanes_completed": [
+    "SL-0",
+    "SL-1",
+    "SL-2",
+    "SL-3",
+    "SL-4"
+  ],
+  "verification_artifact_path": "evidence/HOST/verification.json",
+  "verification_summary_line": "\"status\": \"passed\"",
+  "input_digest": "e58e7477c45a849bbe2406165febeaccc30ddd1a95945f3370db616a7d49f240",
+  "companion_digest": "da6662580a4aa7a7e3ea4716348eb01d3cef0718d1c4088ce2fd90ffa2f9ef5f",
+  "native_verification": [
+    {
+      "os": "Darwin",
+      "duration_seconds": 216.064,
+      "proof_cost_target_exceeded": false,
+      "jev_tests": {
+        "total": 440,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0
+      },
+      "companion_direct_tests": 130,
+      "companion_discovery_tests": 14,
+      "python_version": "3.13.7",
+      "bridge_version": "0.20.1",
+      "compiler_version": "baml-cli 0.20.1",
+      "receipt": "evidence/HOST/platforms/Darwin-3.13.json"
+    },
+    {
+      "os": "Linux",
+      "duration_seconds": 301.543,
+      "proof_cost_target_exceeded": true,
+      "jev_tests": {
+        "total": 440,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0
+      },
+      "companion_direct_tests": 266,
+      "companion_discovery_tests": 14,
+      "python_version": "3.13.15",
+      "bridge_version": "0.20.1",
+      "compiler_version": "baml-cli 0.20.1",
+      "receipt": "evidence/HOST/platforms/Linux-3.13.json"
+    },
+    {
+      "os": "Windows",
+      "duration_seconds": 313.599,
+      "proof_cost_target_exceeded": true,
+      "jev_tests": {
+        "total": 440,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0
+      },
+      "companion_direct_tests": 130,
+      "companion_discovery_tests": 14,
+      "python_version": "3.13.15",
+      "bridge_version": "0.20.1",
+      "compiler_version": "baml-cli 0.20.1",
+      "receipt": "evidence/HOST/platforms/Windows-3.13.json"
+    }
+  ],
+  "companion_extras": [
+    {
+      "os": "Darwin",
+      "tests": 23,
+      "exit_code": 0,
+      "source_stable": true,
+      "input_digest": "da6662580a4aa7a7e3ea4716348eb01d3cef0718d1c4088ce2fd90ffa2f9ef5f",
+      "receipt": "evidence/HOST/companion/extra-Darwin.json"
+    },
+    {
+      "os": "Linux",
+      "tests": 23,
+      "exit_code": 0,
+      "source_stable": true,
+      "input_digest": "da6662580a4aa7a7e3ea4716348eb01d3cef0718d1c4088ce2fd90ffa2f9ef5f",
+      "receipt": "evidence/HOST/companion/extra-Linux.json"
+    },
+    {
+      "os": "Windows",
+      "tests": 59,
+      "exit_code": 0,
+      "source_stable": true,
+      "input_digest": "da6662580a4aa7a7e3ea4716348eb01d3cef0718d1c4088ce2fd90ffa2f9ef5f",
+      "receipt": "evidence/HOST/companion/extra-Windows.json"
+    }
+  ],
+  "companion": {
+    "repo_root": "/mnt/workspace/worktrees/viperjuice/agent-harness-jevdrill-discovery-host",
+    "branch": "codex/jevdrill-discovery-host",
+    "baseline_commit": "56dce95a52625a58cd08911f8f623c637bf52e44",
+    "plan": "plans/detailed-jevdrill-discovery-host.md",
+    "runtime_version": "0.7.20",
+    "baml_bridge_version": "0.222.0",
+    "python_versions": {
+      "Linux": "3.13.15",
+      "Darwin": "3.12.12",
+      "Windows": "3.13.15"
+    },
+    "closeout": "evidence/HOST-ADAPTER/closeout.json"
+  },
+  "doc_delta_decision": "docs_updated",
+  "spec_delta_closeout": {
+    "schema": "spec_delta_closeout.v1",
+    "decision": "roadmap_amendment",
+    "redaction_posture": "metadata_only",
+    "downstream_handling": "replan_LEARN",
+    "frozen_declaration": "evidence/HOST/spec-delta.json",
+    "verification_verdict": "evidence/HOST/verification.json"
+  },
+  "generated_output_audits": {
+    "HOST": {
+      "exit_code": 0
+    },
+    "HOST_ADAPTER": {
+      "exit_code": 0
+    }
+  },
+  "cache_preservation_root": "/mnt/workspace/users/viperjuice/tmp/jevdrill-host-cache-preserved-20261009",
+  "artifact_tracking": "phase-owned outputs staged; inherited ROUTE baseline preserved; uncommitted",
+  "issue_inventory": [],
+  "issue_dispositions": [],
+  "publication_performed": false,
+  "runtime_installation_changed": false,
+  "holdouts_opened": false,
+  "promotion_eligible": false,
+  "performance_claims": "insufficient_evidence",
+  "limitations": [
+    "Synthetic conformance establishes software behavior, not model quality, guidance effectiveness or savings.",
+    "Codex input/usage capture remains Linux-only; native Darwin/Windows controls require disabled/unknown provenance.",
+    "Integration remains default-disabled and serial. Already-running execution finishes before objective deletion commits; bounded lock admission may require retry.",
+    "Linux and Windows proof cost exceeded the five-minute target but stayed within the required 600-second bound.",
+    "Commits, runtime publication, adoption and cross-vendor ratification were not authorized."
+  ],
+  "artifact_paths": {
+    "verification": "evidence/HOST/verification.json",
+    "coverage": "evidence/HOST/coverage.json",
+    "evaluation": "evidence/HOST/evaluation.json",
+    "handoff": ".dev-skills/handoffs/codex-execute-phase/host-discovery-execute-20261009.md",
+    "reflection": "/home/viperjuice/.codex/skills/codex-execute-phase/reflections/626cf486eb665885/codex--route-discovery/host-discovery-execute-20261009.md",
+    "companion_reflection": "/home/viperjuice/.codex/skills/codex-execute-phase/reflections/3783ec253f1bec57/codex--jevdrill-discovery-host/host-adapter-execute-20261009.md"
+  }
+}

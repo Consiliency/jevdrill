@@ -1,0 +1,53 @@
+{
+  "review_status": "complete for R1-R4",
+  "president_ruling": "APPROVE_SCOPED_FIXES",
+  "overall_verdict": "PARTIALLY AGREE",
+  "source_freeze": "BLOCKED",
+  "final_president": "president.md",
+  "source_manifest_sha256": "13ffc320fbacec67cf6627e5c98a7ccbc0fc6d90ece00b68e385d90603ef6dfd",
+  "all_three_delta_reviews": "completed and retained; each PARTIALLY AGREE because D1 remains pending",
+  "manual_opus": {
+    "seat_reported_model": "claude-opus-5-5",
+    "seat_tool_uses": 72,
+    "president_reported_model": "claude-opus-5-5",
+    "president_tool_uses": 56,
+    "tools": "Read,Grep,Glob,Bash",
+    "auth": "first-party subscription, no API-key fallback",
+    "formal_harness_acceptance": false
+  },
+  "full_suite_binding_clarification": {
+    "latest_source_mtime_utc": "2026-10-12T04:14:44.734377+00:00",
+    "full_suite_started": "2026-10-12T00:18:42.876250-04:00",
+    "all_current_hashes_match_frozen_manifest": true,
+    "note": "The manifest file was created while the full run was active; source edits preceded the run. The president could not read source mtimes under its narrow shell allowlist."
+  },
+  "pre_freeze_blockers": [
+    {
+      "id": "D1",
+      "status": "pending structured owner decision",
+      "action": "Explicit v2 amendment recommended, or recorded in-place v1 amendment; bind template/projection to judge revision, validator and route cache; preserve historical records",
+      "proposal": "../round-1/judgment-version-amendment-proposal.json",
+      "instruction": "plans/detailed-pre-gepa-repairs-20261005-1336.md:87 conflicts with the v1-only freeze at plans/phase-plan-v1-ROUTE.md:156-157"
+    },
+    {
+      "id": "fixture-source-binding",
+      "status": "required in next reviewed delta before freeze",
+      "action": "Bind discovery.json and route-application.json into source_digest, with a copied-fixture mutation control"
+    },
+    {
+      "id": "optional-guidance-clause",
+      "status": "required in next reviewed delta before freeze",
+      "action": "Add a digest-consistent baseline with valid required guidance and extra optional guidance, isolating the optional-forbidden validator clause"
+    }
+  ],
+  "next_round": "Round 3, after the D1 choice: amendment, shared projection constant with fully populated fixture, carried repairs, generation and offline checks, Astra/Opus/Grok delta reviews and fresh president ruling",
+  "manual_generation_diagnosis": "Resolved: BAML agent-skill check caused status 4, not temp roots. Documented BAML_AGENT_SKILL_CHECK=off in manual launcher; same-shell recheck passed parity 147 files/78 schemas/write=false. See generation-diagnosis.md and generation-diagnosis-recheck.md; president ruling remains immutable.",
+  "full_suite_passed": 841,
+  "source_edits_after_round_2_freeze": 0,
+  "inherited_staged_index": "unchanged",
+  "commit_or_push": false,
+  "paid_study_calls": 0,
+  "empirical_acceptance": false,
+  "historical_study_evidence": "preserved; stopped grant not reused",
+  "native_platform_evidence": "Linux only for this delta"
+}

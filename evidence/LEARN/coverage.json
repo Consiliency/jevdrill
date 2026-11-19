@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "phase": "LEARN",
+  "status": "complete",
+  "coverage": {
+    "EC-LEARN-1": [
+      "tests/analysis/test_observations.py",
+      "tests/application/test_learning.py"
+    ],
+    "EC-LEARN-2": [
+      "tests/cli/test_learning.py",
+      "tests/maintenance/test_maintenance.py"
+    ],
+    "EC-LEARN-3": [
+      "tests/maintenance/test_recovery.py",
+      "tests/retention/test_retention.py"
+    ],
+    "EC-LEARN-4": [
+      "tests/application/test_learning.py",
+      "tests/cli/test_learning.py",
+      "tests/privacy/test_learning.py",
+      "tests/storage/test_learning.py"
+    ],
+    "EC-LEARN-5": [
+      "tests/analysis/test_observations.py",
+      "tests/application/test_learning.py",
+      "tests/storage/test_learning_lineage.py"
+    ]
+  },
+  "required_controls": {
+    "EC-LEARN-1": [
+      "tests/application/test_learning.py::test_analysis_batch_interval_objective_history_and_immutable_replay",
+      "tests/analysis/test_observations.py::test_missing_failed_canceled_corrected_and_unknown_observations",
+      "tests/analysis/test_observations.py::test_metric_revisions_units_methods_remain_separate",
+      "tests/analysis/test_observations.py::test_source_digest_recheck_prevents_deleted_analysis_commit",
+      "tests/analysis/test_observations.py::test_terminal_applied_ids_corrections_and_unrelated_runs_remain_authoritative"
+    ],
+    "EC-LEARN-2": [
+      "tests/maintenance/test_maintenance.py::test_process_owned_nonoverlap_and_exit_release",
+      "tests/maintenance/test_maintenance.py::test_bounded_resumable_cursor_pause_cancel_and_interactive_contention",
+      "tests/maintenance/test_maintenance.py::test_pause_and_interactive_start_are_rechecked_between_production_items",
+      "tests/cli/test_learning.py::test_native_scheduler_argv_enters_installed_maintenance_and_host_contention"
+    ],
+    "EC-LEARN-3": [
+      "tests/retention/test_retention.py::test_active_grace_encrypted_archive_one_year_expiry_and_measurement_persistence",
+      "tests/retention/test_retention.py::test_key_failures_keep_pending_active_content_and_notice[missing]",
+      "tests/retention/test_retention.py::test_key_failures_keep_pending_active_content_and_notice[locked]",
+      "tests/retention/test_retention.py::test_key_failures_keep_pending_active_content_and_notice[failed]",
+      "tests/retention/test_retention.py::test_clock_rollback_and_corruption_enter_production_retention",
+      "tests/retention/test_retention.py::test_archive_crash_retry_keeps_source_until_durable_verification",
+      "tests/retention/test_retention.py::test_archive_tamper_cannot_restore",
+      "tests/maintenance/test_recovery.py::test_portable_export_backup_import_preserves_lineage_and_deletion_precedes_sources",
+      "tests/maintenance/test_recovery.py::test_native_archive_restore_and_portable_archive_export",
+      "tests/maintenance/test_recovery.py::test_malformed_or_conflicting_import_rejects_transactionally[tamper]",
+      "tests/maintenance/test_recovery.py::test_malformed_or_conflicting_import_rejects_transactionally[digest]",
+      "tests/maintenance/test_recovery.py::test_malformed_or_conflicting_import_rejects_transactionally[decision_conflict]"
+    ],
+    "EC-LEARN-4": [
+      "tests/privacy/test_learning.py::test_default_workspace_scope_and_explicit_redacted_user_wide_consent",
+      "tests/application/test_learning.py::test_settings_optout_exclusions_and_disabled_model_analysis_enter_application",
+      "tests/cli/test_learning.py::test_installed_cli_analyze_notices_recovery_and_reject_unknown_claims",
+      "tests/storage/test_learning.py::test_deletion_preserves_unrelated_project_evidence_and_objective_history"
+    ],
+    "EC-LEARN-5": [
+      "tests/application/test_learning.py::test_installed_discovery_host_tasks_reports_analysis_and_entered_denials",
+      "tests/storage/test_learning_lineage.py::test_forged_learning_link_enters_storage_and_is_rejected[discovery_ref]",
+      "tests/storage/test_learning_lineage.py::test_cross_producer_objective_tombstone_suppresses_analysis_but_keeps_task_reports",
+      "tests/analysis/test_observations.py::test_substitution_preference_and_evaluation_are_distinct",
+      "tests/analysis/test_observations.py::test_no_guidance_discoveries_keep_authoritative_boundaries_despite_forged_family_labels"
+    ]
+  },
+  "produced_if_gates": [
+    "IF-0-LEARN-1"
+  ],
+  "consumed_if_gates": [
+    "IF-0-HOST-1",
+    "IF-0-VC-2"
+  ],
+  "redaction_posture": "metadata_only"
+}

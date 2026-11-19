@@ -1,0 +1,31 @@
+{
+  "status": "blocked",
+  "access_attempts": [
+    {
+      "operation": "default_account_vault_metadata",
+      "status": "not_signed_in",
+      "mitigation": "explicit_account_and_spaced_flags"
+    },
+    {
+      "operation": "explicit_account_vault_and_item_metadata",
+      "status": "verified",
+      "vault": "Consiliency Deploy Secrets",
+      "development_vault": "Consiliency Development absent; Development empty"
+    },
+    {
+      "operation": "restricted_image_and_container_custody_metadata",
+      "status": "verified",
+      "image_id": "sha256:70af8b01bcbd3a008522f36ea07b679f14f9ad3fb721868cf0cc3f80b7e3f958",
+      "os": "linux",
+      "architecture": "amd64",
+      "existing_study_containers": 0
+    },
+    {
+      "operation": "approved_shared_field_lookup",
+      "provider": "candidate",
+      "item_id": "hxhazlzxeu7nmwetekiiwcouhq",
+      "field": "OPENAI_API_KEY",
+      "status": "unavailable"
+    }
+  ]
+}

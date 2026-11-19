@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "content": {
+      "title": "Content",
+      "type": "string"
+    },
+    "digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Digest",
+      "type": "string"
+    },
+    "kind": {
+      "anyOf": [
+        {
+          "const": "raw_task",
+          "type": "string"
+        },
+        {
+          "const": "raw_output",
+          "type": "string"
+        },
+        {
+          "const": "context",
+          "type": "string"
+        }
+      ],
+      "title": "Kind"
+    },
+    "task": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Task",
+      "type": "string"
+    }
+  },
+  "required": [
+    "content",
+    "digest",
+    "kind",
+    "task"
+  ],
+  "title": "RecoveryArtifact",
+  "type": "object"
+}

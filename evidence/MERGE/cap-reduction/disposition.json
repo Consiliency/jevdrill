@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "reviewed_head": "d20819f88977d6aa78c371287ca8ee8cb2ab67ea",
+  "round_cap": 3,
+  "all_four_seats_completed": true,
+  "board_converged": false,
+  "automatic_round4": false,
+  "removed_scope": "New injected task/discovery judgment dispatches with explicit per-request spending ceilings",
+  "follow_up_unclaimed": "Verified request-bound pricing support for injected judgment adapters",
+  "input_binding_corrections": ["Configured model identity before calls", "Supported UTF-8 token counter before calls", "Reported split/folded Bearer and Basic credential forms"],
+  "existing_supported_scope": "Built-in verified-price ceilings; independently authorized injected calls without request ceilings; immutable historical replay",
+  "decision_status": "pending_separate_fresh_president",
+  "merge_authority": "Owner-designated panel; president must adjudicate current implementation head and unresolved objections",
+  "empirical_acceptance": false,
+  "new_collection_authority": false,
+  "holdouts_opened": false,
+  "runtime_adoption": false,
+  "original_dirty_worktree_preserved": true
+}

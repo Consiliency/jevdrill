@@ -219,6 +219,8 @@ Deliver routing through the first host without bypassing its launch or permissio
 
 ### Phase 4 — Local learning and maintenance (LEARN)
 
+HOST implementation handoff: replan this phase against metadata-only objective/discovery/task/decision/run bindings and durable objective tombstones. Distinguish selected versus applied plans, independent task deletion, unknown usage and host retain/decline preferences. Native synthetic HOST receipts establish software conformance only and cannot supply empirical quality floors, guidance effectiveness or promotion evidence.
+
 **Objective**
 
 Turn accumulated observed execution into scoped evidence with reliable retention and maintenance.

@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-09T23:40:13.511925+00:00",
+  "status": "stopped_incomplete_actual_route",
+  "study_id": "discovery-development-proposed-20261009-v1",
+  "supersedes": [
+    "study-collection-closeout.json",
+    "study-collection-validation.json",
+    "study-credential-extraction-validation.json"
+  ],
+  "supersession_reason": "Historical initial preflight used concealed CLI display text. Corrected independently checked selected JSON field values and pinned model metadata succeeded before single authorized run. Original preflight artifacts retained.",
+  "grant_consumed": true,
+  "runner_invocations": 1,
+  "grant_sha256": "8aec81743df5a95af900b40983b9c559829d4d764d63a389d566b4cd765567f2",
+  "grant_canonical_digest": "3222d0ff55a48afdb44a21ef912855c9e7d8a61e443ba875d3265d07c5e9b994",
+  "source_digest": "1b55174c7c906276e17708ba9edf337d0a8aee24d3690b8e8ae083be70a17ea3",
+  "protocol_digest": "b7bf60057cf3861ec285c22ba859b0f8081651c28b30d450fcf11e491c302bb6",
+  "study_sha256": "4748650da9d34739aa5c0b9207530b1e71747d4c1b7372dde92f62dd1bd12fd4",
+  "failure": "ValueError",
+  "stop_reason": "First actual route no_compatible_plan: all8 task candidate configurations received false JEV quality judgments and were excluded quality_unknown_or_insufficient; no candidate completion attempted.",
+  "stop_diagnostic": "study-run-stop-diagnostic.json",
+  "counts": {
+    "expected_cases": 12,
+    "recorded_cases": 0,
+    "completed_pairs": 0,
+    "candidate_calls": 0,
+    "judgment_calls": 14,
+    "completed_judgment_calls": 14,
+    "uncertain_judgment_calls": 0,
+    "discovery_judgment_calls": 6,
+    "routing_judgment_calls": 8,
+    "candidate_reserved_microusd": 0,
+    "judgment_reserved_microusd": 38542,
+    "total_reserved_microusd": 38542,
+    "observed_raw_provider_cost_usd": "0.000576912",
+    "judgment_input_tokens": 13736,
+    "judgment_output_tokens": 280,
+    "observed_duration_ms": 3990.0767740327865,
+    "provider_retries": 0,
+    "refunded_reservations": 0
+  },
+  "families": {
+    "implementation": {
+      "expected_cases": 4,
+      "completed_cases": 0,
+      "completed_pairs": 0,
+      "downstream_quality": "unknown_not_executed",
+      "downstream_cost": "unknown_not_executed",
+      "downstream_time": "unknown_not_executed",
+      "guidance_acceptability": "first_case_selected_bounds_and_pure_contract; predefined_exact_set_bounds_only",
+      "uncertainty": "insufficient_evidence",
+      "critical_downstream_observations": "none_no_downstream_execution"
+    },
+    "review": {
+      "expected_cases": 4,
+      "completed_cases": 0,
+      "completed_pairs": 0,
+      "downstream_quality": "unknown_not_executed",
+      "downstream_cost": "unknown_not_executed",
+      "downstream_time": "unknown_not_executed",
+      "guidance_acceptability": "unknown_not_collected",
+      "uncertainty": "insufficient_evidence",
+      "critical_downstream_observations": "none_no_downstream_execution"
+    },
+    "documentation": {
+      "expected_cases": 4,
+      "completed_cases": 0,
+      "completed_pairs": 0,
+      "downstream_quality": "unknown_not_executed",
+      "downstream_cost": "unknown_not_executed",
+      "downstream_time": "unknown_not_executed",
+      "guidance_acceptability": "unknown_not_collected",
+      "uncertainty": "insufficient_evidence",
+      "critical_downstream_observations": "none_no_downstream_execution"
+    }
+  },
+  "independent_artifact_validation": {
+    "source_bound_authority_errors": [],
+    "immutable_artifact_hashes_match": true,
+    "judgments_completed_pinned_model": true,
+    "ledger_reserved_sum_matches": true,
+    "validation_errors": [
+      "Q12/Q13 family-specific empirical calibration unresolved",
+      "navigation calls omitted from total objective overhead/cost",
+      "study membership mismatch"
+    ],
+    "predefined_tolerances_unmodified": [
+      "Q12/Q13 family-specific empirical calibration unresolved"
+    ]
+  },
+  "preservation": {
+    "preview_sha256": "f9ac1cd3931442e69239fb48898fee73b96bf5031ac11c1f702a854e93fa0c07",
+    "original_phase_closeout_sha256": "5d2132ee2cec589e2585d383b4d0afba634fe0338983e87307d55b523654114a",
+    "index_sha256": "ef71c6571d634dde8560293cf8e5e46746bfb8db2ed91e7132985e50a785dbb7",
+    "historical_artifacts_modified": false,
+    "frozen_source_modified": false,
+    "companion_modified": false,
+    "baml_cache": {
+      "preserved_outside_review_tree": true,
+      "path": "/mnt/workspace/users/viperjuice/tmp/jevdrill-calibration-cache-20261009-study"
+    }
+  },
+  "access_attempts": "study-access-preflight-v5.json; prior preflights and extraction diagnostic preserved",
+  "promotion_authorized": false,
+  "holdouts_opened": false,
+  "phase_acceptance": "blocked; no PREPARE progression",
+  "next_requirement": "Review exposed first-case judgments and task-routing specification. Any source change invalidates current grant binding. Used study cannot be resumed, overwritten, retried, or silently assigned a new ID; any new collection needs separately reviewed authorization."
+}

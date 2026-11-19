@@ -1,0 +1,146 @@
+{
+  "$defs": {
+    "DiscoveryGuidanceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "content_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "resource_id": {
+          "minLength": 1,
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "revision": {
+          "minLength": 1,
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content_hash",
+        "resource_id",
+        "revision"
+      ],
+      "title": "DiscoveryGuidanceRef",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "children": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Children",
+      "type": "array"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Description"
+    },
+    "description_digest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Description Digest"
+    },
+    "feasible": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Feasible"
+    },
+    "label": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Label"
+    },
+    "level": {
+      "anyOf": [
+        {
+          "const": "domain",
+          "type": "string"
+        },
+        {
+          "const": "specialty",
+          "type": "string"
+        },
+        {
+          "const": "task_family",
+          "type": "string"
+        },
+        {
+          "const": "resource",
+          "type": "string"
+        }
+      ],
+      "title": "Level"
+    },
+    "option_id": {
+      "minLength": 1,
+      "title": "Option Id",
+      "type": "string"
+    },
+    "reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Reason"
+    },
+    "reference": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DiscoveryGuidanceRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "children",
+    "description",
+    "description_digest",
+    "feasible",
+    "label",
+    "level",
+    "option_id",
+    "reason",
+    "reference"
+  ],
+  "title": "DiscoveryOption",
+  "type": "object"
+}

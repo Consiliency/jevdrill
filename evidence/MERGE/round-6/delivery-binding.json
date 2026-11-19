@@ -1,0 +1,45 @@
+{
+  "head": "7bc8cc4c067c7cba74afbeeb59893734c4b54edd",
+  "manifest_sha256": "da573088891c85c51c96e654e981bafdfbef09623d83de1917855137fa4c8889",
+  "seats": {
+    "astra": {
+      "taskId": "node:delegated-task:command%3Amcp%3A807310ac-a947-43c7-a293-2f8ee00ebe4f%3Adelegate-task%3Ajevdrill-merge-review-20261013-r6-astra",
+      "status": "completed",
+      "providerInstanceId": "codex",
+      "model": "gpt-6-astra",
+      "head": "7bc8cc4c067c7cba74afbeeb59893734c4b54edd",
+      "manifest_sha256": "da573088891c85c51c96e654e981bafdfbef09623d83de1917855137fa4c8889",
+      "verdict": "DISAGREE"
+    },
+    "grok": {
+      "taskId": "node:delegated-task:command%3Amcp%3A807310ac-a947-43c7-a293-2f8ee00ebe4f%3Adelegate-task%3Ajevdrill-merge-review-20261013-r6-grok",
+      "status": "completed",
+      "providerInstanceId": "grok",
+      "model": "grok-4.7",
+      "head": "7bc8cc4c067c7cba74afbeeb59893734c4b54edd",
+      "manifest_sha256": "da573088891c85c51c96e654e981bafdfbef09623d83de1917855137fa4c8889",
+      "verdict": "DISAGREE"
+    },
+    "correctness": {
+      "taskId": "node:delegated-task:command%3Amcp%3A807310ac-a947-43c7-a293-2f8ee00ebe4f%3Adelegate-task%3Ajevdrill-merge-review-20261013-r6-correctness",
+      "status": "completed",
+      "providerInstanceId": "codex",
+      "model": "gpt-6-astra",
+      "head": "7bc8cc4c067c7cba74afbeeb59893734c4b54edd",
+      "manifest_sha256": "da573088891c85c51c96e654e981bafdfbef09623d83de1917855137fa4c8889",
+      "verdict": "DISAGREE"
+    },
+    "alternative": {
+      "taskId": "node:delegated-task:command%3Amcp%3A807310ac-a947-43c7-a293-2f8ee00ebe4f%3Adelegate-task%3Ajevdrill-merge-review-20261013-r6-alternative",
+      "status": "completed",
+      "providerInstanceId": "codex",
+      "model": "gpt-6-astra",
+      "head": "7bc8cc4c067c7cba74afbeeb59893734c4b54edd",
+      "manifest_sha256": "da573088891c85c51c96e654e981bafdfbef09623d83de1917855137fa4c8889",
+      "verdict": "DISAGREE"
+    }
+  },
+  "all_seats_finished_before_repair": true,
+  "president_standing_requirements": "round-5/president.md",
+  "owner_authorized_continuation": true
+}

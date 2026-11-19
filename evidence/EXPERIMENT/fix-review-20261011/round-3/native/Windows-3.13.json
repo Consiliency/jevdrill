@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "execution_kind": "native",
+  "os": "Windows",
+  "architecture": "AMD64",
+  "python_minor": "3.13",
+  "python_version": "3.13.15",
+  "bridge_version": "0.20.1",
+  "compiler_version": "baml-cli 0.20.1",
+  "runner_identity": "win",
+  "timestamp": "2026-10-12T16:25:09.973015+00:00",
+  "input_digest": "1aa527566ae49ee427019efa701c8234d6555fcd71ed0d9c829d219a324081bc",
+  "checks": [
+    {
+      "name": "tests",
+      "command": [
+        "C:\\Users\\viperjuice\\AppData\\Local\\Temp\\jevdrill-v2-matrix-_nt_08eb\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "tests/contracts",
+        "tests/evaluation",
+        "-q",
+        "--junitxml=C:\\Users\\VIPERJ~1\\AppData\\Local\\Temp\\jevdrill-verification-dckktnt1\\tests.xml",
+        "--basetemp=C:\\Users\\VIPERJ~1\\AppData\\Local\\Temp\\jevdrill-verification-dckktnt1\\pytest"
+      ],
+      "exit_code": 0,
+      "output_sha256": "6b6fd5fd5aea005dce6d843084a192e709aebd06867875545133fb48ed9f7b0e"
+    },
+    {
+      "name": "generation",
+      "command": [
+        "C:\\Users\\viperjuice\\AppData\\Local\\Temp\\jevdrill-v2-matrix-_nt_08eb\\.venv\\Scripts\\python.exe",
+        "scripts/check_generated_contracts.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "cc4b68d9c2c420bac42bd18f599175f9cc0ce170374fd7dfebf61b7b41073125"
+    },
+    {
+      "name": "coverage",
+      "command": [
+        "C:\\Users\\viperjuice\\AppData\\Local\\Temp\\jevdrill-v2-matrix-_nt_08eb\\.venv\\Scripts\\python.exe",
+        "scripts/check_contract_coverage.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "a27aa78d8d8dedd65caa926db9c95b589878f7760ef971930007c51dd55cd0a6"
+    },
+    {
+      "name": "vocabulary",
+      "command": [
+        "C:\\Users\\viperjuice\\AppData\\Local\\Temp\\jevdrill-v2-matrix-_nt_08eb\\.venv\\Scripts\\python.exe",
+        "scripts/lint_vocabulary.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "ac9da0dbb4cfb01d3ecaefff7b88e8b373e3f6edbdec9357ac927877cbb94ad4"
+    },
+    {
+      "name": "glossary",
+      "command": [
+        "C:\\Users\\viperjuice\\AppData\\Local\\Temp\\jevdrill-v2-matrix-_nt_08eb\\.venv\\Scripts\\python.exe",
+        "scripts/render_vocabulary.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "imports",
+      "command": [
+        "C:\\Users\\viperjuice\\AppData\\Local\\Temp\\jevdrill-v2-matrix-_nt_08eb\\.venv\\Scripts\\python.exe",
+        "scripts/check_import_boundaries.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "ac9da0dbb4cfb01d3ecaefff7b88e8b373e3f6edbdec9357ac927877cbb94ad4"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "C:\\Users\\viperjuice\\AppData\\Local\\Temp\\jevdrill-v2-matrix-_nt_08eb\\.venv\\Scripts\\python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "src",
+        "tests/contracts",
+        "tests/evaluation"
+      ],
+      "exit_code": 0,
+      "output_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "name": "format",
+      "command": [
+        "C:\\Users\\viperjuice\\AppData\\Local\\Temp\\jevdrill-v2-matrix-_nt_08eb\\.venv\\Scripts\\python.exe",
+        "-m",
+        "ruff",
+        "format",
+        "--check",
+        "src",
+        "tests/contracts",
+        "tests/evaluation"
+      ],
+      "exit_code": 0,
+      "output_sha256": "ec547b9784fec079a852c1a1af13bb56a8339603c43bdd8375f459e5927a5145"
+    },
+    {
+      "name": "types",
+      "command": [
+        "C:\\Users\\viperjuice\\AppData\\Local\\Temp\\jevdrill-v2-matrix-_nt_08eb\\.venv\\Scripts\\python.exe",
+        "-m",
+        "mypy",
+        "src/jevdrill"
+      ],
+      "exit_code": 0,
+      "output_sha256": "4eb3dc4d46302cbed1f206af900c39a998c1ccdadca41ad3f202e5635e7ba36d"
+    },
+    {
+      "name": "build",
+      "command": [
+        "uv",
+        "build"
+      ],
+      "exit_code": 0,
+      "output_sha256": "0e601ba98cce7ea496404c44dad7ceac42adf970b7912f2b9bb3c2498509645f"
+    }
+  ],
+  "tests": {
+    "total": 322,
+    "skipped": 0
+  }
+}

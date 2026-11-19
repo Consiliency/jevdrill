@@ -1,0 +1,101 @@
+{
+  "$defs": {
+    "Money": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Amount",
+          "type": "string"
+        },
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "currency"
+      ],
+      "title": "Money",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "active_branch_width": {
+      "maximum": 32,
+      "minimum": 1,
+      "title": "Active Branch Width",
+      "type": "integer"
+    },
+    "hard_output_token_limit": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "minimum": 1,
+      "title": "Hard Output Token Limit"
+    },
+    "max_calls": {
+      "minimum": 0,
+      "title": "Max Calls",
+      "type": "integer"
+    },
+    "max_candidates": {
+      "minimum": 0,
+      "title": "Max Candidates",
+      "type": "integer"
+    },
+    "max_description_utf8_bytes": {
+      "maximum": 2048,
+      "minimum": 1,
+      "title": "Max Description Utf8 Bytes",
+      "type": "integer"
+    },
+    "max_input_tokens": {
+      "minimum": 0,
+      "title": "Max Input Tokens",
+      "type": "integer"
+    },
+    "max_rounds": {
+      "minimum": 0,
+      "title": "Max Rounds",
+      "type": "integer"
+    },
+    "output_planning_reservation": {
+      "minimum": 0,
+      "title": "Output Planning Reservation",
+      "type": "integer"
+    },
+    "spending_ceiling": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Money"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "active_branch_width",
+    "hard_output_token_limit",
+    "max_calls",
+    "max_candidates",
+    "max_description_utf8_bytes",
+    "max_input_tokens",
+    "max_rounds",
+    "output_planning_reservation",
+    "spending_ceiling"
+  ],
+  "title": "DiscoveryLimits",
+  "type": "object"
+}

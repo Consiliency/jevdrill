@@ -1,0 +1,21 @@
+{
+  "schema": "spec_delta_closeout.v1",
+  "phase": "HOST",
+  "decision": "roadmap_amendment",
+  "redaction_posture": "metadata_only",
+  "target_surfaces": [
+    "docs/host-interfaces.md",
+    "baml_src/contracts.baml",
+    "docs/vocabulary.yaml"
+  ],
+  "evidence_paths": [
+    "evidence/HOST/spec-delta.json",
+    "evidence/HOST/verification.json",
+    "evidence/HOST/coverage.json"
+  ],
+  "downstream_handling": "replan_LEARN",
+  "doc_delta_decision": "docs_updated",
+  "canonical_adoption": false,
+  "publication_performed": false,
+  "closeout_status": "verification_pending"
+}

@@ -20,21 +20,32 @@ local-path references; raw process logs are excluded from publication.
 The roadmap now explicitly requires progressive guidance discovery, its handoff
 to harness-owned decomposition, and independent configuration selection for the
 resulting tasks. See the [implementation and criterion map](drill-roadmap-map.md).
-The supplied-candidate selector and routing/reporting infrastructure exist; the
-complete progressive question-and-state loop remains an implementation gap.
+The ROUTE continuation implements the progressive question/state loop,
+operation-scoped discovery storage, text-free transition replay and linked
+route-v2 selection in an isolated feature worktree. Current native software
+acceptance is determined by `evidence/ROUTE/verification.json`; historical
+four-criterion reports cannot establish the expanded gate.
 
 **ROUTE has been replanned against EC-ROUTE-5–7.** The owner-authorized
 Gemini/Grok/Astra confirmation and Astra president ruling completed successfully.
 The chair required atomic terminal recovery and independent request ledgers;
 both are now explicit plan/test requirements and passed owner-requested Codex
 self-review. Unanimous panel approval remains unclaimed.
-See `plans/phase-plan-v1-ROUTE_reviews.md`. Implement ROUTE's five serial lanes,
-then revise HOST, LEARN, EXPERIMENT and PREPARE in dependency
+See `plans/phase-plan-v1-ROUTE_reviews.md`. After current ROUTE verification,
+revise HOST, LEARN, EXPERIMENT and PREPARE in dependency
 order. The older downstream plans and earlier gate reports do not cover
 the added criteria. Retain historical evidence; do not repin plans or rerun old
 reducers and treat that as acceptance of the expanded scope. New acceptance
 commands must cover the added behaviors. No additional live comparison is needed
 to begin this work.
+
+The October 8 continuation preserves all original worktrees and recovers the
+public committed ROUTE baseline plus its pinned TypeSafe usage repair. CONTRACT
+coverage source bindings changed during the planning merge; the original mapping
+is archived under `evidence/ROUTE/history/` and only those bindings and JD-083/084
+mapping entries are reconciled. CONTRACT platform reports remain historical;
+this reconciliation closes no CONTRACT gate. HOST owns real decomposition and
+companion integration; ROUTE uses synthetic callers and loopback judgments.
 
 This correction supersedes the execution order below. The October 3 report and
 `evidence/ROADMAP/current-status.json` describe the earlier acceptance scope; their
@@ -87,6 +98,8 @@ it records successful software checks separately from operational gaps.
 | PREPARE | `plans/phase-plan-v1-PREPARE.md` defines two serial implementation lanes and preserves all three roadmap acceptance criteria. Its parser and dispatch validation passed. | After upstream gates, implement native release recovery, complete coverage, the untouched release holdout, governance dry-run, independent review and release/rollback manifest. Planning does not close acceptance; publication and adoption need separate authority. |
 
 ## Recommended execution order
+
+Amended EXPERIMENT execution is underway in the assigned isolated worktree. Software-only diagnostics and current native/operational receipts are separated from whole-phase acceptance. The representative public protocol and concrete new allowance proposal are reviewable under `research/evaluation/discovery-calibration` and `evidence/EXPERIMENT/study-proposal.json`; prior grants remain consumed and unchanged. Q-12/Q-13 and genuine authorized linked discovery/task outcomes remain required before IF-0-EXPERIMENT-1 or PREPARE.
 
 1. **Finish the Linux internal V0 candidate.** Keep the verified CLI version,
    package and companion identities explicit. Verify the timing change offline

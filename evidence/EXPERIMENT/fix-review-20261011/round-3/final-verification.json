@@ -1,0 +1,23 @@
+{
+  "source_manifest": "final-source-manifest.json",
+  "source_manifest_sha256": "4fb3ed6538c603c1e7b1138923474666702da56894ada836512762de52c3fd6b",
+  "supplement": "supplement.diff",
+  "final_affected_tests": {
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "final_affected_junit": "/tmp/jevdrill-v2-final-pricing-guard.xml",
+  "final_affected_junit_sha256": "ffb0629ff7e2e224fa72083b34eaddc1924b3a8fe71eab06586d6e283bc55da1",
+  "final_ruff_lint": "passed",
+  "final_ruff_format": "passed",
+  "full_suite_review_head": "858 passed before assertion-only supplement; verification.json retained as historical snapshot",
+  "native_matrix_final_source": "322 passed with no skips on each of Linux/Darwin/Windows, all named checks passed, zero errors reducing against current worktree; native/ receipts and final-binding.json",
+  "original_review_source_preserved": true,
+  "production_schema_sdk_unchanged_since_seats": true,
+  "grok_delivery": "Cancelled terminal status with substantive AGREE summary; president adjudication pending",
+  "president": "fresh manual Opus5.5 tools-enabled review running",
+  "study_calls": 0,
+  "empirical_acceptance": false
+}

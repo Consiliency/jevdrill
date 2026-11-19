@@ -1,0 +1,494 @@
+{
+  "$defs": {
+    "ExperimentCandidateResult": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptance_checks": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "title": "Acceptance Checks",
+          "type": "object"
+        },
+        "evaluator_ref": {
+          "title": "Evaluator Ref",
+          "type": "string"
+        },
+        "execution_plan_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Execution Plan Id",
+          "type": "string"
+        },
+        "measurements": {
+          "items": {
+            "$ref": "#/$defs/Measurement"
+          },
+          "title": "Measurements",
+          "type": "array"
+        },
+        "rubric_revision": {
+          "title": "Rubric Revision",
+          "type": "string"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "const": "completed",
+              "type": "string"
+            },
+            {
+              "const": "failed",
+              "type": "string"
+            },
+            {
+              "const": "canceled",
+              "type": "string"
+            },
+            {
+              "const": "timeout",
+              "type": "string"
+            }
+          ],
+          "title": "Status"
+        }
+      },
+      "required": [
+        "acceptance_checks",
+        "evaluator_ref",
+        "execution_plan_id",
+        "measurements",
+        "rubric_revision",
+        "status"
+      ],
+      "title": "ExperimentCandidateResult",
+      "type": "object"
+    },
+    "ExperimentExecutionRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "admitted_at_ms": {
+          "minimum": 0,
+          "title": "Admitted At Ms",
+          "type": "integer"
+        },
+        "authorization_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Authorization Digest",
+          "type": "string"
+        },
+        "authorization_revision": {
+          "title": "Authorization Revision",
+          "type": "string"
+        },
+        "comparison_experiment_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Comparison Experiment Id",
+          "type": "string"
+        },
+        "deadline_ms": {
+          "minimum": 1,
+          "title": "Deadline Ms",
+          "type": "integer"
+        },
+        "dispatch_token": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Dispatch Token",
+          "type": "string"
+        },
+        "execution_status": {
+          "anyOf": [
+            {
+              "const": "accepted",
+              "type": "string"
+            },
+            {
+              "const": "running",
+              "type": "string"
+            },
+            {
+              "const": "completed",
+              "type": "string"
+            },
+            {
+              "const": "incomplete",
+              "type": "string"
+            },
+            {
+              "const": "cancel_pending",
+              "type": "string"
+            },
+            {
+              "const": "canceled",
+              "type": "string"
+            }
+          ],
+          "title": "Execution Status"
+        },
+        "experiment_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Experiment Digest",
+          "type": "string"
+        },
+        "harness_id": {
+          "title": "Harness Id",
+          "type": "string"
+        },
+        "observed_at_ms": {
+          "minimum": 0,
+          "title": "Observed At Ms",
+          "type": "integer"
+        },
+        "receipt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentHostReceipt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reserved_microusd": {
+          "maximum": 1000000000000,
+          "minimum": 0,
+          "title": "Reserved Microusd",
+          "type": "integer"
+        },
+        "task_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "admitted_at_ms",
+        "authorization_digest",
+        "authorization_revision",
+        "comparison_experiment_id",
+        "deadline_ms",
+        "dispatch_token",
+        "execution_status",
+        "experiment_digest",
+        "harness_id",
+        "observed_at_ms",
+        "receipt",
+        "reserved_microusd",
+        "task_id"
+      ],
+      "title": "ExperimentExecutionRecord",
+      "type": "object"
+    },
+    "ExperimentHostReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/ExperimentCandidateResult"
+          },
+          "title": "Candidates",
+          "type": "array"
+        },
+        "cleanup_verified": {
+          "title": "Cleanup Verified",
+          "type": "boolean"
+        },
+        "dispatch_token": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Dispatch Token",
+          "type": "string"
+        },
+        "experiment_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Experiment Digest",
+          "type": "string"
+        },
+        "host_status": {
+          "anyOf": [
+            {
+              "const": "absent",
+              "type": "string"
+            },
+            {
+              "const": "running",
+              "type": "string"
+            },
+            {
+              "const": "completed",
+              "type": "string"
+            },
+            {
+              "const": "failed",
+              "type": "string"
+            },
+            {
+              "const": "canceled",
+              "type": "string"
+            }
+          ],
+          "title": "Host Status"
+        },
+        "preference_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Preference Reason"
+        },
+        "preferred_plan_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Preferred Plan Id"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidates",
+        "cleanup_verified",
+        "dispatch_token",
+        "experiment_digest",
+        "host_status",
+        "preference_reason",
+        "preferred_plan_id",
+        "schema_version"
+      ],
+      "title": "ExperimentHostReceipt",
+      "type": "object"
+    },
+    "KnownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "known",
+          "title": "Kind",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "unit",
+        "value"
+      ],
+      "title": "KnownMeasurement",
+      "type": "object"
+    },
+    "Measurement": {
+      "additionalProperties": false,
+      "properties": {
+        "counting_semantics": {
+          "anyOf": [
+            {
+              "const": "disjoint",
+              "type": "string"
+            },
+            {
+              "const": "subset",
+              "type": "string"
+            },
+            {
+              "const": "not_applicable",
+              "type": "string"
+            }
+          ],
+          "title": "Counting Semantics"
+        },
+        "measurement_value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/KnownMeasurement"
+            },
+            {
+              "$ref": "#/$defs/UnknownMeasurement"
+            }
+          ],
+          "title": "Measurement Value"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "metric_version": {
+          "title": "Metric Version",
+          "type": "string"
+        },
+        "parent_metric_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Metric Id"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "const": "call",
+              "type": "string"
+            },
+            {
+              "const": "run",
+              "type": "string"
+            },
+            {
+              "const": "task",
+              "type": "string"
+            },
+            {
+              "const": "experiment",
+              "type": "string"
+            }
+          ],
+          "title": "Scope"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "direct",
+              "type": "string"
+            },
+            {
+              "const": "provider",
+              "type": "string"
+            },
+            {
+              "const": "host",
+              "type": "string"
+            },
+            {
+              "const": "evaluator",
+              "type": "string"
+            },
+            {
+              "const": "estimate",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "counting_semantics",
+        "measurement_value",
+        "method",
+        "metric_id",
+        "metric_version",
+        "parent_metric_id",
+        "scope",
+        "source"
+      ],
+      "title": "Measurement",
+      "type": "object"
+    },
+    "MissingReason": {
+      "enum": [
+        "unsupported",
+        "not_reported",
+        "not_applicable",
+        "redacted",
+        "expired",
+        "incomplete"
+      ],
+      "title": "MissingReason",
+      "type": "string"
+    },
+    "UnknownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/MissingReason"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "UnknownMeasurement",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "reasons": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Reasons",
+      "type": "array"
+    },
+    "record": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExperimentExecutionRecord"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "anyOf": [
+        {
+          "const": "denied",
+          "type": "string"
+        },
+        {
+          "const": "not_found",
+          "type": "string"
+        },
+        {
+          "const": "recorded",
+          "type": "string"
+        }
+      ],
+      "title": "Status"
+    }
+  },
+  "required": [
+    "reasons",
+    "record",
+    "schema_version",
+    "status"
+  ],
+  "title": "ExperimentExecutionResult",
+  "type": "object"
+}

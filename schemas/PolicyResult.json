@@ -1,0 +1,1220 @@
+{
+  "$defs": {
+    "AcceptanceRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "evaluator_ref": {
+          "title": "Evaluator Ref",
+          "type": "string"
+        },
+        "requirement_id": {
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "user",
+              "type": "string"
+            },
+            {
+              "const": "task_family",
+              "type": "string"
+            },
+            {
+              "const": "inferred",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "description",
+        "evaluator_ref",
+        "requirement_id",
+        "source"
+      ],
+      "title": "AcceptanceRequirement",
+      "type": "object"
+    },
+    "CommandScope": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "anyOf": [
+            {
+              "const": "route",
+              "type": "string"
+            },
+            {
+              "const": "report",
+              "type": "string"
+            }
+          ],
+          "title": "Operation"
+        },
+        "producer": {
+          "title": "Producer",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "workspace_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation",
+        "producer",
+        "project_id",
+        "workspace_id"
+      ],
+      "title": "CommandScope",
+      "type": "object"
+    },
+    "KnownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "known",
+          "title": "Kind",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "unit",
+        "value"
+      ],
+      "title": "KnownMeasurement",
+      "type": "object"
+    },
+    "Measurement": {
+      "additionalProperties": false,
+      "properties": {
+        "counting_semantics": {
+          "anyOf": [
+            {
+              "const": "disjoint",
+              "type": "string"
+            },
+            {
+              "const": "subset",
+              "type": "string"
+            },
+            {
+              "const": "not_applicable",
+              "type": "string"
+            }
+          ],
+          "title": "Counting Semantics"
+        },
+        "measurement_value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/KnownMeasurement"
+            },
+            {
+              "$ref": "#/$defs/UnknownMeasurement"
+            }
+          ],
+          "title": "Measurement Value"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "metric_version": {
+          "title": "Metric Version",
+          "type": "string"
+        },
+        "parent_metric_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Metric Id"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "const": "call",
+              "type": "string"
+            },
+            {
+              "const": "run",
+              "type": "string"
+            },
+            {
+              "const": "task",
+              "type": "string"
+            },
+            {
+              "const": "experiment",
+              "type": "string"
+            }
+          ],
+          "title": "Scope"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "direct",
+              "type": "string"
+            },
+            {
+              "const": "provider",
+              "type": "string"
+            },
+            {
+              "const": "host",
+              "type": "string"
+            },
+            {
+              "const": "evaluator",
+              "type": "string"
+            },
+            {
+              "const": "estimate",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "counting_semantics",
+        "measurement_value",
+        "method",
+        "metric_id",
+        "metric_version",
+        "parent_metric_id",
+        "scope",
+        "source"
+      ],
+      "title": "Measurement",
+      "type": "object"
+    },
+    "MissingReason": {
+      "enum": [
+        "unsupported",
+        "not_reported",
+        "not_applicable",
+        "redacted",
+        "expired",
+        "incomplete"
+      ],
+      "title": "MissingReason",
+      "type": "string"
+    },
+    "OptimizationObjective": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptance_requirements": {
+          "items": {
+            "$ref": "#/$defs/AcceptanceRequirement"
+          },
+          "title": "Acceptance Requirements",
+          "type": "array"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "const": "minimize",
+              "type": "string"
+            },
+            {
+              "const": "maximize",
+              "type": "string"
+            }
+          ],
+          "title": "Direction"
+        },
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "objective_id": {
+          "title": "Objective Id",
+          "type": "string"
+        },
+        "routing_cost_basis": {
+          "anyOf": [
+            {
+              "const": "raw",
+              "type": "string"
+            },
+            {
+              "const": "adjusted",
+              "type": "string"
+            }
+          ],
+          "title": "Routing Cost Basis"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "acceptance_requirements",
+        "direction",
+        "metric_id",
+        "objective_id",
+        "routing_cost_basis",
+        "version"
+      ],
+      "title": "OptimizationObjective",
+      "type": "object"
+    },
+    "PolicyAssessment": {
+      "additionalProperties": false,
+      "properties": {
+        "calibration_revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Calibration Revision"
+        },
+        "candidate_quality_lower_bound": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Candidate Quality Lower Bound"
+        },
+        "classification": {
+          "anyOf": [
+            {
+              "const": "quality_gate_passed",
+              "type": "string"
+            },
+            {
+              "const": "critical_regression",
+              "type": "string"
+            },
+            {
+              "const": "quality_regression",
+              "type": "string"
+            },
+            {
+              "const": "insufficient_evidence",
+              "type": "string"
+            },
+            {
+              "const": "non_comparable",
+              "type": "string"
+            }
+          ],
+          "title": "Classification"
+        },
+        "critical_regressions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Critical Regressions",
+          "type": "array"
+        },
+        "evidence_digest": {
+          "title": "Evidence Digest",
+          "type": "string"
+        },
+        "pair_count": {
+          "title": "Pair Count",
+          "type": "integer"
+        },
+        "promotion_authorized": {
+          "const": false,
+          "title": "Promotion Authorized",
+          "type": "boolean"
+        },
+        "quality_loss_upper_bound": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Quality Loss Upper Bound"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "calibration_revision",
+        "candidate_quality_lower_bound",
+        "classification",
+        "critical_regressions",
+        "evidence_digest",
+        "pair_count",
+        "promotion_authorized",
+        "quality_loss_upper_bound",
+        "reasons",
+        "schema_version"
+      ],
+      "title": "PolicyAssessment",
+      "type": "object"
+    },
+    "PolicyAuthorization": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_policy_revisions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Allowed Policy Revisions",
+          "type": "array"
+        },
+        "allowed_task_groups": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Allowed Task Groups",
+          "type": "array"
+        },
+        "authorization_revision": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Authorization Revision",
+          "type": "string"
+        },
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "max_routes": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Max Routes",
+          "type": "integer"
+        },
+        "rollout_basis_points": {
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Rollout Basis Points",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/CommandScope"
+        }
+      },
+      "required": [
+        "allowed_policy_revisions",
+        "allowed_task_groups",
+        "authorization_revision",
+        "enabled",
+        "expires_at",
+        "max_routes",
+        "rollout_basis_points",
+        "schema_version",
+        "scope"
+      ],
+      "title": "PolicyAuthorization",
+      "type": "object"
+    },
+    "PolicyCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Candidate Fingerprint",
+          "type": "string"
+        },
+        "candidate_id": {
+          "minLength": 1,
+          "title": "Candidate Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_fingerprint",
+        "candidate_id"
+      ],
+      "title": "PolicyCandidate",
+      "type": "object"
+    },
+    "PolicyCase": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline_critical": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "title": "Baseline Critical",
+          "type": "object"
+        },
+        "baseline_measurements": {
+          "items": {
+            "$ref": "#/$defs/Measurement"
+          },
+          "title": "Baseline Measurements",
+          "type": "array"
+        },
+        "baseline_quality": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Baseline Quality"
+        },
+        "candidate_critical": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "title": "Candidate Critical",
+          "type": "object"
+        },
+        "candidate_measurements": {
+          "items": {
+            "$ref": "#/$defs/Measurement"
+          },
+          "title": "Candidate Measurements",
+          "type": "array"
+        },
+        "candidate_quality": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Candidate Quality"
+        },
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "exposed_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Exposed At",
+          "type": "string"
+        },
+        "related_group": {
+          "title": "Related Group",
+          "type": "string"
+        },
+        "split": {
+          "anyOf": [
+            {
+              "const": "development",
+              "type": "string"
+            },
+            {
+              "const": "validation",
+              "type": "string"
+            },
+            {
+              "const": "policy_holdout",
+              "type": "string"
+            },
+            {
+              "const": "policy_regression",
+              "type": "string"
+            },
+            {
+              "const": "release_holdout",
+              "type": "string"
+            }
+          ],
+          "title": "Split"
+        }
+      },
+      "required": [
+        "baseline_critical",
+        "baseline_measurements",
+        "baseline_quality",
+        "candidate_critical",
+        "candidate_measurements",
+        "candidate_quality",
+        "case_id",
+        "exposed_at",
+        "related_group",
+        "split"
+      ],
+      "title": "PolicyCase",
+      "type": "object"
+    },
+    "PolicyCaseAssignment": {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "related_group": {
+          "title": "Related Group",
+          "type": "string"
+        },
+        "split": {
+          "anyOf": [
+            {
+              "const": "policy_holdout",
+              "type": "string"
+            },
+            {
+              "const": "policy_regression",
+              "type": "string"
+            }
+          ],
+          "title": "Split"
+        },
+        "task_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "case_id",
+        "related_group",
+        "split",
+        "task_id"
+      ],
+      "title": "PolicyCaseAssignment",
+      "type": "object"
+    },
+    "PolicyDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline_policy_revision": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Baseline Policy Revision",
+          "type": "string"
+        },
+        "calibration": {
+          "$ref": "#/$defs/QualityCalibration"
+        },
+        "candidate_order": {
+          "items": {
+            "$ref": "#/$defs/PolicyCandidate"
+          },
+          "maxItems": 64,
+          "minItems": 2,
+          "title": "Candidate Order",
+          "type": "array"
+        },
+        "cases": {
+          "items": {
+            "$ref": "#/$defs/PolicyCaseAssignment"
+          },
+          "maxItems": 100000,
+          "minItems": 4,
+          "title": "Cases",
+          "type": "array"
+        },
+        "minimum_improvement": {
+          "exclusiveMinimum": 0,
+          "title": "Minimum Improvement",
+          "type": "number"
+        },
+        "objective": {
+          "$ref": "#/$defs/OptimizationObjective"
+        },
+        "objective_value_ceiling": {
+          "exclusiveMinimum": 0,
+          "title": "Objective Value Ceiling",
+          "type": "number"
+        },
+        "policy_revision": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Policy Revision",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "task_group": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Task Group",
+          "type": "string"
+        }
+      },
+      "required": [
+        "baseline_policy_revision",
+        "calibration",
+        "candidate_order",
+        "cases",
+        "minimum_improvement",
+        "objective",
+        "objective_value_ceiling",
+        "policy_revision",
+        "schema_version",
+        "task_group"
+      ],
+      "title": "PolicyDefinition",
+      "type": "object"
+    },
+    "PolicyEvaluation": {
+      "additionalProperties": false,
+      "properties": {
+        "calibration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QualityCalibration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cases": {
+          "items": {
+            "$ref": "#/$defs/PolicyCase"
+          },
+          "title": "Cases",
+          "type": "array"
+        },
+        "dataset_revision": {
+          "title": "Dataset Revision",
+          "type": "string"
+        },
+        "evaluator_ref": {
+          "title": "Evaluator Ref",
+          "type": "string"
+        },
+        "evidence_origin": {
+          "anyOf": [
+            {
+              "const": "controlled",
+              "type": "string"
+            },
+            {
+              "const": "observational",
+              "type": "string"
+            },
+            {
+              "const": "synthetic",
+              "type": "string"
+            }
+          ],
+          "title": "Evidence Origin"
+        },
+        "identities_blinded": {
+          "title": "Identities Blinded",
+          "type": "boolean"
+        },
+        "rubric_revision": {
+          "title": "Rubric Revision",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "task_family": {
+          "anyOf": [
+            {
+              "const": "implementation",
+              "type": "string"
+            },
+            {
+              "const": "review",
+              "type": "string"
+            },
+            {
+              "const": "documentation",
+              "type": "string"
+            }
+          ],
+          "title": "Task Family"
+        }
+      },
+      "required": [
+        "calibration",
+        "cases",
+        "dataset_revision",
+        "evaluator_ref",
+        "evidence_origin",
+        "identities_blinded",
+        "rubric_revision",
+        "schema_version",
+        "task_family"
+      ],
+      "title": "PolicyEvaluation",
+      "type": "object"
+    },
+    "PolicyEvidencePreparation": {
+      "additionalProperties": false,
+      "properties": {
+        "definition_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Definition Digest",
+          "type": "string"
+        },
+        "evaluator_identity": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Evaluator Identity",
+          "type": "string"
+        },
+        "evidence_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Evidence Ref",
+          "type": "string"
+        },
+        "independent": {
+          "title": "Independent",
+          "type": "boolean"
+        },
+        "input_revision": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Input Revision",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "const": "current",
+              "type": "string"
+            },
+            {
+              "const": "critical_regression",
+              "type": "string"
+            },
+            {
+              "const": "quality_regression",
+              "type": "string"
+            },
+            {
+              "const": "stale",
+              "type": "string"
+            }
+          ],
+          "title": "Status"
+        },
+        "valid_until": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Valid Until",
+          "type": "string"
+        }
+      },
+      "required": [
+        "definition_digest",
+        "evaluator_identity",
+        "evidence_ref",
+        "independent",
+        "input_revision",
+        "schema_version",
+        "status",
+        "valid_until"
+      ],
+      "title": "PolicyEvidencePreparation",
+      "type": "object"
+    },
+    "PolicyRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "assessment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PolicyAssessment"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "authorization": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PolicyAuthorization"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "definition": {
+          "$ref": "#/$defs/PolicyDefinition"
+        },
+        "definition_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Definition Digest",
+          "type": "string"
+        },
+        "evaluation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PolicyEvaluation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "exposed_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Exposed At"
+        },
+        "objective_improvement_lower_bound": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Objective Improvement Lower Bound"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "policy_status": {
+          "anyOf": [
+            {
+              "const": "registered",
+              "type": "string"
+            },
+            {
+              "const": "exposed",
+              "type": "string"
+            },
+            {
+              "const": "evaluated",
+              "type": "string"
+            },
+            {
+              "const": "active",
+              "type": "string"
+            },
+            {
+              "const": "suspended",
+              "type": "string"
+            },
+            {
+              "const": "stale",
+              "type": "string"
+            }
+          ],
+          "title": "Policy Status"
+        },
+        "preparation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PolicyEvidencePreparation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "previous_policy_revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Policy Revision"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "registered_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Registered At",
+          "type": "string"
+        },
+        "used_routes": {
+          "minimum": 0,
+          "title": "Used Routes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "assessment",
+        "authorization",
+        "definition",
+        "definition_digest",
+        "evaluation",
+        "exposed_at",
+        "objective_improvement_lower_bound",
+        "observed_at",
+        "policy_status",
+        "preparation",
+        "previous_policy_revision",
+        "reasons",
+        "registered_at",
+        "used_routes"
+      ],
+      "title": "PolicyRecord",
+      "type": "object"
+    },
+    "QualityCalibration": {
+      "additionalProperties": false,
+      "properties": {
+        "calibration_revision": {
+          "title": "Calibration Revision",
+          "type": "string"
+        },
+        "calibration_source": {
+          "title": "Calibration Source",
+          "type": "string"
+        },
+        "confidence": {
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0.5,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "critical_requirements": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Critical Requirements",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "dataset_revision": {
+          "title": "Dataset Revision",
+          "type": "string"
+        },
+        "evaluator_ref": {
+          "title": "Evaluator Ref",
+          "type": "string"
+        },
+        "frozen_at": {
+          "format": "date-time",
+          "pattern": "Z$",
+          "title": "Frozen At",
+          "type": "string"
+        },
+        "maximum_quality_loss": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Maximum Quality Loss",
+          "type": "number"
+        },
+        "minimum_pairs": {
+          "maximum": 1000000,
+          "minimum": 2,
+          "title": "Minimum Pairs",
+          "type": "integer"
+        },
+        "quality_floor": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Quality Floor",
+          "type": "number"
+        },
+        "rubric_revision": {
+          "title": "Rubric Revision",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "task_family": {
+          "anyOf": [
+            {
+              "const": "implementation",
+              "type": "string"
+            },
+            {
+              "const": "review",
+              "type": "string"
+            },
+            {
+              "const": "documentation",
+              "type": "string"
+            }
+          ],
+          "title": "Task Family"
+        }
+      },
+      "required": [
+        "calibration_revision",
+        "calibration_source",
+        "confidence",
+        "critical_requirements",
+        "dataset_revision",
+        "evaluator_ref",
+        "frozen_at",
+        "maximum_quality_loss",
+        "minimum_pairs",
+        "quality_floor",
+        "rubric_revision",
+        "schema_version",
+        "task_family"
+      ],
+      "title": "QualityCalibration",
+      "type": "object"
+    },
+    "UnknownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/MissingReason"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "UnknownMeasurement",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "reasons": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Reasons",
+      "type": "array"
+    },
+    "record": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PolicyRecord"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "anyOf": [
+        {
+          "const": "recorded",
+          "type": "string"
+        },
+        {
+          "const": "not_found",
+          "type": "string"
+        },
+        {
+          "const": "denied",
+          "type": "string"
+        }
+      ],
+      "title": "Status"
+    }
+  },
+  "required": [
+    "reasons",
+    "record",
+    "schema_version",
+    "status"
+  ],
+  "title": "PolicyResult",
+  "type": "object"
+}

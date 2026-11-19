@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "execution_kind": "native",
+  "os": "Darwin",
+  "architecture": "arm64",
+  "python_minor": "3.13",
+  "python_version": "3.13.7",
+  "bridge_version": "0.20.1",
+  "compiler_version": "baml-cli 0.20.1",
+  "runner_identity": "macmini",
+  "timestamp": "2026-10-12T16:25:38.964930+00:00",
+  "input_digest": "1aa527566ae49ee427019efa701c8234d6555fcd71ed0d9c829d219a324081bc",
+  "checks": [
+    {
+      "name": "tests",
+      "command": [
+        "/private/tmp/jevdrill-v2-matrix-5sa5b328/.venv/bin/python",
+        "-m",
+        "pytest",
+        "tests/contracts",
+        "tests/evaluation",
+        "-q",
+        "--junitxml=/tmp/jevdrill-verification-qcsrd04z/tests.xml",
+        "--basetemp=/tmp/jevdrill-verification-qcsrd04z/pytest"
+      ],
+      "exit_code": 0,
+      "output_sha256": "5925ffc9a14034fb747f53fad520a281944db09e1d89bdf294318874c299bc17"
+    },
+    {
+      "name": "generation",
+      "command": [
+        "/private/tmp/jevdrill-v2-matrix-5sa5b328/.venv/bin/python",
+        "scripts/check_generated_contracts.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "68bd6ababffc62334695f7bb458c8ff65085ff792441dbb88e249947a3b1b305"
+    },
+    {
+      "name": "coverage",
+      "command": [
+        "/private/tmp/jevdrill-v2-matrix-5sa5b328/.venv/bin/python",
+        "scripts/check_contract_coverage.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "b5f54f048d579aa1b31f767e98c9dae16a8b2eb03b692077e213b1927a2a1f64"
+    },
+    {
+      "name": "vocabulary",
+      "command": [
+        "/private/tmp/jevdrill-v2-matrix-5sa5b328/.venv/bin/python",
+        "scripts/lint_vocabulary.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "8bd2e937f15b750ff2e18abc445df9e143156651f4415267b0c018c4b07a051b"
+    },
+    {
+      "name": "glossary",
+      "command": [
+        "/private/tmp/jevdrill-v2-matrix-5sa5b328/.venv/bin/python",
+        "scripts/render_vocabulary.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "imports",
+      "command": [
+        "/private/tmp/jevdrill-v2-matrix-5sa5b328/.venv/bin/python",
+        "scripts/check_import_boundaries.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "8bd2e937f15b750ff2e18abc445df9e143156651f4415267b0c018c4b07a051b"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "/private/tmp/jevdrill-v2-matrix-5sa5b328/.venv/bin/python",
+        "-m",
+        "ruff",
+        "check",
+        "src",
+        "tests/contracts",
+        "tests/evaluation"
+      ],
+      "exit_code": 0,
+      "output_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "name": "format",
+      "command": [
+        "/private/tmp/jevdrill-v2-matrix-5sa5b328/.venv/bin/python",
+        "-m",
+        "ruff",
+        "format",
+        "--check",
+        "src",
+        "tests/contracts",
+        "tests/evaluation"
+      ],
+      "exit_code": 0,
+      "output_sha256": "ec547b9784fec079a852c1a1af13bb56a8339603c43bdd8375f459e5927a5145"
+    },
+    {
+      "name": "types",
+      "command": [
+        "/private/tmp/jevdrill-v2-matrix-5sa5b328/.venv/bin/python",
+        "-m",
+        "mypy",
+        "src/jevdrill"
+      ],
+      "exit_code": 0,
+      "output_sha256": "7f43e759c997a0af903a210f4a10fd709457c5a5125336929ab037d3ed6702ce"
+    },
+    {
+      "name": "build",
+      "command": [
+        "uv",
+        "build"
+      ],
+      "exit_code": 0,
+      "output_sha256": "0bfc53bf735929dfff416350098fde09bf74e0ca4b893004f12200e8daeae7b5"
+    }
+  ],
+  "tests": {
+    "total": 322,
+    "skipped": 0
+  }
+}

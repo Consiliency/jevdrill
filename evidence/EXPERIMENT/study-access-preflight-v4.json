@@ -1,0 +1,34 @@
+{
+  "status": "blocked",
+  "access_attempts": [
+    {
+      "operation": "credential_environment_diagnostic",
+      "status": "explicit_tool_workdir_context_not_signed_in",
+      "prior_artifacts": [
+        "study-access-preflight.json",
+        "study-access-preflight-v2.json",
+        "study-access-preflight-v3.json"
+      ],
+      "mitigation": "launch inherited authorized credential context; runner cwd and all mutable artifacts assigned worktree"
+    },
+    {
+      "operation": "approved_shared_field_lookup",
+      "provider": "candidate",
+      "item_id": "hxhazlzxeu7nmwetekiiwcouhq",
+      "field": "OPENAI_API_KEY",
+      "status": "present"
+    },
+    {
+      "operation": "approved_shared_field_lookup",
+      "provider": "judgment",
+      "item_id": "4er3jcjuuulxtmc5ikt6p6j3fi",
+      "field": "credential",
+      "status": "present"
+    },
+    {
+      "operation": "provider_model_metadata_only_GET",
+      "status": "failed",
+      "error_type": "HTTPError"
+    }
+  ]
+}

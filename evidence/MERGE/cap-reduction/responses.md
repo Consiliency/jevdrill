@@ -1,0 +1,15 @@
+# Three-round cap: reduced scope and input binding
+
+The full-PR panel finished its three rounds on `d20819f88977d6aa78c371287ca8ee8cb2ab67ea`. Final votes were one AGREE and three DISAGREE. All six round-2 reproductions were closed, but injected task spending limits, unsupported injected model/counter profiles and split/folded credential forms still violated M1/M2. Passing 897 tests and all nine CI checks did not authorize that head for merge.
+
+This is the cap-prescribed scope reduction, not an automatic fourth full panel round or a waiver. A separate fresh president must assess the resulting implementation head and all unresolved objections before any merge. The panel is the merge authority under the owner's explicit instruction; no board unanimity is claimed.
+
+Removed scope: explicit per-request spending ceilings on injected task and discovery judgment adapters are unsupported. Application rejects before preparation/reservation/dispatch, including funded, zero, insufficient, unknown-rate, positive-output, stale-rate and incompatible-currency cases. The current port does not supply a verified request-bound price allowance; its independent study grant cannot replace the request ceiling. Supporting such ceilings on injected adapters is carried to follow-up, with no feature or acceptance claim here. Built-in verified-price ceilings remain supported; no requested ceiling is ignored.
+
+Input binding: Application checks the configured adapter's model identity and the supported UTF-8 counter before either injected path. DevelopmentJudge declares its existing pinned `jev-1.13.0` identity; built-in and ordinary synthetic observers use `jev-latest`. Both unsupported and known-but-mismatched models reject before calls. No model menu, new pricing port, judgment-semantic amendment or collection authority was added.
+
+Credential boundary: the redactor removes standalone and folded Bearer/Basic values and JSON name/value header tokens, in addition to the earlier quoted assignments. Application submission/raw-retention and attachment controls cover the demonstrated forms. Ordinary prose containing basic arithmetic remains unchanged. No claim to recognize arbitrary unlabeled secret text is introduced; Grok's untested unquoted multi-word suggestion is not accepted as a demonstrated blocker.
+
+Verification: 133 focused tests and two built-in zero/funded price controls passed. An initial fixture run failed schema validation because the new rate cards used invalid field names; those fixtures were corrected to the generated RateCard schema before the passing run. Ruff lint/format and mypy (23 source files) pass. Fresh full-suite, generation and native CI results are recorded separately before the president's decision; the earlier 897-test receipt applies only to the prior head.
+
+The original dirty worktree, actual stopped study and consumed grant remain intact. No real provider, new study call, holdout, promotion, deployment or runtime adoption is authorized. Portable recovery and discovery raw-content limitations remain explicit.

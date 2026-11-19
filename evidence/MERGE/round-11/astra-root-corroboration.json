@@ -1,0 +1,26 @@
+{
+  "head": "346e800909dcd59317c41b7cfdf25040ca07919c",
+  "seat_receipt_sha256": "612ca947cf41424cc37726abf3f080150b5489d682c61e311fb17001748f5809",
+  "checks": [
+    {
+      "case": "comment-prose-mapping-add",
+      "rejected": false,
+      "sentinel_retained": true
+    },
+    {
+      "case": "comment-fenced-assignment-formatted",
+      "rejected": false,
+      "sentinel_retained": true
+    },
+    {
+      "case": "yaml-comment-association",
+      "rejected": false,
+      "sentinel_retained": true
+    },
+    {
+      "case": "json-comment-association",
+      "rejected": false,
+      "sentinel_retained": true
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+The source manifest matches at `ff858a3`. GitHub’s failure looks like missing generated SDK files; I’ll confirm that against the workflows, then review discovery, routing, and experiment provenance for silent invalid results.

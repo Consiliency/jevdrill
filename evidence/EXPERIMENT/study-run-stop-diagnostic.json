@@ -1,0 +1,285 @@
+{
+  "schema_version": 1,
+  "recorded_route_decision": {
+    "details": {
+      "acceptance_rationale": "Feasibility requires sufficient versioned evidence.",
+      "alternatives": [],
+      "capability_mismatches": [],
+      "close_calls": [],
+      "cost_estimate": {
+        "adjusted_token_cost": null,
+        "assumptions": [
+          "routing overhead is separate from execution estimate"
+        ],
+        "missing_reason": "not_reported",
+        "observed_cost": null,
+        "rate_revision": "unknown",
+        "raw_token_cost": null
+      },
+      "created_at": "2026-09-28T00:00:00Z",
+      "diagnostics": [],
+      "discovery_ref": {
+        "discovery_id": "d8cd7af2-0c3d-479d-a306-3f0edb9cafea",
+        "trace_digest": "3540d98631d7b527ee7a82d197e0413de294bac3dddd29d0a1576f2b9b2f32b0",
+        "work_objective_id": "a5f7c58a-1deb-555a-ac2d-f52655183368"
+      },
+      "discovery_termination": "complete",
+      "discovery_uncertainty": [],
+      "evidence_refs": [],
+      "exclusions": [
+        {
+          "candidate_id": "cheap:2e05f0364e8d",
+          "reasons": [
+            "quality_unknown_or_insufficient"
+          ]
+        },
+        {
+          "candidate_id": "cheap:377a0f672f66",
+          "reasons": [
+            "quality_unknown_or_insufficient"
+          ]
+        },
+        {
+          "candidate_id": "cheap:494bfc7234c8",
+          "reasons": [
+            "quality_unknown_or_insufficient"
+          ]
+        },
+        {
+          "candidate_id": "cheap:5da8b7df0eb3",
+          "reasons": [
+            "quality_unknown_or_insufficient"
+          ]
+        },
+        {
+          "candidate_id": "fast:2e05f0364e8d",
+          "reasons": [
+            "quality_unknown_or_insufficient"
+          ]
+        },
+        {
+          "candidate_id": "fast:377a0f672f66",
+          "reasons": [
+            "quality_unknown_or_insufficient"
+          ]
+        },
+        {
+          "candidate_id": "fast:494bfc7234c8",
+          "reasons": [
+            "quality_unknown_or_insufficient"
+          ]
+        },
+        {
+          "candidate_id": "fast:5da8b7df0eb3",
+          "reasons": [
+            "quality_unknown_or_insufficient"
+          ]
+        }
+      ],
+      "human_summary": "Routing assessment; readiness does not authorize execution.",
+      "measurements": [],
+      "notices": [],
+      "optimization_objective": {
+        "acceptance_requirements": [],
+        "direction": "minimize",
+        "metric_id": "raw_token_cost",
+        "objective_id": "fixture",
+        "routing_cost_basis": "raw",
+        "version": "fixture"
+      },
+      "request_id": "a5f7c58a-1deb-555a-ac2d-f52655183368",
+      "reused_decision_id": null,
+      "routing_decision_id": "2a6b2a10-1f44-5280-825b-4a3b423a678f",
+      "schema_version": "1",
+      "setup_proposals": [],
+      "task_id": "a5f7c58a-1deb-555a-ac2d-f52655183368",
+      "versions": {
+        "catalog_revision": "discovery-development-v1-20261009",
+        "context_revision": "fixture",
+        "evidence_revision": "fixture",
+        "policy_revision": "fixture",
+        "settings_revision": "a87aae145eaff5654741244558f824549740feb6ddd812391059ca82753513eb"
+      }
+    },
+    "status": "no_compatible_plan"
+  },
+  "recorded_judgments": {
+    "candidate_digest": "66a372dd4d76bad457ec1f38549e0b2ce3840ee629298de93dfc83e92dd4d161",
+    "function_revision": "JudgeCandidate-v1",
+    "judgments": {
+      "cheap:2e05f0364e8d": false,
+      "cheap:377a0f672f66": false,
+      "cheap:494bfc7234c8": false,
+      "cheap:5da8b7df0eb3": false,
+      "fast:2e05f0364e8d": false,
+      "fast:377a0f672f66": false,
+      "fast:494bfc7234c8": false,
+      "fast:5da8b7df0eb3": false
+    },
+    "measurements": [
+      {
+        "counting_semantics": "disjoint",
+        "measurement_value": {
+          "kind": "known",
+          "unit": "USD",
+          "value": 4.8804e-05
+        },
+        "method": "official_jev_1.13_rates_20261009",
+        "metric_id": "raw_token_cost",
+        "metric_version": "1",
+        "parent_metric_id": null,
+        "scope": "call",
+        "source": "provider"
+      },
+      {
+        "counting_semantics": "disjoint",
+        "measurement_value": {
+          "kind": "known",
+          "unit": "USD",
+          "value": 5.4978e-05
+        },
+        "method": "official_jev_1.13_rates_20261009",
+        "metric_id": "raw_token_cost",
+        "metric_version": "1",
+        "parent_metric_id": null,
+        "scope": "call",
+        "source": "provider"
+      },
+      {
+        "counting_semantics": "disjoint",
+        "measurement_value": {
+          "kind": "known",
+          "unit": "USD",
+          "value": 5.5398e-05
+        },
+        "method": "official_jev_1.13_rates_20261009",
+        "metric_id": "raw_token_cost",
+        "metric_version": "1",
+        "parent_metric_id": null,
+        "scope": "call",
+        "source": "provider"
+      },
+      {
+        "counting_semantics": "disjoint",
+        "measurement_value": {
+          "kind": "known",
+          "unit": "USD",
+          "value": 6.1782e-05
+        },
+        "method": "official_jev_1.13_rates_20261009",
+        "metric_id": "raw_token_cost",
+        "metric_version": "1",
+        "parent_metric_id": null,
+        "scope": "call",
+        "source": "provider"
+      },
+      {
+        "counting_semantics": "disjoint",
+        "measurement_value": {
+          "kind": "known",
+          "unit": "USD",
+          "value": 4.8678e-05
+        },
+        "method": "official_jev_1.13_rates_20261009",
+        "metric_id": "raw_token_cost",
+        "metric_version": "1",
+        "parent_metric_id": null,
+        "scope": "call",
+        "source": "provider"
+      },
+      {
+        "counting_semantics": "disjoint",
+        "measurement_value": {
+          "kind": "known",
+          "unit": "USD",
+          "value": 5.4852e-05
+        },
+        "method": "official_jev_1.13_rates_20261009",
+        "metric_id": "raw_token_cost",
+        "metric_version": "1",
+        "parent_metric_id": null,
+        "scope": "call",
+        "source": "provider"
+      },
+      {
+        "counting_semantics": "disjoint",
+        "measurement_value": {
+          "kind": "known",
+          "unit": "USD",
+          "value": 5.5272e-05
+        },
+        "method": "official_jev_1.13_rates_20261009",
+        "metric_id": "raw_token_cost",
+        "metric_version": "1",
+        "parent_metric_id": null,
+        "scope": "call",
+        "source": "provider"
+      },
+      {
+        "counting_semantics": "disjoint",
+        "measurement_value": {
+          "kind": "known",
+          "unit": "USD",
+          "value": 6.1656e-05
+        },
+        "method": "official_jev_1.13_rates_20261009",
+        "metric_id": "raw_token_cost",
+        "metric_version": "1",
+        "parent_metric_id": null,
+        "scope": "call",
+        "source": "provider"
+      }
+    ],
+    "model_revision": "jev-1.13.0",
+    "schema_version": "1"
+  },
+  "recorded_discovery": {
+    "status": "selected_guidance",
+    "details": {
+      "discovery_id": "d8cd7af2-0c3d-479d-a306-3f0edb9cafea",
+      "work_objective_id": "a5f7c58a-1deb-555a-ac2d-f52655183368",
+      "guidance_refs": [
+        {
+          "content_hash": "e650734e2e3234b79f2371ad79bd360fd48b6da421ffcbe313bab01431416147",
+          "resource_id": "bounds",
+          "revision": "v1"
+        },
+        {
+          "content_hash": "580cc90ffd3f046b6140a66b16d8d22c0ecbbd8191979d77e0720dbe0bcaa00a",
+          "resource_id": "pure-contract",
+          "revision": "v1"
+        }
+      ],
+      "required_guidance": [],
+      "assembled_instructions": [
+        "Validate nonnegative integer bounds before accessing an array. Preserve all inputs.",
+        "Implement only the supplied specification. Preserve all input data and ordering. Distinguish exact model and rubric revisions; check empty inputs and conflicts."
+      ],
+      "alternatives": [],
+      "uncertainty": [],
+      "termination_reason": "complete",
+      "trace_digest": "3540d98631d7b527ee7a82d197e0413de294bac3dddd29d0a1576f2b9b2f32b0",
+      "revisions": {
+        "authorization_digest": "031e23d5b36e63d0231a9e4399db36e159e6ec67d02b4360cd3edecef32d5d0f",
+        "catalog_digest": "9afb642732e6da31796b04f95173ca609e41cc3d59839c236c40841f86c001d2",
+        "catalog_revision": "discovery-development-v1-20261009",
+        "content_revision": "content-v1",
+        "descriptions_digest": "b72d6bce2b42d5162fd79b61bcf45ef6b113e723f0782b411637cb70ef625915",
+        "policy_digest": "2f5a9f5179a1ae00227c54b75e2906f6b32d70ae8c62e8261883cc61049f7992",
+        "settings_revision": "a87aae145eaff5654741244558f824549740feb6ddd812391059ca82753513eb",
+        "taxonomy_revision": "taxonomy-v1"
+      }
+    }
+  },
+  "source_control_flow_inference": {
+    "file": "scripts/verify_discovery_calibration.py",
+    "line": 1234,
+    "condition": "decision status != ready",
+    "raised": "ValueError actual development route incomplete",
+    "basis": "Exactly one first-case route DB record has no_compatible_plan, controller/worker empty, lineage has completed discovery but no ready decision; driver checks this immediately after routing."
+  },
+  "provider_failure": false,
+  "unknowns": [
+    "No downstream candidate outputs, grades, completed case pairs, or downstream quality/cost/time results."
+  ]
+}

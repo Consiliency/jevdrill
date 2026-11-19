@@ -1,0 +1,517 @@
+{
+  "$defs": {
+    "DiscoveryBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "calls": {
+          "minimum": 0,
+          "title": "Calls",
+          "type": "integer"
+        },
+        "candidates": {
+          "minimum": 0,
+          "title": "Candidates",
+          "type": "integer"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Currency"
+        },
+        "input_tokens": {
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "reserved_spend": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reserved Spend"
+        },
+        "rounds": {
+          "minimum": 0,
+          "title": "Rounds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "calls",
+        "candidates",
+        "currency",
+        "input_tokens",
+        "output_tokens",
+        "reserved_spend",
+        "rounds"
+      ],
+      "title": "DiscoveryBudget",
+      "type": "object"
+    },
+    "DiscoveryGuidanceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "content_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "resource_id": {
+          "minLength": 1,
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "revision": {
+          "minLength": 1,
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content_hash",
+        "resource_id",
+        "revision"
+      ],
+      "title": "DiscoveryGuidanceRef",
+      "type": "object"
+    },
+    "DiscoveryJudgmentRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "function_revision": {
+          "const": "ObserveDiscoveryOption-v1",
+          "title": "Function Revision",
+          "type": "string"
+        },
+        "judgments": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "title": "Judgments",
+          "type": "object"
+        },
+        "measurements": {
+          "items": {
+            "$ref": "#/$defs/Measurement"
+          },
+          "title": "Measurements",
+          "type": "array"
+        },
+        "model_revision": {
+          "title": "Model Revision",
+          "type": "string"
+        },
+        "question_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Question Digest",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "function_revision",
+        "judgments",
+        "measurements",
+        "model_revision",
+        "question_digest",
+        "schema_version"
+      ],
+      "title": "DiscoveryJudgmentRecord",
+      "type": "object"
+    },
+    "DiscoveryOption": {
+      "additionalProperties": false,
+      "properties": {
+        "children": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Children",
+          "type": "array"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Description"
+        },
+        "description_digest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Description Digest"
+        },
+        "feasible": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Feasible"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Label"
+        },
+        "level": {
+          "anyOf": [
+            {
+              "const": "domain",
+              "type": "string"
+            },
+            {
+              "const": "specialty",
+              "type": "string"
+            },
+            {
+              "const": "task_family",
+              "type": "string"
+            },
+            {
+              "const": "resource",
+              "type": "string"
+            }
+          ],
+          "title": "Level"
+        },
+        "option_id": {
+          "minLength": 1,
+          "title": "Option Id",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiscoveryGuidanceRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "children",
+        "description",
+        "description_digest",
+        "feasible",
+        "label",
+        "level",
+        "option_id",
+        "reason",
+        "reference"
+      ],
+      "title": "DiscoveryOption",
+      "type": "object"
+    },
+    "DiscoveryQuestion": {
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "anyOf": [
+            {
+              "const": "domain",
+              "type": "string"
+            },
+            {
+              "const": "specialty",
+              "type": "string"
+            },
+            {
+              "const": "task_family",
+              "type": "string"
+            },
+            {
+              "const": "resource",
+              "type": "string"
+            }
+          ],
+          "title": "Level"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/DiscoveryOption"
+          },
+          "title": "Options",
+          "type": "array"
+        },
+        "question_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Question Digest",
+          "type": "string"
+        },
+        "queue": {
+          "anyOf": [
+            {
+              "const": "preferred",
+              "type": "string"
+            },
+            {
+              "const": "deferred",
+              "type": "string"
+            }
+          ],
+          "title": "Queue"
+        },
+        "schema_version": {
+          "const": "1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "level",
+        "options",
+        "question_digest",
+        "queue",
+        "schema_version"
+      ],
+      "title": "DiscoveryQuestion",
+      "type": "object"
+    },
+    "KnownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "known",
+          "title": "Kind",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "unit",
+        "value"
+      ],
+      "title": "KnownMeasurement",
+      "type": "object"
+    },
+    "Measurement": {
+      "additionalProperties": false,
+      "properties": {
+        "counting_semantics": {
+          "anyOf": [
+            {
+              "const": "disjoint",
+              "type": "string"
+            },
+            {
+              "const": "subset",
+              "type": "string"
+            },
+            {
+              "const": "not_applicable",
+              "type": "string"
+            }
+          ],
+          "title": "Counting Semantics"
+        },
+        "measurement_value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/KnownMeasurement"
+            },
+            {
+              "$ref": "#/$defs/UnknownMeasurement"
+            }
+          ],
+          "title": "Measurement Value"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "metric_version": {
+          "title": "Metric Version",
+          "type": "string"
+        },
+        "parent_metric_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Metric Id"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "const": "call",
+              "type": "string"
+            },
+            {
+              "const": "run",
+              "type": "string"
+            },
+            {
+              "const": "task",
+              "type": "string"
+            },
+            {
+              "const": "experiment",
+              "type": "string"
+            }
+          ],
+          "title": "Scope"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "direct",
+              "type": "string"
+            },
+            {
+              "const": "provider",
+              "type": "string"
+            },
+            {
+              "const": "host",
+              "type": "string"
+            },
+            {
+              "const": "evaluator",
+              "type": "string"
+            },
+            {
+              "const": "estimate",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "counting_semantics",
+        "measurement_value",
+        "method",
+        "metric_id",
+        "metric_version",
+        "parent_metric_id",
+        "scope",
+        "source"
+      ],
+      "title": "Measurement",
+      "type": "object"
+    },
+    "MissingReason": {
+      "enum": [
+        "unsupported",
+        "not_reported",
+        "not_applicable",
+        "redacted",
+        "expired",
+        "incomplete"
+      ],
+      "title": "MissingReason",
+      "type": "string"
+    },
+    "UnknownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/MissingReason"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "UnknownMeasurement",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "answers": {
+      "$ref": "#/$defs/DiscoveryJudgmentRecord"
+    },
+    "budget_after": {
+      "$ref": "#/$defs/DiscoveryBudget"
+    },
+    "budget_before": {
+      "$ref": "#/$defs/DiscoveryBudget"
+    },
+    "question": {
+      "$ref": "#/$defs/DiscoveryQuestion"
+    }
+  },
+  "required": [
+    "answers",
+    "budget_after",
+    "budget_before",
+    "question"
+  ],
+  "title": "DiscoveryTransition",
+  "type": "object"
+}

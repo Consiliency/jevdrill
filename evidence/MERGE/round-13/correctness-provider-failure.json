@@ -1,0 +1,9 @@
+{
+  "taskId": "node:delegated-task:command%3Amcp%3A25bcfaa6-921d-4fba-8b02-80d7f853a312%3Adelegate-task%3Ajevdrill-merge-review-20261016-r13-cb2ab89-correctness",
+  "status": "failed",
+  "hasPendingChildRuns": false,
+  "standingVerdict": null,
+  "provider_error": "This content was flagged for possible cybersecurity risk. If this seems wrong, try rephrasing your request. Otherwise, confirm that the access_programs.cyber parameter is set to the appropriate tier, and note that some cybersecurity requests are still limited, even when Daybreak is on.",
+  "partial_evidence": "correctness-partial-report.md",
+  "disposition": "Saved synthetic probes assessed independently by root; no completed review or vote is inferred; no provider restriction was bypassed."
+}
