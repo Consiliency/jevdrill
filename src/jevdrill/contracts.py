@@ -205,9 +205,13 @@ def _semantic_rules(value: Any) -> None:
         probabilities = value["assignment_probabilities"]
         if len(ids) != len(set(ids)):
             raise ContractError("experiment_authority")
+        # Sum left to right like the ECMAScript consumer; builtin sum() is compensated.
+        total = 0.0
+        for probability in probabilities.values():
+            total += probability
         if probabilities and (
             set(probabilities) != set(ids)
-            or not math.isclose(sum(probabilities.values()), 1.0, rel_tol=0.0, abs_tol=1e-12)
+            or not math.isclose(total, 1.0, rel_tol=0.0, abs_tol=1e-12)
         ):
             raise ContractError("experiment_authority")
     if value.get("supersedes_event_id") is not None and value.get(

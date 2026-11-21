@@ -2344,5 +2344,116 @@
       "task_id": "00000000-0000-4000-8000-000000000001"
     },
     "accepted": false
+  },
+  {
+    "id": "assignment_probability_sequential_sum",
+    "contract": "ComparisonExperiment",
+    "payload": {
+      "assignment_policy": "fixture",
+      "assignment_probabilities": {
+        "00000000-0000-4000-8000-000000000001": 1.0,
+        "00000000-0000-4000-8000-000000000002": 3.3334e-13,
+        "00000000-0000-4000-8000-000000000003": 3.3334e-13,
+        "00000000-0000-4000-8000-000000000004": 3.3334e-13
+      },
+      "authorization_revision": null,
+      "candidate_plans": [
+        {
+          "access_route": "fixture",
+          "execution_plan_id": "00000000-0000-4000-8000-000000000001",
+          "execution_target_id": "fixture",
+          "guidance_action": "none",
+          "harness_id": "fixture",
+          "model_id": "fixture",
+          "native_effort": {
+            "kind": "explicit",
+            "native_value": "fixture"
+          },
+          "optional_guidance": [],
+          "predecessor_plan_id": null,
+          "provider": "fixture",
+          "required_capabilities": [],
+          "required_guidance": [],
+          "resolved_model_revision": null
+        },
+        {
+          "access_route": "fixture",
+          "execution_plan_id": "00000000-0000-4000-8000-000000000002",
+          "execution_target_id": "fixture",
+          "guidance_action": "none",
+          "harness_id": "fixture",
+          "model_id": "fixture",
+          "native_effort": {
+            "kind": "explicit",
+            "native_value": "fixture"
+          },
+          "optional_guidance": [],
+          "predecessor_plan_id": null,
+          "provider": "fixture",
+          "required_capabilities": [],
+          "required_guidance": [],
+          "resolved_model_revision": null
+        },
+        {
+          "access_route": "fixture",
+          "execution_plan_id": "00000000-0000-4000-8000-000000000003",
+          "execution_target_id": "fixture",
+          "guidance_action": "none",
+          "harness_id": "fixture",
+          "model_id": "fixture",
+          "native_effort": {
+            "kind": "explicit",
+            "native_value": "fixture"
+          },
+          "optional_guidance": [],
+          "predecessor_plan_id": null,
+          "provider": "fixture",
+          "required_capabilities": [],
+          "required_guidance": [],
+          "resolved_model_revision": null
+        },
+        {
+          "access_route": "fixture",
+          "execution_plan_id": "00000000-0000-4000-8000-000000000004",
+          "execution_target_id": "fixture",
+          "guidance_action": "none",
+          "harness_id": "fixture",
+          "model_id": "fixture",
+          "native_effort": {
+            "kind": "explicit",
+            "native_value": "fixture"
+          },
+          "optional_guidance": [],
+          "predecessor_plan_id": null,
+          "provider": "fixture",
+          "required_capabilities": [],
+          "required_guidance": [],
+          "resolved_model_revision": null
+        }
+      ],
+      "comparison_experiment_id": "00000000-0000-4000-8000-000000000001",
+      "context_hash": "fixture",
+      "context_ref": "fixture",
+      "evaluator_ref": "fixture",
+      "execution_path": "internal",
+      "experiment_state": "proposed",
+      "host_accepted": false,
+      "isolation_ref": "fixture",
+      "limits": {
+        "cpu_limit": 1,
+        "daily_spend": null,
+        "max_candidates": 4,
+        "max_concurrency": 1,
+        "max_duration_ms": 1,
+        "memory_limit_bytes": 1,
+        "per_experiment_spend": null
+      },
+      "optimization_objectives": [],
+      "rubric_revision": "fixture",
+      "schema_version": "1",
+      "task_id": "00000000-0000-4000-8000-000000000001"
+    },
+    "accepted": true,
+    "digest": "7ce2831ad114a3728cdbb3921d441eb31c90e023ff11000d5e002e19ad7efa96"
   }
 ]
