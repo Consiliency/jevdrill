@@ -279,9 +279,16 @@ class Application:
                     reason = "deadline"
                     break
                 saved_question = metadata_question(question)
-                round_number = self.storage.begin_discovery_round(
-                    scope, identity, saved_question, state["budget"]
-                )
+                try:
+                    round_number = self.storage.begin_discovery_round(
+                        scope, identity, saved_question, state["budget"]
+                    )
+                except ContractError:
+                    # A retry with the same key may have ended this attempt while it ran.
+                    completed = self.storage.load_discovery(scope, identity)
+                    if completed is None or completed["result"] is None:
+                        raise
+                    return dict(completed["result"])
                 answers: dict[str, bool] = {}
                 measurements = []
                 budget = copy.deepcopy(state["budget"])
@@ -455,11 +462,19 @@ class Application:
         for resource in resources:
             digest = canonical_digest(reference(resource))
             if digest in required_refs or digest in supported_refs:
+                # Selection applies the conflicts of every revision of a resource, so the
+                # recorded facts carry them all and replay reaches the same result.
+                others = {
+                    conflict
+                    for row in resources
+                    if row["resource_id"] == resource["resource_id"]
+                    for conflict in row["conflicts"]
+                } - set(resource["conflicts"])
                 shortlist.append(
                     {
                         "reference": reference(resource),
                         "instruction_utf8_bytes": len(resource["instructions"].encode()),
-                        "conflicts": resource["conflicts"],
+                        "conflicts": resource["conflicts"] + sorted(others),
                         "required": digest in required_refs,
                         "admitted": resource["admission"]
                         in {"policy_admitted", "explicitly_enabled"},
@@ -665,7 +680,11 @@ class Application:
         )
         cached = (
             None
-            if self.inventory is not None or self.policy_task_group is not None
+            if self.inventory is not None
+            or self.policy_task_group is not None
+            # A retry is checked against recorded runs and attempts, which the cache key
+            # does not bind.
+            or request["retry_context"] is not None
             else self.storage.lookup_cache(scope, cache_digest)
         )
         if cached is not None and any(
@@ -690,6 +709,13 @@ class Application:
             and fresh(
                 cached["decision"]["readiness"]["verified_at"],
                 cached["decision"]["readiness"]["valid_until"],
+            )
+            # A rate card can expire before readiness does. Its cost bound is then unknown,
+            # so the request is evaluated again.
+            and all(
+                row["rates"] is None
+                or fresh(row["rates"]["verified_at"], row["rates"]["expires_at"])
+                for row in (inputs["inventory"] or {"candidates": []})["candidates"]
             )
         ):
             decision = copy.deepcopy(cached["decision"])
@@ -1201,8 +1227,8 @@ class Application:
         return prepared
 
     def report(self, payload: Mapping[str, Any]) -> dict[str, Any]:
-        request = parse_contract("ReportRequest", payload).payload()
-        event = _sanitize(request["event"])
+        request = _sanitize(parse_contract("ReportRequest", payload).payload())
+        event = request["event"]
         response = self.storage.ingest_report(
             _scope(request["envelope"], "report"),
             request["envelope"]["idempotency_key"],

@@ -264,10 +264,51 @@ def test_text_that_cannot_be_checked_in_time_ends_in_the_deadline_outcome(tmp_pa
         "code": "infrastructure_failure",
     }
     # At one second the check cannot finish. At five a fast machine may answer in time.
-    answered_in_time = budget_ms == 5000 and result.returncode == 0 and elapsed < 6
+    answered_in_time = (
+        budget_ms == 5000
+        and result.returncode == 0
+        and elapsed < 6
+        and json.loads(result.stdout)["status"] == "no_compatible_plan"
+    )
     assert deadline_outcome or answered_in_time, (result.returncode, result.stdout[:200])
     assert elapsed < budget_ms / 1000 + 6, f"{elapsed:.2f} seconds"
     assert result.stderr == b""
+
+
+@pytest.mark.parametrize(
+    "shape", ["a bare array", "an unknown member of a route request", "a member of an experiment"]
+)
+def test_deeply_nested_input_is_one_invalid_input_response(tmp_path, shape):
+    # Each of these is far below the input limit. The first is too deep for the JSON decoder,
+    # the second for contract validation and the third for the credential check.
+    command = "route"
+    if shape == "a bare array":
+        raw = "[" * 100_000 + "]" * 100_000
+    else:
+        nested = "[" * 5_000 + "]" * 5_000
+        if shape == "a member of an experiment":
+            command, raw = "experiment", '{"note": ' + nested + "}"
+        else:
+            payload = json.loads(
+                (ROOT / "tests/contracts/fixtures/route-application.json").read_text()
+            )[0]["payload"]
+            raw = json.dumps(payload)[:-1] + ', "note": ' + nested + "}"
+    result = subprocess.run(
+        [sys.executable, "-m", "jevdrill.cli", "--storage", str(tmp_path / "route.db"), command],
+        input=raw,
+        check=False,
+        text=True,
+        capture_output=True,
+        cwd=tmp_path,
+        timeout=20,
+    )
+    assert result.returncode == 2
+    assert json.loads(result.stdout) == {
+        "schema_version": "1",
+        "status": "invalid",
+        "code": "invalid_input",
+    }
+    assert result.stderr == ""
 
 
 @pytest.mark.parametrize(

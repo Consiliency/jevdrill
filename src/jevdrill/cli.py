@@ -208,7 +208,7 @@ def main(argv: list[str] | None = None) -> int:
             raise OSError("response too large")
         print(output)
         return 3 if response.get("status") == "conflict" else 0
-    except ValueError, TypeError, UnicodeError:
+    except ValueError, TypeError, UnicodeError, RecursionError:
         print(json.dumps({"schema_version": "1", "status": "invalid", "code": "invalid_input"}))
         return 2
     except OSError, sqlite3.Error:

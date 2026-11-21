@@ -9,6 +9,7 @@ contract says such text passes. Everything is deterministic and needs no network
 import copy
 import hashlib
 import json
+from uuid import uuid4
 
 import pytest
 
@@ -210,6 +211,71 @@ def test_refused_inventory_or_catalog_text_is_a_stored_failure_with_the_fixed_co
     }
     assert app.replay(scope, decision["details"]["routing_decision_id"]) == decision
     assert all(MARKER.encode() not in path.read_bytes() for path in stored_files(privacy_case_path))
+
+
+@pytest.mark.parametrize("field", ["acceptance_requirement", "governing_reference"])
+def test_route_refuses_text_outside_the_task_and_attachments_before_any_effect(
+    privacy_case_path, privacy_storage, discovery_inputs, field
+):
+    """`route` checks its whole request itself.
+
+    The task and attachment boundaries above are also refused when the context is collected,
+    so only a field that step never sees shows that the request check is there.
+    """
+    assert refused(REFUSED)
+    payload = request_for("route_task", "Ordinary task", discovery_inputs)
+    if field == "acceptance_requirement":
+        payload["request"]["optimization_objective"]["acceptance_requirements"].append(
+            {
+                "description": REFUSED,
+                "evaluator_ref": "checks-v1",
+                "requirement_id": "refused-requirement",
+                "source": "user",
+            }
+        )
+    else:
+        payload["request"]["hard_constraints"]["governing_instruction_refs"].append(REFUSED)
+    empty = digest(privacy_storage.path)
+    judge = Judge()
+    app = Application(privacy_storage, judgments=judge, discovery_judgments=judge)
+    with pytest.raises(ContractError) as caught:
+        app.route(payload)
+    assert type(caught.value) is ContractError and caught.value.args == (MESSAGE,)
+    assert caught.value.__cause__ is None and caught.value.__context__ is None
+    assert judge.calls == []
+    assert stored_files(privacy_case_path) == [privacy_storage.path]
+    assert digest(privacy_storage.path) == empty
+
+
+@pytest.mark.parametrize("identifier", ["harness_id", "idempotency_key"])
+def test_a_report_with_a_refused_identifier_is_refused_before_it_is_stored(
+    privacy_case_path, privacy_storage, identifier
+):
+    assert refused(REFUSED)
+    envelope = inputs()["request"]["envelope"] | {"operation": "report", identifier: REFUSED}
+    event = {
+        "schema_version": "1",
+        "event_id": str(uuid4()),
+        "task_id": str(uuid4()),
+        "routing_decision_id": str(uuid4()),
+        "execution_run_id": str(uuid4()),
+        "source_id": "synthetic-host",
+        "source_sequence": 1,
+        "occurred_at": "2026-10-09T00:00:00Z",
+        "supersedes_event_id": None,
+        "payload": {
+            "kind": "lifecycle",
+            "event_type": "failed",
+            "applied_plan_id": None,
+            "reason": "synthetic",
+        },
+    }
+    empty = digest(privacy_storage.path)
+    with pytest.raises(ContractError) as caught:
+        Application(privacy_storage).report({"envelope": envelope, "event": event})
+    assert caught.value.args == (MESSAGE,)
+    assert stored_files(privacy_case_path) == [privacy_storage.path]
+    assert digest(privacy_storage.path) == empty
 
 
 @pytest.mark.parametrize("entry_point", ["experiment", "execute_experiment", "manage_policy"])

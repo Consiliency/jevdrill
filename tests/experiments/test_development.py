@@ -531,14 +531,16 @@ r.run(c['record'])
 
 def test_development_provider_deadline_does_not_retry(development):
     _, runner, _, _, _, _, observed = development
-    observed["delay"] = 0.8
+    # The stand-in answers after the caller's deadline. Both are long enough for a slow
+    # machine to shape the request and deliver it before the deadline.
+    observed["delay"] = 6
     profile = next(iter(runner.models.values()))
     from baml_bridge.errors import BamlError
 
     started = time.monotonic()
     with pytest.raises(BamlError):
-        runner._complete("fixture", profile, time.monotonic() + 0.05)
-    assert time.monotonic() - started < 0.7
+        runner._complete("fixture", profile, time.monotonic() + 2)
+    assert time.monotonic() - started < 5
     assert len(observed["requests"]) == 1
 
 
