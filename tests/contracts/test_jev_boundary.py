@@ -135,6 +135,40 @@ def test_async_cancellation(provider):
     asyncio.run(run())
 
 
+def test_route_adapter_uses_baml_timeout_and_sanitized_events(provider, monkeypatch):
+    from jevdrill.integrations.jev import JevAdapter
+
+    url, observations = provider
+    monkeypatch.setenv("JEVDRILL_TEST_URL", url)
+    monkeypatch.setattr("jevdrill.integrations.jev.JudgeCandidate", sdk.MockJudgeCandidate)
+    retained = []
+    policy = {
+        "enabled": True,
+        "cloud_allowed": True,
+        "max_calls": 1,
+        "max_candidates": 1,
+        "max_input_tokens": 10000,
+        "max_output_tokens": 10,
+        "spending_ceiling": None,
+        "rates": None,
+        "model_revision": "jev-latest",
+        "function_revision": "JudgeCandidate-v2",
+        "token_counter_revision": "utf8-bytes-upper-bound-v1",
+    }
+
+    def observe(event):
+        value = retain_jev_call(event)
+        if value is not None:
+            retained.append(value)
+
+    response = JevAdapter(policy, observe).judge(
+        "synthetic", ({"candidate_id": "a", "model_id": "model"},), time.monotonic() + 1
+    )
+    assert response["judgments"] == {"a": True}
+    assert retained and "header-sentinel" not in json.dumps(retained)
+    assert observations["requests"]
+
+
 @pytest.mark.parametrize(
     "usage, expected, reason",
     [

@@ -3,6 +3,7 @@ import hashlib
 import json
 import shutil
 from pathlib import Path
+from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
@@ -933,8 +934,8 @@ LABELS = [
 ]
 
 
-@pytest.fixture(
-    params=[
+CREDENTIAL_MATRIX = (
+    [
         "Authorization: Bearer SYNTHETIC_SENTINEL",
         'Authorization: "Bearer SYNTHETIC_SENTINEL"',
         '"Authorization": "Bearer SYNTHETIC_SENTINEL"',
@@ -985,8 +986,18 @@ LABELS = [
         for label in LABELS
     ]
 )
+
+
+@pytest.fixture(params=CREDENTIAL_MATRIX)
 def credential_text(request):
     return request.param
+
+
+@pytest.fixture(scope="session")
+def credential_matrix():
+    """The matrix as plain data: its texts, and the formats and labels that build most of them."""
+    texts = [entry if isinstance(entry, str) else entry.values[0] for entry in CREDENTIAL_MATRIX]
+    return SimpleNamespace(texts=texts, formats=FORMATS, labels=LABELS)
 
 
 @pytest.fixture(scope="session")
