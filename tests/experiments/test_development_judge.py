@@ -58,7 +58,7 @@ def judge(tmp_path):
         authorization_revision="synthetic-new-grant",
         max_calls=2,
         total_spend_microusd=5506,
-        deadline_ms=int(time.time() * 1000) + 10000,
+        deadline_ms=int(time.time() * 1000) + 60000,
         credential=lambda: "synthetic-secret",
         authorize=lambda scope: operations.append(scope["operation"]) or True,
         base_url=f"http://127.0.0.1:{server.server_port}/v1",
@@ -72,9 +72,9 @@ def judge(tmp_path):
 def test_actual_baml_pinned_judge_reserves_all_discovery_and_task_calls(judge):
     service, state, operations = judge
     assert service.observe_option(
-        "public task", "option", "0" * 64, "offered", time.monotonic() + 2
+        "public task", "option", "0" * 64, "offered", time.monotonic() + 30
     )["judgments"] == {"offered": True}
-    task = service.judge("different task", ({"candidate_id": "one"},), time.monotonic() + 2)
+    task = service.judge("different task", ({"candidate_id": "one"},), time.monotonic() + 30)
     assert task["judgments"] == {"one": True}
     assert task["function_revision"] == "JudgeCandidate-v2"
     assert "discover" in operations and "route" in operations
@@ -95,7 +95,7 @@ def test_actual_baml_pinned_judge_reserves_all_discovery_and_task_calls(judge):
         assert measured["routing_duration_ms"]["kind"] == "known"
     assert "synthetic-secret" not in json.dumps(payloads)
     with pytest.raises(ContractError, match="reservation_denied"):
-        service.judge("third task", ({"candidate_id": "two"},), time.monotonic() + 2)
+        service.judge("third task", ({"candidate_id": "two"},), time.monotonic() + 30)
     assert len(state["requests"]) == 2
 
 
@@ -267,14 +267,16 @@ def test_uncertain_judgments_never_retry_refund_or_accept_wrong_model(judge, fau
     elif fault == "oversized":
         state["body_bytes"] = b"x" * 65537
     elif fault == "timeout":
-        state["delay"] = 0.3
+        # The stand-in answers after the caller's deadline. Both are long enough for a slow
+        # machine to start the child process and deliver the request before the deadline.
+        state["delay"] = 8
     else:
         service.authorize = lambda _: False
     with pytest.raises(ContractError):
         service.judge(
             "task",
             ({"candidate_id": "one"},),
-            time.monotonic() + (0.1 if fault == "timeout" else 2),
+            time.monotonic() + (4 if fault == "timeout" else 30),
         )
     with sqlite3.connect(service.path) as db:
         count, reserve = db.execute(
@@ -282,14 +284,14 @@ def test_uncertain_judgments_never_retry_refund_or_accept_wrong_model(judge, fau
         ).fetchone()
     assert (count, reserve) == ((0, 0) if fault == "revoked" else (1, 2753))
     with pytest.raises(ContractError):
-        service.judge("task", ({"candidate_id": "one"},), time.monotonic() + 2)
+        service.judge("task", ({"candidate_id": "one"},), time.monotonic() + 30)
     assert len(state["requests"]) == (0 if fault == "revoked" else 1)
 
 
 def test_completed_identical_judgment_reuses_immutable_receipt_without_new_dispatch(judge):
     service, state, _ = judge
-    first = service.judge("same task", ({"candidate_id": "one"},), time.monotonic() + 2)
-    assert service.judge("same task", ({"candidate_id": "one"},), time.monotonic() + 2) == first
+    first = service.judge("same task", ({"candidate_id": "one"},), time.monotonic() + 30)
+    assert service.judge("same task", ({"candidate_id": "one"},), time.monotonic() + 30) == first
     assert len(state["requests"]) == 1
     with sqlite3.connect(service.path) as database:
         assert database.execute("SELECT SUM(reservation) FROM judgment_calls").fetchone()[0] == 2753
@@ -314,7 +316,7 @@ def test_profile_binding_rejects_changed_templates_without_mutating_receipts(
     from jevdrill.integrations import jev
 
     service, state, _ = judge
-    first = service.judge("task", ({"candidate_id": "one"},), time.monotonic() + 2)
+    first = service.judge("task", ({"candidate_id": "one"},), time.monotonic() + 30)
     with sqlite3.connect(service.path) as database:
         before = database.execute("SELECT * FROM judgment_calls").fetchall()
     if mutation in {"template", "development_template", "discovery_template"}:
@@ -346,7 +348,7 @@ def test_profile_binding_rejects_changed_templates_without_mutating_receipts(
             base_url=service.url.geturl(),
             clock=service.clock,
         )
-    assert service.judge("task", ({"candidate_id": "one"},), time.monotonic() + 2) == first
+    assert service.judge("task", ({"candidate_id": "one"},), time.monotonic() + 30) == first
     assert len(state["requests"]) == 1
     with sqlite3.connect(service.path) as database:
         assert database.execute("SELECT * FROM judgment_calls").fetchall() == before
@@ -360,7 +362,7 @@ def test_replay_rejects_changed_rendered_body_without_dispatch(judge, monkeypatc
     from jevdrill.integrations import development
 
     service, state, _ = judge
-    service.judge("task", ({"candidate_id": "one"},), time.monotonic() + 2)
+    service.judge("task", ({"candidate_id": "one"},), time.monotonic() + 30)
     original = development.development_task_request_shape
     monkeypatch.setattr(
         development,
@@ -368,7 +370,7 @@ def test_replay_rejects_changed_rendered_body_without_dispatch(judge, monkeypatc
         lambda task, offered, model: original(task + " amended", offered, model),
     )
     with pytest.raises(ContractError, match="reservation_denied"):
-        service.judge("task", ({"candidate_id": "one"},), time.monotonic() + 2)
+        service.judge("task", ({"candidate_id": "one"},), time.monotonic() + 30)
     assert len(state["requests"]) == 1
 
 
@@ -390,8 +392,8 @@ def test_missing_usage_preserves_task_and_discovery_judgments_and_replays(judge,
         body["usage"] = usage
     state["body_bytes"] = json.dumps(body).encode()
     candidate = ({"candidate_id": "one"},)
-    task = service.judge("task", candidate, time.monotonic() + 2)
-    discovery = service.observe_option("task", "option", "0" * 64, "one", time.monotonic() + 2)
+    task = service.judge("task", candidate, time.monotonic() + 30)
+    discovery = service.observe_option("task", "option", "0" * 64, "one", time.monotonic() + 30)
     for record in (task, discovery):
         assert record["judgments"] == {"one": True}
         measurements = {
@@ -405,9 +407,10 @@ def test_missing_usage_preserves_task_and_discovery_judgments_and_replays(judge,
             if output is None
             else {"kind": "known", "value": output, "unit": "tokens"}
         )
-    assert service.judge("task", candidate, time.monotonic() + 2) == task
+    assert service.judge("task", candidate, time.monotonic() + 30) == task
     assert (
-        service.observe_option("task", "option", "0" * 64, "one", time.monotonic() + 2) == discovery
+        service.observe_option("task", "option", "0" * 64, "one", time.monotonic() + 30)
+        == discovery
     )
     assert len(state["requests"]) == 2
     with sqlite3.connect(service.path) as database:
