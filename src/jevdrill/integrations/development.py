@@ -87,6 +87,14 @@ class DevelopmentModel:
         return bound
 
 
+def _create_private(path: Path) -> None:
+    """A new side database is private; SQLite gives its journal the same mode."""
+    try:
+        os.close(os.open(path, os.O_RDWR | os.O_CREAT, 0o600))
+    except OSError:
+        pass  # SQLite reports an unusable path, as before.
+
+
 _JEV_HTTP = """
 import http.client,json,ssl,sys
 data=json.load(sys.stdin)
@@ -178,6 +186,7 @@ class DevelopmentJudge:
             }
         )
         path.parent.mkdir(parents=True, exist_ok=True)
+        _create_private(path)
         with closing(sqlite3.connect(path)) as db, db:
             db.execute(
                 "CREATE TABLE IF NOT EXISTS judgment_profile (identity INTEGER PRIMARY KEY, revision TEXT NOT NULL)"
@@ -306,10 +315,12 @@ class DevelopmentJudge:
             if process.returncode or len(output) > 65536 or monotonic() >= deadline:
                 raise ContractError("development_judgment_incomplete")
             response = json.loads(output)
+            answers = response.get("answers") if isinstance(response, dict) else None
             if (
-                not isinstance(response, dict)
+                not isinstance(answers, dict)
                 or response.get("model") != "jev-1.13.0"
-                or set(response.get("answers", {})) != {"result"}
+                or set(answers) != {"result"}
+                or not isinstance(answers["result"], dict)
             ):
                 raise ContractError("development_judgment_model_or_answers_mismatch")
             probability = response["answers"]["result"].get("noul")
@@ -581,6 +592,7 @@ class DevelopmentRunner:
         self.clock = clock or (lambda: int(time() * 1000))
         self.lock_path = path.with_suffix(".worker.lock")
         path.parent.mkdir(parents=True, exist_ok=True)
+        _create_private(path)
         with self._db() as db:
             db.execute("PRAGMA journal_mode = DELETE")
             db.execute(

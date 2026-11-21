@@ -24,7 +24,7 @@ packages = ["src/jevdrill", "src/baml_sdk"]
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=importlib"
-testpaths = ["tests/contracts", "tests/evaluation", "tests/storage", "tests/catalog", "tests/inventory", "tests/settings", "tests/routing", "tests/costing", "tests/guidance", "tests/context", "tests/privacy", "tests/integrations", "tests/experiments", "tests/promotion"]
+testpaths = ["tests/contracts", "tests/evaluation", "tests/storage", "tests/catalog", "tests/inventory", "tests/context", "tests/settings", "tests/routing", "tests/costing", "tests/guidance", "tests/integrations", "tests/privacy", "tests/maintenance", "tests/experiments", "tests/promotion"]
 
 [tool.ruff]
 target-version = "py314"

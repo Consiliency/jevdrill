@@ -40,9 +40,15 @@ value=backend.get_password("jevdrill.archive.v1",sys.argv[1])
 if value is None: sys.exit(2)
 sys.stdout.write(value)
 """
+    # The child searches no place the parent does not, and never the working directory.
+    isolation = ["-P"]
+    if sys.flags.ignore_environment:
+        isolation.append("-E")
+    if sys.flags.no_user_site:
+        isolation.append("-s")
     try:
         result = subprocess.run(
-            [sys.executable, "-c", child, identity],
+            [sys.executable, *isolation, "-c", child, identity],
             stdin=subprocess.DEVNULL,
             capture_output=True,
             timeout=2,

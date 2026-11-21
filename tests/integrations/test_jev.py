@@ -3,12 +3,34 @@ import time
 import pytest
 
 from jevdrill.contracts import ContractError
+from jevdrill.integrations import jev
 from jevdrill.integrations.jev import JevAdapter
 
 
-def test_expired_judgment_never_calls_provider():
+def test_expired_judgment_never_calls_provider(monkeypatch):
+    calls = []
+    monkeypatch.setattr(jev, "JudgeCandidate", lambda *args, **kwargs: calls.append(args) or True)
+    policy = {
+        "enabled": True,
+        "cloud_allowed": True,
+        "max_calls": 2,
+        "max_candidates": 2,
+        "max_input_tokens": 100_000,
+        "max_output_tokens": 1,
+        "spending_ceiling": None,
+        "rates": None,
+        "model_revision": "jev-latest",
+        "function_revision": "JudgeCandidate-v2",
+        "token_counter_revision": "utf8-bytes-upper-bound-v1",
+    }
+    candidates = ({"candidate_id": "candidate"},)
     with pytest.raises(ContractError, match="deadline"):
-        JevAdapter().judge("synthetic", ({"candidate_id": "candidate"},), time.monotonic() - 1)
+        JevAdapter(policy).judge("synthetic", candidates, time.monotonic() - 1)
+    assert calls == []
+    assert JevAdapter(policy).judge("synthetic", candidates, time.monotonic() + 5)["judgments"] == {
+        "candidate": True
+    }
+    assert len(calls) == 1
 
 
 def test_optional_frontier_shrinks_without_truncating_task():

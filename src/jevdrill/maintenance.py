@@ -274,6 +274,12 @@ class Maintenance:
             raise ContractError(
                 "scheduler request must be a scoped run with its absolute request path"
             )
+        if any(
+            ord(character) < 32 or ord(character) == 127
+            for part in (sys.executable, str(self.storage.path.resolve()), str(path))
+            for character in part
+        ):
+            raise ContractError("scheduler paths must not contain control characters")
         directory = (
             self.storage.path.parent
             / "schedules"
