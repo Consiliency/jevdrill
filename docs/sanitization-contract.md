@@ -1,6 +1,6 @@
 # JEV Drill: what the credential check does and does not do
 
-Status: Drafted by the review board; owner ratification pending
+Status: Ratified by the owner on 2026-11-21
 
 JEV Drill checks every piece of text in a request before it sends anything to the judgment provider or writes anything to local storage.†
 
