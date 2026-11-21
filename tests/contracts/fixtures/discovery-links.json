@@ -295,6 +295,95 @@
     "accepted": false
   },
   {
+    "id": "duplicate-guidance-ref",
+    "contract": "DiscoveryResult",
+    "payload": {
+      "status": "selected_guidance",
+      "details": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "guidance_refs": [
+          {
+            "resource_id": "alpha",
+            "revision": "v1",
+            "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae"
+          },
+          {
+            "resource_id": "alpha",
+            "revision": "v1",
+            "content_hash": "1111111111111111111111111111111111111111111111111111111111111111"
+          }
+        ],
+        "required_guidance": [],
+        "assembled_instructions": [
+          "Synthetic alpha instructions."
+        ],
+        "alternatives": [],
+        "uncertainty": [],
+        "termination_reason": "complete",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "revisions": {
+          "catalog_revision": "fixture",
+          "catalog_digest": "fixture",
+          "taxonomy_revision": "fixture",
+          "content_revision": "fixture",
+          "descriptions_digest": "fixture",
+          "settings_revision": "fixture",
+          "policy_digest": "fixture",
+          "authorization_digest": "fixture"
+        }
+      }
+    },
+    "accepted": false
+  },
+  {
+    "id": "excess-guidance-refs",
+    "contract": "DiscoveryResult",
+    "payload": {
+      "status": "selected_guidance",
+      "details": {
+        "discovery_id": "00000000-0000-4000-8000-000000000030",
+        "work_objective_id": "00000000-0000-4000-8000-000000000020",
+        "guidance_refs": [
+          {
+            "resource_id": "alpha",
+            "revision": "v1",
+            "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae"
+          },
+          {
+            "resource_id": "beta",
+            "revision": "v1",
+            "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae"
+          },
+          {
+            "resource_id": "gamma",
+            "revision": "v1",
+            "content_hash": "4d61589b4fcfa76029a09a068c59707b465bfade806fcf61bdba685cd09ab8ae"
+          }
+        ],
+        "required_guidance": [],
+        "assembled_instructions": [
+          "Synthetic alpha instructions."
+        ],
+        "alternatives": [],
+        "uncertainty": [],
+        "termination_reason": "complete",
+        "trace_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "revisions": {
+          "catalog_revision": "fixture",
+          "catalog_digest": "fixture",
+          "taxonomy_revision": "fixture",
+          "content_revision": "fixture",
+          "descriptions_digest": "fixture",
+          "settings_revision": "fixture",
+          "policy_digest": "fixture",
+          "authorization_digest": "fixture"
+        }
+      }
+    },
+    "accepted": false
+  },
+  {
     "id": "linked-route-valid",
     "contract": "DiscoveryRouteInputs",
     "payload": {

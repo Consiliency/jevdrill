@@ -1,6 +1,7 @@
 import hashlib
 import importlib.util
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -54,6 +55,24 @@ def test_normalization_checks_hash_and_only_declared_paths():
 
 def test_generation_is_reproducible():
     subprocess.run([sys.executable, "scripts/check_generated_contracts.py"], cwd=ROOT, check=True)
+
+
+def test_obsolete_schema_fails_closed(tmp_path):
+    for name in ("baml.toml", "scripts/check_generated_contracts.py"):
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / name, tmp_path / name)
+    for name in ("baml_src", "src/baml_sdk", "schemas"):
+        shutil.copytree(ROOT / name, tmp_path / name, ignore=shutil.ignore_patterns("__pycache__"))
+    (tmp_path / "schemas/Retired.json").write_text("{}\n")
+    result = subprocess.run(
+        [sys.executable, "scripts/check_generated_contracts.py"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert "obsolete schema files" in result.stderr
 
 
 def test_nested_source_filename_normalization_preserves_authored_text():

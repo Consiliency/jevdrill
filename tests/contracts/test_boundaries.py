@@ -60,6 +60,27 @@ def test_nonportable_values(value):
         canonical_digest({"bad": value})
 
 
+@pytest.mark.parametrize(
+    "contract, value",
+    [
+        ("DiscoveryInputs", {"share_user_wide": "yes"}),
+        ("DiscoveryInputs", {"minimum_batch": "1"}),
+        ("DiscoveryInputs", {"guidance_refs": "ab"}),
+        ("JudgmentRecord", {"envelope": True}),
+    ],
+)
+def test_semantic_rules_on_free_form_maps_raise_contract_error(contract, value, discovery_inputs):
+    if contract == "DiscoveryInputs":
+        payload = discovery_inputs
+        payload["envelope"]["extensions"] = value
+    else:
+        rows = json.loads((ROOT / "tests/contracts/fixtures/route-inputs.json").read_text())
+        payload = copy.deepcopy(next(r["payload"] for r in rows if r["contract"] == contract))
+        payload["judgments"] = value
+    with pytest.raises(ContractError):
+        parse_contract(contract, payload)
+
+
 def test_terminal_events_and_experiment_authority_transitions():
     assert valid_transition("event", "queued", "started")
     assert not valid_transition("event", "completed", "started")

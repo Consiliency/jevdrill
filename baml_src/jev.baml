@@ -27,7 +27,7 @@ function ObserveCandidate(task: string, candidate: string, timeout_ms: int, on_e
     match (turn.content[0]) { let text: ai.content.Text => spec.parse(text.text), _ => throw typesafe_patch.internal.failed("Invalid JEV content") }
 }
 function MockObserveCandidate(task: string, candidate: string, timeout_ms: int, on_event: ((JevUsageObservation) -> void)?) -> bool {
-    let cl = typesafe_patch.Client.new(api_key = "synthetic-secret", base_url = env.JEVDRILL_TEST_URL, request_timeout_ms = timeout_ms, capture_wire = false);
+    let cl = typesafe_patch.Client.new(api_key = "synthetic-secret", base_url = loopback_url(), request_timeout_ms = timeout_ms, capture_wire = false);
     let spec = IsSuitable@spec(task, candidate);
     let turn = typesafe_patch.internal.observe(cl, ai.ModelTurnInput {
         prompt: spec.prompt_template, journal: ai.Journal.new(spec), toolbox: spec.tools(), output_type: spec.output_type()
@@ -43,10 +43,33 @@ function mock_judgment(base_url: string, timeout_ms: int) -> bool {
     IsSuitable@spec("Synthetic task", "Synthetic candidate").call(client = cl)
 }
 function MockJudgeCandidate(task: string, candidate: string, timeout_ms: int, on_event: ((ai.events.Event) -> void)?) -> bool {
-    let cl = typesafeai.Client.new(api_key = "synthetic-secret", base_url = env.JEVDRILL_TEST_URL, request_timeout_ms = timeout_ms, capture_wire = false);
+    let cl = typesafeai.Client.new(api_key = "synthetic-secret", base_url = loopback_url(), request_timeout_ms = timeout_ms, capture_wire = false);
     IsSuitable@spec(task, candidate).call(client = cl, on_event = on_event)
 }
-client LoopbackJev = typesafeai.Client.new(api_key = "synthetic-secret", base_url = env.JEVDRILL_TEST_URL, capture_wire = false);
+// Mock entry points fail closed; a blank URL would fall back to the public endpoint.
+function loopback_url() -> string {
+    let url = env.JEVDRILL_TEST_URL.get() ?? "";
+    if (url.trim().length() == 0) {
+        throw typesafe_patch.internal.reject("JEVDRILL_TEST_URL is required for loopback JEV")
+    }
+    url
+}
+// Resolves the loopback URL per call; client declarations cannot read the environment.
+class LoopbackClient {
+    implements ai.Client {
+        function id(self) -> string { "typesafeai/jev-latest" }
+        function render(self, input: ai.ModelTurnInput) -> baml.http.Request {
+            loopback_client().render(input) catch_all (e) { _ => throw ai.errors.normalize(e) }
+        }
+        function invoke(self, input: ai.ModelTurnInput) -> ai.ModelTurn {
+            loopback_client().invoke(input) catch_all (e) { _ => throw ai.errors.normalize_invoke(e) }
+        }
+    }
+}
+function loopback_client() -> typesafeai.Client {
+    typesafeai.Client.new(api_key = "synthetic-secret", base_url = loopback_url(), capture_wire = false)
+}
+client LoopbackJev = LoopbackClient {};
 function MockIsSuitable(task: string, candidate: string) -> bool {
     client: LoopbackJev
     prompt: `${role("instructions")}Judge suitability. ${role("user")}${task} ${candidate}`

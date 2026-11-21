@@ -150,6 +150,10 @@ def generate(write=False):
                     if p.is_file() and "__pycache__" not in p.parts}
         if existing - expected_paths:
             raise ValueError("obsolete generated files; inspect and remove explicitly")
+        schema_paths = {p.relative_to(ROOT / "schemas").as_posix()
+                        for p in (ROOT / "schemas").rglob("*") if p.is_file()}
+        if schema_paths - set(exported):
+            raise ValueError("obsolete schema files; inspect and remove explicitly")
         actual_normalized = normalized_outputs(generated)
         existing_bytes = {p: (destination / p).read_bytes() for p in existing}
         existing_normalized = normalized_outputs(existing_bytes) if existing == expected_paths else {}

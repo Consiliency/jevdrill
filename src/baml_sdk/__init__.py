@@ -2291,6 +2291,30 @@ MockJudgeCandidate_async.__doc__ = """Raises:
     InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
 
 
+loopback_url       = _define_function("user.loopback_url", "sync",  [], binding_name="loopback_url", binding_qualname="loopback_url", binding_module=__name__)
+loopback_url.__doc__ = """Raises:
+    Io, ParseError, InvalidRequest"""
+loopback_url_async = _define_function("user.loopback_url", "async", [], binding_name="loopback_url_async", binding_qualname="loopback_url_async", binding_module=__name__)
+loopback_url_async.__doc__ = """Raises:
+    Io, ParseError, InvalidRequest"""
+
+
+class LoopbackClient(pydantic.BaseModel):
+    model_config = pydantic.ConfigDict(
+        arbitrary_types_allowed=True,
+        extra="ignore",
+        populate_by_name=True,
+    )
+
+
+loopback_client       = _define_function("user.loopback_client", "sync",  [], binding_name="loopback_client", binding_qualname="loopback_client", binding_module=__name__)
+loopback_client.__doc__ = """Raises:
+    Io, ParseError, InvalidRequest"""
+loopback_client_async = _define_function("user.loopback_client", "async", [], binding_name="loopback_client_async", binding_qualname="loopback_client_async", binding_module=__name__)
+loopback_client_async.__doc__ = """Raises:
+    Io, ParseError, InvalidRequest"""
+
+
 MockIsSuitable       = _define_function("user.MockIsSuitable", "sync",  ["task", "candidate"], ["on_event"], binding_name="MockIsSuitable", binding_qualname="MockIsSuitable", binding_module=__name__)
 MockIsSuitable.__doc__ = """Raises:
     InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
@@ -2543,6 +2567,11 @@ __all__ = [
     "mock_judgment_async",
     "MockJudgeCandidate",
     "MockJudgeCandidate_async",
+    "loopback_url",
+    "loopback_url_async",
+    "LoopbackClient",
+    "loopback_client",
+    "loopback_client_async",
     "MockIsSuitable",
     "MockIsSuitable_async",
     "MockIsSuitable_spec",

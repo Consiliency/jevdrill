@@ -512,6 +512,7 @@ _CLASS_ENTRIES = {
     "user.LearningContext": ("baml_sdk", "LearningContext"),
     "user.LifecyclePayload": ("baml_sdk", "LifecyclePayload"),
     "user.LocalNotice": ("baml_sdk", "LocalNotice"),
+    "user.LoopbackClient": ("baml_sdk", "LoopbackClient"),
     "user.MaintenanceRequest": ("baml_sdk", "MaintenanceRequest"),
     "user.MaintenanceResult": ("baml_sdk", "MaintenanceResult"),
     "user.Measurement": ("baml_sdk", "Measurement"),

@@ -1614,6 +1614,26 @@ async def MockJudgeCandidate_async(task: str, candidate: str, timeout_ms: int, o
         InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
 
 
+def loopback_url() -> str:
+    """Raises:
+        Io, ParseError, InvalidRequest"""
+async def loopback_url_async() -> str:
+    """Raises:
+        Io, ParseError, InvalidRequest"""
+
+
+class LoopbackClient(pydantic.BaseModel):
+    ...
+
+
+def loopback_client() -> vendor.typesafeai.Client:
+    """Raises:
+        Io, ParseError, InvalidRequest"""
+async def loopback_client_async() -> vendor.typesafeai.Client:
+    """Raises:
+        Io, ParseError, InvalidRequest"""
+
+
 def MockIsSuitable(task: str, candidate: str, *, on_event: typing.Union[typing.Callable[[ai.events.Event], None], None, UNSET] = None) -> bool:
     """Raises:
         InvalidArgument, Io, ParseError, Timeout, UnknownError, CompilationError"""
@@ -1866,6 +1886,11 @@ __all__ = [
     "mock_judgment_async",
     "MockJudgeCandidate",
     "MockJudgeCandidate_async",
+    "loopback_url",
+    "loopback_url_async",
+    "LoopbackClient",
+    "loopback_client",
+    "loopback_client_async",
     "MockIsSuitable",
     "MockIsSuitable_async",
     "MockIsSuitable_spec",

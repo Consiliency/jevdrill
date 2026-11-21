@@ -7,15 +7,15 @@
     },
     {
       "relative_path": "__init__.py",
-      "sha256": "948816abc1ff3066bd0c0b9944f7f6058c4de80a0b21888b2df2aeea97e64294"
+      "sha256": "801ac5ba765c95bac674380601303071a14d700b453831621619eda866f7dccc"
     },
     {
       "relative_path": "__init__.pyi",
-      "sha256": "ed18785e987296714616ce1a9e54945211e11280cb0267f4d60be0ecc09b88ea"
+      "sha256": "df92212eb56659bb84138a80002a4aab628c54558cc63b1437e55c20cdde7fe4"
     },
     {
       "relative_path": "_baml_sources.py",
-      "sha256": "0591fee77c348cf2d0702b8bc2350c46cec61af2be208803a7f341c580008476"
+      "sha256": "8ef3bcd9222da0dc08477cb622585f1ab6b696b064d8dc0e18a356e5b91764e6"
     },
     {
       "relative_path": "_function_registry.py",
@@ -23,11 +23,11 @@
     },
     {
       "relative_path": "_inlinedbaml.py",
-      "sha256": "cf402b835e02f6b322cc00fde9cabc258c8e5be930c2410ccff18bff9e262d57"
+      "sha256": "fae3f71041333336f19d03ed0026d37abfafa9439048dbc8330c6e917b51a27a"
     },
     {
       "relative_path": "_typemap.py",
-      "sha256": "4730ca55ef4c907f0479ced4ccb33bdc718f7adf9b005cf6ac584280309fb163"
+      "sha256": "51466ad1bc977d4ca6b5e220155589084d1fa2edd948b1085384597589d49a82"
     },
     {
       "relative_path": "ai/__init__.py",

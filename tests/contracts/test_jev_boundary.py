@@ -227,3 +227,61 @@ def test_observed_timeout_and_cancellation(provider, monkeypatch):
     asyncio.run(run())
     assert len(observed["requests"]) == 2
     assert not events
+
+
+def test_usage_beyond_portable_integer_range_is_incomplete():
+    from jevdrill.contracts import jev_usage_measurements, parse_contract
+
+    observation = sdk.JevUsageObservation(
+        input_tokens=2**60, input_invalid=False, output_invalid=False
+    )
+    rows = jev_usage_measurements(observation)
+    assert rows[1]["measurement_value"] == {"kind": "unknown", "reason": "incomplete"}
+    for row in rows:
+        parse_contract("Measurement", row)
+
+
+def test_retained_usage_observation_is_exactly_numeric():
+    observation = sdk.JevUsageObservation(
+        invocation_id="00000000-0000-4000-8000-000000000001",
+        input_tokens=11,
+        output_tokens=3,
+        input_invalid=False,
+        output_invalid=False,
+        call_input_tokens=11,
+        call_output_tokens=3,
+        duration_ms=42,
+        first_output_ms=7,
+    )
+    assert retain_jev_call(observation) == {
+        "source": "provider_reported",
+        "invocation_id": "00000000-0000-4000-8000-000000000001",
+        "duration_ms": 42,
+        "input_tokens": 11,
+        "output_tokens": 3,
+        "first_output_ms": 7,
+        "cached_input_tokens": None,
+        "reasoning_tokens": None,
+    }
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda: sdk.MockObserveCandidate("task", "candidate", 1000, None),
+        lambda: sdk.MockJudgeCandidate("task", "candidate", 1000, None),
+        lambda: sdk.MockIsSuitable("task", "candidate"),
+        lambda: sdk.MockObserveDiscoveryOption("objective", "option", 1000, None),
+    ],
+    ids=[
+        "MockObserveCandidate",
+        "MockJudgeCandidate",
+        "MockIsSuitable",
+        "MockObserveDiscoveryOption",
+    ],
+)
+def test_mock_entry_points_fail_closed_without_loopback_url(monkeypatch, call):
+    monkeypatch.delenv("JEVDRILL_TEST_URL", raising=False)
+    # The guard raises while the client is built, before any request exists.
+    with pytest.raises(BamlError, match="JEVDRILL_TEST_URL is required"):
+        call()

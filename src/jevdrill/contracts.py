@@ -3,6 +3,7 @@
 import hashlib
 import json
 import math
+import re
 import struct
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -10,7 +11,7 @@ from functools import lru_cache
 from importlib.resources import files
 from typing import Any, Protocol, cast
 
-from jsonschema import Draft202012Validator, FormatChecker
+from jsonschema import Draft202012Validator, FormatChecker, ValidationError, validators
 from pydantic import BaseModel, TypeAdapter
 
 import baml_sdk as _generated
@@ -76,6 +77,37 @@ def schema_bundle() -> dict[str, Any]:
     )
 
 
+@lru_cache
+def _ecma_regex(pattern: str) -> re.Pattern[str]:
+    # ECMAScript `$` (no multiline flag) matches only at the end of input, while
+    # Python's `$` also matches before a final newline; translate unescaped `$`.
+    translated = []
+    escaped = in_class = False
+    for char in pattern:
+        if escaped:
+            escaped = False
+        elif char == "\\":
+            escaped = True
+        elif in_class:
+            in_class = char != "]"
+        elif char == "[":
+            in_class = True
+        elif char == "$":
+            char = r"\Z"
+        translated.append(char)
+    return re.compile("".join(translated))
+
+
+def _ecma_pattern(validator: Any, pattern: str, instance: Any, schema: Any) -> Any:
+    if validator.is_type(instance, "string") and not _ecma_regex(pattern).search(instance):
+        yield ValidationError("pattern mismatch")
+
+
+_Validator = validators.extend(  # type: ignore[no-untyped-call]
+    Draft202012Validator, {"pattern": _ecma_pattern}
+)
+
+
 def _walk(value: Any) -> None:
     if isinstance(value, float) and not math.isfinite(value):
         raise ContractError("nonfinite numeric value")
@@ -105,9 +137,17 @@ def _walk(value: Any) -> None:
 
 
 def _semantics(value: Any) -> None:
+    try:
+        _semantic_rules(value)
+    except AttributeError, KeyError, TypeError:
+        # Malformed shapes fail closed without echoing payload content.
+        raise ContractError("semantic shape violation") from None
+
+
+def _semantic_rules(value: Any) -> None:
     if isinstance(value, list):
         for item in value:
-            _semantics(item)
+            _semantic_rules(item)
     if not isinstance(value, dict):
         return
     if "envelope" in value:
@@ -167,7 +207,7 @@ def _semantics(value: Any) -> None:
             raise ContractError("experiment_authority")
         if probabilities and (
             set(probabilities) != set(ids)
-            or not math.isclose(sum(probabilities.values()), 1.0, abs_tol=1e-12)
+            or not math.isclose(sum(probabilities.values()), 1.0, rel_tol=0.0, abs_tol=1e-12)
         ):
             raise ContractError("experiment_authority")
     if value.get("supersedes_event_id") is not None and value.get(
@@ -191,7 +231,7 @@ def _semantics(value: Any) -> None:
         if value["status"] == "no_optional_guidance" and details["uncertainty"]:
             raise ContractError("incomplete empty discovery")
     for item in value.values():
-        _semantics(item)
+        _semantic_rules(item)
 
 
 def _tag(value: Any) -> Any:
@@ -241,7 +281,7 @@ def parse_contract(name: str, payload: Any) -> ValidatedDocument:
     if name not in bundle["boundary.json"]["contracts"]:
         raise ContractError("unknown contract")
     _walk(payload)
-    validator = Draft202012Validator(bundle[name + ".json"], format_checker=FormatChecker())
+    validator = _Validator(bundle[name + ".json"], format_checker=FormatChecker())
     errors = sorted(validator.iter_errors(payload), key=lambda error: str(error.path))
     if errors:
         # Never echo task content, credential-like data, or invalid values in errors.
@@ -271,7 +311,8 @@ def jev_usage_measurements(event: object) -> list[dict[str, Any]]:
             values.append(getattr(event, "call_" + metric))
             invalid = getattr(event, metric.removesuffix("_tokens") + "_invalid")
         invalid = invalid or any(
-            value is not None and (type(value) is not int or value < 0) for value in values
+            value is not None and (type(value) is not int or not 0 <= value <= 2**53 - 1)
+            for value in values
         )
         known = {value for value in values if type(value) is int and value >= 0}
         value: dict[str, Any]

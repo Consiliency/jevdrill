@@ -108,7 +108,7 @@ function ObserveDiscoveryOption(objective: string, option: string, timeout_ms: i
     match (turn.content[0]) { let text: ai.content.Text => spec.parse(text.text), _ => throw typesafe_patch.internal.failed("Invalid JEV content") }
 }
 function MockObserveDiscoveryOption(objective: string, option: string, timeout_ms: int, on_event: ((JevUsageObservation) -> void)?) -> bool {
-    let cl = typesafe_patch.Client.new(api_key = "synthetic-secret", base_url = env.JEVDRILL_TEST_URL, request_timeout_ms = timeout_ms, capture_wire = false);
+    let cl = typesafe_patch.Client.new(api_key = "synthetic-secret", base_url = loopback_url(), request_timeout_ms = timeout_ms, capture_wire = false);
     let spec = DiscoveryOptionSuitable@spec(objective, option);
     let turn = typesafe_patch.internal.observe(cl, ai.ModelTurnInput {
         prompt: spec.prompt_template, journal: ai.Journal.new(spec), toolbox: spec.tools(), output_type: spec.output_type()
