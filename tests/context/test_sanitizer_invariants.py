@@ -16,7 +16,7 @@ from types import SimpleNamespace
 import pytest
 
 from jevdrill import context
-from jevdrill.context import redact
+from jevdrill.context import collect_context, redact
 from jevdrill.contracts import ContractError
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -261,6 +261,7 @@ EDGES = (
     # Breaks and blank lines.
     (f"**password**\n \t\n: {VALUE}", RETURNED),  # a whitespace-only line is a blank line
     (f"password\r\n: {VALUE}", REFUSED),  # CRLF is one break, not an empty line
+    (f"password\n\r: {VALUE}", RETURNED),  # LF then CR is two breaks around an empty line
     (f"password\v\n: {VALUE}", REFUSED),  # vertical tab and form feed are not breaks
     (f"password\f\n: {VALUE}", REFUSED),
     (f"Ordinary context.\vBearer {VALUE}", RETURNED),
@@ -285,6 +286,8 @@ EDGES = (
     ("\\U00110000", RETURNED),
     ("&#x110000;", RETURNED),
     ("&#9999999;", RETURNED),
+    # A lone surrogate that decoding produces is an ordinary character.
+    ("x\\ud800y", RETURNED),
 )
 
 
@@ -375,3 +378,23 @@ def test_i7_escape_depth():
         assert refused("Set " + layered("priority = high", layers)) is (layers == 5), layers
     assert refused("a" + "\\" * 16 + "b") is False
     assert refused("a" + "\\" * 32 + "b") is True
+
+
+def test_collect_context_returns_the_text_it_was_given_and_passes_a_refusal_on():
+    task = "Refactor the billing module and add tests."
+    note = "Meeting notes without any credential."
+    credential = f"api_key = {VALUE}"
+
+    def attachment(text):
+        return {"reference": "notes.txt", "authorized": True, "text_representation": text}
+
+    result = collect_context(task, [attachment(note)], [])
+    assert result["task_representation"] is task
+    assert result["attachments"][0]["text_representation"] is note
+    assert result["unavailable"] is False
+    for arguments in ((credential, []), (task, [attachment(credential)])):
+        with pytest.raises(ContractError) as caught:
+            collect_context(*arguments, [])
+        assert type(caught.value) is ContractError and caught.value.args == (MESSAGE,)
+    with pytest.raises(TimeoutError):
+        collect_context(task, [], [], -math.inf)
