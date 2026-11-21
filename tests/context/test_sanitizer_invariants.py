@@ -357,25 +357,109 @@ def test_i6_one_million_characters_take_linear_time(name):
 
 
 LIGATURE = "\N{ARABIC LIGATURE SALLALLAHOU ALAYHE WASALLAM}"  # NFKC writes it as 18 characters
+TAIL = "a" + "\\" * 16 + "b"  # keeps the view changing through all four decodes
+MARK = "\N{COMBINING GREEK DIALYTIKA TONOS}"  # NFKC writes it as two marks
 EXPANDING_INPUTS = {
-    "one expansion": (lambda: LIGATURE * 333_333, 999_999),
-    "expansion and four decodes": (lambda: LIGATURE * 333_300 + "a" + "\\" * 16 + "b", 999_918),
+    "one expansion": lambda count: LIGATURE * count,
+    "expansion and four decodes": lambda count: LIGATURE * count + TAIL,
 }
 
 
-@pytest.mark.parametrize("name", EXPANDING_INPUTS)
-def test_i6_one_million_bytes_that_expand_eighteen_fold_take_linear_time(name):
-    build, size = EXPANDING_INPUTS[name]
-    text = build()
-    assert len(text.encode("utf-8")) == size <= MILLION
-    assert len(unicodedata.normalize("NFKC", text)) > 17 * len(text)
+def seconds_to_return(text):
     started = time.perf_counter()
-    outcome = refused(text)
-    elapsed = time.perf_counter() - started
-    assert outcome is RETURNED
-    # Every view is 18 times as long as the text, so linear cost is seconds here, not a
-    # fraction of one. The bound still only catches a non-linear scan.
-    assert elapsed < 10, f"{elapsed:.2f} seconds"
+    assert refused(text) is RETURNED
+    return time.perf_counter() - started
+
+
+@pytest.mark.parametrize("name", EXPANDING_INPUTS)
+def test_i6_text_that_expands_eighteen_fold_takes_linear_time(name):
+    assert len(unicodedata.normalize("NFKC", LIGATURE)) == 18
+    whole, quarter = (EXPANDING_INPUTS[name](count) for count in (333_300, 83_325))
+    assert 999_000 < len(whole.encode("utf-8")) <= MILLION
+    quarter_seconds = seconds_to_return(quarter)
+    whole_seconds = seconds_to_return(whole)
+    times = f"{quarter_seconds:.2f} then {whole_seconds:.2f} seconds"
+    # Linear cost makes the whole text about 4 times the quarter; quadratic cost makes it 16.
+    assert whole_seconds < 8 * quarter_seconds + 0.5, times
+    assert whole_seconds < 20, times
+
+
+def test_i6_a_long_run_with_no_fresh_start_takes_linear_time():
+    text = MARK * 499_000
+    assert 990_000 < len(text.encode("utf-8")) <= MILLION
+    assert not any(context._starts_fresh(char) for char in unicodedata.normalize("NFKC", MARK))
+    assert seconds_to_return(text) < 20
+
+
+# Characters that compose, reorder, expand or are removed, and plain ones to sit between them.
+PIECE_POOL = (
+    "a",
+    "e",
+    "=",
+    "\N{COMBINING ACUTE ACCENT}",
+    "\N{COMBINING CEDILLA}",
+    "\N{COMBINING LONG SOLIDUS OVERLAY}",
+    "\N{COMBINING GREEK DIALYTIKA TONOS}",
+    "\N{HANGUL CHOSEONG KIYEOK}",
+    "\N{HANGUL JUNGSEONG A}",
+    "\N{HANGUL JONGSEONG KIYEOK}",
+    "\N{HANGUL SYLLABLE GA}",
+    "\N{BENGALI VOWEL SIGN E}",
+    "\N{BENGALI VOWEL SIGN AA}",
+    "\N{KIRAT RAI VOWEL SIGN AI}",
+    "\N{KIRAT RAI VOWEL SIGN E}",
+    "\N{HALFWIDTH KATAKANA LETTER KA}",
+    "\N{HALFWIDTH KATAKANA VOICED SOUND MARK}",
+    "\N{LATIN SMALL LIGATURE FI}",
+    "\N{ANGSTROM SIGN}",
+    LIGATURE,
+)
+
+
+def test_nfkc_in_pieces_is_nfkc_of_the_whole(monkeypatch):
+    texts = [
+        "".join(characters)
+        for n in (1, 2, 3, 4)
+        for characters in itertools.product(PIECE_POOL, repeat=n)
+    ]
+    # Every pair that the Unicode database composes, and each with a mark between and after.
+    for code in range(sys.maxunicode + 1):
+        decomposition = unicodedata.decomposition(chr(code))
+        if decomposition and not decomposition.startswith("<"):
+            pair = "".join(chr(int(element, 16)) for element in decomposition.split())
+            texts += [
+                pair,
+                pair[0] + "\N{COMBINING CEDILLA}" + pair[1:],
+                "a" + pair + "\N{COMBINING ACUTE ACCENT}",
+            ]
+    wrong = []
+    for chunk in (1, 2, 3):
+        monkeypatch.setattr(context, "_CHUNK", chunk)
+        wrong += [
+            (chunk, text)
+            for text in texts
+            if context._nfkc(text) != unicodedata.normalize("NFKC", text)
+        ]
+    assert len(texts) > 200_000
+    assert wrong[:5] == []
+
+
+def test_a_piece_starts_only_where_nothing_combines_backward():
+    backward = {*range(0x1161, 0x1176), *range(0x11A8, 0x11C3)}  # Hangul vowels and trails
+    for code in range(sys.maxunicode + 1):
+        decomposition = unicodedata.decomposition(chr(code))
+        if decomposition and not decomposition.startswith("<"):
+            # A canonical decomposition: every element after the first composes backward.
+            backward.update(int(element, 16) for element in decomposition.split()[1:])
+    wrong = []
+    for code in range(sys.maxunicode + 1):
+        first = unicodedata.normalize("NFKD", chr(code))[0]
+        fresh = unicodedata.combining(first) == 0 and ord(first) not in backward
+        if context._starts_fresh(chr(code)) is not fresh:
+            wrong.append(code)
+    assert wrong[:5] == []
+    assert not context._starts_fresh("\N{HALFWIDTH KATAKANA VOICED SOUND MARK}")
+    assert all(context._starts_fresh(character) for character in ("a", " ", "=", LIGATURE))
 
 
 def test_the_removal_table_holds_exactly_the_four_categories():

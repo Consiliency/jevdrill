@@ -35,6 +35,7 @@ _ESCAPE = re.compile(
 )
 _REMOVED_CATEGORIES = frozenset({"Cf", "Mn", "Mc", "Me"})
 _MAX_DECODES = 4
+_CHUNK = 64  # characters given to one NFKC call, so that no call has much to expand
 _REFUSAL = "credential-like material"
 
 
@@ -47,8 +48,8 @@ def _check_deadline(deadline: float | None) -> None:
 def _removal_table() -> dict[int, None]:
     """Every code point in a removed category, as a deletion table for `str.translate`.
 
-    Built once, on the first text that is not ASCII. It depends only on the Unicode
-    database, so it holds nothing about any text.
+    Built on first use, by the first text that is not ASCII. It depends only on the
+    Unicode database, so it holds nothing about any text.
     """
     return dict.fromkeys(
         code
@@ -57,11 +58,58 @@ def _removal_table() -> dict[int, None]:
     )
 
 
+@functools.cache
+def _combining_backward() -> frozenset[int]:
+    """Every code point that can combine with a character before it.
+
+    These are the elements after the first in each canonical decomposition, and the Hangul
+    vowel and trailing jamo. Built on first use; it depends only on the Unicode database.
+    """
+    found = set(range(0x1161, 0x1176)) | set(range(0x11A8, 0x11C3))
+    for code in range(sys.maxunicode + 1):
+        decomposition = unicodedata.decomposition(chr(code))
+        if decomposition and not decomposition.startswith("<"):
+            found.update(int(element, 16) for element in decomposition.split()[1:])
+    return frozenset(found)
+
+
+def _starts_fresh(character: str) -> bool:
+    """Whether NFKC of a text that starts with this character owes nothing to what precedes it.
+
+    That holds when its decomposition starts with a character that neither reorders
+    (combining class 0) nor combines with a character before it.
+    """
+    first = unicodedata.normalize("NFKD", character)[0]
+    return unicodedata.combining(first) == 0 and ord(first) not in _combining_backward()
+
+
+def _nfkc(text: str) -> str:
+    """`unicodedata.normalize("NFKC", text)`, computed in pieces that each start fresh.
+
+    CPython grows the buffer of one call a few characters at a time, which is slow on
+    some platforms when a long text expands. Short pieces keep every buffer small.
+    """
+    pieces = []
+    start = 0
+    while len(text) - start > _CHUNK:
+        end = start + _CHUNK
+        while end > start and not _starts_fresh(text[end]):
+            end -= 1
+        if end == start:  # no fresh start within reach: the piece runs to the next one
+            end = start + _CHUNK + 1
+            while end < len(text) and not _starts_fresh(text[end]):
+                end += 1
+        pieces.append(unicodedata.normalize("NFKC", text[start:end]))
+        start = end
+    pieces.append(unicodedata.normalize("NFKC", text[start:]))
+    return "".join(pieces)
+
+
 def _normalize(text: str) -> str:
     if text.isascii():
         return text  # NFKC changes no ASCII character and none is in a removed category.
     # Deleting by table is the per-character category test, without a Python-level loop.
-    return unicodedata.normalize("NFKC", text).translate(_removal_table())
+    return _nfkc(text).translate(_removal_table())
 
 
 def _decoded(match: re.Match[str]) -> str:
