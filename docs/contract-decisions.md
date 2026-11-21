@@ -44,3 +44,5 @@ Q-09/Q-10: storage/privacy implementation owns storage recovery and archive deta
 Q-12/Q-13: evaluation implementation and the user own consequential quality floors, regression margins and empirical calibration. Schemas permit explicit thresholds; no live release-holdout evaluation or policy promotion is permitted until thresholds are recorded before exposure. This does not block offline boundary tests or synthetic metric fixtures.
 
 Q-14: Git-home choice is resolved; governance implementation still owns adoption/representation proofs before PREPARE. No canonical adoption is performed here.
+
+EXPERIMENT implements Q-11 software controls with trusted immediate/deferred adapters, conservative full-context reservations and restricted Linux runtime proof. Q-12/Q-13 remain empirical owner decisions: no additional critical failures is required, and noncritical family tolerances must be calibrated separately. Default commands grant no execution or promotion authority. Missing evidence is unknown; absent outcomes do not become measured critical failures. A new development allowance and actual bounded JEV configuration are required for the linked selection study.
