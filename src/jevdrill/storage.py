@@ -442,7 +442,10 @@ class SQLiteStorage:
         if row is None:
             return
         job = json.loads(row[0])
-        if job["record"]["execution_status"] != "canceled":
+        status = job["record"]["execution_status"]
+        if not deleted and status in {"completed", "incomplete", "canceled"}:
+            return  # A finished run keeps its receipt; only deletion reopens it.
+        if status != "canceled":
             job["record"]["execution_status"] = "cancel_pending"
         if deleted:
             job["experiment"] = None
