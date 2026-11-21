@@ -23,7 +23,8 @@ only-include = ["src/jevdrill", "src/baml_sdk", "pyproject.toml", "README.md"]
 packages = ["src/jevdrill", "src/baml_sdk"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests/contracts", "tests/evaluation"]
+addopts = "--import-mode=importlib"
+testpaths = ["tests/contracts", "tests/evaluation", "tests/storage", "tests/catalog", "tests/inventory", "tests/settings", "tests/routing", "tests/costing", "tests/guidance"]
 
 [tool.ruff]
 target-version = "py314"
