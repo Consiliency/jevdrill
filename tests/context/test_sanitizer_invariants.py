@@ -43,19 +43,15 @@ def refused(text):
 
 
 @pytest.fixture(scope="module")
-def matrix(request):
-    """The conftest matrix as plain data.
+def matrix(credential_matrix):
+    """The conftest matrix as plain data, with the sizes asserted.
 
-    `credential_text` is a parametrized fixture, so requesting it would collect 2,520
-    cases. Its definition is read instead, and the sizes are asserted so that a change in
-    pytest or in conftest fails here rather than shrinking the matrix silently.
+    A change in conftest fails here rather than shrinking the matrix silently.
     """
-    (definition,) = request.session._fixturemanager.getfixturedefs("credential_text", request.node)
-    names = definition.func.__globals__
-    texts = [entry if isinstance(entry, str) else entry.values[0] for entry in definition.params]
-    assert (len(texts), len(names["FORMATS"]), len(names["LABELS"])) == (2520, 409, 6)
-    labels = (*names["LABELS"], *LABEL_SPELLINGS)
-    return SimpleNamespace(texts=texts, formats=names["FORMATS"], labels=labels)
+    texts, formats = credential_matrix.texts, credential_matrix.formats
+    assert (len(texts), len(formats), len(credential_matrix.labels)) == (2520, 409, 6)
+    labels = (*credential_matrix.labels, *LABEL_SPELLINGS)
+    return SimpleNamespace(texts=texts, formats=formats, labels=labels)
 
 
 def test_i1_i5_matrix_entries_are_returned_unchanged_or_refused_and_the_count_is_fixed(matrix):

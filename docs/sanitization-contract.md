@@ -24,7 +24,9 @@ The check also sees these through `\x` and `\u` escapes, `%XX` codes, HTML numer
 - Text whose escapes are nested more than four deep, or that has a long run of backslashes, is refused whatever else it contains.
 - Anyone who can put text into a request can cause a refusal.
 - JEV Drill stores a SHA-256 fingerprint of each accepted request as received.†
-- Text JEV Drill reads from its own local stores (admitted guidance, development cases) is not checked again.‡
+- Development cases and guidance that the host program registers for experiments are not checked. They are sent to the experiment's model provider as registered.‡
+- Importing a backup or restoring an archive writes the saved text back to local storage as it was saved. It is not checked, and it is written back even if raw retention is now off.‡
+- Text JEV Drill reads back from its own local stores is not checked again.†
 - This check is a safety net. The main controls are path exclusions for credential files, raw-task retention (off unless you turn it on), and `local_only` and the allowed-provider list, which keep text away from the judgment provider altogether.
 
 † How the application uses the check; confirmed in the S5 review. ‡ Confirmed in the S4 review. A sentence found wrong comes back to the owner.
