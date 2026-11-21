@@ -24,6 +24,17 @@ Breaking contract changes require a major version. Version 1 initially has no de
 
 ## Open questions
 
+The owner approved the October 12 judgment amendment in
+`evidence/EXPERIMENT/fix-review-20261011/round-3/version-amendment.json`.
+`JudgmentPolicy` and `JudgmentRecord` accept historical `JudgeCandidate-v1` and
+current `JudgeCandidate-v2`, preserving v1 parsing in route, replay and recovery
+schemas. Only v2 may dispatch the changed task suitability template. This is an
+additive literal amendment within existing schema versions, not a replacement of
+historical records. Rendered request templates and the selected-profile projection
+bind new cache and judge revisions. Existing study artifacts and consumed grants
+remain unchanged. This amendment grants implementation and offline verification
+only; it grants no study collection, empirical acceptance, merge or deployment.
+
 Q-01/Q-03: contract implementation owns exact event/adapter shapes and cancellation behavior, blocking CONTRACT freeze. Q-04: toolchain implementation owns platform/version proof, blocking CONTRACT freeze. Q-05: vocabulary implementation owns deterministic scope enforcement, blocking CONTRACT freeze.
 
 Q-06/Q-07: routing/costing implementation owns provider inventory, token bounds and budgets, blocking ROUTE acceptance. No enabled model or spending authority is inferred. Q-08: catalog implementation starts with no optional resources automatically enabled; user admission remains explicit and blocks only use of that resource.

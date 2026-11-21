@@ -1,0 +1,39 @@
+{
+  "status": "proposed_owner_decision",
+  "decision": "D1: version the amended suitability judgment and bind its template",
+  "recommended": "JudgeCandidate-v2 for new dispatches; historical v1 records remain readable and replayable",
+  "authority_requested": "Implement and offline-verify this bounded amendment; no paid study, grant reuse, promotion, merge or deployment",
+  "current_contract": "JudgeCandidate-v1-only fields in JudgmentPolicy and JudgmentRecord; seven derived public schemas",
+  "affected_schemas": [
+    "JudgmentPolicy",
+    "JudgmentRecord",
+    "RouteInputs",
+    "DiscoveryRouteInputs",
+    "ReplayBundle",
+    "RecoveryDecision",
+    "RecoveryBundle"
+  ],
+  "changes": [
+    "New live dispatch policies and emitted judgment records use JudgeCandidate-v2; an active v1 policy cannot silently dispatch the changed template.",
+    "Historical JudgmentRecord v1 payloads remain valid for stored inspection/replay; preserve all 14 stopped-study receipts byte-for-byte.",
+    "Bind the rendered suitability request-template digest and explicit projection version into development judge configuration revision, study validator expectation, and product route cache identity.",
+    "Apply the final R2 selected-profile projection before binding its template, so new dispatches describe one stable version.",
+    "Regenerate SDK and boundary schemas with pinned BAML 0.20.1; update interfaces, decisions and relevant v2 fixtures/tests.",
+    "Retain existing collection policy, allowance gates, unknown quality/cost semantics and empirical blockers."
+  ],
+  "verification": [
+    "v2 dispatch and policy/record binding; fail closed on new v1 dispatch attempts",
+    "legacy v1 artifact parsing and immutable replay",
+    "prompt/projection digest changes invalidate cross-request cached results and judgment configuration; unchanged template preserves identity",
+    "targeted telemetry, exact-profile, baseline and replay tests; generation, lint, types, package and configured companion checks",
+    "dissenting-seat delta reviews and new manual Opus 5.5 president ruling"
+  ],
+  "alternative": "Explicitly amend v1 in place with identical digest bindings and documentation; retains current schema constants but leaves historical/current v1 labels with different meanings.",
+  "instruction_source": {
+    "plan": "plans/detailed-pre-gepa-repairs-20261005-1336.md:87",
+    "quote": "Do not silently retain JudgeCandidate-v1 if judgment semantics change: stop for an explicit versioned amendment on parity failure.",
+    "freeze": "plans/phase-plan-v1-ROUTE.md:156-157 preserves JudgeCandidate-v1-only contracts."
+  },
+  "review_basis": "round-1/president.md F5/D1",
+  "scope_boundaries": "No revisions to study attribution, cheapest-model validator policy, provider allow-list policy, abstention collection policy, protocol cases or release holdouts."
+}

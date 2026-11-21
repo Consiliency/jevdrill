@@ -22,6 +22,36 @@
 from __future__ import annotations
 
 FUNCTIONS: dict[str, dict[str, object]] = {
+    "user.DevelopmentArtifactText": {
+        "module": "baml_sdk",
+        "type_params": (),
+        "direct": "DevelopmentArtifactText",
+        "direct_async": "DevelopmentArtifactText_async",
+        "spec": "DevelopmentArtifactText_spec",
+        "spec_async": "DevelopmentArtifactText_spec_async",
+        "stream": "DevelopmentArtifactText_stream",
+        "stream_async": "DevelopmentArtifactText_stream_async",
+    },
+    "user.DevelopmentText": {
+        "module": "baml_sdk",
+        "type_params": (),
+        "direct": "DevelopmentText",
+        "direct_async": "DevelopmentText_async",
+        "spec": "DevelopmentText_spec",
+        "spec_async": "DevelopmentText_spec_async",
+        "stream": "DevelopmentText_stream",
+        "stream_async": "DevelopmentText_stream_async",
+    },
+    "user.DiscoveryOptionSuitable": {
+        "module": "baml_sdk",
+        "type_params": (),
+        "direct": "DiscoveryOptionSuitable",
+        "direct_async": "DiscoveryOptionSuitable_async",
+        "spec": "DiscoveryOptionSuitable_spec",
+        "spec_async": "DiscoveryOptionSuitable_spec_async",
+        "stream": "DiscoveryOptionSuitable_stream",
+        "stream_async": "DiscoveryOptionSuitable_stream_async",
+    },
     "user.IsSuitable": {
         "module": "baml_sdk",
         "type_params": (),
@@ -31,6 +61,16 @@ FUNCTIONS: dict[str, dict[str, object]] = {
         "spec_async": "IsSuitable_spec_async",
         "stream": "IsSuitable_stream",
         "stream_async": "IsSuitable_stream_async",
+    },
+    "user.LocalDevelopmentText": {
+        "module": "baml_sdk",
+        "type_params": (),
+        "direct": "LocalDevelopmentText",
+        "direct_async": "LocalDevelopmentText_async",
+        "spec": "LocalDevelopmentText_spec",
+        "spec_async": "LocalDevelopmentText_spec_async",
+        "stream": "LocalDevelopmentText_stream",
+        "stream_async": "LocalDevelopmentText_stream_async",
     },
     "user.MockIsSuitable": {
         "module": "baml_sdk",

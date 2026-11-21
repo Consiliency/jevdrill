@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "content_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Content Hash",
+      "type": "string"
+    },
+    "resource_id": {
+      "minLength": 1,
+      "title": "Resource Id",
+      "type": "string"
+    },
+    "revision": {
+      "minLength": 1,
+      "title": "Revision",
+      "type": "string"
+    }
+  },
+  "required": [
+    "content_hash",
+    "resource_id",
+    "revision"
+  ],
+  "title": "DiscoveryGuidanceRef",
+  "type": "object"
+}

@@ -1,0 +1,111 @@
+{
+  "$defs": {
+    "CommandScope": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "anyOf": [
+            {
+              "const": "route",
+              "type": "string"
+            },
+            {
+              "const": "report",
+              "type": "string"
+            }
+          ],
+          "title": "Operation"
+        },
+        "producer": {
+          "title": "Producer",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "workspace_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation",
+        "producer",
+        "project_id",
+        "workspace_id"
+      ],
+      "title": "CommandScope",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "allowed_policy_revisions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Allowed Policy Revisions",
+      "type": "array"
+    },
+    "allowed_task_groups": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Allowed Task Groups",
+      "type": "array"
+    },
+    "authorization_revision": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Authorization Revision",
+      "type": "string"
+    },
+    "enabled": {
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "pattern": "Z$",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "max_routes": {
+      "maximum": 1000000,
+      "minimum": 1,
+      "title": "Max Routes",
+      "type": "integer"
+    },
+    "rollout_basis_points": {
+      "maximum": 10000,
+      "minimum": 1,
+      "title": "Rollout Basis Points",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/CommandScope"
+    }
+  },
+  "required": [
+    "allowed_policy_revisions",
+    "allowed_task_groups",
+    "authorization_revision",
+    "enabled",
+    "expires_at",
+    "max_routes",
+    "rollout_basis_points",
+    "schema_version",
+    "scope"
+  ],
+  "title": "PolicyAuthorization",
+  "type": "object"
+}

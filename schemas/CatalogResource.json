@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "admission": {
+      "anyOf": [
+        {
+          "const": "policy_admitted",
+          "type": "string"
+        },
+        {
+          "const": "explicitly_enabled",
+          "type": "string"
+        },
+        {
+          "const": "unadmitted",
+          "type": "string"
+        }
+      ],
+      "title": "Admission"
+    },
+    "aliases": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Aliases",
+      "type": "array"
+    },
+    "benchmark_effort": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Benchmark Effort"
+    },
+    "benchmark_protocol": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Benchmark Protocol"
+    },
+    "benchmark_split": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Benchmark Split"
+    },
+    "conflicts": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Conflicts",
+      "type": "array"
+    },
+    "content_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Content Hash",
+      "type": "string"
+    },
+    "domain": {
+      "title": "Domain",
+      "type": "string"
+    },
+    "facets": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Facets",
+      "type": "array"
+    },
+    "instructions": {
+      "title": "Instructions",
+      "type": "string"
+    },
+    "resource_id": {
+      "title": "Resource Id",
+      "type": "string"
+    },
+    "revision": {
+      "title": "Revision",
+      "type": "string"
+    },
+    "rights": {
+      "title": "Rights",
+      "type": "string"
+    },
+    "source_occurrences": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Occurrences",
+      "type": "array"
+    },
+    "specialty": {
+      "title": "Specialty",
+      "type": "string"
+    },
+    "task_family": {
+      "title": "Task Family",
+      "type": "string"
+    }
+  },
+  "required": [
+    "admission",
+    "aliases",
+    "benchmark_effort",
+    "benchmark_protocol",
+    "benchmark_split",
+    "conflicts",
+    "content_hash",
+    "domain",
+    "facets",
+    "instructions",
+    "resource_id",
+    "revision",
+    "rights",
+    "source_occurrences",
+    "specialty",
+    "task_family"
+  ],
+  "title": "CatalogResource",
+  "type": "object"
+}
