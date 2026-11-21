@@ -254,3 +254,13 @@ def test_new_store_files_are_private(tmp_path):
             reader.close()
     finally:
         os.umask(previous)
+
+
+def test_private_creation_keeps_constructor_failures(tmp_path):
+    with pytest.raises(TimeoutError):
+        SQLiteStorage(tmp_path / "expired.db", monotonic() - 1)
+    assert not (tmp_path / "expired.db").exists()
+    with pytest.raises(sqlite3.OperationalError):
+        SQLiteStorage(tmp_path / "missing" / "route.db")
+    with pytest.raises(TimeoutError):
+        SQLiteStorage(tmp_path / "missing" / "route.db", monotonic() - 1)

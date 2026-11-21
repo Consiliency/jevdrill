@@ -23,7 +23,11 @@ class SQLiteStorage:
     def __init__(self, path: Path, deadline: float | None = None) -> None:
         self.path = path
         self.deadline = deadline
-        os.close(os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600))
+        self._remaining()
+        try:
+            os.close(os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600))
+        except OSError:
+            pass  # SQLite reports an unusable path, as before.
         self._initialize()
         self._initialize_discovery()
         self._initialize_learning()
