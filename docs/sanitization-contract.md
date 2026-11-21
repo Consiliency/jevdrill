@@ -6,10 +6,10 @@ JEV Drill checks every piece of text in a request before it sends anything to th
 
 **What is refused.** A request is refused when any piece of its text contains:
 - one of the names `authorization`, `api key`, `access token`, `password` or `secret`, followed later in the same paragraph by `:`, `=`, `<-` or `->`. Letter case does not matter, the two-word names may be joined by a space, `_`, `-` or nothing, and the name may sit inside a longer one such as `DB_PASSWORD` or `X-API-Key`;
-- `Bearer` or `Basic` followed by a token, at the start of a line or directly after a quotation mark;
+- `Bearer` or `Basic` followed by a token, at the start of a line or directly after a straight quotation mark (`"` or `'`);
 - the first line of a PEM private key.
 
-The check also sees these through `\x` and `\u` escapes, `%XX` codes, HTML numeric codes, invisible characters and full-width letters.
+The check also sees these through `\x` and `\u` escapes, `%XX` codes, HTML numeric codes such as `&#61;`, invisible formatting characters such as zero-width spaces, combining marks, and full-width letters.
 
 **What you see.** The whole request is refused before anything is sent.† The command line returns `invalid_input` and does not say which text caused it. JEV Drill never edits text: it passes unchanged or the request is refused.
 
@@ -21,6 +21,7 @@ The check also sees these through `\x` and `\u` escapes, `%XX` codes, HTML numer
 
 **Also know.**
 - Ordinary text can be refused: a sentence that mentions `password` and later has a colon or a web address, or a line that begins "Basic …". In two small samples the check refused 5 of 30 developer texts and none of 36 evaluation tasks. The rate on real tasks is not measured.
+- Text whose escapes are nested more than four deep, or that has a long run of backslashes, is refused whatever else it contains.
 - Anyone who can put text into a request can cause a refusal.
 - JEV Drill stores a SHA-256 fingerprint of each accepted request as received.†
 - Text JEV Drill reads from its own local stores (admitted guidance, development cases) is not checked again.‡
