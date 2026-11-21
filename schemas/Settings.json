@@ -28,6 +28,19 @@
       "title": "Local Analysis Enabled",
       "type": "boolean"
     },
+    "max_description_utf8_bytes": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "maximum": 2048,
+      "minimum": 1,
+      "title": "Max Description Utf8 Bytes"
+    },
     "model_analysis_enabled": {
       "title": "Model Analysis Enabled",
       "type": "boolean"

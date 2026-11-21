@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "calibration_revision": {
+      "title": "Calibration Revision",
+      "type": "string"
+    },
+    "calibration_source": {
+      "title": "Calibration Source",
+      "type": "string"
+    },
+    "confidence": {
+      "exclusiveMaximum": 1,
+      "exclusiveMinimum": 0.5,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "critical_requirements": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Critical Requirements",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "dataset_revision": {
+      "title": "Dataset Revision",
+      "type": "string"
+    },
+    "evaluator_ref": {
+      "title": "Evaluator Ref",
+      "type": "string"
+    },
+    "frozen_at": {
+      "format": "date-time",
+      "pattern": "Z$",
+      "title": "Frozen At",
+      "type": "string"
+    },
+    "maximum_quality_loss": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Maximum Quality Loss",
+      "type": "number"
+    },
+    "minimum_pairs": {
+      "maximum": 1000000,
+      "minimum": 2,
+      "title": "Minimum Pairs",
+      "type": "integer"
+    },
+    "quality_floor": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Quality Floor",
+      "type": "number"
+    },
+    "rubric_revision": {
+      "title": "Rubric Revision",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "task_family": {
+      "anyOf": [
+        {
+          "const": "implementation",
+          "type": "string"
+        },
+        {
+          "const": "review",
+          "type": "string"
+        },
+        {
+          "const": "documentation",
+          "type": "string"
+        }
+      ],
+      "title": "Task Family"
+    }
+  },
+  "required": [
+    "calibration_revision",
+    "calibration_source",
+    "confidence",
+    "critical_requirements",
+    "dataset_revision",
+    "evaluator_ref",
+    "frozen_at",
+    "maximum_quality_loss",
+    "minimum_pairs",
+    "quality_floor",
+    "rubric_revision",
+    "schema_version",
+    "task_family"
+  ],
+  "title": "QualityCalibration",
+  "type": "object"
+}

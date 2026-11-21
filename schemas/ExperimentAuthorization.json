@@ -1,0 +1,230 @@
+{
+  "$defs": {
+    "CommandScope": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "anyOf": [
+            {
+              "const": "route",
+              "type": "string"
+            },
+            {
+              "const": "report",
+              "type": "string"
+            }
+          ],
+          "title": "Operation"
+        },
+        "producer": {
+          "title": "Producer",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "workspace_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation",
+        "producer",
+        "project_id",
+        "workspace_id"
+      ],
+      "title": "CommandScope",
+      "type": "object"
+    },
+    "ExperimentLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "cpu_limit": {
+          "minimum": 1,
+          "title": "Cpu Limit",
+          "type": "integer"
+        },
+        "daily_spend": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_candidates": {
+          "minimum": 2,
+          "title": "Max Candidates",
+          "type": "integer"
+        },
+        "max_concurrency": {
+          "minimum": 1,
+          "title": "Max Concurrency",
+          "type": "integer"
+        },
+        "max_duration_ms": {
+          "minimum": 1,
+          "title": "Max Duration Ms",
+          "type": "integer"
+        },
+        "memory_limit_bytes": {
+          "minimum": 1,
+          "title": "Memory Limit Bytes",
+          "type": "integer"
+        },
+        "per_experiment_spend": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "cpu_limit",
+        "daily_spend",
+        "max_candidates",
+        "max_concurrency",
+        "max_duration_ms",
+        "memory_limit_bytes",
+        "per_experiment_spend"
+      ],
+      "title": "ExperimentLimits",
+      "type": "object"
+    },
+    "Money": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Amount",
+          "type": "string"
+        },
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "currency"
+      ],
+      "title": "Money",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "allowed_execution_paths": {
+      "items": {
+        "enum": [
+          "internal",
+          "harness_assisted"
+        ]
+      },
+      "title": "Allowed Execution Paths",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "allowed_harnesses": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Allowed Harnesses",
+      "type": "array"
+    },
+    "allowed_isolation_refs": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Allowed Isolation Refs",
+      "type": "array"
+    },
+    "allowed_providers": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Allowed Providers",
+      "type": "array"
+    },
+    "authorization_revision": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Authorization Revision",
+      "type": "string"
+    },
+    "background_allowed": {
+      "title": "Background Allowed",
+      "type": "boolean"
+    },
+    "enabled": {
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "pattern": "Z$",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "limits": {
+      "$ref": "#/$defs/ExperimentLimits"
+    },
+    "local_only": {
+      "title": "Local Only",
+      "type": "boolean"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/CommandScope"
+    },
+    "task_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "title": "Task Ids",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "total_spend_microusd": {
+      "maximum": 1000000000000,
+      "minimum": 0,
+      "title": "Total Spend Microusd",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "allowed_execution_paths",
+    "allowed_harnesses",
+    "allowed_isolation_refs",
+    "allowed_providers",
+    "authorization_revision",
+    "background_allowed",
+    "enabled",
+    "expires_at",
+    "limits",
+    "local_only",
+    "schema_version",
+    "scope",
+    "task_ids",
+    "total_spend_microusd"
+  ],
+  "title": "ExperimentAuthorization",
+  "type": "object"
+}

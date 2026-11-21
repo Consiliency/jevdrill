@@ -16,7 +16,7 @@ def test_public_parser(fixture):
     if fixture["accepted"]:
         result = parse_contract(fixture["contract"], fixture["payload"])
         assert result.digest == fixture["digest"]
-        assert result.model().model_dump(mode="json") == fixture["payload"]
+        assert result.model().model_dump(mode="json", exclude_unset=True) == fixture["payload"]
     else:
         with pytest.raises(ContractError):
             parse_contract(fixture["contract"], fixture["payload"])
@@ -31,11 +31,16 @@ def test_non_python_consumer():
         check=True,
     )
     observations = json.loads(result.stdout)
-    assert len(observations) == len(FIXTURES)
-    for fixture, observed in zip(FIXTURES, observations, strict=True):
+    fixtures = [
+        row
+        for path in sorted((ROOT / "tests/contracts/fixtures").glob("*.json"))
+        for row in json.loads(path.read_text())
+    ]
+    assert len(observations) == len(fixtures)
+    for fixture, observed in zip(fixtures, observations, strict=True):
         assert observed["accepted"] == fixture["accepted"]
         if fixture["accepted"]:
-            assert observed["digest"] == fixture["digest"]
+            assert observed["digest"] == fixture.get("digest", canonical_digest(fixture["payload"]))
 
 
 def test_snapshot_cannot_be_changed_through_generated_view():
@@ -53,6 +58,27 @@ def test_snapshot_cannot_be_changed_through_generated_view():
 def test_nonportable_values(value):
     with pytest.raises(ContractError):
         canonical_digest({"bad": value})
+
+
+@pytest.mark.parametrize(
+    "contract, value",
+    [
+        ("DiscoveryInputs", {"share_user_wide": "yes"}),
+        ("DiscoveryInputs", {"minimum_batch": "1"}),
+        ("DiscoveryInputs", {"guidance_refs": "ab"}),
+        ("JudgmentRecord", {"envelope": True}),
+    ],
+)
+def test_semantic_rules_on_free_form_maps_raise_contract_error(contract, value, discovery_inputs):
+    if contract == "DiscoveryInputs":
+        payload = discovery_inputs
+        payload["envelope"]["extensions"] = value
+    else:
+        rows = json.loads((ROOT / "tests/contracts/fixtures/route-inputs.json").read_text())
+        payload = copy.deepcopy(next(r["payload"] for r in rows if r["contract"] == contract))
+        payload["judgments"] = value
+    with pytest.raises(ContractError):
+        parse_contract(contract, payload)
 
 
 def test_terminal_events_and_experiment_authority_transitions():

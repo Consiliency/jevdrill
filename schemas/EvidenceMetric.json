@@ -1,0 +1,256 @@
+{
+  "$defs": {
+    "KnownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "known",
+          "title": "Kind",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "unit",
+        "value"
+      ],
+      "title": "KnownMeasurement",
+      "type": "object"
+    },
+    "Measurement": {
+      "additionalProperties": false,
+      "properties": {
+        "counting_semantics": {
+          "anyOf": [
+            {
+              "const": "disjoint",
+              "type": "string"
+            },
+            {
+              "const": "subset",
+              "type": "string"
+            },
+            {
+              "const": "not_applicable",
+              "type": "string"
+            }
+          ],
+          "title": "Counting Semantics"
+        },
+        "measurement_value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/KnownMeasurement"
+            },
+            {
+              "$ref": "#/$defs/UnknownMeasurement"
+            }
+          ],
+          "title": "Measurement Value"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "metric_version": {
+          "title": "Metric Version",
+          "type": "string"
+        },
+        "parent_metric_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Metric Id"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "const": "call",
+              "type": "string"
+            },
+            {
+              "const": "run",
+              "type": "string"
+            },
+            {
+              "const": "task",
+              "type": "string"
+            },
+            {
+              "const": "experiment",
+              "type": "string"
+            }
+          ],
+          "title": "Scope"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "direct",
+              "type": "string"
+            },
+            {
+              "const": "provider",
+              "type": "string"
+            },
+            {
+              "const": "host",
+              "type": "string"
+            },
+            {
+              "const": "evaluator",
+              "type": "string"
+            },
+            {
+              "const": "estimate",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "counting_semantics",
+        "measurement_value",
+        "method",
+        "metric_id",
+        "metric_version",
+        "parent_metric_id",
+        "scope",
+        "source"
+      ],
+      "title": "Measurement",
+      "type": "object"
+    },
+    "MissingReason": {
+      "enum": [
+        "unsupported",
+        "not_reported",
+        "not_applicable",
+        "redacted",
+        "expired",
+        "incomplete"
+      ],
+      "title": "MissingReason",
+      "type": "string"
+    },
+    "UnknownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/MissingReason"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "UnknownMeasurement",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "maximum": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Maximum"
+    },
+    "mean": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Mean"
+    },
+    "median": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Median"
+    },
+    "metric_definition": {
+      "$ref": "#/$defs/Measurement"
+    },
+    "minimum": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Minimum"
+    },
+    "missing_count": {
+      "title": "Missing Count",
+      "type": "integer"
+    },
+    "p95": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "P95"
+    },
+    "sample_count": {
+      "title": "Sample Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "maximum",
+    "mean",
+    "median",
+    "metric_definition",
+    "minimum",
+    "missing_count",
+    "p95",
+    "sample_count"
+  ],
+  "title": "EvidenceMetric",
+  "type": "object"
+}

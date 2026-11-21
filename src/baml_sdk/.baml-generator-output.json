@@ -7,27 +7,27 @@
     },
     {
       "relative_path": "__init__.py",
-      "sha256": "412259c0b69b7db9385c255549afec471c9dc4641c84715f29f2d6afc378f3b0"
+      "sha256": "801ac5ba765c95bac674380601303071a14d700b453831621619eda866f7dccc"
     },
     {
       "relative_path": "__init__.pyi",
-      "sha256": "a61913864ff72240ba395a2bc21f6fa3bbe86637645533bef704150dabecbe40"
+      "sha256": "df92212eb56659bb84138a80002a4aab628c54558cc63b1437e55c20cdde7fe4"
     },
     {
       "relative_path": "_baml_sources.py",
-      "sha256": "99cd62f1dd89bed826203971c40887e1f75915699a99f4561750b15014644baf"
+      "sha256": "8ef3bcd9222da0dc08477cb622585f1ab6b696b064d8dc0e18a356e5b91764e6"
     },
     {
       "relative_path": "_function_registry.py",
-      "sha256": "4a7905984fc681a5b2aa31dcb81e5db54ec4395567d56b4afbecf9be84fd2d60"
+      "sha256": "d234581410f5cab9d35349e883d5278dd2efb90285dcfa8c24120a492b84d7c6"
     },
     {
       "relative_path": "_inlinedbaml.py",
-      "sha256": "2ab77e83809dfc92029b4bab095b8f42d6fabca52b199be09e2c01aa2653b837"
+      "sha256": "fae3f71041333336f19d03ed0026d37abfafa9439048dbc8330c6e917b51a27a"
     },
     {
       "relative_path": "_typemap.py",
-      "sha256": "42e3ba767227d8603ee82389724bbd6334e6abb5738761225b13946ab6bc02f2"
+      "sha256": "51466ad1bc977d4ca6b5e220155589084d1fa2edd948b1085384597589d49a82"
     },
     {
       "relative_path": "ai/__init__.py",
@@ -408,6 +408,22 @@
     {
       "relative_path": "reflect/union/__init__.pyi",
       "sha256": "ab0e8264b7d8f7c98b9b055fdd3f98378fc20bc178f8917b44655feb08d04bab"
+    },
+    {
+      "relative_path": "typesafe_patch/__init__.py",
+      "sha256": "9f88f6e3a720377d125e60c60dc488ed49bf30daa48f77cca19b3438f9e277fe"
+    },
+    {
+      "relative_path": "typesafe_patch/__init__.pyi",
+      "sha256": "9f243c4e04824a1a74dc9b06e052afcfc6c7cd216002e18b7e7727d8400bf2b1"
+    },
+    {
+      "relative_path": "typesafe_patch/internal/__init__.py",
+      "sha256": "e86725cdfe06e851397544446038db766a524f73007e37aeb9372ea73039b6d7"
+    },
+    {
+      "relative_path": "typesafe_patch/internal/__init__.pyi",
+      "sha256": "d2801c116c4ee1d8b7e6c15088a13e5c9224230408c1937d8d31dd73894bcb35"
     },
     {
       "relative_path": "vendor/__init__.py",

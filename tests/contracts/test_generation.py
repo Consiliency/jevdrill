@@ -1,5 +1,7 @@
 import hashlib
 import importlib.util
+import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -53,6 +55,51 @@ def test_normalization_checks_hash_and_only_declared_paths():
 
 def test_generation_is_reproducible():
     subprocess.run([sys.executable, "scripts/check_generated_contracts.py"], cwd=ROOT, check=True)
+
+
+def test_obsolete_schema_fails_closed(tmp_path):
+    for name in ("baml.toml", "scripts/check_generated_contracts.py"):
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / name, tmp_path / name)
+    for name in ("baml_src", "src/baml_sdk", "schemas"):
+        shutil.copytree(ROOT / name, tmp_path / name, ignore=shutil.ignore_patterns("__pycache__"))
+    (tmp_path / "schemas/Retired.json").write_text("{}\n")
+    result = subprocess.run(
+        [sys.executable, "scripts/check_generated_contracts.py"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert "obsolete schema files" in result.stderr
+
+
+def test_nested_source_filename_normalization_preserves_authored_text():
+    module = generator()
+    path = "ns_typesafe_patch/client.baml"
+
+    def outputs(filename, content):
+        result = {
+            Path("_inlinedbaml.py"): f"BYTECODE: bytes = {artifact(b'program')!r}".encode(),
+            Path("_baml_sources.py"): f"FILES: dict[str, str] = { {filename: content}!r}".encode(),
+        }
+        result[Path(".baml-generator-output.json")] = json.dumps(
+            {
+                "schema_version": 2,
+                "files": [
+                    {"relative_path": name.as_posix(), "sha256": hashlib.sha256(value).hexdigest()}
+                    for name, value in result.items()
+                ],
+            }
+        ).encode()
+        return result
+
+    linux = outputs(path, r"Preserve instruction C:\workspace")
+    windows = outputs(path.replace("/", "\\"), r"Preserve instruction C:\workspace")
+    assert module.normalized_outputs(linux) == module.normalized_outputs(windows)
+    changed = outputs(path.replace("/", "\\"), "Changed instruction")
+    assert module.normalized_outputs(linux) != module.normalized_outputs(changed)
 
 
 def test_wrong_compiler_fails_closed(monkeypatch):

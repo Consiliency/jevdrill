@@ -1,0 +1,221 @@
+{
+  "$defs": {
+    "KnownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "known",
+          "title": "Kind",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "unit",
+        "value"
+      ],
+      "title": "KnownMeasurement",
+      "type": "object"
+    },
+    "Measurement": {
+      "additionalProperties": false,
+      "properties": {
+        "counting_semantics": {
+          "anyOf": [
+            {
+              "const": "disjoint",
+              "type": "string"
+            },
+            {
+              "const": "subset",
+              "type": "string"
+            },
+            {
+              "const": "not_applicable",
+              "type": "string"
+            }
+          ],
+          "title": "Counting Semantics"
+        },
+        "measurement_value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/KnownMeasurement"
+            },
+            {
+              "$ref": "#/$defs/UnknownMeasurement"
+            }
+          ],
+          "title": "Measurement Value"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "metric_version": {
+          "title": "Metric Version",
+          "type": "string"
+        },
+        "parent_metric_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Metric Id"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "const": "call",
+              "type": "string"
+            },
+            {
+              "const": "run",
+              "type": "string"
+            },
+            {
+              "const": "task",
+              "type": "string"
+            },
+            {
+              "const": "experiment",
+              "type": "string"
+            }
+          ],
+          "title": "Scope"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "direct",
+              "type": "string"
+            },
+            {
+              "const": "provider",
+              "type": "string"
+            },
+            {
+              "const": "host",
+              "type": "string"
+            },
+            {
+              "const": "evaluator",
+              "type": "string"
+            },
+            {
+              "const": "estimate",
+              "type": "string"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "counting_semantics",
+        "measurement_value",
+        "method",
+        "metric_id",
+        "metric_version",
+        "parent_metric_id",
+        "scope",
+        "source"
+      ],
+      "title": "Measurement",
+      "type": "object"
+    },
+    "MissingReason": {
+      "enum": [
+        "unsupported",
+        "not_reported",
+        "not_applicable",
+        "redacted",
+        "expired",
+        "incomplete"
+      ],
+      "title": "MissingReason",
+      "type": "string"
+    },
+    "UnknownMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/MissingReason"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "UnknownMeasurement",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "function_revision": {
+      "const": "ObserveDiscoveryOption-v1",
+      "title": "Function Revision",
+      "type": "string"
+    },
+    "judgments": {
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "Judgments",
+      "type": "object"
+    },
+    "measurements": {
+      "items": {
+        "$ref": "#/$defs/Measurement"
+      },
+      "title": "Measurements",
+      "type": "array"
+    },
+    "model_revision": {
+      "title": "Model Revision",
+      "type": "string"
+    },
+    "question_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Question Digest",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "function_revision",
+    "judgments",
+    "measurements",
+    "model_revision",
+    "question_digest",
+    "schema_version"
+  ],
+  "title": "DiscoveryJudgmentRecord",
+  "type": "object"
+}
