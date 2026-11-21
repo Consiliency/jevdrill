@@ -1,9 +1,11 @@
 """Supplied context only; never follow attachment references or search user files."""
 
 import fnmatch
+import functools
 import os
 import posixpath
 import re
+import sys
 import unicodedata
 import uuid
 from collections.abc import Mapping, Sequence
@@ -41,14 +43,25 @@ def _check_deadline(deadline: float | None) -> None:
         raise TimeoutError("context sanitization deadline exceeded")
 
 
+@functools.cache
+def _removal_table() -> dict[int, None]:
+    """Every code point in a removed category, as a deletion table for `str.translate`.
+
+    Built once, on the first text that is not ASCII. It depends only on the Unicode
+    database, so it holds nothing about any text.
+    """
+    return dict.fromkeys(
+        code
+        for code in range(sys.maxunicode + 1)
+        if unicodedata.category(chr(code)) in _REMOVED_CATEGORIES
+    )
+
+
 def _normalize(text: str) -> str:
     if text.isascii():
         return text  # NFKC changes no ASCII character and none is in a removed category.
-    return "".join(
-        character
-        for character in unicodedata.normalize("NFKC", text)
-        if unicodedata.category(character) not in _REMOVED_CATEGORIES
-    )
+    # Deleting by table is the per-character category test, without a Python-level loop.
+    return unicodedata.normalize("NFKC", text).translate(_removal_table())
 
 
 def _decoded(match: re.Match[str]) -> str:

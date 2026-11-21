@@ -9,7 +9,9 @@ import base64
 import itertools
 import json
 import math
+import sys
 import time
+import unicodedata
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -146,6 +148,13 @@ def test_i2_scheme_tokens_and_private_key_markers_are_refused():
     assert [text for text in texts if not refused(text)] == []
 
 
+def test_i3_a_scheme_word_with_no_token_after_it_is_returned():
+    assert refused("Bearer x") is True
+    # A token starts with a character that is not whitespace and is none of these six.
+    for char in ('"', "'", ",", ";", "}", "]"):
+        assert refused(f"Bearer {char}") is False, char
+
+
 def test_i3_text_outside_the_rule_is_returned(matrix):
     cases = json.loads((ROOT / "research/evaluation/cases.json").read_text(encoding="utf-8"))
     tasks = [case["task"] for case in cases]
@@ -260,34 +269,57 @@ def test_i4_the_disclosed_examples_behave_as_stated(text, expected):
 EDGES = (
     # Breaks and blank lines.
     (f"**password**\n \t\n: {VALUE}", RETURNED),  # a whitespace-only line is a blank line
+    (f"**password**\n\v\n: {VALUE}", RETURNED),  # and so is a line with only a vertical tab
     (f"password\r\n: {VALUE}", REFUSED),  # CRLF is one break, not an empty line
     (f"password\n\r: {VALUE}", RETURNED),  # LF then CR is two breaks around an empty line
     (f"password\v\n: {VALUE}", REFUSED),  # vertical tab and form feed are not breaks
     (f"password\f\n: {VALUE}", REFUSED),
     (f"Ordinary context.\vBearer {VALUE}", RETURNED),
+    (f"Ordinary context.\n\vBearer {VALUE}", REFUSED),  # but it is an indent before a scheme word
+    # The separators U+001C to U+001E are whitespace inside a line, not breaks.
+    (f"password\x1c\x1c\x1d\x1d\x1e\x1e: {VALUE}", REFUSED),
     (f"api\n\nkey: {VALUE}", REFUSED),  # the paragraph is measured from the end of the label
     # Every label is examined, not only the first.
     (f"password secret\n\napi_key: {VALUE}", REFUSED),
     # The text as written is checked before normalization composes it.
     (f"secret\N{COMBINING CEDILLA}: {VALUE}", REFUSED),
     (f"password =\N{COMBINING LONG SOLIDUS OVERLAY} {VALUE}", REFUSED),
+    # The normalized text is a view of its own: decoding this one first would put a blank
+    # line between the label and the operator.
+    (f"{full_width('password')}\\x0a\\x0a: {VALUE}", REFUSED),
+    # Normalization composes before it removes: the cedilla joins the last letter, and the
+    # word is no longer a label.
+    (f"{full_width('secret')}\N{COMBINING CEDILLA}: {VALUE}", RETURNED),
     # Normalization removes each of the four categories: Cf, Mn, Mc and Me.
     (f"pass\N{SOFT HYPHEN}word: {VALUE}", REFUSED),
     (f"pass\N{COMBINING GRAPHEME JOINER}word: {VALUE}", REFUSED),
     (f"pass\N{DEVANAGARI SIGN VISARGA}word: {VALUE}", REFUSED),
     (f"pass\N{COMBINING ENCLOSING CIRCLE}word: {VALUE}", REFUSED),
-    # A character that decoding reveals is normalized before its view is checked.
+    # Only those four are removed: a space stays, so this is not a label.
+    ("pass word: caf\N{LATIN SMALL LETTER E WITH ACUTE}", RETURNED),
+    # A format character that decoding reveals is removed before its view is checked.
     (f"pass\\u200bword: {VALUE}", REFUSED),
+    # Decoding comes before normalization: the decoded sign composes with the mark after it
+    # into a not-equal sign, so no view holds an operator.
+    (f"password\\x3d\\u0338 {VALUE}", RETURNED),
     # The escape forms that no presentation above uses.
     (f"password\\U0000003d{VALUE}", REFUSED),
     (f"password\\075{VALUE}", REFUSED),
     (f"password&#X3D;{VALUE}", REFUSED),
+    (f"password%3d{VALUE}", REFUSED),  # lower-case hex digits
+    (f"password&#x00003D;{VALUE}", REFUSED),  # six hexadecimal digits
+    (f"password&#0000061;{VALUE}", REFUSED),  # seven decimal digits
     # A code above 0x10FFFF is not a character: the escape stays as written.
     ("\\U00110000", RETURNED),
     ("&#x110000;", RETURNED),
     ("&#9999999;", RETURNED),
     # A lone surrogate that decoding produces is an ordinary character.
     ("x\\ud800y", RETURNED),
+    # Step 5 compares normalized views. The fourth decode leaves a zero-width space between
+    # two jamo; removing it lets the next normalization compose them, so the view still changes.
+    ("\N{HANGUL CHOSEONG KIYEOK}" + "\\" * 8 + "u200b\N{HANGUL JUNGSEONG A}", REFUSED),
+    # A text still changing after four decodes is refused whatever else it holds.
+    ("postgres://user:%2525252541@host", REFUSED),
 )
 
 
@@ -322,6 +354,37 @@ def test_i6_one_million_characters_take_linear_time(name):
     assert outcome is expected
     # Linear cost is a fraction of a second; the bound only catches a non-linear scan.
     assert elapsed < 5, f"{elapsed:.2f} seconds"
+
+
+LIGATURE = "\N{ARABIC LIGATURE SALLALLAHOU ALAYHE WASALLAM}"  # NFKC writes it as 18 characters
+EXPANDING_INPUTS = {
+    "one expansion": (lambda: LIGATURE * 333_333, 999_999),
+    "expansion and four decodes": (lambda: LIGATURE * 333_300 + "a" + "\\" * 16 + "b", 999_918),
+}
+
+
+@pytest.mark.parametrize("name", EXPANDING_INPUTS)
+def test_i6_one_million_bytes_that_expand_eighteen_fold_take_linear_time(name):
+    build, size = EXPANDING_INPUTS[name]
+    text = build()
+    assert len(text.encode("utf-8")) == size <= MILLION
+    assert len(unicodedata.normalize("NFKC", text)) > 17 * len(text)
+    started = time.perf_counter()
+    outcome = refused(text)
+    elapsed = time.perf_counter() - started
+    assert outcome is RETURNED
+    # Every view is 18 times as long as the text, so linear cost is seconds here, not a
+    # fraction of one. The bound still only catches a non-linear scan.
+    assert elapsed < 10, f"{elapsed:.2f} seconds"
+
+
+def test_the_removal_table_holds_exactly_the_four_categories():
+    expected = {
+        code
+        for code in range(sys.maxunicode + 1)
+        if unicodedata.category(chr(code)) in {"Cf", "Mn", "Mc", "Me"}
+    }
+    assert set(context._removal_table()) == expected
 
 
 def test_i6_a_past_deadline_never_returns_text():
@@ -398,3 +461,11 @@ def test_collect_context_returns_the_text_it_was_given_and_passes_a_refusal_on()
         assert type(caught.value) is ContractError and caught.value.args == (MESSAGE,)
     with pytest.raises(TimeoutError):
         collect_context(task, [], [], -math.inf)
+    left_out = (
+        {"reference": "private/a.txt", "authorized": True},  # excluded by path
+        {"reference": "b.txt", "authorized": False},  # not authorized
+        {"reference": None, "authorized": True},  # the reference is not a string
+    )
+    for attachment_left_out in left_out:
+        result = collect_context(task, [attachment_left_out], ["private"])
+        assert result == {"task_representation": task, "attachments": [], "unavailable": True}
