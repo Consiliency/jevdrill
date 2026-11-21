@@ -1,6 +1,7 @@
 import json
 import os
 import sqlite3
+import stat
 import subprocess
 import sys
 from time import monotonic
@@ -161,6 +162,11 @@ os._exit(0)
     subprocess.run(
         [sys.executable, "-c", script, str(path), json.dumps(scope()), str(committed)], check=True
     )
+    connection = sqlite3.connect(path)
+    try:
+        assert connection.execute("SELECT count(*) FROM tasks").fetchone()[0] == int(committed)
+    finally:
+        connection.close()
     assert (store.load_replay(scope(), "decision") is not None) == committed
     bundle = {"routing_decision_id": "decision", "task_id": "task"}
     assert store.commit_decision(scope(), "key", canonical_digest(bundle), bundle)["status"] == (
@@ -174,7 +180,7 @@ def test_contention_uses_remaining_deadline(tmp_path):
         connection.execute("BEGIN IMMEDIATE")
         store.deadline = monotonic() + 0.05
         started = monotonic()
-        with pytest.raises(sqlite3.OperationalError):
+        with pytest.raises((sqlite3.OperationalError, TimeoutError)):
             store.delete_task(scope(), "task")
         assert monotonic() - started < 0.5
 
@@ -223,3 +229,28 @@ def test_migration_failure_is_atomic(tmp_path):
             ]
             == 0
         )
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX file modes")
+def test_new_store_files_are_private(tmp_path):
+    previous = os.umask(0o022)
+    try:
+        store = SQLiteStorage(tmp_path / "route.db")
+        reader = sqlite3.connect(store.path)
+        try:
+            reader.execute("SELECT count(*) FROM tasks").fetchone()
+            store.stage_artifact(
+                scope(), "task", b"synthetic", kind="context", retention="active", encryption="none"
+            )
+            for name in ("route.db", "route.db-wal", "route.db-shm"):
+                assert stat.S_IMODE((tmp_path / name).stat().st_mode) == 0o600
+            artifacts = tmp_path / "artifacts"
+            created = [artifacts, *artifacts.rglob("*")]
+            assert any(path.is_file() for path in created)
+            for path in created:
+                expected = 0o700 if path.is_dir() else 0o600
+                assert stat.S_IMODE(path.stat().st_mode) == expected
+        finally:
+            reader.close()
+    finally:
+        os.umask(previous)

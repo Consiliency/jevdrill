@@ -15,10 +15,15 @@ from uuid import NAMESPACE_URL, uuid4, uuid5
 from .contracts import ContractError, canonical_digest, parse_contract
 
 
+def _open_private(path: str, flags: int) -> int:
+    return os.open(path, flags, 0o600)
+
+
 class SQLiteStorage:
     def __init__(self, path: Path, deadline: float | None = None) -> None:
         self.path = path
         self.deadline = deadline
+        os.close(os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600))
         self._initialize()
         self._initialize_discovery()
         self._initialize_learning()
@@ -1181,7 +1186,7 @@ class SQLiteStorage:
                     }
                 )
             for task, identity, kind, digest, pending in c.execute(
-                "SELECT a.task,a.artifact_id,a.kind,a.digest,a.pending FROM artifacts a JOIN artifact_lifecycle l ON a.scope=l.scope AND a.artifact_id=l.artifact_id WHERE a.scope=? AND a.retention!='retired' AND a.kind IN ('raw_task','raw_output','context','archive') AND NOT EXISTS (SELECT 1 FROM discovery_content_artifacts d WHERE d.scope=a.scope AND (d.artifact_id=a.artifact_id OR d.artifact_id=l.source_id))",
+                "SELECT a.task,a.artifact_id,a.kind,a.digest,a.pending FROM artifacts a JOIN artifact_lifecycle l ON a.scope=l.scope AND a.artifact_id=l.artifact_id JOIN tasks t ON t.scope=a.scope AND t.task=a.task WHERE a.scope=? AND t.deleted=0 AND a.retention!='retired' AND a.kind IN ('raw_task','raw_output','context','archive') AND NOT EXISTS (SELECT 1 FROM discovery_content_artifacts d WHERE d.scope=a.scope AND (d.artifact_id=a.artifact_id OR d.artifact_id=l.source_id))",
                 (pair,),
             ):
                 content = (
@@ -2228,9 +2233,10 @@ class SQLiteStorage:
                 if hashlib.sha256(content).hexdigest() != digest:
                     raise ContractError("artifact digest mismatch")
                 directory = self._artifact_directory(pair)
-                directory.mkdir(parents=True, exist_ok=True)
+                directory.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+                directory.mkdir(mode=0o700, exist_ok=True)
                 temporary = directory / (identity + ".pending")
-                with temporary.open("wb") as stream:
+                with open(temporary, "wb", opener=_open_private) as stream:
                     stream.write(content)
                     stream.flush()
                     os.fsync(stream.fileno())
@@ -2247,6 +2253,8 @@ class SQLiteStorage:
         content: bytes,
         key_provider: Callable[[], bytes | None],
         encrypt: Callable[[bytes, bytes], bytes],
+        *,
+        archive_source: str | None = None,
     ) -> str | None:
         key = key_provider()
         if key is None:
@@ -2262,7 +2270,13 @@ class SQLiteStorage:
         if not encrypted or encrypted == content:
             raise ContractError("archive encryption failed")
         return self.stage_artifact(
-            scope, task, encrypted, kind="archive", retention="archive", encryption="key_provider"
+            scope,
+            task,
+            encrypted,
+            kind="archive",
+            retention="archive",
+            encryption="key_provider",
+            archive_source=archive_source,
         )
 
     def archive_artifact(
@@ -2285,7 +2299,7 @@ class SQLiteStorage:
         if hashlib.sha256(content).hexdigest() != row[1]:
             raise ContractError("artifact digest mismatch")
         # The active indexed source remains durable until LEARN's retention policy expires it.
-        return self.archive(scope, row[0], content, key_provider, encrypt)
+        return self.archive(scope, row[0], content, key_provider, encrypt, archive_source=identity)
 
     def load_notices(self, scope: Mapping[str, str]) -> list[dict[str, Any]]:
         pair = self._task_scope(scope)

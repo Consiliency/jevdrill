@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def request():
-    rows = json.loads((ROOT / "tests/contracts/fixtures/boundary.json").read_text())
+    rows = json.loads((ROOT / "tests/contracts/fixtures/boundary.json").read_text(encoding="utf-8"))
     value = copy.deepcopy(next(row["payload"] for row in rows if row["id"] == "RouteRequest-0"))
     value["optimization_objective"]["metric_id"] = "raw_token_cost"
     return value
@@ -27,13 +27,28 @@ def candidate():
 
 
 def test_unknown_cost_cannot_satisfy_hard_cap():
-    payload = request()
-    payload["hard_constraints"]["spending_ceiling"] = {"amount": "1", "currency": "USD"}
-    result = select_plan(payload, [candidate()], AttemptCost(None, None, None, "USD", "rates"))
-    assert result["status"] == "no_compatible_plan"
-    assert result["details"]["exclusions"] == [
-        {"candidate_id": "candidate", "reasons": ["cost_cap"]}
-    ]
+    known = candidate() | {
+        "execution_token_limits": {"input_tokens": 10, "output_tokens": 10},
+        "rates": candidate()["rates"] | {"input_rate": "0.1", "output_rate": "0.1"},
+    }
+    # A known estimate must not stand in for an unknown bound.
+    estimate = AttemptCost(Decimal(0), None, None, "USD", "rates")
+    excluded = [{"candidate_id": "candidate", "reasons": ["cost_cap"]}]
+
+    def route(amount, row):
+        payload = request()
+        payload["hard_constraints"]["spending_ceiling"] = {"amount": amount, "currency": "USD"}
+        return select_plan(payload, [row], estimate)
+
+    assert route("2", known)["status"] == "ready"
+    for amount, row in (
+        ("1.99", known),
+        ("2", known | {"rates": None}),
+        ("2", known | {"execution_token_limits": None}),
+    ):
+        result = route(amount, row)
+        assert result["status"] == "no_compatible_plan"
+        assert result["details"]["exclusions"] == excluded
 
 
 def test_stable_model_id_breaks_ties():
