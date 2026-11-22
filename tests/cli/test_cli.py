@@ -263,14 +263,32 @@ def test_text_that_cannot_be_checked_in_time_ends_in_the_deadline_outcome(tmp_pa
         "status": "storage_failure",
         "code": "infrastructure_failure",
     }
-    # At one second the check cannot finish. At five a fast machine may answer in time.
+    # At one second the check cannot finish. At five a fast machine may answer in time. A machine
+    # that finishes the check in the last 50 ms before the deadline gets the answer `route` gives
+    # inside its own margin: a stored, retryable routing failure with one of two fixed codes.
+    answer = json.loads(result.stdout) if result.returncode == 0 else {}
     answered_in_time = (
         budget_ms == 5000
         and result.returncode == 0
         and elapsed < 6
-        and json.loads(result.stdout)["status"] == "no_compatible_plan"
+        and (
+            answer["status"] == "no_compatible_plan"
+            or (
+                answer["status"] == "routing_failed"
+                and answer["retryable"] is True
+                and answer["error_code"]
+                in (
+                    "invalid inventory target or deadline",
+                    "candidate preparation deadline expired",
+                )
+            )
+        )
     )
-    assert deadline_outcome or answered_in_time, (result.returncode, result.stdout[:200])
+    assert deadline_outcome or answered_in_time, (
+        result.returncode,
+        result.stdout[:200],
+        result.stdout[-200:],
+    )
     assert elapsed < budget_ms / 1000 + 6, f"{elapsed:.2f} seconds"
     assert result.stderr == b""
 
