@@ -1,0 +1,29 @@
+# The offline calibration diagnostic: the application run over the 12 public protocol tasks with a
+# scripted observer. It calls no provider, needs no secret and produces no phase gate.
+# The tests of the script run in unit.yml on the three platforms.
+name: EXPERIMENT offline boundaries
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - run: uv sync --locked
+      # A report already in the checkout must not be uploaded as this run's.
+      - run: rm -f evidence/EXPERIMENT/discovery-offline.json evidence/EXPERIMENT/calibration-offline.json
+      - run: uv run python scripts/verify_discovery_calibration.py --offline-only
+      - run: uv run python scripts/verify_calibration_benchmark.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: experiment-offline
+          path: |
+            evidence/EXPERIMENT/discovery-offline.json
+            evidence/EXPERIMENT/calibration-offline.json
+          if-no-files-found: error
