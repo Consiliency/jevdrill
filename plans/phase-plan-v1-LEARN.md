@@ -21,8 +21,9 @@ another checkout, its old Python and its claim that a committed record
 verifies IF-0-HOST-1. That plan was reviewed only by its planner and is not
 accepted as the required revision.
 
-The LEARN code is on `main`. SL-1 to SL-3 need only GitHub CI; the rest waits
-for the host integration and HOST's verifier. Nothing here runs a collector,
+The LEARN code is on `main`: the roadmap's two lanes have landed, and the six
+here are what remains. SL-1 to SL-3 need only GitHub CI; the rest waits for the
+host integration and HOST's verifier. Nothing here runs a collector,
 lands a held file, requests a host run, spends money or closes a gate.
 
 Length exception: every clause is mapped to code, control, falsifier and
@@ -167,8 +168,10 @@ verified.
   | Retain or decline | A choice among runs that happened | EC-LEARN-5, third |
 
 - **Deterministic analysis is default** is read as the mode: the only
-  analysis is deterministic, run where settings enable it (off by default,
-  `settings.py:25`). Model-assisted analysis does not exist and a request for
+  analysis is deterministic, run where settings enable it. `main` has local
+  analysis and raw retention off by default (`settings.py:23-25`), where JD-043
+  says on by default with opt-out (`specs/jevdrill-design-input.md:358`). This
+  plan verifies `main` as built and lists the difference under owner inputs. Model-assisted analysis does not exist and a request for
   it is refused (`docs/learn-interfaces.md:35-36`): a condition on a
   capability, whose control is the refusal. Nothing builds it.
 - **Benchmark assessments** are read as analysis's objective assessments,
@@ -183,9 +186,8 @@ verified.
   a gate verdict" (`specs/phase-plans-v1.md:354`).
 - **Needing the host integration:** the installed control and the four
   companion files. The files run whole, with no skip where they run (the
-  Windows two only on Windows), and may carry `jevdrill_installed`, not
-  `dotfiles_integration`. They are host-platform regressions, cited for no
-  LEARN clause.
+  Windows two only on Windows), and may not carry `dotfiles_integration`. They
+  are host-platform regressions, cited for no LEARN clause.
 - **Re-archived content (Consiliency/jevdrill#46)** reuses the first archive
   and its time (`maintenance.py:188-197`; `storage.py:2202`), so expires a year
   after the first archival; "Cold archives expire one year after archival"
@@ -386,13 +388,14 @@ artifact of the run that made it and is never committed.
 - Anything on the strength of the October reports, receipts or plans.
 - That hosted runners can run the host integration, or that it is accepted.
 - Proof against a real OS key store or an installed scheduler.
-- Native synthetic HOST receipts establish software conformance only and
-  cannot supply empirical quality floors, guidance effectiveness or promotion
-  evidence.
+- That native synthetic HOST receipts supply empirical quality floors, guidance
+  effectiveness or promotion evidence; they establish software conformance only.
 - A causal, whole-skill or cross-domain claim.
 - That a decline that starts no run is visible to learning.
 - That "retain" is shown except as a refusal to replace an operator-set model.
 - That LEARN evidence informs later discovery or task selection.
+- That a shared record cannot be linked by the domains, guidance choices or
+  revisions digest it still carries.
 - Ratified review, publication, adoption or release readiness.
 
 ## Attached backlog
@@ -418,6 +421,9 @@ artifact of the run that made it and is never committed.
   - EC-LEARN-5, "comparable evidence can inform later discovery and task
     selection": no path on `main`; one would need a contract change, which is
     the owner's.
+- **The local defaults.** JD-043 says local retention and analysis are on by
+  default with opt-out; `main` has them off. Without an answer this plan
+  verifies `main` as built.
 - **The options not chosen** in Consiliency/jevdrill#53 and #58: each changes
   the ratified contract.
 - **Making a decline visible to learning**, as in the HOST plan.
@@ -436,6 +442,5 @@ synthetic stores and keys only.
 - schema: `spec_delta_closeout.v1`; decision: `no_spec_delta`
 - target surfaces: learning/retention contracts; evidence paths: `evidence/LEARN/spec-delta.json`
 - redaction_posture: `metadata_only`; missing/malformed evidence: `blocker_class=contract_bug`, non-human repair
-- downstream handling: EXPERIMENT consumes IF-0-LEARN-1 as defined here
 
 No roadmap text is amended by this plan.
