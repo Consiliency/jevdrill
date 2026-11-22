@@ -112,6 +112,7 @@ REQUIRED_TEST_PATHS = (
     "tests/contracts/test_discovery_contracts.py",
     "tests/storage/test_discovery_recovery.py",
     "tests/integrations/test_discovery_jev.py",
+    "tests/integrations/test_jev.py",
     "tests/privacy/test_discovery_privacy.py",
     "tests/application/test_discovery_application.py",
     "tests/application/test_discovery_edges.py",
@@ -458,8 +459,8 @@ def reduce_manifests(
                     errors.append("failed check")
                 if name == "cold_cli" and (
                     type(item.get("duration_seconds")) not in (int, float)
-                    or not math.isfinite(item["duration_seconds"])
                     or not 0 < item["duration_seconds"] < 5
+                    or not math.isfinite(item["duration_seconds"])
                     or item.get("response_status") != "ready"
                 ):
                     errors.append("missing or failed cold deadline measurement")
@@ -621,9 +622,12 @@ def collect(root: Path, *, extra_test_paths: tuple[str, ...] = ()) -> dict[str, 
             for suite in suites:
                 for case in suite.findall("testcase"):
                     parts = case.get("classname", "").split(".")
+                    classes: list[str] = []
                     while parts and not (root / ("/".join(parts) + ".py")).is_file():
-                        parts.pop()
-                    node_id = "/".join(parts) + ".py::" + case.get("name", "")
+                        classes.insert(0, parts.pop())
+                    # A method of a test class keeps its class, as in pytest's own id, so it
+                    # can never stand for a module-level control of the same name.
+                    node_id = "::".join(["/".join(parts) + ".py", *classes, case.get("name", "")])
                     outcome = (
                         "skipped"
                         if case.find("skipped") is not None

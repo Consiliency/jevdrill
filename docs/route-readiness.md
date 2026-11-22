@@ -31,7 +31,7 @@ proof-cost target. Neither allowance changes the product deadline.
 
 The CLI accepts one JSON document on stdin and produces one JSON response on
 stdout. Use `--storage PATH` and the host's spawn-inclusive
-`--remaining-budget-ms N`. Commands are `discover`, `route`, `report`,
+`--remaining-budget-ms N`. ROUTE's commands are `discover`, `route`, `report`,
 `inspect`, `delete`, `inspect-discovery` and `delete-discovery`. Exit codes are
 0 handled response, 2 invalid input/version, 3 idempotency conflict and
 4 infrastructure/deadline failure. Native Windows verification uses the installed
