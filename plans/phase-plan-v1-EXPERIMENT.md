@@ -9,8 +9,8 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
 > with three seats (correctness; security and privacy; alternate vendor).
-> Rounds: to be filled in. Pull request: to be filled in. This is a reviewed
-> plan. It verifies no criterion.
+> Rounds: to be filled in. Pull request: Consiliency/jevdrill#98. This is a
+> reviewed plan. It verifies no criterion.
 
 ## Context
 
@@ -51,9 +51,9 @@ records are re-made (SL-4); receipts, verdicts and history are never committed.
 **Exists nowhere.** A run of the restricted container on `main`'s code; a run
 of `tests/promotion/runtime_recorded_evidence.py`, which no workflow, script
 or test names and pytest does not collect by its file name; a comparison path in the host
-integration; the "D new" controls; a study record on `main`.
+integration; the "D new" controls; a completed study record.
 
-**History, once.** On 2026-09-29 the owner made an exception for a development calibration pilot (`specs/jevdrill-design-input.md:588`). The roadmap's JD-078 note (`specs/phase-plans-v1.md:277`) names that pilot's caps: they are the record of the pilot, which is over, and not a limit for or a grant of anything here. On 2026-10-09 the owner approved one study authority of at most 28.20 USD; it expired on 2026-10-15, and its one run stopped incomplete (`docs/evaluation-protocol.md:21`). The October records name the image `sha256:70af8b01bcbd3a008522f36ea07b679f14f9ad3fb721868cf0cc3f80b7e3f958` (`scripts/verify_discovery_calibration.py:417`), a local build with no registry reference. None of this carries forward.
+**History, once.** On 2026-09-29 the owner made an exception for a development calibration pilot (`specs/jevdrill-design-input.md:588`). The roadmap's JD-078 note (`specs/phase-plans-v1.md:277`) names that pilot's caps: they are the record of the pilot, which is over, and not a limit for or a grant of anything here. On 2026-10-09 the owner approved one study authority of at most 28.20 USD; it expired on 2026-10-15, and its one run stopped incomplete (`docs/evaluation-protocol.md:21`). The October records name the image `sha256:70af8b01bcbd3a008522f36ea07b679f14f9ad3fb721868cf0cc3f80b7e3f958` (`scripts/verify_discovery_calibration.py:417`), a local id with no registry reference. None of this carries forward.
 
 ## External Inputs
 
@@ -73,6 +73,8 @@ integration; the "D new" controls; a study record on `main`.
   with `--max-old-space-size` and loading `node:fs` (`:15`, `:89`); all as user
   `65534:65534` on a read-only root without network (`:66-74`). The product
   never pulls (`:63`) and takes only a local `sha256:` image id (`:26`).
+- Read inputs: `main`, the tag and the draft above; no private corpus,
+  holdout, credential, provider log or user database.
 
 ## Interface Freeze Gates
 
@@ -96,7 +98,7 @@ verified.
 | 1 | Prioritize recurring uncertainty and expected benefit | `experiments.py:417-430` | main the queue test, `::test_queue_priority_and_scope_isolation`, `tests/storage/test_experiments.py::test_opted_out_equivalent_recurrence_cannot_increase_priority`; D new, SL-2: order follows each of recurrence, uncertainty and benefit varied alone | An order ignoring one of the three, or counting an opted-out task | native CI run |
 | 1 | Only after explicit experiment enablement | Off by default, `settings.py:26`; `experiments.py:81-85` | main `tests/storage/test_experiments.py::test_resolved_settings_disable_even_an_enabled_grant`, `::test_settings_opt_out_after_admission_prevents_dispatch` | Admission or a start with experiments off | native CI run |
 | 1 | And applicable standing authorization | `experiments.py:77-117`; none in the command line's application, `application.py:1384-1386` | main `tests/experiments/test_execution.py::test_authority_denials_never_dispatch_or_reserve` [8], `::test_default_has_no_authority_or_runner`, `tests/storage/test_experiments.py::test_all_grant_scope_fields_bind_admission` [4] | A reservation or start without a current, in-scope authority | native CI run |
-| 1 | Default limits allow one background experiment/two candidates | No default: both counts are required (`baml_src/contracts.baml:99`), at least two and one (`baml_src/boundary.json:137-142`) | Not covered: needs an owner input (JD-079, under "Readings") | — | needs an owner input |
+| 1 | Default limits allow one background experiment/two candidates | No default, as decided (under "Readings"): both counts are required (`baml_src/contracts.baml:99`), at least two and one (`baml_src/boundary.json:137-142`) | D new, SL-2: this table's last row | A count supplied for a proposal that stated none | native CI run |
 | 1 | With explicit compute/time | Required, `baml_src/contracts.baml:99`; within the authority, `experiments.py:108-116`, and the host, `:152-158` | main `test_execution.py::test_current_host_readiness_required` [11]; D new, SL-2: a limit above the authority's | A run admitted beyond the host's resources or its authority | native CI run |
 | 1 | External per-experiment/daily caps | `experiments.py:48-52`, `:159-165`, `:231-240`; `storage.py:383-391` | main the readiness test, `test_execution.py::test_spend_reservations_survive_deletion_and_daily_rollover`; D new, SL-2: the daily cap alone, on its day and the next | A reservation above either cap | native CI run |
 | 1 | Default counts do not enable experiments | `experiments.py:410-413`, `:432`; `contracts.py:189-198` | main `tests/application/test_experiments.py::test_proposal_cannot_self_authorize` [3], `tests/cli/test_experiments.py::test_real_cli_lists_experiments_without_enabling_execution` | A proposal carrying authority, or `execution_authorized` true | native CI run |
@@ -151,7 +153,7 @@ validator checks named are synthetic and cover nothing. Protocol:
 
 **Part 2: the restricted-runtime proof** (D, SL-3; needs a container). For
 EC-EXPERIMENT-2's restricted containers, deadlines and absent runtimes: the
-runtime verifier's named checks (`EXPECTED_CHECKS` at the tag, all required),
+runtime verifier's named checks (`EXPECTED_CHECKS` at the tag, all 11 required),
 among them container limits, worker custody, removal of the container and a
 detached child after worker death, and an unavailable image refused. For pause,
 cancel and the immediate path, and EC-EXPERIMENT-3's restricted grading: its
@@ -180,8 +182,10 @@ that readies; any of those tests failing, skipped or missing.
   candidate plans per experiment", `specs/jevdrill-design-input.md:596`) is in
   this phase's coverage (`specs/phase-plans-v1.md:276`). `main` supplies no
   default: a proposal without either count fails schema validation
-  (`experiments.py:403`, raised at `contracts.py:292`); no test shows it. The
-  plan verifies `main` as built.
+  (`experiments.py:403`, raised at `contracts.py:292`); no test shows it. On
+  2026-11-22 the owner decided that this stands (`docs/contract-decisions.md`,
+  "Changes to accepted decisions"). The plan verifies `main` as built;
+  whether that meets the roadmap's sentence is the owner's at the gate.
 - **Evidence kinds.** Fake-container tests are simulated
   (`tests/experiments/test_development.py:128-132`); policy-evaluation tests
   are synthetic. The roadmap: "Substitute/proxy evidence requires a
@@ -203,8 +207,8 @@ that readies; any of those tests failing, skipped or missing.
   line reaches the provider function, not a mock (`application.py:842`); the
   mock falls back to a public endpoint when its base URL is blank
   (Consiliency/jevdrill#17, open). Each lane says how it keeps this true.
-- **Diagnostic mode.** The held `--software-only` mode stays; it produces no
-  gate and its report says so.
+- **No diagnostic mode.** The held `--software-only` mode goes (declared
+  change 1).
 
 ## Cross-Repo Gate
 
@@ -290,10 +294,11 @@ deliverable and no other runner is requested.
 
 ### SL-5 — Readiness doc
 
-- **Needs:** SL-4's run and its verdict artifact.
+- **Needs:** SL-4's run, with its verdict artifact if there is one.
 - **Owned files:** `docs/experiment-readiness.md`.
-- **Delivers:** the held doc rewritten: the run linked with its `blocked`
-  verdict as that run's artifact; the not-covered clauses and owner inputs; no
+- **Delivers:** the held doc rewritten: the run linked, with its verdict as
+  that run's artifact or why it has none; the not-covered clauses and owner
+  inputs; no
   October receipt, image or study record.
 
 ## Verification
@@ -344,9 +349,10 @@ never committed.
 
 **Declared changes to the held instruments:**
 
-1. `empirical_errors`, its two study files and the study proposal in
-   `input_digest` go; owner-input clauses are reported under the rule above.
-   Reason: the study records are not restored.
+1. `empirical_errors`, its two study files, the study proposal in
+   `input_digest` and the `--software-only` mode go; owner-input clauses are
+   reported under the rule above. Reason: the study records are not restored,
+   and that mode skipped only `empirical_errors` and could report `passed`.
 2. The runtime receipt comes from a job of the same run, written outside the
    checkout; the reducer reads no other. Reason: Consiliency/jevdrill#73.
 3. The fixed image id of the runtime verifier and of
@@ -380,8 +386,8 @@ never committed.
 - Anything on the strength of the September or October records.
 - That a study is authorized, proposed or able to run.
 - Any empirical result, calibrated tolerance or model quality.
-- That the diagnostic mode, the offline report or any synthetic or simulated
-  evidence satisfies a criterion, the suite or the phase.
+- That the offline report or any synthetic or simulated evidence satisfies a
+  criterion, the suite or the phase.
 - Any promotion.
 - That hosted runners can run the host integration or the container; that the
   host integration is accepted or carries a comparison path.
@@ -419,8 +425,8 @@ None is asked here; each blocks what it names.
 - **A private held-out set.** Without it EC-EXPERIMENT-3's blinded evaluation
   has no evidence and no quality or benefit claim is made.
 - **A promotion authority.** Without it no policy is promoted.
-- **A decision on JD-079's defaults.** Without it EC-EXPERIMENT-1's "default
-  limits" clause stays not covered.
+- **A container host**, only if hosted Linux cannot run the container.
+  Without it part 2's rows block the gate.
 - **Closing the EXPERIMENT gate**, including whether simulated and synthetic
   evidence satisfies EC-EXPERIMENT-2 and 3 under `specs/phase-plans-v1.md:354`,
   and each software clause not covered.
@@ -434,8 +440,8 @@ providers in background experiments.
 Execute serially, one writer per lane; each lane's scope is fixed before it is
 cut and reviewed as this plan was. No edit to `specs/phase-plans-v1.md`,
 `plans/manifest.json` or `scripts/verify_route_phase.py` beyond the backlog's
-standing limits. Tests use synthetic stores and keys only. A study lane is
-added by amendment after the owner's authority.
+standing limits. Tests use synthetic stores and keys only. No study is
+planned; one would be added by amendment after the owner's authority.
 
 ## Spec Closeout Plan
 
