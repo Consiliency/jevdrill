@@ -7,9 +7,9 @@
 - **Passing on `main`, natively on Linux, macOS and Windows in GitHub CI:** the CONTRACT verifier (the `Contract conformance` workflow) and the ROUTE verifier, with the controls of EC-ROUTE-1 to 7 (the `ROUTE verification` workflow). The progressive discovery loop is implemented. The sections below that call it a gap describe October.
 - **On `main`, not verified as phases:** the local learning and experiment commands and their modules, with unit tests on three platforms (the `Unit tests` workflow), and the offline calibration diagnostic (the `EXPERIMENT offline boundaries` workflow), which produces no phase gate.
 - **Not on `main`:** the HOST, LEARN and EXPERIMENT phase verifiers, their workflows and the HOST conformance tests. They need the agent-harness host integration, which is in draft in that repository (Consiliency/agent-harness#2071) and is not yet reviewed or merged. No HOST, LEARN or EXPERIMENT criterion is verified on `main`. The October 2026 reports for those phases were made on Python 3.13 with unpublished code. They are part of the record of #1 and establish nothing for `main`.
-- **Next:** replan HOST, LEARN, EXPERIMENT and PREPARE against the amended roadmap. The HOST replan starts from a reviewed revision of the host integration; the phase verifiers land with it.
+- **Next:** replan HOST, LEARN, EXPERIMENT and PREPARE against the amended roadmap. The HOST replan starts from a reviewed revision of the host integration; the phase verifiers land with it. What the stack's reviews left for that work is filed as issues; Consiliency/jevdrill#80 and Consiliency/jevdrill#82 concern the verifiers that are not on `main`.
 - The 36 evaluation cases in `research/evaluation/cases.json` and the 12 tasks of `research/evaluation/discovery-calibration/protocol.json` are public development fixtures. A new private held-out set is required for any quality or benefit claim.
-- No study can run from `main`. The one study authority expired on 2026-10-15 ([evaluation protocol](evaluation-protocol.md)).
+- No study runs from `main` as it stands: the driver refuses to dispatch, because the one study authority expired on 2026-10-15 ([evaluation protocol](evaluation-protocol.md)).
 
 The sections below are earlier status reports, kept as written. Where one disagrees with this block, this block holds.
 

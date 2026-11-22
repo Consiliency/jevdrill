@@ -69,4 +69,6 @@ Recorded when the stack closed. The text above is the plan as directed on 2026-1
 | S5 | Consiliency/jevdrill#54 (S5a) and Consiliency/jevdrill#66 (S5b) |
 | S6 | Consiliency/jevdrill#76 (S6a, the offline calibration instrument) and Consiliency/jevdrill#85 (S6b, the record and the docs) |
 
+One pull request outside these items was made while S6 was reviewed: Consiliency/jevdrill#84 corrected a test that S5a had landed, after it failed once on a fast Windows runner.
+
 S6 did not land as planned. Its HOST, LEARN and EXPERIMENT phase verifiers, their workflows and the HOST conformance tests are not on `main`: they need the agent-harness host integration, which is in draft in that repository (Consiliency/agent-harness#2071) and is not yet reviewed or merged. No Python 3.14 HOST or LEARN receipt was made, on the owner's hosts or anywhere else, and no HOST, LEARN or EXPERIMENT gate is claimed. Those files stay at the tag `pr1-final-record` and are inputs to the replan named in the last line of "Order and dependencies". See [roadmap status](../docs/roadmap-status.md) and [where the record of #1 is](../docs/pr1-review-record.md).
