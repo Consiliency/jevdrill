@@ -11,7 +11,7 @@ Consiliency/jevdrill#1, "Implement ROUTE discovery and offline HOST, LEARN, EXPE
 | Whole-PR review rounds 1 to 21 | `evidence/MERGE/round-1` to `round-21` at the tag: the seats' reviews, the author's responses and, in some rounds, a president's ruling. There is no index. `evidence/MERGE/round-5/president.md` is the BLOCK_MERGE ruling on credentials that the split plan cites. |
 | The review of the judgment-version fix | `evidence/EXPERIMENT/fix-review-20261011/round-1` to `round-3` at the tag. |
 | The October 2026 phase reports | `evidence/CONTRACT`, `evidence/ROUTE`, `evidence/HOST`, `evidence/LEARN` and `evidence/EXPERIMENT` at the tag: closeouts, verdicts, Python 3.13 receipts under `history/python-3.13/`, and the proposal, approval and stopped-run records of the one development study. |
-| The stack that replaced it | Consiliency/jevdrill#12, #18, #27, #44, #54, #66, #76 and #S6B. Each description summarises its review and the rulings on it. |
+| The stack that replaced it | Consiliency/jevdrill#12, #18, #27, #44, #54, #66, #76 and #85. Each description summarises its review and the rulings on it. |
 
 To read a file of the record: `git fetch origin tag pr1-final-record`, then for example `git show pr1-final-record:evidence/MERGE/round-5/president.md`. Or browse <https://github.com/Consiliency/jevdrill/tree/pr1-final-record/evidence>.
 
