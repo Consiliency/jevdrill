@@ -9,7 +9,7 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
 > with three seats (correctness; security and privacy; alternate vendor).
-> Rounds: two; the second confirmed the first's fixes. Pull request: Consiliency/jevdrill#105.
+> Rounds: two. Pull request: Consiliency/jevdrill#105.
 > This is a reviewed plan. It verifies no criterion.
 
 ## Context
@@ -235,10 +235,10 @@ SL-2, packaging and platform; SL-3 to SL-6, documentation and governance.
   options, stated in the pull request, with the migration it needs, raising
   `user_version` above 4. SL-1 owns
   every storage migration here. The control fails if a store at
-  `user_version` 4 loses an artifact on migration. With a namespace, it fails
-  if two stores in one directory share artifacts or deleting in one removes
-  the other's; with a refusal, if the second store opens, or the first store
-  or its artifacts change.
+  `user_version` 4 loses an artifact on migration. With a namespace, two stores in one directory must
+  open with separate artifacts, and deletion in either must spare the
+  other's artifacts. With refusal, the second open must fail and the first
+  store and its artifacts must stay unchanged.
 
 ### SL-2 — Package, upgrade and recovery controls
 
@@ -360,10 +360,10 @@ IF-0-PREPARE-1 is not produced while any consumed gate would not be. Today
 five HOST clauses and one LEARN clause are not covered, and the EXPERIMENT
 verdict is `blocked` by design (the LEARN and EXPERIMENT plans, "The
 verifier"). A consumed verdict that is `blocked` is reduced, not treated as a
-failed run: the PREPARE verdict is then `blocked`, with its reasons. A native job fails
-only when a collection does not complete, not when an upstream verdict is
-`blocked`. A run
-whose jobs fail leaves no verdict.
+failed run: the PREPARE verdict is then `blocked`, with its reasons. A native job fails if setup, collection or a required control fails.
+A completed collection with passing controls is successful when its upstream
+verdict is `blocked` solely because clauses are uncovered. A failed native
+or runtime job leaves no PREPARE verdict.
 
 **What cannot happen.** Nothing this plan specifies can publish, dispatch or
 adopt. `test_prepare_workflow.py` fails if `prepare.yml` has a trigger other
@@ -425,7 +425,7 @@ and workflow this plan delivers is new.
 
 None is asked here; each blocks what it names.
 
-- **Not an owner input, but awaited:** an accepted host-integration commit
+- **Awaited:** an accepted host-integration commit
   that meets the HOST plan's conditions. Without it only SL-1 to SL-3, and
   SL-4's authority row, can run.
 - **The EXPERIMENT plan's tolerances and study authority.** Without them, and the amendment that
