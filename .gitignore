@@ -18,3 +18,8 @@ research/roadmap-review/**/*-stderr.log
 # Written by scripts/verify_route_phase.py. The verdict is the CI artifact; these are never committed.
 evidence/ROUTE/platforms/
 evidence/ROUTE/verification.json
+# Written by scripts/verify_discovery_calibration.py and scripts/verify_calibration_benchmark.py.
+# The offline reports are CI artifacts; none of these is ever committed.
+evidence/EXPERIMENT/discovery-offline.json
+evidence/EXPERIMENT/calibration-offline.json
+evidence/EXPERIMENT/studies/
