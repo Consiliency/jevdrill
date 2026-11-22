@@ -19,8 +19,13 @@ SPEC.loader.exec_module(checks)
 
 
 @pytest.fixture(scope="module")
-def diagnostic():
-    return checks.offline(ROOT)
+def diagnostic(tmp_path_factory):
+    # offline() keeps its store in a temporary directory. Put that under pytest's base directory.
+    # On the Windows runner the default location is the slow system disk, and one discovery call
+    # there ran past the product's five-second deadline.
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(checks.tempfile, "tempdir", str(tmp_path_factory.mktemp("offline")))
+        return checks.offline(ROOT)
 
 
 @pytest.mark.parametrize("durations", [(0.0, 0.1, 0.7, 1.0), (0.001, 0.001, 0.02, 0.003)])
