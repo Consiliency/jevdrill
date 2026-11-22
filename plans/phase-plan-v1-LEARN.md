@@ -9,8 +9,8 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
 > with three seats (correctness; security and privacy; alternate vendor).
-> Rounds: to be filled in. Pull request: Consiliency/jevdrill#TBD (to be filled
-> in). This is a reviewed plan. It verifies no criterion.
+> Rounds: to be filled in. Pull request: Consiliency/jevdrill#92. This is a
+> reviewed plan. It verifies no criterion.
 
 ## Context
 
