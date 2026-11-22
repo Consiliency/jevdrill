@@ -555,8 +555,8 @@ def test_guarded_driver_records_five_distinct_arms_with_loopback_and_explicit_fi
     if case_index == 0 and fault is None:
         for name in ("discovery.json", "route-application.json"):
             fixture = tmp_path / "tests/contracts/fixtures" / name
-            original = fixture.read_text()
-            fixture.write_text(original + "\n")
+            original = fixture.read_bytes()
+            fixture.write_bytes(original + b"\n")
             assert set(checks.validate_study(study, protocol, authority, tmp_path)) == (
                 expected_errors
                 | {
@@ -565,7 +565,7 @@ def test_guarded_driver_records_five_distinct_arms_with_loopback_and_explicit_fi
                     "new trusted study authority differs from bounded preview",
                 }
             )
-            fixture.write_text(original)
+            fixture.write_bytes(original)
         assert set(checks.validate_study(study, protocol, authority, tmp_path)) == expected_errors
     arm = study["cases"][0]["arms"]["actual_discovery_route"]
     arm["configuration_digest"] = "forged"
