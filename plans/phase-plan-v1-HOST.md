@@ -23,9 +23,10 @@ reviewed only by its planner and is not accepted as the required revision.
 
 The JEV Drill side of HOST is largely on `main`. The host side lives in
 `Consiliency/agent-harness`, where it is a draft (Consiliency/agent-harness#2071).
-This plan was written against that draft. Its execution starts only when that
-repository has accepted a commit that meets the conditions R1 to R6 below; the
-pin step is then the first step. Nothing here runs a collector, lands a held
+This plan was written against that draft. Apart from one lane of tests that
+needs only GitHub CI (SL-1), its execution starts only when that repository has
+accepted a commit that meets the conditions R1 to R6 below; the pin step is
+then the first step. Nothing here runs a collector, lands a held
 file, requests a host run, spends money or closes a gate.
 
 Length exception: this plan exceeds 3,000 words because every clause of four
@@ -59,9 +60,10 @@ files of `tests/conformance/` (`conftest.py`, five test files, one fixture), the
 probes `research/evaluation/host/test_bridge_probe.py` and
 `test_baseline_probe.py`, `docs/host-interfaces.md`, `docs/host-readiness.md`,
 and October's `evidence/HOST/**`. The October evidence is not restored: the
-handoff record and the expected-test lists are regenerated (pin step);
-`evidence/HOST/coverage.json` and `spec-delta.json` are re-made in SL-3;
-receipts, verdicts and history are never committed.
+handoff record is regenerated (pin step); the expected-test lists, which only
+the LEARN verifier reads, are the LEARN plan's; `evidence/HOST/coverage.json`
+and `spec-delta.json` are re-made in SL-3; receipts, verdicts and history are
+never committed.
 
 **Exists nowhere.** An accepted host-integration commit; any CI run of its
 tests; a HOST receipt from a hosted runner; a handoff record that names a
@@ -134,7 +136,7 @@ an owner input. Nothing below is verified.
 | Unknown telemetry is not fabricated | `contracts.baml:4` | main `test_observations.py::test_missing_failed_canceled_corrected_and_unknown_observations`; HI `test_jevdrill_usage.py::test_incomplete_drain_is_unknown_and_bounded`, `test_jevdrill_discovery.py::test_native_unsupported_observer_records_unknown_capture`; D `test_installed_usage_persistence` | A missing counter reported as a number | native CI run; needs the host integration |
 | Pending notices shown on the next connection | `application.py:1242`; `storage.py:2311`; `src/jevdrill/cli.py:87` | main `tests/storage/test_host_notices.py::test_notice_scope_reads_and_cross_producer_deletion`, `tests/application/test_host_notices.py::test_notice_snapshots_do_not_mutate_retry_or_replay`; D `tests/conformance/test_notices.py::test_every_report_connection_queries_notices` | A report connection with no notice query before it | native CI run; needs the host integration |
 
-**EC-HOST-3** (reading of C.4 below)
+**EC-HOST-3** (the reading is under "Readings and points settled")
 
 | Clause | Implementation | Control | Falsifier | Evidence |
 | --- | --- | --- | --- | --- |
@@ -170,14 +172,14 @@ an owner input. Nothing below is verified.
 
 ## Readings and points settled
 
-- **EC-HOST-3 (C.4).** Covered by the three-platform contract suites and the
+- **EC-HOST-3.** Covered by the three-platform contract suites and the
   frozen synthetic protocol run through the routed path. Every performance claim
   is recorded as `insufficient_evidence` and the evaluation is labelled
   synthetic. A live evaluation is not covered. Whether that closes the criterion
   is the owner's decision at the gate, with the roadmap's rule on
   substitute or proxy evidence (`specs/phase-plans-v1.md:354`) before him. A live
   evaluation he later authorizes is added by amendment.
-- **Declining a recommendation (C.5).** Tested as: the harness declines, no
+- **Declining a recommendation.** Tested as: the harness declines, no
   routed run starts, and nothing records a run that did not happen. Learning
   sees a host preference only as a choice among runs that happened
   (`storage.py:1014-1018`), so a decline with no run leaves nothing to
@@ -188,6 +190,8 @@ an owner input. Nothing below is verified.
   is the only test that drives installed usage reporting through the companion
   queue for missing, unsupported and lagged telemetry with privacy sentinels;
   without it those clauses rest on contract fixtures.
+  No verifier has run it; if it cannot run on a platform, SL-2 says so and the
+  control is declared for the platforms it runs on. It is never skipped.
 - **Judgment policy in the installed flow: `JudgeCandidate-v2` through the
   loopback mock.** At least one task of the installed two-task flow carries a
   route judgment policy at `JudgeCandidate-v2`, answered by the loopback mock
@@ -196,7 +200,9 @@ an owner input. Nothing below is verified.
   `application.py:825-828`), and a flow with no policy, as at the draft, cannot
   catch a companion that rejects v2. If the accepted commit's installed fixture
   cannot carry a judged task without a change in that repository, the pin step
-  records it and this clause is listed not covered; no condition is added.
+  records it, declared change 14 is dropped, and the plan then says that no
+  control sends a judged route through the host integration; no condition is
+  added.
 - **JD-084's native macOS control** is the two module-level launcher tests named
   above. At the draft they carry no `dotfiles_integration` marker and skip
   unless `PHASE_LOOP_TDD_EXPECT_SCHED=1`, which the collector sets; a skip
@@ -270,9 +276,9 @@ The conditions of the pin:
   reducer rejects a commit that is not the handoff's.
 - **J3.** The handoff record is regenerated from the accepted commit and names
   the repository and commit, not a path.
-- **J4.** The expected-test lists are rebuilt from that commit by a CI run. The
-  correctness seat of the pin pull request checks every listed id against the
-  test files at the commit, and the reducer fails on a listed id not collected.
+- **J4.** The expected-test lists (`evidence/HOST/companion/extra-<OS>.json`) are
+  read only by the LEARN verifier. Rebuilding them from the accepted commit by a
+  CI run belongs to the LEARN plan, with `learn.yml`.
 - **J5.** The collector compares the companion's contract copies with
   jevdrill's `schemas/` and fixtures at the commit under test, with the one
   substitution. This settles Consiliency/jevdrill#82.
@@ -281,10 +287,12 @@ The conditions of the pin:
 - **J7.** The companion's Python version is set explicitly and recorded in the
   receipt.
 
-**The pin step** is the first step of execution (SL-0): regenerate the handoff
-record from the accepted commit, rebuild the expected-test lists by a CI run,
-and compare the commit with R5's list. If the commit breaks an item of R5, this
-plan gets one amendment of one round.
+**The pin step** (SL-0) is the first step of everything that needs the host
+integration: regenerate the handoff record from the accepted commit and compare
+the commit with R5's list. The record holds only what anyone can recompute from
+that public commit; the correctness seat of the pin pull request recomputes it,
+and every collection checks it against the checkout. If the commit breaks an
+item of R5, this plan gets one amendment of one round.
 
 **Where the evidence comes from.** One dispatched `host.yml` run on GitHub's
 hosted Linux, macOS and Windows runners, JEV Drill on Python 3.14. Only if
@@ -299,7 +307,7 @@ possibility, not a request.
 ## Lane Index & Dependencies
 
 - SL-0 — Pin step; Depends on: an accepted commit; Blocks: SL-2, SL-3, SL-4; Parallel-safe: no
-- SL-1 — JEV-side controls; Depends on: SL-0; Blocks: SL-3; Parallel-safe: no
+- SL-1 — JEV-side controls; Depends on: (none); Blocks: SL-3; Parallel-safe: no
 - SL-2 — Conformance and probes; Depends on: SL-0; Blocks: SL-3; Parallel-safe: no
 - SL-3 — Verifier and workflow; Depends on: SL-0, SL-1, SL-2; Blocks: SL-4; Parallel-safe: no
 - SL-4 — Readiness docs; Depends on: SL-3 and one dispatched run; Blocks: (none); Parallel-safe: no
@@ -308,19 +316,17 @@ possibility, not a request.
 
 ### SL-0 — Pin step
 
-- **Needs:** an accepted host-integration commit; GitHub CI.
-- **Owned files:** `evidence/HOST/adapter-handoff.json`,
-  `evidence/HOST/companion/extra-{Linux,Darwin,Windows}.json`.
-- **Delivers:** R1 to R6 checked against the commit and stated in the pull
-  request; J3; J4; R5 compared. No file made outside a GitHub-hosted run is
-  committed. How that first run is triggered is fixed in HOST's cut
-  specification: a `workflow_dispatch` workflow cannot be dispatched before it
-  is on the default branch.
+- **Needs:** an accepted host-integration commit.
+- **Owned files:** `evidence/HOST/adapter-handoff.json`.
+- **Delivers:** R1 to R5 checked against the commit and stated in the pull
+  request; J3; R5 compared. It needs no workflow run. R6 is shown by the first
+  `host.yml` run (SL-3); if that run shows it false, HOST waits for a new
+  accepted commit.
 
 ### SL-1 — JEV-side controls
 
-- **Needs:** GitHub CI alone. The only lane that needs no companion; ordered
-  after the pin so execution starts in one place.
+- **Needs:** GitHub CI alone. The only lane that needs no accepted commit; it
+  may be executed before the pin step.
 - **Owned files:** `tests/application/test_host_routing.py` (new).
 - **Delivers:** controls, entered through `Application.route`, for: recursion
   bypass makes no judgment call; a dry run is never ordered or counted as
@@ -415,15 +421,15 @@ that made it and is never committed.
 1. Reduce job gets "Require successful native jobs" as in `route.yml`; ignore
    rules for every path it writes; verdict uploaded only when the reduction ran
    (Consiliency/jevdrill#74).
-2. `assertions_from` keeps class names in rebuilt ids.
-3. A malformed `platforms/*.json` is reported, not raised.
+2. `assertions_from` keeps class names in rebuilt ids, as the ROUTE verifier does; without them a rebuilt id does not name the test that ran.
+3. A malformed `platforms/*.json` is reported, not raised, so that one bad receipt gives a verdict with an error and not a traceback.
 4. Receipts name repository, commit and a clean checkout; the reducer rejects a
    foreign commit (J2).
 5. `test_route_phase.py`: `host` returns to
    `test_native_download_excludes_prior_reduction_reports` and joins
    `test_reduction_runs_only_after_every_native_job_succeeded`;
    `test_downstream_commands_cover_phase_controls_and_bind_extra_paths` is
-   restored.
+   restored. These tests of the workflows were cut down while `host.yml` was not on `main`.
 6. `host.yml` as J1, with pinned actions and `workflow_dispatch`.
 7. Contract-copy comparison against jevdrill's files replaces the raw handoff
    digest check (J5).
@@ -435,6 +441,8 @@ that made it and is never committed.
 12. `test_usage_reporting.py` added to the test paths and digest.
 13. The two JD-084 launcher tests added to the companion controls.
 14. The witness requires a v2 judgment-policy task.
+
+The reasons for changes 12 to 14 are under "Readings and points settled".
 
 The spec-delta check keeps `roadmap_amendment`: the roadmap sets it for JD-083
 and JD-084 (`specs/phase-plans-v1.md:216`).
@@ -473,10 +481,10 @@ and JD-084 (`specs/phase-plans-v1.md:216`).
 | Malformed receipt reported | Fix lane, SL-3 |
 | Receipt names the companion commit | Fix lane, SL-3 |
 | `test_route_phase.py`, HOST parts | Fix lane, SL-3 |
-| R1 to R6 and J1 to J7 | R: pin conditions, SL-0. J: fix lanes SL-0 and SL-3 |
+| R1 to R6 and J1 to J7 | R: pin conditions, SL-0. J: fix lanes SL-0 and SL-3; J4 is the LEARN plan's |
 | `host.yml` cut rules | Fix lane, SL-3 |
 | Conformance landing rules, `test_usage_reporting.py` | Fix lane, SL-2 and SL-3 |
-| Handoff, expected lists, HOST coverage and spec-delta | Fix lane, SL-0 and SL-3 |
+| Handoff, HOST coverage and spec-delta | Fix lane, SL-0 and SL-3. The expected lists are the LEARN plan's |
 | Conditional host run | Owner input, only if hosted runners fail |
 | ROUTE verifier not reopened; the deadline-failure rule | Stated limits, standing |
 
@@ -495,8 +503,8 @@ and JD-084 (`specs/phase-plans-v1.md:216`).
 
 ## Execution Notes
 
-Execute serially, one writer per lane, each lane under a cut specification and
-the board's rules. No edit to `specs/phase-plans-v1.md`, `plans/manifest.json`
+Execute serially, one writer per lane; each lane's scope is fixed before it is
+cut, and it is reviewed as this plan was. No edit to `specs/phase-plans-v1.md`, `plans/manifest.json`
 or `scripts/verify_route_phase.py`, except a defect in the ROUTE verifier that
 the HOST verifier's use exposes. A failure caused by the product's deadline
 follows the standing rule. Product calls keep their five-second deadline. A
