@@ -1,6 +1,6 @@
 # ROUTE readiness
 
-The ROUTE verifier selects its phase-owned tests explicitly, including every required executed control. The HOST, LEARN and EXPERIMENT collectors are not on `main` (see [roadmap status](roadmap-status.md)). When they land, they add their own required test suites to this selection through `extra_test_paths`, and their reducers bind those commands and assertions. The conformance tests against the installed host integration belong to those collectors and are not on `main` either.
+The ROUTE verifier selects its phase-owned tests explicitly, including every required executed control. The HOST, LEARN and EXPERIMENT collectors are not on `main` (see [roadmap status](roadmap-status.md)). When they land, they add their own required test suites to this selection through `extra_test_paths`, and their reducers bind those commands and assertions. The HOST conformance tests against the installed host integration belong to those collectors and are not on `main` either. One LEARN test on `main` needs that installed integration (`tests/application/test_learning.py::test_installed_discovery_host_tasks_reports_analysis_and_entered_denials`); the `Unit tests` workflow deselects it.
 
 ROUTE implements discovery, durable task routing/reporting and replay on the
 strict BAML boundary. Discovery advances its own questions through catalog

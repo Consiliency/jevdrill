@@ -3,10 +3,15 @@
 `jevdrill analyze` consumes strict `AnalysisRequest` JSON. Recording a
 `LearningContext` requires the existing scoped task/decision and exact stored
 discovery reference. Both the route and analysis settings must explicitly enable
-local analysis. Task opt-outs are permanent across import; excluded analysis
-requests return denied. User-wide observations require requesting consent and
-producer consent; their task/decision/run/discovery identities are left out
-(the source origin is `user_wide_redacted`).
+local analysis. Task opt-outs are permanent across import. Analyze and inspect
+requests whose settings exclude a path or do not enable local analysis return
+`denied`; a record request under such settings stores the context with analysis
+off, which opts the task out permanently, and returns `recorded`. User-wide
+observations require requesting consent and producer consent; their
+task/decision/run/discovery identities are left out of the observation's source
+(the source origin is `user_wide_redacted`). Its group conditions still carry a
+SHA-256 digest of the producer's discovery reference and that discovery's
+domains and guidance choices, and each group lists digests of its observations.
 
 Comparable groups retain task family/group, environment/isolation, actual
 evaluator/rubric revisions, source measurement definitions and selected/applied
@@ -41,30 +46,37 @@ first on its import path (Consiliency/jevdrill#52).
 
 When a run completes, the application passes the stored objectives of the last
 analysis to a new analysis, which applies the credential check to them. If
-stored text now fails that check, for example after a backup import, the command
-answers `invalid_input` although the maintenance work is done and committed, and
-each later scheduled run does the same until that evidence is replaced
-(Consiliency/jevdrill#58).
+stored text now fails that check, the command answers `invalid_input` although
+the maintenance work is done and committed, and each later completed run does
+the same until that evidence is replaced (Consiliency/jevdrill#58).
 
 Active raw task/output/context content is prompted at 30 days, archived after
 seven additional days, and expires one year after successful archival with
-seven-day advance notice. Measurements persist until explicit deletion; they
-hold no raw task, output or context content.
-Only authenticated archives may replace active content, after durable-byte
+seven-day advance notice. Measurements persist until explicit deletion. They are
+numbers with a metric name, version, method and unit that the reporting host
+chooses; that text is checked only for credential-like material. Only
+authenticated archives may replace active content, after durable-byte
 verification. Missing/locked/failed OS keys keep content pending with persistent
 notices. Clock rollback pauses retention. Supported stores are macOS Keychain,
 Windows Credential Locker and Linux Secret Service; no plaintext fallback or
 automatic key provisioning exists.
 
 `jevdrill recovery` consumes `RecoveryRequest`: export/backup/import require an
-explicit portable Fernet key; restore requires an archive identity and configured
-OS archive key. Export includes metadata-only discovery linkage and independent
-task/objective deletion and learning opt-out records. Discovery instructions and
-key-store credentials are excluded. Import validates integrity and conflicts
-transactionally, merges permanent deletion/opt-out before restoring sources,
-and leaves policy validation stale. Recovered discovery metadata supports
-analysis linkage; it does not reconstruct planning instructions or authorize a
-fresh discovery replay. Existing tombstones remain authoritative. Import and
-restore write the saved text back to local storage as it was saved: it is not
-passed through the credential check, and it is written back even if raw
-retention is now off (see [the credential check](sanitization-contract.md)).
+explicit portable Fernet key; restore requires an archive identity and
+configured OS archive key. An export or backup is not metadata only. It carries
+the scope's routing decisions, reports, learning contexts, task/objective
+deletion and learning opt-out records and metadata-only discovery linkage, and
+also its retained raw task, output and context content in full. Archived content
+is decrypted with the OS archive key to go into the bundle, so an export then
+needs that key as well. The bundle is encrypted with the portable key. Text that
+the credential check did not detect is exported with the rest (see [the
+credential check](sanitization-contract.md)). Discovery instructions, content
+tied to a discovery, retired content, the content of deleted tasks and key-store
+credentials are excluded. Import validates integrity and conflicts
+transactionally, merges permanent deletion/opt-out before restoring sources, and
+leaves policy validation stale. Recovered discovery metadata supports analysis
+linkage; it does not reconstruct planning instructions or authorize a fresh
+discovery replay. Existing tombstones remain authoritative. Import and restore
+write the saved text back to local storage as it was saved: it is not passed
+through the credential check, and it is written back even if raw retention is
+now off.
