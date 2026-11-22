@@ -1,10 +1,18 @@
 # JEV Drill
 
-JEV Drill provides progressive guidance discovery, independent task routing and durable local reporting/replay. Discovery returns admitted guidance and uncertainty; the harness owns decomposition and execution. See [ROUTE readiness](docs/route-readiness.md), [the credential check](docs/sanitization-contract.md), [CONTRACT readiness](docs/contract-readiness.md) and the [roadmap](specs/phase-plans-v1.md). Host integration, local learning and experiments are not yet verified on `main`.
+JEV Drill provides progressive guidance discovery, independent task routing and durable local reporting/replay. Discovery returns admitted guidance and uncertainty; the harness owns decomposition and execution. See [ROUTE readiness](docs/route-readiness.md), [the credential check](docs/sanitization-contract.md), [CONTRACT readiness](docs/contract-readiness.md) and the [roadmap](specs/phase-plans-v1.md). Host integration, local learning and experiments are not yet verified on `main`: see [roadmap status](docs/roadmap-status.md).
 
 For local development, install CPython 3.14 and run `uv sync --locked` and `npm ci`. Set `BAML_CLI` to the verified BAML 0.20.1 compiler, then run `uv run python scripts/verify_contract_phase.py`. Missing platform evidence keeps the phase open. [Toolchain details](docs/toolchain.md) and [contract rules](docs/contracts.md) describe the generated package and strict validation boundary.
 
 Use `jevdrill discover` with `DiscoveryInputs`, then pass its discovery identity and trace digest with each task's `DiscoveryRouteInputs` to `jevdrill route`. JSON travels through stdin/stdout. `inspect-discovery --discovery-id ID --scope JSON --replay` replays recorded transitions without a provider call; `delete-discovery --work-objective-id ID --scope JSON` permanently tombstones the objective. Legacy route-v1 inputs remain supported. Run `uv run python scripts/verify_route_phase.py --local-only` for local evidence; the reducer requires matching native Linux/macOS/Windows reports for all seven criteria.
+
+`jevdrill notices` reads a strict NoticeRequest from stdin and returns pending project/workspace notices without acknowledging them.
+
+`jevdrill analyze`, `maintenance` and `recovery` provide consent-scoped observational evidence, bounded retention and authenticated portable recovery. See [LEARN interfaces](docs/learn-interfaces.md). Local and user-wide learning require explicit consent. Scheduler configurations are generated for inspection; OS keys and scheduler installation remain host setup actions. Observations supply no causal benefit or policy promotion authority.
+
+Governed comparisons and recorded policy evaluation are available through the installed experiment commands with explicit trusted adapter configuration. Defaults grant no execution or promotion authority. See [EXPERIMENT interfaces](docs/experiment-interfaces.md). `uv run python scripts/verify_discovery_calibration.py --offline-only` runs the offline calibration diagnostic described in [the evaluation protocol](docs/evaluation-protocol.md); it calls no provider and produces no phase gate.
+
+The pull request that first held this work was closed and replaced by a reviewed stack: see [where its record is](docs/pr1-review-record.md).
 
 ## Existing research
 
