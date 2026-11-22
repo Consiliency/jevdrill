@@ -9,7 +9,7 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
 > with three seats (correctness; security and privacy; alternate vendor).
-> Rounds: none yet. Pull request: not yet opened.
+> Rounds: to be filled in. Pull request: Consiliency/jevdrill#105.
 > This is a reviewed plan. It verifies no criterion.
 
 ## Context
@@ -56,8 +56,8 @@ EXPERIMENT verifiers are not on `main`.
   unchanged on 2026-11-22). Its roadmap reader there is
   `phase_loop_runtime/roadmap_lint.py` (`_extract_phases`); R1 does not
   require it.
-- Governed-pipeline (`specs/phase-plans-v1.md:59`). Its repository is not
-  public (an unauthenticated read answers 404, 2026-11-22), so the revision
+- Governed-pipeline (`specs/phase-plans-v1.md:59`). Its repository cannot be
+  read in public (an unauthenticated read answers 404, 2026-11-22), so the revision
   named at `specs/jevdrill-current-state.md:65` (`15f2d40ec6d…`) and the
   documents at `:67-70` were not inspected. Public: the npm package
   `@consiliency/pipeline-runtime` 0.4.0 (integrity
@@ -158,11 +158,11 @@ reduction above.
   distribution; JD-046's acceptance of the later deliveries (the HOST to
   EXPERIMENT verifiers); JD-051's release gate; JD-052, JD-053 and
   JD-061, whose dry run is SL-4's; JD-080's values (its rule is
-  `evaluation.py:304-313`). JD-060's first sentence records JD-043's default
-  as history; `main` has it off (`settings.py:23-25`), as the JD-043
-  paragraph of `docs/contract-decisions.md` (`:52`) decides, and that
-  paragraph does not name JD-060. Whether it governs JD-060 is an owner
-  input.
+  `evaluation.py:304-313`). JD-060 is a history entry: its first sentence
+  records that JD-043's default replaced an earlier opt-in, and sets no
+  default of its own. `main` has that default off (`settings.py:23-25`), as
+  the JD-043 paragraph of `docs/contract-decisions.md` (`:52`) decides; the
+  paragraph does not name JD-060, and SL-3 enters JD-060 with it.
 - **Parts not built in other ranges:** JD-038 and JD-042
   (Consiliency/jevdrill#97); JD-036, JD-074 and JD-075
   (Consiliency/jevdrill#103). SL-3 maps each and decides no deferral.
@@ -175,7 +175,7 @@ reduction above.
   its own interpreter and the command beside it
   (`tests/application/test_learning.py:79-83`, `:315`).
 - **Review evidence in public:** the four plan pull requests
-  (Consiliency/jevdrill#89, #92, #98 and this plan's) and their bodies. This
+  (Consiliency/jevdrill#89, #92, #98 and #105) and their bodies. This
   plan claims no ratification and cites no non-public record.
 - **The release evaluation has no lane.** It needs a holdout and frozen
   thresholds. No release holdout exists; one is an owner prerequisite, and
@@ -186,7 +186,7 @@ reduction above.
   compatibility and … thinking/final-answer separation remain disclosed
   limitations" (`specs/phase-plans-v1.md:37`). The runbook states both.
 - **No request leaves the runner,** as the EXPERIMENT plan words it, except
-  `uv` fetching packages for builds and installs, as
+  `uv` fetching packages, with no credential, for builds and installs, as
   `tests/contracts/test_package.py` does today. The earlier commit comes with
   the job's checkout; the installed flow keeps the host integration's loopback
   stand-in.
@@ -287,9 +287,9 @@ runtime job on hosted Linux.
   `tests/release/test_prepare_workflow.py`, `.github/workflows/prepare.yml`
   (all new), `evidence/PREPARE/coverage.json`, `evidence/PREPARE/spec-delta.json`,
   the PREPARE lines of `.gitignore` and `tests/verification/test_route_phase.py`,
-  and the interpreter choice of the installed test of
-  `tests/application/test_learning.py` (`:315`), keeping its checks and
-  witness.
+  and, after LEARN's verifier lane, the interpreter choice of the installed
+  test of `tests/application/test_learning.py` (`:315`), keeping its checks
+  and witness.
 - **Delivers:** the verifier and its tests, passing in CI; the workflow as
   under "The verifier", its reduce job needing every native and runtime job,
   "Require successful native jobs" as in `route.yml`. Its writer starts one run
@@ -383,7 +383,7 @@ and workflow named here is new.
 - That the governed-pipeline package holds the checks EC-PREPARE-2 needs, or
   that hosted runners can run the host integration or the container.
 - That the installed flow shows more than its HOST and LEARN rows show.
-- That a deferral is decided, or that JD-060 is settled.
+- That a deferral is decided.
 - Anything on the strength of the September or October records.
 
 ## Attached backlog
@@ -409,8 +409,6 @@ None is asked here; each blocks what it names.
   covered.
 - **Each deferral that changes public scope.** Without a decision its entry
   blocks EC-PREPARE-2.
-- **Whether the JD-043 paragraph governs JD-060.** Without it SL-3 records
-  JD-060 as open.
 - **The README's links into `research/`** (Consiliency/jevdrill#81).
   Without it the README-links clause stays not covered.
 - **The review EC-PREPARE-3 requires for ratification.** Without it no
