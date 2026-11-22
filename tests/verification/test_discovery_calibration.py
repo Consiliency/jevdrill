@@ -691,7 +691,9 @@ def test_an_integer_too_large_for_a_float_is_invalid_and_does_not_raise(value):
 
 
 def test_local_outputs_are_ignored_by_git():
-    rules = (ROOT / ".gitignore").read_text().splitlines()
+    # Git ends a rule at a line feed and drops one carriage return before it. Read the same way.
+    content = (ROOT / ".gitignore").read_bytes().decode()
+    rules = [line.removesuffix("\r") for line in content.split("\n")]
     for rule in (
         "evidence/EXPERIMENT/discovery-offline.json",
         "evidence/EXPERIMENT/calibration-offline.json",
@@ -713,6 +715,8 @@ def test_the_offline_workflow_is_pinned_read_only_and_uploads_only_its_own_repor
     assert "permissions" not in workflow["jobs"]["offline"]
     assert "secrets." not in text and "_API_KEY" not in text
     assert "pull_request_target" not in text
+    # A default or a step setting could run the removal somewhere other than the checkout's root.
+    assert "working-directory" not in text
     steps = workflow["jobs"]["offline"]["steps"]
     for step in steps:
         if "uses" in step:
@@ -722,16 +726,17 @@ def test_the_offline_workflow_is_pinned_read_only_and_uploads_only_its_own_repor
     reports = (
         "evidence/EXPERIMENT/discovery-offline.json evidence/EXPERIMENT/calibration-offline.json"
     )
-    # The removal is the first thing after the checkout, so no step that can fail precedes it.
+    # The removal is the first thing after the checkout, and it is exactly this step.
     assert steps[0]["uses"].startswith("actions/checkout@")
-    assert commands[1] == "rm -f " + reports
+    assert steps[1] == {"id": "clean", "run": "rm -f " + reports}
     offline = commands.index("uv run python scripts/verify_discovery_calibration.py --offline-only")
     benchmark = commands.index("uv run python scripts/verify_calibration_benchmark.py")
     assert 1 < offline < benchmark
     upload = next(i for i, step in enumerate(steps) if "upload-artifact@" in step.get("uses", ""))
     assert upload > benchmark
     # Only the upload has a condition. A condition on the removal or on a script could skip it.
+    # The upload runs after a failed script, and never unless the removal succeeded.
     assert [index for index, step in enumerate(steps) if "if" in step] == [upload]
-    assert steps[upload]["if"] == "always()"
+    assert steps[upload]["if"] == "always() && steps.clean.outcome == 'success'"
     assert steps[upload]["with"]["path"].split() == reports.split()
     assert steps[upload]["with"]["if-no-files-found"] == "error"
