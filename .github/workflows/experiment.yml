@@ -13,10 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      # A report already in the checkout must not be uploaded as this run's. This comes before any
+      # step that can fail, because the upload below runs even when an earlier step has failed.
+      - run: rm -f evidence/EXPERIMENT/discovery-offline.json evidence/EXPERIMENT/calibration-offline.json
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
       - run: uv sync --locked
-      # A report already in the checkout must not be uploaded as this run's.
-      - run: rm -f evidence/EXPERIMENT/discovery-offline.json evidence/EXPERIMENT/calibration-offline.json
       - run: uv run python scripts/verify_discovery_calibration.py --offline-only
       - run: uv run python scripts/verify_calibration_benchmark.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

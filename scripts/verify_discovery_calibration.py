@@ -282,6 +282,9 @@ def offline(root=ROOT):
                     "missing_reason": "software-only scripted observer and independent reference artifacts",
                 }
             )
+    # These three are properties of the protocol's own oracle (selection_ok and the artifact
+    # checks). The application takes no part in them. They show that the oracle can tell an
+    # unsuitable control from an acceptable answer, not that the application rejected one.
     controls = {
         "always_admit_rejected": any(
             not selection_ok(case, [r["id"] for r in protocol["resources"]], "model-cheap")
@@ -985,7 +988,18 @@ def validate_study(study, protocol, authority=None, root=ROOT):
             or not study["uncertainty_by_family"]
         ):
             errors.append("invalid whole-study reservation or uncertainty")
-    except (KeyError, TypeError, ValueError, OSError, IndexError, StopIteration):
+    except (
+        KeyError,
+        TypeError,
+        ValueError,
+        OSError,
+        IndexError,
+        StopIteration,
+        OverflowError,
+        AttributeError,
+    ):
+        # A record can hold numbers whose sum is too large for a float, or a list where a
+        # mapping belongs. Both are a malformed record, reported like the others.
         errors.append("malformed or incomplete linked study")
     return sorted(set(errors))
 

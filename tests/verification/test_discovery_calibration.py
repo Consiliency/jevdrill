@@ -286,6 +286,38 @@ def test_disabled_preview_cannot_create_study_or_lookup_credentials(tmp_path):
         )
 
 
+def test_the_fixed_preview_is_refused_as_expired_before_a_credential_or_a_study_directory(
+    tmp_path,
+):
+    # The only authority this tree accepts is its own fixed preview, enabled. Its date has
+    # passed, and that check is all that stops a dispatch.
+    for name in (
+        checks.PROTOCOL,
+        "tests/contracts/fixtures/discovery.json",
+        "tests/contracts/fixtures/route-application.json",
+    ):
+        destination = tmp_path / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / name, destination)
+    authority = checks.authority_preview(tmp_path) | {"enabled": True}
+    assert authority["expires_at"] == "2026-10-15T00:00:00Z"
+    assert checks.authority_errors(authority, tmp_path) == []
+    assert checks.authority_errors(authority, tmp_path, dispatch=True) == [
+        "new study authority expired"
+    ]
+    path = tmp_path / "enabled-preview.json"
+    path.write_text(json.dumps(authority))
+
+    def forbidden():
+        pytest.fail("credential callback must not run under an expired authority")
+
+    with pytest.raises(ValueError, match="^new study authority expired$"):
+        checks.run_authorized_study(
+            path, tmp_path, candidate_credential=forbidden, judgment_credential=forbidden
+        )
+    assert not (tmp_path / "evidence").exists()
+
+
 def test_recorded_database_uri_encodes_delimiters_and_closes_reader(tmp_path):
     import sqlite3
 
@@ -567,11 +599,22 @@ def test_guarded_driver_records_five_distinct_arms_with_loopback_and_explicit_fi
             )
             fixture.write_bytes(original)
         assert set(checks.validate_study(study, protocol, authority, tmp_path)) == expected_errors
+    # A record whose numbers cannot be summed as floats, or that holds a list where a mapping
+    # belongs, is reported as malformed. Neither raises out of the validator.
+    for damage in (
+        lambda arm: arm["measurements"].update(discovery=10**308, routing=10**308),
+        lambda arm: arm.update(critical_checks=["not a mapping"]),
+    ):
+        damaged = copy.deepcopy(study)
+        damage(damaged["cases"][0]["arms"]["no_guidance"])
+        assert "malformed or incomplete linked study" in checks.validate_study(
+            damaged, protocol, authority, tmp_path
+        )
+    genuine = set(checks.validate_study(study, protocol, authority, tmp_path))
     arm = study["cases"][0]["arms"]["actual_discovery_route"]
     arm["configuration_digest"] = "forged"
-    assert checks.validate_study(study, protocol, authority, tmp_path) != [
-        "Q12/Q13 family-specific empirical calibration unresolved"
-    ]
+    # The forged digest must produce an error that the genuine record does not have.
+    assert set(checks.validate_study(study, protocol, authority, tmp_path)) - genuine
 
 
 def test_study_validator_rejects_changed_judgment_template_configuration(tmp_path, monkeypatch):
@@ -655,13 +698,21 @@ def test_local_outputs_are_ignored_by_git():
         "evidence/EXPERIMENT/studies/",
     ):
         assert rule in rules
+    # A later "!" rule would take a path out of the ignore list again.
+    assert not any(rule.startswith("!") for rule in rules)
 
 
 def test_the_offline_workflow_is_pinned_read_only_and_uploads_only_its_own_reports():
     import yaml
 
-    workflow = yaml.safe_load((ROOT / ".github/workflows/experiment.yml").read_text())
+    text = (ROOT / ".github/workflows/experiment.yml").read_text()
+    workflow = yaml.safe_load(text)
     assert workflow["permissions"] == {"contents": "read"}
+    # A job-level block would replace the read-only token for that job.
+    assert list(workflow["jobs"]) == ["offline"]
+    assert "permissions" not in workflow["jobs"]["offline"]
+    assert "secrets." not in text and "_API_KEY" not in text
+    assert "pull_request_target" not in text
     steps = workflow["jobs"]["offline"]["steps"]
     for step in steps:
         if "uses" in step:
@@ -671,12 +722,16 @@ def test_the_offline_workflow_is_pinned_read_only_and_uploads_only_its_own_repor
     reports = (
         "evidence/EXPERIMENT/discovery-offline.json evidence/EXPERIMENT/calibration-offline.json"
     )
-    removal = commands.index("rm -f " + reports)
+    # The removal is the first thing after the checkout, so no step that can fail precedes it.
+    assert steps[0]["uses"].startswith("actions/checkout@")
+    assert commands[1] == "rm -f " + reports
     offline = commands.index("uv run python scripts/verify_discovery_calibration.py --offline-only")
     benchmark = commands.index("uv run python scripts/verify_calibration_benchmark.py")
-    assert removal < offline < benchmark
+    assert 1 < offline < benchmark
     upload = next(i for i, step in enumerate(steps) if "upload-artifact@" in step.get("uses", ""))
     assert upload > benchmark
+    # Only the upload has a condition. A condition on the removal or on a script could skip it.
+    assert [index for index, step in enumerate(steps) if "if" in step] == [upload]
+    assert steps[upload]["if"] == "always()"
     assert steps[upload]["with"]["path"].split() == reports.split()
     assert steps[upload]["with"]["if-no-files-found"] == "error"
-    assert not any("secrets." in command or "_API_KEY" in command for command in commands)
