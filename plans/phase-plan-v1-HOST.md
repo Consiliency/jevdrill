@@ -157,16 +157,15 @@ below is verified.
 
 | Item | Implementation | Control | Falsifier | Evidence |
 | --- | --- | --- | --- | --- |
-| JD-084: leased macOS launch rejects before startup and names a Linux worker; Linux proves leased cleanup | `launcher.py:2143`, `:2671` | HI `test_phase_loop_launcher.py::test_launcher_accepts_explicit_nonserialized_lease_authority` (on Linux: reaps the tree and frees the lease) and `::test_supervised_launch_drains_retained_stdout_before_returning` (on Linux: stdout drain only), required passed in the Darwin and the Linux receipt | A macOS executor that starts, a Linux receipt standing in for macOS, or a Linux tree or lease that outlives the launch | native CI run; needs the host integration |
+| JD-084: leased macOS launch rejects before startup and names a Linux worker; Linux proves leased cleanup | `launcher.py:2829`, `:2671` | HI `test_phase_loop_launcher.py::test_launcher_accepts_explicit_nonserialized_lease_authority` (on Linux: reaps the tree and frees the lease) and `::test_supervised_launch_drains_retained_stdout_before_returning` (on Linux: stdout drain only), required passed in the Darwin and the Linux receipt | A macOS executor that starts, a Linux receipt standing in for macOS, or a Linux tree or lease that outlives the launch | native CI run; needs the host integration |
 | JD-083: estimated cost with no ceiling; ceilings need verified whole-run limits | `jevdrill_adapter.py:576-584`; JEV side `application.py:583` | main `test_route_integration.py::test_builtin_task_judgment_keeps_verified_spending_bounds`; HI `test_jevdrill_adapter.py::test_requested_ceiling_rejects_unproven_executor_limits`, `::test_override_staleness_and_final_token_enforcement`, `::test_no_requested_ceiling_does_not_require_token_enforcement` | A ceiling accepted without enforcement, or a route with no ceiling refused | native CI run; needs the host integration |
-| IF-0-HOST-1 | The four criteria | D `test_installed_discovery_harness_planning_two_independent_tasks`; reducer `produced_if_gates` only when every clause of the four criteria is covered and passes in three receipts of one run | A gate produced with a clause not covered, a criterion failing or a platform missing | native CI run, no model called; needs the host integration |
+| IF-0-HOST-1 | The four criteria | D `test_installed_discovery_harness_planning_two_independent_tasks`; reducer `produced_if_gates` only when every clause of the four criteria is covered and its controls pass where they run, in three receipts of one run | A gate produced with a clause not covered, a criterion failing or a platform missing | native CI run, no model called; needs the host integration |
 | IF-0-VC-2 | D `scripts/verify_host_phase.py` | D `tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts` (19 cases at the tag, plus one per new rejection, each asserting its own error), `::test_missing_companion_configuration_is_failure`, D new `::test_reducer_accepts_valid_receipts` | A forged, skipped or foreign receipt passes, or a valid one is rejected | native CI run |
 
-Other scope notes (`specs/phase-plans-v1.md:193`, `:195`). Readiness rechecked
-before launch: HI `test_override_staleness_and_final_token_enforcement`. Not
-covered: the budget passed after host spawn time (the draft computes it before
-the spawn); ordinary macOS execution staying local; the absence of silent
-forwarding.
+Other scope notes (`specs/phase-plans-v1.md:193`, `:195`). Not covered: the
+readiness recheck before launch (untested, `jevdrill_adapter.py:576-578`); the
+budget passed after host spawn time (the draft computes it before the spawn);
+ordinary macOS execution staying local; the absence of silent forwarding.
 
 ## Readings and points settled
 
@@ -342,19 +341,19 @@ possibility, not a request.
   `evidence/HOST/coverage.json`, `evidence/HOST/spec-delta.json`.
 - **Delivers:** the held verifier, its tests and workflow with every declared
   change below; fix lane for Consiliency/jevdrill#71, #73, #74 and #82. Its
-  reducer tests pass in CI. Once the lane is on `main`, `host.yml` is dispatched
-  with the pinned SHA and the run is recorded.
+  reducer tests pass in CI. Once the lane is on `main`, its writer dispatches
+  `host.yml` with the pinned SHA and records the run.
 
 ### SL-4 — Readiness docs
 
-- **Needs:** the result of SL-3's dispatched run, and its verdict artifact if the
-  reduction ran.
+- **Needs:** the result of SL-3's dispatched run, with its verdict artifact if
+  there is one.
 - **Owned files:** `docs/host-interfaces.md`, `docs/host-readiness.md`, and the
   first block of `docs/roadmap-status.md`.
 - **Delivers:** the held docs rewritten: the queue as the accepted commit
   implements it; the verdict as the run's artifact, as in
   `docs/route-readiness.md`; the companion's environment for the accepted
-  version; the run linked, or why its reduction did not run; no October receipt,
+  version; the run linked, with its verdict or why it has none; no October receipt,
   no history, no LEARN instruction.
 
 ## Verification
@@ -425,8 +424,8 @@ that made it and is never committed.
 7. Contract-copy comparison against jevdrill's files replaces the raw handoff
    digest check (J5).
 8. The deselection constant (J6); the companion Python recorded (J7).
-9. Exact counts, including the reducer faults, 2 two-task cases and 11 usage
-   cases (Consiliency/jevdrill#71).
+9. Exact counts; a changed count is a declared change
+   (Consiliency/jevdrill#71).
 10. Same-run receipts only; any other is a diagnostic, never uploaded
     (Consiliency/jevdrill#73).
 11. The handoff names repository and commit (J3).
