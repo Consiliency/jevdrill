@@ -9,8 +9,8 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
 > with three seats (correctness; security and privacy; alternate vendor).
-> Rounds: to be filled in. Pull request: Consiliency/jevdrill#92. This is a
-> reviewed plan. It verifies no criterion.
+> Rounds: one, and a confirmation of its fixes. Pull request:
+> Consiliency/jevdrill#92. This is a reviewed plan. It verifies no criterion.
 
 ## Context
 
@@ -37,9 +37,9 @@ evidence kind.
 | --- | --- |
 | LEARN contracts (`baml_src/contracts.baml:177-230`) and schemas | Consiliency/jevdrill#12 |
 | Settings, storage | Consiliency/jevdrill#18 |
-| `analysis.py`, `maintenance.py`, `integrations/archive.py`, learning storage (under `src/jevdrill/`) | Consiliency/jevdrill#44 |
+| `analysis.py`, `maintenance.py`, `integrations/archive.py` (under `src/jevdrill/`) | Consiliency/jevdrill#44 |
 | The `analyze`, `maintenance` and `recovery` commands; the LEARN tests | Consiliency/jevdrill#54 |
-| `docs/learn-interfaces.md`; the owner's wording in `docs/sanitization-contract.md` | Consiliency/jevdrill#85, #88 |
+| `docs/learn-interfaces.md`; the ratified `docs/sanitization-contract.md` | Consiliency/jevdrill#85; #27, #54, #88 |
 
 `unit.yml` runs the LEARN tests on three platforms, deselecting for good the
 one that needs the host integration,
@@ -90,8 +90,8 @@ verified.
 | Clause | Implementation | Control | Falsifier | Evidence |
 | --- | --- | --- | --- | --- |
 | Versioned comparable groups | Key `analysis.py:681` over conditions `storage.py:925-980`; metrics `analysis.py:687-689` | main `tests/analysis/test_observations.py::test_incompatible_contexts_never_aggregate_across_domains` [6], `::test_metric_revisions_units_methods_remain_separate` | Two revisions or metric definitions merged in one group | native CI run |
-| Minimum batches and periodic triggers update evidence | `application.py:1306-1323` | main `tests/application/test_learning.py::test_analysis_batch_interval_objective_history_and_immutable_replay` (below the batch, `not_due`; after the interval, `updated`), `::test_settings_optout_exclusions_and_disabled_model_analysis_enter_application` (a batch of one met) | A trigger that never fires, or fires with no new observation | native CI run |
-| Under existing policy | Only learning tables written, `storage.py:1050-1087` | main the settings test (analysis that routes fails); D new, SL-3: no policy record written | A policy record written, or a route made, by analysis | native CI run |
+| Minimum batches and periodic triggers update evidence | `application.py:1306-1323` | main `tests/application/test_learning.py::test_analysis_batch_interval_objective_history_and_immutable_replay` (below the batch, `not_due`; after the interval, `updated`), `::test_settings_optout_exclusions_and_disabled_model_analysis_enter_application` (a batch of one met) | A trigger that never fires, or fires below the batch before the interval | native CI run |
+| Under existing policy | Only learning tables written, `storage.py:1050-1087` | main the settings test (analysis calling `Application.route` fails); D new, SL-3: no policy record written | A policy record written, or a route made, by analysis | native CI run |
 | Reassessment supports multiple objectives without inventing counterfactual results | `application.py:1314-1318`; `analysis.py:745-747` | main the batch test, `test_observations.py::test_substitution_preference_and_evaluation_are_distinct` | A classification other than `insufficient_evidence`, or groups changed by reassessment | native CI run |
 | Missing, failed and canceled observations remain explicit | `analysis.py:692-701`, `:709-725` | main `test_observations.py::test_missing_failed_canceled_corrected_and_unknown_observations` | A canceled run counted as failed, or an unknown value averaged | native CI run |
 
@@ -100,9 +100,9 @@ verified.
 | Clause | Implementation | Control | Falsifier | Evidence |
 | --- | --- | --- | --- | --- |
 | Scheduled maintenance prevents overlap | `integrations/archive.py:69`, taken `maintenance.py:112-115` | main `tests/maintenance/test_maintenance.py::test_process_owned_nonoverlap_and_exit_release` | A second run while the lock is held, or a lock outliving its process | native CI run |
-| Resumes safely | Cursor `maintenance.py:131-135`, `:225-231` | main `test_maintenance.py::test_bounded_resumable_cursor_pause_cancel_and_interactive_contention` | An item never processed after pause, cancel and resume | native CI run |
-| Yields to interactive work | `maintenance.py:109-111`, `:148-152` | main same test; `test_maintenance.py::test_pause_and_interactive_start_are_rechecked_between_production_items`; `tests/cli/test_learning.py::test_native_scheduler_argv_enters_installed_maintenance_and_host_contention` | An item processed after the host marks itself busy | native CI run |
-| Scheduler, pause and cancel evidence on Linux, macOS and Windows | `maintenance.py:262-364`; command `:289-298` | main the scheduler test (the generated entry's command, run natively), the cursor test; D new, SL-2: nothing imported from the job's working directory (Consiliency/jevdrill#52) | A generated entry that does not run as written, or a planted module imported | generated configuration; native CI run |
+| Resumes safely | Cursor `maintenance.py:131-135`, `:225-231` | main `test_maintenance.py::test_bounded_resumable_cursor_pause_cancel_and_interactive_contention`; D new, SL-2: the store reopened before resume | An item missed or processed twice after pause, cancel, reopening and resume | native CI run |
+| Yields to interactive work | `maintenance.py:109-111`, `:148-152` | main same test; `test_maintenance.py::test_pause_and_interactive_start_are_rechecked_between_production_items`; `tests/cli/test_learning.py::test_native_scheduler_argv_enters_installed_maintenance_and_host_contention` | An item processed after the host marks itself busy | generated configuration; native CI run |
+| Scheduler, pause and cancel evidence on Linux, macOS and Windows | `maintenance.py:262-364`; command `:289-298` | main the scheduler test (the generated entry's command, parsed and run natively), the cursor test; D new, SL-2: the generated entry recurs; a module planted under a standard-library name in the job's working directory is not imported (Consiliency/jevdrill#52) | A generated entry whose parsed command fails or that never recurs, or the planted module imported | generated configuration; native CI run |
 | Deterministic analysis is default | `analysis.py:678-749`; `settings.py:25-27` | main the settings test | Any analysis but the deterministic one obtained | native CI run |
 | Model-assisted analysis requires enabled capability and budgets | No such mode: `AnalysisRequest` has no field for it (`baml_src/contracts.baml:183-187`) | main the settings test (a mode field with a budget refused) | A model-assisted request accepted | native CI run |
 
@@ -112,24 +112,24 @@ verified.
 | --- | --- | --- | --- | --- |
 | Clock and key-failure fixtures on three platforms | `maintenance.py:124-125`, `:76-80`; `integrations/archive.py:28` | main `tests/retention/test_retention.py::test_clock_rollback_and_corruption_enter_production_retention`, `::test_key_failures_keep_pending_active_content_and_notice` [3], `test_maintenance.py::test_os_key_store_failure_is_bounded_without_plaintext_fallback` | Retention after the clock moves back, or content lost when the key fails | simulated; native CI run |
 | 30-day active retention, seven-day archive grace | `maintenance.py:160-169` | main `test_retention.py::test_active_grace_encrypted_archive_one_year_expiry_and_measurement_persistence` | A prompt before day 30, or archival before seven more days | native CI run |
-| Encrypted archival; never archive unencrypted | `maintenance.py:170-224`; `integrations/archive.py:17-24` | main the active-grace and key-failure tests, `test_retention.py::test_archive_crash_retry_keeps_source_until_durable_verification`, `::test_archive_tamper_cannot_restore` | Plaintext in an archive, or an archive made without a key | native CI run |
-| One-year expiry notices | `maintenance.py:153-159` | main the active-grace test; D new, SL-2: a failing item leaves the others on time (Consiliency/jevdrill#45); re-archived content expires and is announced one year after its first archival (#46) | No notice seven days ahead; content kept past its limit beside a failing item; a notice that disagrees with the expiry | native CI run |
-| Restoration | `maintenance.py:366-401` | main `tests/maintenance/test_recovery.py::test_native_archive_restore_and_portable_archive_export`, the tamper test | A tampered or deleted archive restored | native CI run |
-| Deletion propagation | `storage.py:1045-1049`; `delete_task` `storage.py:2384-2397` | main the active-grace and native-restore tests; `test_observations.py::test_source_digest_recheck_prevents_deleted_analysis_commit`; `tests/storage/test_learning.py::test_deletion_preserves_unrelated_project_evidence_and_objective_history`; D new, SL-2: deletion while another connection reads (Consiliency/jevdrill#21) | Deleted content readable or analysed; `deleted` reported while a payload stays in the write-ahead log | native CI run |
+| Encrypted archival; never archive unencrypted | `maintenance.py:170-224`; `integrations/archive.py:17-24` | main the active-grace and key-failure tests, `test_retention.py::test_archive_crash_retry_keeps_source_until_durable_verification`, `::test_archive_tamper_cannot_restore` | Plaintext in an archive, or an archive made without a key | simulated; native CI run |
+| One-year expiry notices | `maintenance.py:153-159` | main the active-grace test; D new, SL-2: a failing item leaves the others on time (Consiliency/jevdrill#45); re-archived content expires and is announced one year after its first archival (#46) | A notice missing or misdated before expiry; an earlier failing item unreported or abandoned; later healthy content kept past expiry; unverified content retired | native CI run |
+| Restoration | `maintenance.py:366-401` | main `tests/maintenance/test_recovery.py::test_native_archive_restore_and_portable_archive_export`, the tamper test; D new, SL-3: restored bytes equal the original | Restored bytes that differ, or a tampered or deleted archive restored | native CI run |
+| Deletion propagation | `storage.py:1045-1049`; `delete_task` `storage.py:2384-2397` | main the active-grace and native-restore tests; `test_observations.py::test_source_digest_recheck_prevents_deleted_analysis_commit`; `tests/storage/test_learning.py::test_deletion_preserves_unrelated_project_evidence_and_objective_history`; D new, SL-2: deletion while another connection reads (Consiliency/jevdrill#21); an archived copy's file gone after task deletion | Deleted content, archived copies included, left on disk, readable or analysed; `deleted` reported while a payload stays in the write-ahead log, or erasure still incomplete after the reader closes and deletion is retried | native CI run |
 | Missing credentials, headless Linux included, keep content pending with notices | `maintenance.py:170-173`; `storage.py:2311` | main the key-failure test [3] | Content removed, or no notice, without a key | simulated; native CI run |
 | Inspectable export, import and backup verify integrity and portable keys | `maintenance.py:403-439`; `storage.py:1115`, `:1211` | main `test_recovery.py::test_portable_export_backup_import_preserves_lineage_and_deletion_precedes_sources`, `::test_malformed_or_conflicting_import_rejects_transactionally` [6] | A tampered or conflicting bundle importing anything | native CI run |
-| Deletion records applied before restored or imported analysis | `storage.py:1211` | main the portable-export test; `test_recovery.py::test_imported_optout_never_reenables_analysis_or_policy_validation` | A tombstoned objective or task, or an opted-out task, analysed after import | native CI run |
+| Deletion records applied before restored or imported analysis | `storage.py:1211` | main the portable-export test; `test_recovery.py::test_imported_optout_never_reenables_analysis_or_policy_validation`; D new, SL-3: a backup's own deletion records honoured in a fresh store | A tombstoned objective or task, or an opted-out task, analysed after import | native CI run |
 | Redacted measurements persist until deletion | Credential check before persistence, `application.py:1230` | main the active-grace test; `tests/privacy/test_round41_learning.py::test_report_sensitive_map_key_rejects_before_persistence` | A measurement lost at archive expiry, kept after deletion, or stored with credential-like text | native CI run |
-| Policy validation becomes stale without automatic rollback | `storage.py:726-763` | main the imported-opt-out test; `tests/promotion/test_lifecycle.py::test_deleted_supporting_data_invalidates_active_policy` (stale; ordering blocked, not reverted) | Validation left current, or a previous policy restored, after its data changed | native CI run |
+| Policy validation becomes stale without automatic rollback | `storage.py:726-763` | main the imported-opt-out test; `tests/promotion/test_lifecycle.py::test_deleted_supporting_data_invalidates_active_policy` (stale; ordering blocked); D new, SL-3: with an earlier verified policy, none restored | Validation left current, or a previous policy restored, after its data changed | native CI run |
 
 **EC-LEARN-4**
 
 | Clause | Implementation | Control | Falsifier | Evidence |
 | --- | --- | --- | --- | --- |
-| Persistent local notices | `storage.py:2311` | main the key-failure test [3] (notices read back from the store) | A notice lost after its run | native CI run |
-| Opt-out and exclusion controls work | `application.py:1270-1275`; `storage.py:765-775`, `:800-801` | main the settings test, `tests/privacy/test_learning.py::test_default_workspace_scope_and_explicit_redacted_user_wide_consent`, `tests/storage/test_learning.py::test_restart_migration_evidence_history_and_optout` | An excluded or opted-out task analysed | native CI run |
+| Persistent local notices | Written `maintenance.py:56-61`, read `storage.py:2311` | main the key-failure test [3] (notices read back from the store); D new, SL-2: read again after reopening it | A notice lost after its run or after reopening | simulated; native CI run |
+| Opt-out and exclusion controls work | `application.py:1270-1275`; `storage.py:765-775`, `:800-801` | main the settings test, `tests/privacy/test_learning.py::test_default_workspace_scope_and_explicit_redacted_user_wide_consent`, `tests/storage/test_learning.py::test_restart_migration_evidence_history_and_optout` | An excluded or opted-out task analysed, or evidence drawn from it before the opt-out kept | native CI run |
 | Sharing project-scoped by default, user-wide only by explicit opt-in | `storage.py:857-859` | main the privacy test (nothing seen without both consents) | An observation shared without producer or requester consent | native CI run |
-| User-wide learning is redacted | `storage.py:994`, `:1008-1010`, `:1022-1030` | D new, SL-1 (the privacy test checks keys an observation never has, so shows no redaction) | A producer identity in a user-wide source, or a fingerprint matched by recomputation from the producer's reference | native CI run |
+| User-wide learning is redacted | `storage.py:994`, `:1008-1010`, `:1022-1030` | D new, SL-1 (the privacy test checks keys an observation never has, so shows no redaction) | Any failure SL-1's control names | native CI run |
 | Benchmark assessments retain source metrics and objective history | `analysis.py:687-701`; objective history `application.py:1283-1286` | main `test_metric_revisions_units_methods_remain_separate`, the missing-failed test (source measurement kept), the batch test, `test_deletion_preserves_unrelated_project_evidence_and_objective_history` | A metric definition or prior objective version lost | native CI run |
 
 **EC-LEARN-5**
@@ -141,15 +141,15 @@ verified.
 | Missing data, host preference, substitutions and measured failures stay distinct | `storage.py:1014-1018`; `analysis.py:709-730` | main the substitution and missing-failed tests | One of the four counted as another | native CI run |
 | Reclassification preserves raw measurements and prior objective versions | `application.py:1283-1286` | main the batch test (groups equal; both versions kept) | Groups recomputed or a version dropped on reclassification | native CI run |
 | No unsupported whole-skill or cross-domain claims | `analysis.py:745-747` | main the incompatible-contexts test [6], the substitution test, `tests/cli/test_learning.py::test_installed_cli_analyze_notices_recovery_and_reject_unknown_claims` (a `whole_skill` request refused by strict parsing) | An assessment classed `observed`, or a group spanning task families | native CI run |
-| Policy writes limited to authorized candidate ordering; no learned navigation change | As "under existing policy" | D new, SL-3: analysis changes no later discovery or route result | A policy write, or a discovery or route that differs after analysis | native CI run |
+| Policy writes limited to authorized candidate ordering; no learned navigation change | As "under existing policy" | D new, SL-3: on identical inputs, analysis changes no later discovery or route result | A policy write, or a discovery or route result that differs on identical inputs after analysis | native CI run |
 
 **Gates**
 
 | Item | Control | Falsifier | Evidence |
 | --- | --- | --- | --- |
-| Companion extras | HI `test_windows_locking.py`, `test_launcher_liveness.py`; on Windows also `test_windows_processes.py`, `test_windows_storage.py`; collected ids equal to that platform's list (SL-5) | A listed id not collected, a collected id not listed, or any skip | native CI run; needs the host integration |
-| LEARN reducer rejects invalid receipts (plan-level) | D `tests/verification/test_learn_phase.py::test_reducer_rejects_missing_stale_wrong_origin_and_boolean_substitutes` [21, plus one per new rejection], `::test_reducer_accepts_complete_synthetic_input`, `::test_reducer_binds_sorted_groups_and_applied_alternatives_to_authoritative_runs` [3], `::test_windows_extra_command_requires_process_and_storage_controls` | A forged, skipped, foreign or stale receipt passing, or a valid one failing | native CI run |
-| IF-0-LEARN-1 | Reducer: every clause covered, its controls passed where they run, three receipts of one run, their HOST part reduced without error | A gate produced with a clause not covered, a platform missing or the HOST part failing | native CI run, no model called; needs the host integration |
+| Companion extras | HI `test_windows_locking.py`, `test_launcher_liveness.py`; on Windows also `test_windows_processes.py`, `test_windows_storage.py`; collected ids equal to that platform's list (SL-5) | An id missing, extra, duplicated or not passed | native CI run; needs the host integration |
+| LEARN reducer rejects invalid receipts (plan-level) | D `tests/verification/test_learn_phase.py::test_reducer_rejects_missing_stale_wrong_origin_and_boolean_substitutes` [21, plus one per new rejection], `::test_reducer_accepts_complete_synthetic_input`, `::test_reducer_binds_sorted_groups_and_applied_alternatives_to_authoritative_runs` [3], `::test_windows_extra_command_requires_process_and_storage_controls`, `::test_reducer_rejects_missing_inherited_route_parameter` [one per inherited ROUTE control] | A fault that passes or does not raise its own error, a receipt missing an inherited ROUTE control passing, or a valid one failing | native CI run |
+| IF-0-LEARN-1 | Reducer: every clause covered, its controls passed where they run, three receipts of one run, their HOST part reduced without error | A gate produced with a clause not covered, a platform missing, receipts of different runs or the HOST part failing | native CI run, no model called; needs the host integration |
 
 ## Readings and points settled
 
@@ -169,9 +169,10 @@ verified.
 
 - **Deterministic analysis is default** is read as the mode: the only
   analysis is deterministic, run where settings enable it. `main` has local
-  analysis and raw retention off by default (`settings.py:23-25`), where JD-043
-  says on by default with opt-out (`specs/jevdrill-design-input.md:358`). This
-  plan verifies `main` as built and lists the difference under owner inputs. Model-assisted analysis does not exist and a request for
+  analysis and raw retention off by default (`settings.py:23-25`). JD-043 said
+  on by default with opt-out (`specs/jevdrill-design-input.md:358`); on
+  2026-11-22 the owner decided that off by default stands
+  (Consiliency/jevdrill#94). This plan verifies `main` as built. Model-assisted analysis does not exist and a request for
   it is refused (`docs/learn-interfaces.md:35-36`): a condition on a
   capability, whose control is the refusal. Nothing builds it.
 - **Benchmark assessments** are read as analysis's objective assessments,
@@ -180,14 +181,17 @@ verified.
   ROUTE catalog inputs (`baml_src/contracts.baml:136-137`), outside the clause.
 - **Evidence kinds.** The scheduler evidence is generated configuration: the
   written entry is parsed and its command run natively; nothing is installed.
-  The key-store states, headless Linux among them, are simulated by an
-  injected key provider. The roadmap's rule stands beside both:
+  Every archive key and key-store state is simulated, by an injected key
+  provider or by a replaced `subprocess.run` under `archive_key`
+  (`tests/maintenance/test_maintenance.py:94-105`); `missing` stands for
+  headless Linux, and `locked` behaves identically. The roadmap's rule stands beside both:
   "Substitute/proxy evidence requires a runner-stamped roadmap amendment before
   a gate verdict" (`specs/phase-plans-v1.md:354`).
 - **Needing the host integration:** the installed control and the four
   companion files. The files run whole, with no skip where they run (the
-  Windows two only on Windows), and may not carry `dotfiles_integration`. They
-  are host-platform regressions, cited for no LEARN clause.
+  Windows two only on Windows), and may not carry `dotfiles_integration`. The four
+  files are host-platform regressions, cited for no LEARN clause; the installed
+  control is EC-LEARN-5's.
 - **Re-archived content (Consiliency/jevdrill#46)** reuses the first archive
   and its time (`maintenance.py:188-197`; `storage.py:2202`), so expires a year
   after the first archival; "Cold archives expire one year after archival"
@@ -204,8 +208,8 @@ obligations are the HOST plan's "Cross-Repo Gate". LEARN uses the same pinned
 commit and handoff record and pins nothing itself; `learn.yml` follows J1 as the
 HOST plan words it; SL-5 makes the lists of J4.
 
-**Where the evidence comes from.** One dispatched `learn.yml` run on GitHub's
-hosted Linux, macOS and Windows runners. The HOST plan's conditional host run
+**Where the evidence comes from.** Two dispatched `learn.yml` runs on GitHub's
+hosted Linux, macOS and Windows runners; a verdict rests on one. The HOST plan's conditional host run
 applies on its terms: a possibility, not a request.
 
 ## Lane Index & Dependencies
@@ -230,27 +234,32 @@ applies on its terms: a possibility, not a request.
   requesting project. In an observation whose source is `user_wide_redacted`,
   `discovery_identity` and the observation reference are treated the same: each
   becomes specific to the requester and stable for it, so the batch trigger's
-  comparison of references (`application.py:1308-1313`) still counts new
+  comparison of references (`application.py:1308-1320`) still counts new
   observations and one discovery's observations still share a group. Local
   observations are unchanged. Both stay strings: no contract or schema change
-  (`baml_src/contracts.baml:193-200`). The new control, with two consenting
-  projects, fails if a user-wide source names a producer identity or either
-  value equals its recomputation from the producer's reference and run.
+  (`baml_src/contracts.baml:193-200`). The new control, with one producer and two requesters, all consenting, fails
+  if a user-wide source names a producer identity; if either value can be
+  recomputed from the producer's inputs (`storage.py:994`, `:1008-1010`) and
+  the requester's identifiers without the requester's store; if the two
+  requesters receive an equal value; if a requester's values change between
+  two analyses; or if one discovery's observations stop sharing a group.
   Evidence stored earlier keeps its values until replaced; the doc says so.
 
 ### SL-2 — Deletion, retention and scheduler fixes
 
 - **Needs:** GitHub CI alone.
-- **Owned files:** `src/jevdrill/storage.py` (`delete_task`),
+- **Owned files:** `src/jevdrill/storage.py` (`delete_task` and what it calls),
   `src/jevdrill/maintenance.py`, `tests/maintenance/test_lifecycle_faults.py`
-  (new), `tests/storage/test_wal_erasure.py` (new), the matching sentences of
-  `docs/learn-interfaces.md`.
+  (new), `tests/storage/test_wal_erasure.py` (new), the scheduler and retention
+  paragraphs of `docs/learn-interfaces.md`.
 - **Delivers:** fix lanes for Consiliency/jevdrill#21 (`delete_task` stops
   reporting complete deletion while a deleted payload stays in the write-ahead
-  log), #45 (an item failing on every run is reported and retried without
-  stopping the others; nothing unverified is retired), #46 (as read above) and
-  #52 (the generated command imports nothing from the job's working
-  directory). A fix that changes a response is a declared contract change
+  log, and completes on retry once the reader closes), #45 (an earlier item
+  failing on every run is reported and retried without stopping the others;
+  nothing unverified is retired), #46 (as read above) and #52 (the generated
+  command imports nothing from the job's working directory). New controls also
+  show an archived copy's file gone after task deletion, the generated entry's
+  recurrence, and the cursor and notices surviving a reopened store. A fix that changes a response is a declared contract change
   under CONTRACT's compatibility rules.
 
 ### SL-3 — LEARN-side controls
@@ -258,12 +267,14 @@ applies on its terms: a possibility, not a request.
 - **Needs:** GitHub CI alone.
 - **Owned files:** `tests/application/test_learning_limits.py` (new).
 - **Delivers:** controls entered through `Application`: analysis and the
-  maintenance follow-up write no policy record and change no later discovery or
-  route result; import and restore write saved text back as saved, unchecked,
+  maintenance follow-up write no policy record and, on identical inputs, change
+  no later discovery or route result; import and restore write saved text back as saved, unchecked,
   also with raw retention off (Consiliency/jevdrill#53, as ratified); a
   completed maintenance run whose follow-up analysis refuses stored objectives
-  answers `invalid_input` with its work committed (#58, as ratified).
-  `unit.yml` runs them unedited.
+  answers `invalid_input` with its work committed (#58, as ratified); deleting
+  a promoted policy's supporting data restores no earlier verified policy;
+  restored bytes equal the original; a backup's own deletion records are
+  honoured in a fresh store. `unit.yml` runs them unedited.
 
 ### SL-4 — Verifier and workflow
 
@@ -273,7 +284,9 @@ applies on its terms: a possibility, not a request.
   `tests/verification/test_learn_phase.py`, `.github/workflows/learn.yml`,
   `evidence/LEARN/coverage.json`, `evidence/LEARN/spec-delta.json`, the LEARN
   lines of `.gitignore` and `tests/verification/test_route_phase.py`, and
-  `tests/application/test_learning.py` only where the pinned commit needs it.
+  the installed test of `tests/application/test_learning.py`, only to fit the
+  pinned commit's fixtures, keeping its checks and witness; if the pin cannot
+  support them, that row is not covered.
 - **Delivers:** the held verifier, tests and workflow with every declared
   change below; its reducer tests pass in CI. On `main`, its writer
   dispatches `learn.yml` with the pinned SHA and records the run, which has no
@@ -288,15 +301,17 @@ applies on its terms: a possibility, not a request.
   collected: repository, commit, platform and ids, no path or command. None is
   made off a hosted runner. The correctness seat of the pull request that
   commits them checks each id against the test files at the pinned commit; a
-  second dispatched run is reduced against them.
+  second run, dispatched by this lane's writer with the same pin once the lists
+  are on `main`, is reduced against them. Without three valid receipts from the
+  first run there are no lists.
 
 ### SL-6 — Readiness doc
 
 - **Needs:** SL-5's run and its verdict artifact, if any.
 - **Owned files:** `docs/learn-readiness.md`.
-- **Delivers:** the held doc rewritten: the verdict as the run's artifact, as in
-  `docs/route-readiness.md`; no dotfiles fixture; counts recounted or removed;
-  no October receipt.
+- **Delivers:** the held doc rewritten: the second run linked, with its verdict
+  as that run's artifact (as in `docs/route-readiness.md`) or why it has none;
+  no dotfiles fixture; counts recounted or removed; no October receipt.
 
 ## Verification
 
@@ -330,7 +345,8 @@ Effective `automation.suite_command`: `uv run python scripts/verify_learn_phase.
 **It must check:** every control the clause tables name, by id and exact
 count, on each platform where it runs; the installed control's pass and
 witness; the inherited HOST receipts, by the HOST verifier; three native
-receipts from one run; the companion at the pinned commit, clean; the extras
+receipts from one run, each naming its runner, command, platform, versions and
+result; the companion at the pinned commit, clean, and the jevdrill checkout unchanged after its code ran; the extras
 against each platform's list; module provenance; the coverage record and a
 `no_spec_delta` closeout; the 600-second bound, flagging proof over five
 minutes; a malformed receipt reported, not raised. A clause of
@@ -367,8 +383,12 @@ artifact of the run that made it and is never committed.
    the verdict binds the rows; Consiliency/jevdrill#71.
 7. Same-run receipts only; any other is a diagnostic, never uploaded.
    Reason: Consiliency/jevdrill#73.
-8. A missing expected-test list is an error in the verdict. Reason: the tag
-   reads the list outside its error handling.
+8. Native jobs collect and validate receipts without the lists and still fail
+   on a native error; the reduction reports a missing list in a verdict that
+   produces no gate. The reader takes SL-5's lists (repository, commit,
+   platform, unique ids), not the tag's receipt-shaped files. Reason: the tag
+   reads a list unguarded even in `--local-only`, so the first run's native
+   jobs would fail after collecting.
 9. IF-0-LEARN-1 also requires the inherited HOST reduction without error, its
    not-covered rule included. Reason: LEARN consumes IF-0-HOST-1.
 10. Module provenance adds `src/jevdrill/integrations/archive.py`. Reason: it
@@ -379,7 +399,7 @@ artifact of the run that made it and is never committed.
 ## Acceptance Criteria
 
 - [ ] EC-LEARN-1, EC-LEARN-2, EC-LEARN-3, EC-LEARN-4, EC-LEARN-5 — by the
-  controls and falsifiers of the clause tables, reduced by SL-4 from one run.
+  controls and falsifiers of the clause tables, reduced by SL-4's verifier from SL-5's run.
 
 ## This plan may not claim
 
@@ -394,8 +414,13 @@ artifact of the run that made it and is never committed.
 - That a decline that starts no run is visible to learning.
 - That "retain" is shown except as a refusal to replace an operator-set model.
 - That LEARN evidence informs later discovery or task selection.
-- That a shared record cannot be linked by the domains, guidance choices or
-  revisions digest it still carries.
+- That a shared record cannot be linked by a condition it still carries, such
+  as its domains, guidance choices or revisions digest, or by values stored
+  before SL-1.
+- That an export or backup is metadata only: it carries retained raw task,
+  output and context content.
+- That import or restore checks the text it writes back.
+- That a measurement's text is checked for more than credential-like material.
 - Ratified review, publication, adoption or release readiness.
 
 ## Attached backlog
@@ -419,11 +444,9 @@ artifact of the run that made it and is never committed.
   `specs/phase-plans-v1.md:354`, and what to do about each clause not covered,
   which blocks the verifier's gate:
   - EC-LEARN-5, "comparable evidence can inform later discovery and task
-    selection": no path on `main`; one would need a contract change, which is
-    the owner's.
-- **The local defaults.** JD-043 says local retention and analysis are on by
-  default with opt-out; `main` has them off. Without an answer this plan
-  verifies `main` as built.
+    selection": no path on `main` for either half. For selection the candidate
+    fields exist and nothing fills them from analysis; for discovery a contract
+    change would be needed, which is the owner's.
 - **The options not chosen** in Consiliency/jevdrill#53 and #58: each changes
   the ratified contract.
 - **Making a decline visible to learning**, as in the HOST plan.
@@ -431,11 +454,13 @@ artifact of the run that made it and is never committed.
 ## Execution Notes
 
 Execute serially, one writer per lane; each lane's scope is fixed before it is
-cut and reviewed as this plan was. A storage migration, if one is needed, has
-one owner. No edit to `specs/phase-plans-v1.md`,
+cut and reviewed as this plan was. SL-1 owns any storage migration this plan needs. No edit to `specs/phase-plans-v1.md`,
 `docs/sanitization-contract.md`, `plans/manifest.json` or
 `scripts/verify_route_phase.py` beyond the backlog's standing limits. Tests use
-synthetic stores and keys only.
+synthetic stores and keys only. A control entered through `Application` or the
+command line reaches the default key provider (`maintenance.py:28`), in a child
+process for the command line; its lane keeps it off every OS key store and says
+how.
 
 ## Spec Closeout Plan
 
