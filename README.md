@@ -1,8 +1,10 @@
 # JEV Drill
 
-The contract foundation is under implementation. The router, durable host reporting and local learning are roadmap work. See [CONTRACT readiness](docs/contract-readiness.md) and the [roadmap](specs/phase-plans-v1.md).
+JEV Drill provides progressive guidance discovery, independent task routing and durable local reporting/replay. Discovery returns admitted guidance and uncertainty; the harness owns decomposition and execution. See [ROUTE readiness](docs/route-readiness.md), [the credential check](docs/sanitization-contract.md), [CONTRACT readiness](docs/contract-readiness.md) and the [roadmap](specs/phase-plans-v1.md). Host integration, local learning and experiments are not yet verified on `main`.
 
 For local development, install CPython 3.14 and run `uv sync --locked` and `npm ci`. Set `BAML_CLI` to the verified BAML 0.20.1 compiler, then run `uv run python scripts/verify_contract_phase.py`. Missing platform evidence keeps the phase open. [Toolchain details](docs/toolchain.md) and [contract rules](docs/contracts.md) describe the generated package and strict validation boundary.
+
+Use `jevdrill discover` with `DiscoveryInputs`, then pass its discovery identity and trace digest with each task's `DiscoveryRouteInputs` to `jevdrill route`. JSON travels through stdin/stdout. `inspect-discovery --discovery-id ID --scope JSON --replay` replays recorded transitions without a provider call; `delete-discovery --work-objective-id ID --scope JSON` permanently tombstones the objective. Legacy route-v1 inputs remain supported. Run `uv run python scripts/verify_route_phase.py --local-only` for local evidence; the reducer requires matching native Linux/macOS/Windows reports for all seven criteria.
 
 ## Existing research
 

@@ -15,3 +15,6 @@ research/roadmap-review/**/events.jsonl
 research/roadmap-review/**/*-events.jsonl
 research/roadmap-review/**/stderr.log
 research/roadmap-review/**/*-stderr.log
+# Written by scripts/verify_route_phase.py. The verdict is the CI artifact; these are never committed.
+evidence/ROUTE/platforms/
+evidence/ROUTE/verification.json
