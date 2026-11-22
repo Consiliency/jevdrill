@@ -2,168 +2,514 @@
 phase_loop_plan_version: 1
 phase: HOST
 roadmap: specs/phase-plans-v1.md
-roadmap_sha256: a5cbd9e6d924385cc6a2e286b394b1408fa5a568176cee74b8b40524466cc86a
+roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 ---
 
 # HOST: Harness integration and routing acceptance
 
-> Replanning required: EC-HOST-4 adds the discovery-to-harness-to-task flow.
-> Preserve this plan's prior evidence; revise after ROUTE interfaces freeze.
-> Updating the roadmap hash alone is insufficient. See `docs/drill-roadmap-map.md`.
+> Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
+> with three seats (correctness; security and privacy; alternate vendor).
+> Rounds: to be filled in. Pull request: Consiliency/jevdrill#TBD (to be filled
+> in). This is a reviewed plan. It verifies no criterion.
 
 ## Context
 
-Implement the amended HOST scope against `docs/route-interfaces.md`, the accepted decisions, CONTRACT coverage and `docs/evaluation-protocol.md`. Canonical `.phase-loop/state.json` and the latest `manual_repair` ledger event agree that CONTRACT and ROUTE are complete and HOST is unplanned; live Git is clean. Historical pending prose in ROUTE evidence and manifest entries does not supersede that reconciliation.
+This plan revises HOST against the amended roadmap, EC-HOST-1 to 4 and
+IF-0-HOST-1. It starts from the October plan held at the tag
+`pr1-final-record`, keeps its structure and what is still true, and replaces
+what is false of `main` today: local paths, the old Python, the October
+companion worktrees, the committed verdicts and every ticked box. That plan was
+reviewed only by its planner and is not accepted as the required revision.
 
-The CLI already accepts strict `RouteInputs`, persists decisions/reports and exposes scoped replay/deletion. Notices exist in SQLite but have no retrieval path. Evaluation currently provides aggregation/split helpers and synthetic cases. The inspected host has launch construction and metrics, but no JEV Drill bridge. This plan adds the adapter/queue workstream through a separately owned host companion and the JEV Drill conformance/evaluation workstream; a shared preamble and terminal reducer support both.
+The JEV Drill side of HOST is largely on `main`. The host side lives in
+`Consiliency/agent-harness`, where it is a draft (Consiliency/agent-harness#2071).
+This plan was written against that draft. Its execution starts only when that
+repository has accepted a commit that meets the conditions R1 to R6 below; the
+pin step is then the first step. Nothing here runs a collector, lands a held
+file, requests a host run, spends money or closes a gate.
+
+Length exception: this plan exceeds 3,000 words because every clause of four
+criteria and the interface gate is mapped to code, control, falsifier and
+evidence kind, and because the cross-repository conditions must be stated in
+full for an executor who holds only this plan, `main` and the tag.
+
+## State of `main` at `998912b1e`
+
+**On `main`, by stack pull request.**
+
+| What | Pull request |
+| --- | --- |
+| Notice, report, acknowledgment, `ExecutionRun`, discovery and route-v2 contracts; `tests/contracts/fixtures/host.json` and `tests/contracts/test_host_contracts.py` | Consiliency/jevdrill#12 |
+| Report ingest, acknowledgments, notice retrieval, objective tombstones, discovery link checks (`src/jevdrill/storage.py`); `src/jevdrill/evaluation.py`; `research/evaluation/host/protocol.json`; `tests/evaluation/test_host_acceptance.py`; `tests/storage/test_host_notices.py` | Consiliency/jevdrill#18 |
+| `discover`, linked route-v2, `report`, `notices`, `inspect-discovery`, `delete-discovery`, `--remaining-budget-ms` (`src/jevdrill/application.py`, `src/jevdrill/cli.py`); host-notice application and CLI tests; discovery application tests | Consiliency/jevdrill#54 |
+| The ROUTE verifier and its three-platform matrix, which HOST inherits | Consiliency/jevdrill#66 |
+| The current status block and readiness docs | Consiliency/jevdrill#85 |
+
+The October plan's contracts lane (SL-0), notices lane (SL-1) and the evaluator
+and protocol of its SL-3 have therefore landed and are described as landed, not
+as work; its probes have not. Two
+controls named by the held verifier resolve on `main`:
+`tests/storage/test_host_notices.py::test_notice_scope_reads_and_cross_producer_deletion`
+and
+`tests/evaluation/test_host_acceptance.py::test_frozen_groups_are_disjoint_and_holdouts_unopened`.
+
+**Held at the tag, not on `main`.** `scripts/verify_host_phase.py`,
+`tests/verification/test_host_phase.py`, `.github/workflows/host.yml`, the seven
+files of `tests/conformance/` (`conftest.py`, five test files, one fixture), the
+probes `research/evaluation/host/test_bridge_probe.py` and
+`test_baseline_probe.py`, `docs/host-interfaces.md`, `docs/host-readiness.md`,
+and October's `evidence/HOST/**`. The October evidence is not restored: the
+handoff record and the expected-test lists are regenerated (pin step);
+`evidence/HOST/coverage.json` and `spec-delta.json` are re-made in SL-3;
+receipts, verdicts and history are never committed.
+
+**Exists nowhere.** An accepted host-integration commit; any CI run of its
+tests; a HOST receipt from a hosted runner; a handoff record that names a
+commit; JEV-side controls for recursion bypass, dry runs and mismatch advice;
+any live evaluation; any record of a decline.
 
 ## External Inputs
 
-The original companion is preserved at `/mnt/workspace/worktrees/viperjuice/agent-harness-jevdrill-host` on `codex/jevdrill-host`. The integrated verification input is `/mnt/workspace/worktrees/viperjuice/agent-harness-windows-port` on `codex/jevdrill-windows-port`, based on agent-harness revision `56dce95a52625a58cd08911f8f623c637bf52e44` (runtime source version 0.7.20). It combines the companion adapter with the separately planned Windows prerequisites. The parent owns companion planning and implementation under those repo-local plans. Do not duplicate that work or edit sibling source from this JEV lane. Record current source and packaged-resource digests in the handoff and native evidence; prior checkout evidence remains historical.
-
-Explicit read inputs for required checks are `evidence/CONTRACT/coverage.json`, `evidence/CONTRACT/evaluation-protocol.json`, `evidence/CONTRACT/spec-delta.json`, `evidence/CONTRACT/verification.json`, `evidence/CONTRACT/platforms/*.json`, `evidence/ROUTE/*.json`, `evidence/ROUTE/platforms/*.json`, and the reviewed synthetic fixture `research/evaluation/cases.json`. These are metadata-only prior-phase evidence or synthetic test inputs; never treat prior-phase results as HOST acceptance. HOST-owned generated schemas, shared synthetic fixtures, evaluation inputs and metadata-only outputs may be read for this phase's verification. No private corpora, raw provider logs, credentials or holdout contents are authorized.
-
-- Inspected agent-harness checkout: `/home/viperjuice/code/agent-harness`, at the external revision recorded in `specs/jevdrill-implementation-proposal.md` §4, source package `0.7.16`. Installed planning runtime is `0.7.19`; these are different inputs. Reinspect the assigned companion checkout and record actual compatibility before implementation; never assume installed/source parity.
-- Preserve the CONTRACT pin `baml-language-0.20.1` / `baml-bridge==0.20.1` and CPython 3.13. New shared fixtures repeat Python/Node parity and native platform checks.
-- Consumed upstream gates: IF-0-CONTRACT-1 and IF-0-ROUTE-1. No future output commit, merge topology or external release is prescribed.
+- Host integration, inspected: draft Consiliency/agent-harness#2071, head
+  `784d1595a08f42519862ae5f9336f20186d83c4b`, parent
+  `56dce95a52625a58cd08911f8f623c637bf52e44`, package version 0.7.20. On
+  2026-11-22 it was 1 commit ahead of and 1,495 behind that repository's
+  `main` (package 0.7.39), conflicting, with no test run in that repository's
+  CI. That `main` tests Linux only, on Python 3.12. This is an inspected draft,
+  not an accepted revision.
+- Supported interfaces used: `runner.discover_jevdrill_work_units`,
+  `runner.launch_delegated_child`, `runner.launch_harness_lane_work_unit`;
+  `launcher.build_launch_request`, `build_launch_spec`, `launch_with_spec`;
+  `JevDrillAdapter`, `JevDrillTransport`, `JevDrillUnavailable`, `ReportQueue`;
+  and the test names listed in R5.
+- JEV Drill on Python 3.14 (`pyproject.toml:9`); BAML `baml-language-0.20.1` and
+  `baml-bridge==0.20.1`, unchanged. The companion runs in its own environment on
+  the Python its CI tests (J7).
+- Read inputs: `main`, the tag, `schemas/`, `tests/contracts/fixtures/`,
+  `research/evaluation/host/protocol.json`, and metadata under
+  `evidence/CONTRACT/` and `evidence/ROUTE/`. No research corpus, holdout,
+  credential, provider log or private repository.
 
 ## Interface Freeze Gates
 
-- [ ] IF-0-HOST-1 — `RouteInputs` → validated `RoutingDecision` → existing host `build_launch_request` / `build_launch_spec` / `launch_with_spec`, with `ExecutionRun`, `ReportRequest` and durable `ReportAcknowledgment` semantics shared by main, delegated and lane paths; bounded host queue, notice retrieval and native/evaluation evidence satisfy all HOST ECs.
-- [ ] IF-0-VC-2 — The effective suite below resolves actual commands, covers every HOST EC and rejects missing/stale companion, platform, evaluation or spec-closeout evidence; command collection alone cannot freeze HOST.
+- [ ] IF-0-HOST-1 — Installed discover → validated `DiscoveryResult` → harness
+  decomposition → at least two `DiscoveryRouteInputs` tasks → independently
+  validated `RoutingDecision` → existing launch constructors → `ExecutionRun`,
+  report and durable acknowledgment, with one bounded queue and notice
+  retrieval, on Linux, macOS and Windows in one workflow run.
+- [ ] IF-0-VC-2 (plan-level, not a roadmap gate) — `scripts/verify_host_phase.py`
+  rejects invalid, stale, skipped, constant-only or foreign receipts.
+
+## Criteria, clause by clause
+
+Key. "main" marks a test id that resolves on `main` today. "D" marks a
+deliverable: the id exists at the tag unless marked "new". "HI" marks a test in
+the host integration at the draft head, under `phase-loop-runtime/tests/`,
+named by file and test. Evidence kinds: native CI run; synthetic; simulated;
+generated configuration; needs the host integration; needs a container; needs
+an owner input. Nothing below is verified.
+
+**EC-HOST-1**
+
+| Clause | Implementation | Control | Falsifier | Evidence |
+| --- | --- | --- | --- | --- |
+| Main, delegated and lane execution apply validated plans | In the host integration; decision `src/jevdrill/application.py:583`; `ExecutionRun` `baml_src/contracts.baml:78` | D `tests/conformance/test_launch_paths.py::test_real_main_delegated_lane_constructors`; HI `test_jevdrill_adapter.py::test_real_runner_construction_sites_reach_bridge` | An entry point missing, or a launch with no `applied_plan_id` | native CI run; needs the host integration |
+| Report substitutions and observations | `substitution_reason` `contracts.baml:78`; `src/jevdrill/storage.py:2004` | main `tests/analysis/test_observations.py::test_substitution_preference_and_evaluation_are_distinct`; HI `test_jevdrill_adapter.py::test_observed_substitution_is_not_attributed_to_selected_plan` | A substitution recorded as the selected plan | native CI run; needs the host integration |
+| Preserve permission restrictions | In the host integration | D `test_launch_paths.py::test_entered_permission_expansion_denials`; HI `test_jevdrill_adapter.py::test_forged_capability_or_candidate_cannot_expand_authority` | A widened launch that starts | native CI run; needs the host integration |
+| Prevent recursive routing | `recursion_bypass` `contracts.baml:51`, honoured `application.py:821`; propagation in the host integration | No control on `main` (no test sets the flag): D new, SL-1; HI `test_jevdrill_adapter.py::test_dry_run_and_recursion_bypass_do_not_route` | A bypassed request that still calls the judgment | native CI run |
+| Acceptance failures supply bounded rerouting context | `retry_context` `contracts.baml:51`; bound `application.py:619-620`; the rerouting call in the host integration | main `tests/application/test_route_integration.py::test_retry_requires_recorded_run_and_remaining_attempt_authority`. Host half: not covered, no named control at the draft; SL-2 adds a witness record or it stays not covered | A retry beyond its remaining time accepted | native CI run; needs the host integration |
+| Guidance not reinjected on retries | In the host integration | HI `test_jevdrill_adapter.py::test_guidance_is_verified_injected_once_and_deactivated` | An optional revision injected twice | needs the host integration |
+| Deactivates at task end, reporting host limitations | `guidance_deactivated` `contracts.baml:79`; emitted in the host integration | Same HI test. "Reporting host limitations": not covered, no named control at the draft | No deactivation event at task end | needs the host integration |
+| Dry runs never become execution-success evidence | `dry_run` `contracts.baml:78`; excluded from ordering `application.py:898` | D new, SL-1; HI `test_dry_run_and_recursion_bypass_do_not_route` | A dry run counted as a completed run | native CI run |
+
+**EC-HOST-2**
+
+| Clause | Implementation | Control | Falsifier | Evidence |
+| --- | --- | --- | --- | --- |
+| Hooks and explicit reporting use one durable bounded queue | In the host integration (`ReportQueue`) | HI `test_jevdrill_queue.py::test_overflow_and_expiry_have_persistent_loss_counters`; D `tests/conformance/test_transport_queue.py::test_entered_ack_loss_and_cross_producer_deletion` | A report dropped without a loss count | needs the host integration |
+| Redacted before persistence | Queue in the host integration; `_sanitize` `application.py:68`, applied `:1230` | main `tests/privacy/test_round41_learning.py::test_report_sensitive_map_key_rejects_before_persistence`, `tests/privacy/test_sink_proof.py::test_a_report_with_a_refused_identifier_is_refused_before_it_is_stored`; HI `test_jevdrill_queue.py::test_sanitization_happens_before_any_write`; D `tests/conformance/test_usage_reporting.py::test_installed_usage_persistence` (11 cases) | A sentinel in the queue file or the store | native CI run; needs the host integration |
+| Idempotent acknowledgments and recovery | `storage.py:2004`; `contracts.baml:86-89` | main `tests/application/test_application.py::test_report_is_a_versioned_durable_acknowledgment`; HI `test_jevdrill_queue.py::test_acknowledgment_loss_replays_exact_report`, `::test_process_crash_windows_recover_durable_reports` | A report removed on a non-durable acknowledgment | native CI run; needs the host integration |
+| Disconnects and capability mismatches include supported resolution advice | `contracts.baml:54`; `src/jevdrill/routing.py:83-93`; disconnect advice in the host integration | No control on `main`: D new, SL-1. Disconnect advice: not covered, no named control at the draft | A mismatch with empty advice | native CI run; needs the host integration |
+| Host choices separate from check results | `contracts.baml:81-82` | main `test_observations.py::test_substitution_preference_and_evaluation_are_distinct` | A host choice counted as a check | native CI run |
+| Unknown telemetry is not fabricated | `contracts.baml:4` | main `test_observations.py::test_missing_failed_canceled_corrected_and_unknown_observations`; HI `test_jevdrill_usage.py::test_incomplete_drain_is_unknown_and_bounded`, `test_jevdrill_discovery.py::test_native_unsupported_observer_records_unknown_capture`; D `test_installed_usage_persistence` | A missing counter reported as a number | native CI run; needs the host integration |
+| Pending notices shown on the next connection | `application.py:1242`; `storage.py:2311`; `src/jevdrill/cli.py:87` | main `tests/storage/test_host_notices.py::test_notice_scope_reads_and_cross_producer_deletion`, `tests/application/test_host_notices.py::test_notice_snapshots_do_not_mutate_retry_or_replay`; D `tests/conformance/test_notices.py::test_every_report_connection_queries_notices` | A report connection with no notice query before it | native CI run; needs the host integration |
+
+**EC-HOST-3** (reading of C.4 below)
+
+| Clause | Implementation | Control | Falsifier | Evidence |
+| --- | --- | --- | --- | --- |
+| Linux, macOS and Windows contract suites pass | `scripts/verify_contract_phase.py:71` | main `tests/contracts/test_host_contracts.py::test_host_shared_contract` (28 cases), three platforms in the CONTRACT workflow; inherited ROUTE regressions in each HOST receipt | A row decided differently on one platform | native CI run |
+| Independent implementation, review and documentation evaluations pass predefined correctness and privacy gates on development and validation splits | `src/jevdrill/evaluation.py:73`, `:102`; `research/evaluation/host/protocol.json` (`host-synthetic-v2`, six cases) | main `tests/evaluation/test_host_acceptance.py::test_independent_controlled_artifact_checks` (fixed programs, not routed); D `test_launch_paths.py::test_independent_checks_reject_entered_routed_artifacts` (routed) | A damaged routed artifact, privacy leak or swapped split that passes | synthetic; native CI run; needs the host integration |
+| Untouched holdout reserved for PREPARE | Protocol `holdouts_opened: false` | main `test_frozen_groups_are_disjoint_and_holdouts_unopened` | A witness with a holdout opened | synthetic |
+| Uncertainty and routing overhead against all applicable baselines | Protocol baselines (three applicable; `previous_policy`, `retrieval` not applicable with reasons); timings from the probes | D `test_independent_checks_reject_entered_routed_artifacts` (baselines). Uncertainty: recorded as `insufficient_evidence`; six synthetic cases support no interval | A missing applicable baseline | synthetic |
+| Insufficient evidence blocks performance claims | Protocol `performance_claims`; reducer witness check | main `test_frozen_groups_are_disjoint_and_holdouts_unopened`; D verifier fault `quality_claim` | Any other value passes | synthetic |
+| A live development or validation evaluation | — | Not covered: none is authorized | — | needs an owner input |
+
+**EC-HOST-4**
+
+| Clause | Implementation | Control | Falsifier | Evidence |
+| --- | --- | --- | --- | --- |
+| Installed flow takes an objective through discovery and returns selected guidance | `application.py:107`; `cli.py:85`; `runner.discover_jevdrill_work_units` in the host integration | HI `test_jevdrill_discovery.py::test_installed_discovery_decomposition_two_task_launch` (2 cases); D `tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks` | Entered trace lacks `main`, `open_application`, `discover`, `next_question` or `route` | needs the host integration |
+| The harness decomposes it | In the host integration | HI `test_jevdrill_discovery.py::test_entered_discovery_requires_harness_decomposition`; same D | `planning.executor` absent or after the first route-v2 | needs the host integration |
+| At least two tasks routed independently | `application.py:587-589`; `storage.py:1906` | main `tests/application/test_discovery_application.py::test_public_discovery_two_independent_tasks_and_replay` (synthetic caller); HI and D as above | One task, or equal model and effort | native CI run; needs the host integration |
+| Objective, skill, task and decision links | `baml_src/discovery.baml:90-91`; `storage.py:1906` | main `test_discovery_application.py::test_bad_links_never_enter_prepare`; D `test_discovery_handoff.py::test_entered_reference_deletion_revision_and_policy_controls`; HI `test_jevdrill_discovery.py::test_entered_linked_launch_rejections` (5 cases) | A forged, deleted or stale reference that launches | needs the host integration |
+| Guidance lifetime and substitutions | As EC-HOST-1 | HI `test_guidance_is_verified_injected_once_and_deactivated`; prompt isolation in the two-task test | Another objective's instructions in a task prompt | needs the host integration |
+| The harness may retain its current model | In the host integration (inventory narrowed before selection) | Not covered: no named control at the draft; SL-2 adds a retain record to the witness or it stays not covered | — | needs the host integration |
+| Or decline a recommendation | In the host integration | HI `test_entered_linked_launch_rejections[decline]`; D `test_entered_reference_deletion_revision_and_policy_controls` | A decline that starts a run, or a run recorded that did not happen | needs the host integration |
+| Production paths, no injected preselected guidance | As the first row | As the first row; reducer entered-path check | Selected guidance supplied without `discover` | needs the host integration |
+| No recursive routing; no forced single model per skill | As EC-HOST-1; `application.py:583` per task | As EC-HOST-1; reducer requires two models and two efforts | Identical configurations | needs the host integration |
+
+**Scope notes and gates**
+
+| Item | Implementation | Control | Falsifier | Evidence |
+| --- | --- | --- | --- | --- |
+| JD-084: leased macOS launch rejects before startup and names a Linux worker; Linux proves leased cleanup | In the host integration | HI `test_phase_loop_launcher.py::test_launcher_accepts_explicit_nonserialized_lease_authority` and `::test_supervised_launch_drains_retained_stdout_before_returning`, required passed in the Darwin and the Linux receipt | A macOS executor that starts, or a Linux receipt standing in for macOS | native CI run; needs the host integration |
+| JD-083: ceilings need verified whole-run limits | In the host integration; JEV side `application.py:583` | main `test_route_integration.py::test_builtin_task_judgment_keeps_verified_spending_bounds`; HI `test_jevdrill_adapter.py::test_requested_ceiling_rejects_unproven_executor_limits` | A ceiling accepted without enforcement | native CI run; needs the host integration |
+| IF-0-HOST-1 | The four criteria | D `test_installed_discovery_harness_planning_two_independent_tasks`; reducer `produced_if_gates` only when every row passes in three receipts of one run | A gate produced with a criterion failing or a platform missing | native CI run; needs the host integration |
+| IF-0-VC-2 | D `scripts/verify_host_phase.py` | D `tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts` (19 cases at the tag, plus one per declared change), `::test_missing_companion_configuration_is_failure` | A forged, skipped or foreign receipt passes | native CI run |
+
+## Readings and points settled
+
+- **EC-HOST-3 (C.4).** Covered by the three-platform contract suites and the
+  frozen synthetic protocol run through the routed path. Every performance claim
+  is recorded as `insufficient_evidence` and the evaluation is labelled
+  synthetic. A live evaluation is not covered. Whether that closes the criterion
+  is the owner's decision at the gate, with the roadmap's rule on
+  substitute or proxy evidence (`specs/phase-plans-v1.md:354`) before him. A live
+  evaluation he later authorizes is added by amendment.
+- **Declining a recommendation (C.5).** Tested as: the harness declines, no
+  routed run starts, and nothing records a run that did not happen. Learning
+  sees a host preference only as a choice among runs that happened
+  (`storage.py:1014-1018`), so a decline with no run leaves nothing to
+  misclassify; that is a stated limit. Making a decline visible needs a
+  contract addition, which is the owner's; this plan does not propose it.
+- **`tests/conformance/test_usage_reporting.py`: run.** The verifier selects it
+  on all three platforms, 11 cases each, as a control of EC-HOST-2. Reason: it
+  is the only test that drives installed usage reporting through the companion
+  queue for missing, unsupported and lagged telemetry with privacy sentinels;
+  without it those clauses rest on contract fixtures.
+- **Judgment policy in the installed flow: `JudgeCandidate-v2` through the
+  loopback mock.** At least one task of the installed two-task flow carries a
+  route judgment policy at `JudgeCandidate-v2`, answered by the loopback mock
+  (`MockObserveCandidate`, `baml_src/jev.baml:29`). Reason: JEV Drill dispatches
+  only v2 (`src/jevdrill/integrations/jev.py:25`; refusal
+  `application.py:825-828`), and a flow with no policy, as at the draft, cannot
+  catch a companion that rejects v2. If the accepted commit's installed fixture
+  cannot carry a judged task without a change in that repository, the pin step
+  records it and this clause is listed not covered; no condition is added.
+- **JD-084's native macOS control** is the two module-level launcher tests named
+  above. At the draft they carry no `dotfiles_integration` marker and skip
+  unless `PHASE_LOOP_TDD_EXPECT_SCHED=1`, which the collector sets; a skip
+  fails the reducer. A commit that marks them leaves JD-084 not covered.
+- **What the deselection does not exercise (J6).** Deselecting
+  `dotfiles_integration` drops the 53 tests of the marked class in
+  `test_phase_loop_launcher.py`: launcher skill and adoption bundle building and
+  the execute path that resolves a dotfiles skill source and profile overlay.
+  HOST's evidence says nothing about them. Each launch-path claim of EC-HOST-1
+  rests on a selected test: the jevdrill probes, the unmarked adapter tests named
+  above and the two module-level launcher tests. SL-3's coverage record shows the
+  mapping.
+- **Consiliency/jevdrill#82** is settled by J5. **#71**: every parametrized
+  control count is exact, and a changed count is a declared change. **#73**: the
+  reducer accepts only receipts made in the same GitHub Actions run; any other
+  receipt is a diagnostic, ignored by git, never uploaded, never an input.
+  **#74**: `host.yml` uploads the verdict only when the reduction step ran.
+
+## Cross-Repo Gate
+
+This plan owns no path in `Consiliency/agent-harness` (`specs/phase-plans-v1.md:192`).
+jevdrill does not review the host integration; it pins a commit that repository
+has accepted. The inspected revision is the draft named above, not accepted.
+The conditions of the pin:
+
+- **R1 — One accepted commit** on that repository's `main`, merged under its own
+  rules with its required checks passing, named by its full 40-character SHA.
+  Under `phase-loop-runtime/`: `jevdrill_adapter.py`, `jevdrill_queue.py`,
+  `runner.py`, `launcher.py`, `observability.py`; the twelve test files
+  (`test_jevdrill_adapter.py`, `_queue`, `_discovery`, `_input`, `_usage`,
+  `_diagnostics`, `test_phase_loop_launcher.py`,
+  `test_phase_loop_work_unit_observability.py`, `test_windows_locking.py`,
+  `test_launcher_liveness.py`, `test_windows_processes.py`,
+  `test_windows_storage.py`) and every helper they import;
+  `tests/fixtures/jevdrill/` with 14 schemas, 3 fixtures and `digests.json`; a
+  `pyproject.toml` and `uv.lock` whose locked sync imports `phase_loop_runtime`
+  from the checkout's `src`. Nothing must match October's digests or 0.7.20.
+- **R2 — Contract copies are jevdrill's.** Each schema copy is byte-identical to
+  its namesake in `schemas/` at a jevdrill `main` commit at or after
+  `998912b1e`, named by the pull request. Each fixture equals its namesake in
+  `tests/contracts/fixtures/` once `<jev-token-counter-revision>` is replaced by
+  `utf8-bytes-upper-bound-v1`. `digests.json` agrees.
+- **R3 — Tested there.** The twelve files pass in that repository's own GitHub
+  Actions on Linux at that commit. Asked for, each with a fallback: the tests
+  needing an installed JEV Drill run there against the R2 commit on Python 3.14;
+  the twelve files run on hosted macOS and Windows. Where either is not done,
+  jevdrill's `host.yml` run is the first; a companion failure there is reported
+  to that repository and HOST waits for a new accepted commit.
+- **R4 — No private dependency.** No selected test needs `Consiliency/dotfiles`,
+  another private repository or a secret. jevdrill deselects exactly
+  `dotfiles_integration` and tolerates no other skip; none of the eight
+  companion controls and none of the four LEARN files carries that marker.
+- **R5 — Names kept, or the change declared:** `launcher`, `runner`, `models`,
+  `jevdrill_adapter.JevDrillTransport`, `JevDrillUnavailable`,
+  `jevdrill_queue.ReportQueue`; `test_jevdrill_discovery.installed_discovery`,
+  `.linked_task`, `.test_installed_discovery_decomposition_two_task_launch`;
+  `test_jevdrill_adapter.FIXTURES`, `.adapter_fixture`;
+  `test_jevdrill_usage.records`, `.synthetic_spec`, `.values`;
+  `phase_loop_test_utils.make_repo`, `.write_phase_plan`.
+- **R6 — Installs on hosted runners.** The pull request states the sync command
+  and the Python its CI tests (3.12 today), and the command works on hosted
+  Linux, macOS and Windows.
+
+**jevdrill's own obligations.**
+
+- **J1.** `host.yml` takes `companion_ref` as a full SHA, validated in the first
+  step, no default; checks out that one public repository with the read-only
+  token and `persist-credentials: false`; `permissions: contents: read`; no
+  dotfiles checkout. (`learn.yml` is the LEARN plan's.)
+- **J2.** A receipt records the repository, the commit and a clean checkout; the
+  reducer rejects a commit that is not the handoff's.
+- **J3.** The handoff record is regenerated from the accepted commit and names
+  the repository and commit, not a path.
+- **J4.** The expected-test lists are rebuilt from that commit by a CI run. The
+  correctness seat of the pin pull request checks every listed id against the
+  test files at the commit, and the reducer fails on a listed id not collected.
+- **J5.** The collector compares the companion's contract copies with
+  jevdrill's `schemas/` and fixtures at the commit under test, with the one
+  substitution. This settles Consiliency/jevdrill#82.
+- **J6.** The companion command carries `-m "not dotfiles_integration"` as a
+  named constant bound in the command digest.
+- **J7.** The companion's Python version is set explicitly and recorded in the
+  receipt.
+
+**The pin step** is the first step of execution (SL-0): regenerate the handoff
+record from the accepted commit, rebuild the expected-test lists by a CI run,
+and compare the commit with R5's list. If the commit breaks an item of R5, this
+plan gets one amendment of one round.
+
+**Where the evidence comes from.** One dispatched `host.yml` run on GitHub's
+hosted Linux, macOS and Windows runners, JEV Drill on Python 3.14. Only if
+hosted runners prove unable to run the host integration (nobody has tried)
+would a host run be requested, then and not now: one collection per machine on
+one Linux, one macOS and one Windows machine; both commits as full SHAs with
+clean checkouts; no root, no sudoers entry, no docker; 600 seconds each; a
+receipt carrying both commits, the UTC start time and a nonce issued with the
+request; nothing committed. The receipt's form would be ruled then. This is a
+possibility, not a request.
 
 ## Lane Index & Dependencies
 
-SL-0 — Shared contract and companion preamble
-  Depends on: (none)
-  Blocks: SL-1, SL-2, SL-3
-  Parallel-safe: no
-
-SL-1 — Adapter handoff, notices and queue conformance
-  Depends on: SL-0
-  Blocks: SL-2, SL-3
-  Parallel-safe: no
-
-SL-2 — Independent routing acceptance evaluation
-  Depends on: SL-0, SL-1
-  Blocks: SL-3
-  Parallel-safe: no
-
-SL-3 — Native verification and documentation reducer
-  Depends on: SL-0, SL-1, SL-2
-  Blocks: (none)
-  Parallel-safe: no
-
-## Cross-Repo Gates
-
-`HOST-ADAPTER` is a required companion dependency, not an already-produced IF gate. SL-0 writes `evidence/HOST/adapter-handoff.json` with fixture/schema digests, inspected source version, exact ownership, commands and expected evidence. Create the companion's repo-local execution plan before sibling writes. Keep its worktree, dirty-path accounting and closeout separate; this plan's Owned files are exclusively JEV Drill paths. The JEV executor can start SL-0 and local SL-1 tests immediately, but cannot substitute mocks for the missing companion.
-
-The companion owns these agent-harness-relative paths: `phase-loop-runtime/src/phase_loop_runtime/jevdrill_adapter.py`, `phase-loop-runtime/src/phase_loop_runtime/jevdrill_queue.py`, `phase-loop-runtime/src/phase_loop_runtime/runner.py`, `phase-loop-runtime/src/phase_loop_runtime/launcher.py`, `phase-loop-runtime/src/phase_loop_runtime/observability.py`, `phase-loop-runtime/tests/test_jevdrill_adapter.py`, `phase-loop-runtime/tests/test_jevdrill_queue.py`, `phase-loop-runtime/tests/fixtures/jevdrill/**`, `docs/jevdrill-integration.md`. Use standard-library queue/transport and explicit configuration arguments; no dependency or public host-model change is planned. Any additional file requires a companion ownership amendment first.
-
-Hook `run_loop`, `launch_delegated_child` and `launch_harness_lane_work_unit` before final launch construction and after observed completion. Share one bridge/queue for hooks and explicit reporting. Preserve the resolved permission policy, governing overrides, worktree assignment, delegation budgets, CLI-only route restrictions and launch eligibility. Recheck actual model revision/access route/native effort/readiness; executor capability names and installed tools cannot establish inventory. Missing verified identity makes a candidate unavailable. Under JD-083, verified whole-run execution token limits are required only for requested spending, retry-spend or token ceilings; absent ceilings permit explicitly estimated-cost routing. Never infer provider usage from selected model metadata.
-
-Build a strict `InventorySnapshot` with requested/resolved model identities, access route, native effort, freshness, counter revision and nullable price/rate revisions; pass catalog/settings snapshots and input/output planning estimates in `RouteInputs`. Preserve unknown rates/quality and raw versus adjusted cost. Readiness requires confirmed configured/runtime intersection and enforcement of any requested execution ceiling; estimates cannot establish that enforcement.
-
-The companion freezes queue limits at 16 MiB, 10,000 records, 1 MiB per record and seven-day transport retention, with restrictive local permissions and bounded retry backoff. Overflow/expiry produces metadata-only delivery-loss notices and counters, never silent eviction or success. Redact credentials, excluded paths and hidden reasoning before SQLite/WAL persistence; store no raw tasks/outputs. Persist before sending; remove only on matching event ID with `accepted`/`duplicate` and `durable=true`. Conflicts, rejected/deleted tasks and corrupt records are visible terminal dispositions, not endless retries. Deletion cancels queued entries across producers within project/workspace, persists a tombstone before delivery can resume, and survives crash/restart.
-
-Companion verification from its root: `uv run --project phase-loop-runtime pytest phase-loop-runtime/tests/test_jevdrill_adapter.py phase-loop-runtime/tests/test_jevdrill_queue.py phase-loop-runtime/tests/test_phase_loop_launcher.py phase-loop-runtime/tests/test_phase_loop_work_unit_observability.py`. Native platform collection additionally invokes the actual JEV CLI with the shared fixtures. The companion returns source/fixture digests, runner identity, command/assertion results and construction-site traces; SL-3 imports only redacted evidence. A missing companion is a repairable dependency, never a reason to omit EC-HOST-1/2.
+- SL-0 — Pin step; Depends on: an accepted commit; Blocks: SL-2, SL-3, SL-4; Parallel-safe: no
+- SL-1 — JEV-side controls; Depends on: SL-0; Blocks: SL-3; Parallel-safe: no
+- SL-2 — Conformance and probes; Depends on: SL-0; Blocks: SL-3; Parallel-safe: no
+- SL-3 — Verifier and workflow; Depends on: SL-0, SL-1, SL-2; Blocks: SL-4; Parallel-safe: no
+- SL-4 — Readiness docs; Depends on: SL-3 and one dispatched run; Blocks: (none); Parallel-safe: no
 
 ## Lanes
 
-### SL-0 — Shared contract and companion preamble
+### SL-0 — Pin step
 
-- **Scope**: Freeze additive notice transport and shared host fixtures before either workstream changes behavior.
-- **Owned files**: `baml_src/contracts.baml`, `baml_src/boundary.json`, `schemas/**`, `src/baml_sdk/**`, `src/jevdrill/contracts.py`, `docs/vocabulary.yaml`, `docs/vocabulary.md`, `docs/host-interfaces.md`, `pyproject.toml`, `uv.lock`, `tests/contracts/test_host_contracts.py`, `tests/contracts/fixtures/host.json`, `evidence/HOST/adapter-handoff.json`
-- **Interfaces provided**: `host_fixture_contract`, `notice_query_contract`, `companion_handoff`
-- **Interfaces consumed**: `RouteInputs`, `ExecutionRun`, `ReportRequest`, `LocalNotice`, `CommandScope` (pre-existing)
-- **Parallel-safe**: no
-- **Tasks**:
-  - test: Add shared positive/negative fixtures for all five routing outcomes, acknowledgment identity/durability, selected/applied substitutions, retry links, missing telemetry, dry runs, capability mismatch and notice scope. Python and Node must reject unknown fields, coercion and unsupported versions identically.
-  - impl: Add BAML-authored `NoticeRequest { schema_version: "1", scope: CommandScope }` and `NoticeInbox { schema_version: "1", notices: LocalNotice[] }`; register exports in boundary metadata and regenerate schemas/SDK with `uv run python scripts/check_generated_contracts.py --write`. Freeze `jevdrill --storage PATH notices` taking NoticeRequest on stdin. Preserve existing shapes; the read-only query neither deletes notices nor grants management authority.
-  - impl: Extend `StoragePort` with scoped notice retrieval, register vocabulary and include conformance tests in pytest discovery. Author host fixtures from BAML-derived schemas, not a duplicate handwritten field catalog. Freeze queue/CLI bounds, version negotiation, inventory provenance and handoff format in `docs/host-interfaces.md`.
-  - impl: Handoff includes configured declarations from `.jevdrill/harnesses.yaml` and ignored machine overrides; intersect configured/runtime permission sets. Include positive path-entered controls and stale/forged inventory negatives. Specify unsupported resolution advice without setup or permission expansion.
-  - verify: `uv run pytest tests/contracts/test_host_contracts.py tests/contracts/test_boundaries.py tests/contracts/test_generation.py`; `node scripts/contract_consumer.mjs tests/contracts/fixtures`; `uv run python scripts/check_generated_contracts.py`; `uv run python scripts/check_import_boundaries.py`.
+- **Needs:** an accepted host-integration commit; GitHub CI.
+- **Owned files:** `evidence/HOST/adapter-handoff.json`,
+  `evidence/HOST/companion/extra-{Linux,Darwin,Windows}.json`.
+- **Delivers:** R1 to R6 checked against the commit and stated in the pull
+  request; J3; J4; R5 compared. No file made outside a GitHub-hosted run is
+  committed. How that first run is triggered is fixed in HOST's cut
+  specification: a `workflow_dispatch` workflow cannot be dispatched before it
+  is on the default branch.
 
-### SL-1 — Adapter handoff, notices and queue conformance
+### SL-1 — JEV-side controls
 
-- **Scope**: Complete JEV notice delivery and exercise the separately implemented host bridge through production launch and transport paths.
-- **Owned files**: `src/jevdrill/application.py`, `src/jevdrill/cli.py`, `src/jevdrill/storage.py`, `tests/application/test_host_notices.py`, `tests/cli/test_host_notices.py`, `tests/storage/test_host_notices.py`, `tests/conformance/**`
-- **Interfaces provided**: `host_conformance`
-- **Interfaces consumed**: `host_fixture_contract`, `notice_query_contract`, `companion_handoff`
-- **Parallel-safe**: no
-- **Tasks**:
-  - test: Add `test_launch_paths.py`, `test_transport_queue.py` and `test_notices.py` under conformance; invoke the installed CLI and companion production functions with controlled executor subprocesses. Require an entry witness for each main/delegated/lane construction path before fault injection. An absent companion fails integration tests, never skips them.
-  - impl: Implement scoped notice retrieval using the existing notices table; materialize stable LocalNotice IDs and sanitized summaries. Wire the CLI query and all routing response notice fields without mutating replayed decisions. Fetch pending notices on every host connection, including explicit reporting; local notices remain visible across disconnects and repeated reads. Preserve project/workspace isolation and deletion.
-  - impl: Complete HOST-ADAPTER handoff. Measure monotonic time before spawning; pass `--remaining-budget-ms` after accrued host overhead and enforce the same outer five-second routing deadline through startup, validation and durable decision. Bound request/response bytes; use argv/stdin without shell interpolation. Cancellation kills/reaps owned processes on all three OSes.
-  - impl: Apply only ready plans under existing authority; bind selected/applied identities and reasons. Propagate recursion bypass into routing work itself. Retry after lost stdout uses the same key; intentional rerouting uses a new run linked through bounded failure context. Required guidance remains intact; optional guidance is injected once by revision/hash, deactivated at task end, and unsupported cleanup is reported.
-  - test: Exercise permission narrowing, stale readiness, unknown prices, unenforceable token caps, malformed output, disconnect/recovery, duplicate/conflicting acknowledgments, reordered/corrected reports, crash windows, queue limits and cross-producer deletion races. Secret sentinels must be absent from queue DB/WAL and exported evidence. Dry-run completion never counts as accepted execution; preferences cannot overwrite checks; unknown usage retains its missing reason.
-  - verify: `uv run pytest tests/conformance tests/application/test_host_notices.py tests/cli/test_host_notices.py tests/storage/test_host_notices.py`; run the companion command above and require HOST-ADAPTER evidence.
+- **Needs:** GitHub CI alone. The only lane that needs no companion; ordered
+  after the pin so execution starts in one place.
+- **Owned files:** `tests/application/test_host_routing.py` (new).
+- **Delivers:** controls, entered through `Application.route`, for: recursion
+  bypass makes no judgment call; a dry run is never ordered or counted as
+  success; a capability mismatch carries resolution advice. Each has a
+  falsifier that a broken implementation fails. Run by `unit.yml` on three
+  platforms without an edit to it.
 
-### SL-2 — Independent routing acceptance evaluation
+### SL-2 — Conformance and probes
 
-- **Scope**: Evaluate the integrated routing path on predeclared development/validation cases with independent correctness/privacy checks and honest uncertainty.
-- **Owned files**: `src/jevdrill/evaluation.py`, `tests/evaluation/test_host_acceptance.py`, `research/evaluation/host/**`, `evidence/HOST/evaluation.json`
-- **Interfaces provided**: `host_evaluation`
-- **Interfaces consumed**: `host_fixture_contract`, `host_conformance`
-- **Parallel-safe**: no
-- **Tasks**:
-  - test: Add independent implementation tests, review defect/false-positive/severity rubrics and documentation fact/coverage/reference/example checks. Negative controls through routed execution reject a broken implementation, missed critical defect, false documentation claim, privacy leak and swapped split assignment.
-  - impl: Before candidate evaluation, version case groups, evaluators, thresholds, sample requirements and exposure records under `research/evaluation/host/`. Development and validation groups cannot share repository/template ancestry. Freeze mandatory correctness/privacy checks at all-required-checks passing; report denominators and uncertainty for measured metrics. Empirical quality/performance thresholds remain pending calibration where evidence cannot justify them.
-  - impl: Run paired fixed-default, cheapest-feasible, no-optional-guidance and previous-policy baselines, plus retrieval where applicable, through the integrated path. Record reasoned not-applicable results; never invent a previous policy. Include routing startup/overhead, failed attempts, model/effort/guidance/source revisions and missing measurements. Synthetic executor cases establish bounded conformance only; comparative performance remains insufficient-evidence without suitable observed runs and predeclared budgets.
-  - impl: Keep objective checks, model judgments and host preference separate. Record exposure without opening policy or release holdouts. Emit metadata-only evaluation results with explicit claim eligibility; sample insufficiency blocks gains/promotion claims and cannot excuse failed correctness/privacy acceptance.
-  - verify: `uv run pytest tests/evaluation tests/conformance/test_launch_paths.py`.
+- **Needs:** an accepted commit; GitHub CI.
+- **Owned files:** `tests/conformance/**`,
+  `research/evaluation/host/test_bridge_probe.py`, `test_baseline_probe.py`.
+- **Delivers:** the held files re-cut against the pinned commit; the v2
+  judgment-policy task; a retain record and a host-side rerouting record in the
+  witness, or those clauses stay not covered. `tests/conformance` does not join
+  `testpaths`; `pyproject.toml` is unchanged.
 
-### SL-3 — Native verification and documentation reducer
+### SL-3 — Verifier and workflow
 
-- **Scope**: Reduce every producer and companion result into HOST acceptance, fresh platform evidence and operator documentation.
-- **Owned files**: `scripts/verify_host_phase.py`, `tests/verification/test_host_phase.py`, `.github/workflows/host.yml`, `evidence/HOST/platforms/**`, `evidence/HOST/companion/**`, `evidence/HOST/verification.json`, `evidence/HOST/coverage.json`, `evidence/HOST/spec-delta.json`, `docs/host-readiness.md`, `README.md`
-- **Interfaces provided**: `host_verification`
-- **Interfaces consumed**: `host_fixture_contract`, `notice_query_contract`, `companion_handoff`, `host_conformance`, `host_evaluation`
-- **Parallel-safe**: no
-- **Tasks**:
-  - test: Reducer negatives reject absent/duplicate platforms, mismatched companion/schema/source digests, unentered launch paths, skipped assertions, forged success, missing EC coverage, stale evaluation, holdout exposure and malformed spec-delta. Aggregate failures without fail-fast truncation.
-  - impl: Follow `verify_route_phase.py` collection/reduction patterns. Add default full, `--local-only` and `--reduce-only` modes; resolve companion checkout from `--agent-harness PATH` or `JEVDRILL_AGENT_HARNESS_ROOT`. Missing configuration/evidence fails closed. Native Linux/macOS/Windows CPython 3.13 jobs collect actual CLI/queue cancellation, locking/path/recovery and Python/Node parity results. Preserve earlier phase evidence; recollect HOST inputs when content changes.
-  - impl: Record runner identity, OS/architecture, versions, command/input/output digests, assertion counts, duration and production-path witnesses. Reduce metadata in verification.json, covering all HOST ECs and IF-0-VC-2. Include independent evaluation and companion manifests; mock-only results cannot satisfy host wiring or platform claims.
-  - impl: Write coverage for HOST decisions and inherited deferrals, plus spec_delta_closeout.v1. Update readiness/README with queue recovery/limits, notice behavior, compatibility, permission limitations, evidence gaps and LEARN handoff. No ratified-review, performance, adoption or publishing claims without their evidence.
-  - verify: `uv run pytest tests/verification/test_host_phase.py`; `uv run python scripts/verify_host_phase.py`.
+- **Needs:** an accepted commit; GitHub CI.
+- **Owned files:** `scripts/verify_host_phase.py`,
+  `tests/verification/test_host_phase.py`, `.github/workflows/host.yml`,
+  `.gitignore`, `tests/verification/test_route_phase.py`,
+  `evidence/HOST/coverage.json`, `evidence/HOST/spec-delta.json`.
+- **Delivers:** the held verifier with every declared change below; fix lane for
+  Consiliency/jevdrill#71, #73, #74 and #82. Its reducer tests pass in CI before
+  any dispatch.
 
-## Execution Notes
+### SL-4 — Readiness docs
 
-JD-084 (user approved 2026-09-29) changes macOS leased acceptance: reject native
-leased launch before executor startup/lease transfer and supply the Linux-worker
-resolution. Keep ordinary macOS execution local. Linux remains responsible for
-proving leased descendant cleanup. Record native macOS rejection as its own
-assertions; never relabel Linux worker proof as native macOS containment.
-
-Execute serially; no subagents or writable fanout are authorized. Ownership is disjoint including generated outputs, fixtures and evidence. A separate scheduler-assigned host worktree must follow the team-host/workspace convention. No sibling edits occur under a JEV-owned lane. No UI/avatar/media render is a deliverable; notices are textual CLI/host output.
-
-Preserve CLI/operator overrides, phase-plan policy, roadmap policy, executor-only Dispatch Hints, then registry defaults. No new model/effort policy or silent downgrade is introduced. Contract behavior changes beyond the additive notice surface require an explicit plan/spec amendment before downstream reliance.
-
-## Spec Closeout Plan
-
-- schema: `spec_delta_closeout.v1`
-- decision: `roadmap_amendment` (JD-083 under `plans/detailed-estimated-cost-routing-20260929.md`; JD-084 under the amended companion plan)
-- target surfaces: `docs/host-interfaces.md`, `baml_src/contracts.baml`, `docs/vocabulary.yaml`
-- evidence paths: `evidence/HOST/spec-delta.json`, `evidence/HOST/verification.json`, `evidence/HOST/coverage.json`
-- redaction posture: `metadata_only`
-- downstream handling: `none`
-
-The notice query completes already-required inbox behavior; record its additive compatibility evidence. JD-083 amends execution-ceiling behavior and adds optional whole-run token bounds; its verification is recorded separately from incomplete HOST acceptance. Missing/malformed evidence is a non-human contract_bug.
+- **Needs:** an accepted commit, and the artifact of one dispatched run.
+- **Owned files:** `docs/host-interfaces.md`, `docs/host-readiness.md`, and the
+  first block of `docs/roadmap-status.md`.
+- **Delivers:** the held docs rewritten: the queue as the accepted commit
+  implements it; the verdict as the run's artifact, as in
+  `docs/route-readiness.md`; the companion's environment for the accepted
+  version; no October receipt, no history, no LEARN instruction.
 
 ## Verification
 
-`automation.suite_command: uv run python scripts/verify_host_phase.py`
+Runs on `main` today:
 
-New commands/files above are implementation deliverables. Before handoff validation, IF-0-VC-2 binds each command to its producer and EC. During execution, preflight locked Python dependencies, Node/npm ci, the pinned BAML compiler and assigned companion path. No application tests/builds are run merely to author this plan.
+```sh
+uv run python -m pytest -q tests/storage/test_host_notices.py::test_notice_scope_reads_and_cross_producer_deletion tests/evaluation/test_host_acceptance.py::test_frozen_groups_are_disjoint_and_holdouts_unopened
+```
 
-After targeted lane tests, the suite aggregates `uv run pytest`, `python3 -m unittest discover -s tests -p 'test_catalog_*.py'`, Python/Node contract parity, generated/vocabulary/import checks, scoped Ruff checks, `uv run mypy src/jevdrill`, `uv build`, installed-package CLI tests, companion tests and evaluation reduction. Scope lint to production and phase tests as ROUTE does. Native collection uses `uv run python scripts/verify_host_phase.py --local-only --agent-harness PATH`; final reduction uses `uv run python scripts/verify_host_phase.py --reduce-only`. Local-only success never represents the three-platform gate.
+Deliverables:
 
-Operational evidence must name its producing command/runner and content digest. Proxy evidence requires a runner-stamped roadmap amendment; this plan authorizes no such substitution. Flag proof-cost findings for single-node evaluation exceeding roughly five minutes or inability to report multiple failures.
+```sh
+uv run python -m pytest -q tests/application/test_host_routing.py
+uv run python -m pytest -q tests/verification/test_host_phase.py
+uv run python scripts/verify_host_phase.py --local-only --agent-harness .host/companion
+uv run python scripts/verify_host_phase.py --reduce-only --agent-harness .host/companion
+gh workflow run host.yml --repo Consiliency/jevdrill --ref main -f companion_ref=<40-hex commit SHA>
+```
+
+The companion command, from the companion checkout, with
+`PHASE_LOOP_TDD_EXPECT_SCHED=1` (deliverable; on macOS and Windows the
+`_input`, `_usage` and `_diagnostics` files are left out, as at the tag):
+
+```sh
+<companion python> -m pytest -q -m "not dotfiles_integration" phase-loop-runtime/tests/test_jevdrill_adapter.py phase-loop-runtime/tests/test_jevdrill_queue.py phase-loop-runtime/tests/test_phase_loop_launcher.py phase-loop-runtime/tests/test_phase_loop_work_unit_observability.py phase-loop-runtime/tests/test_jevdrill_input.py phase-loop-runtime/tests/test_jevdrill_usage.py phase-loop-runtime/tests/test_jevdrill_diagnostics.py --junitxml=<temporary>/companion.xml --basetemp=<temporary>/companion-tests
+```
+
+`tests/test_jevdrill_discovery.py` runs separately, from `phase-loop-runtime`,
+inside the conformance fixture.
+
+Effective `automation.suite_command`: `uv run python scripts/verify_host_phase.py --agent-harness .host/companion` (deliverable; a missing companion fails closed).
+
+Planning runs no test, build or collector.
+
+## The verifier
+
+**It must check:** all four criteria and IF-0-HOST-1 by the named controls,
+with exact counts; three native receipts from the same workflow run; the
+companion at the pinned commit with a clean checkout; no selected companion test
+failed or skipped; the deselection and substitution constants bound in the
+command digest; the companion's contract copies equal to jevdrill's; at least
+two tasks selected independently; the coverage and spec-delta records; the
+600-second collection bound, flagging proof over five minutes; a malformed
+receipt reported, not raised.
+
+**It reads** the jevdrill checkout (route input digest, `schemas/`,
+`tests/contracts/fixtures/`, the probes, `protocol.json`, the three `evidence/HOST`
+declarations, `host.yml`) and the companion checkout at the pinned commit.
+**It writes** `evidence/HOST/platforms/`, `evaluation.json`, `history/` and
+`verification.json`, all ignored by git. A verdict is the CI artifact of the run
+that made it and is never committed.
+
+**Declared changes to the held instrument:**
+
+1. Reduce job gets "Require successful native jobs" as in `route.yml`; ignore
+   rules for every path it writes; verdict uploaded only when the reduction ran
+   (Consiliency/jevdrill#74).
+2. `assertions_from` keeps class names in rebuilt ids.
+3. A malformed `platforms/*.json` is reported, not raised.
+4. Receipts name repository, commit and a clean checkout; the reducer rejects a
+   foreign commit (J2).
+5. `test_route_phase.py`: `host` returns to
+   `test_native_download_excludes_prior_reduction_reports` and joins
+   `test_reduction_runs_only_after_every_native_job_succeeded`;
+   `test_downstream_commands_cover_phase_controls_and_bind_extra_paths` is
+   restored.
+6. `host.yml` as J1, with pinned actions and `workflow_dispatch`.
+7. Contract-copy comparison against jevdrill's files replaces the raw handoff
+   digest check (J5).
+8. The deselection constant (J6); the companion Python recorded (J7).
+9. Exact counts, including 19 reducer faults, 2 two-task cases and 11 usage
+   cases (Consiliency/jevdrill#71).
+10. Same-run receipts only (Consiliency/jevdrill#73).
+11. The handoff names repository and commit (J3).
+12. `test_usage_reporting.py` added to the test paths and digest.
+13. The two JD-084 launcher tests added to the companion controls.
+14. The witness requires a v2 judgment-policy task.
+
+The spec-delta check keeps `roadmap_amendment`: the roadmap sets it for JD-083
+and JD-084 (`specs/phase-plans-v1.md:216`).
 
 ## Acceptance Criteria
 
-- [ ] EC-HOST-1 — proven by `uv run pytest tests/conformance/test_launch_paths.py` plus HOST-ADAPTER construction-site evidence; falsified by `test_permission_expansion_is_rejected` entering the real host launch constructor before asserting forbidden permission/model application prevents launch, with a permitted-path positive control.
-- [ ] EC-HOST-2 — proven by `uv run pytest tests/conformance/test_transport_queue.py tests/conformance/test_notices.py` plus companion native queue evidence; falsified by `test_ack_loss_redaction_and_scoped_delete` entering production enqueue/report delivery, dropping the durable acknowledgment and asserting no duplicate accepted event, secret retention or deleted-task resurrection.
-- [ ] EC-HOST-3 — proven by `uv run pytest tests/evaluation/test_host_acceptance.py` and `uv run python scripts/verify_host_phase.py --reduce-only`; falsified by `test_routed_bad_candidate_fails_independent_checks` entering the integrated routing/launch/evaluation path and `test_missing_platform_or_holdout_exposure_blocks` entering the production reducer before asserting rejection.
+- [ ] EC-HOST-1, EC-HOST-2, EC-HOST-3, EC-HOST-4 — by the controls and
+  falsifiers of the clause tables, reduced by SL-3 from one run.
+- [ ] IF-0-VC-2 — by `tests/verification/test_host_phase.py`.
 
-Close HOST only after both IF gates above pass with fresh evidence. Planning produces neither gate. Report implementation verification separately from plan validation; outstanding companion or evidence work must remain explicit.
+## This plan may not claim
+
+- Any criterion verified or any gate produced.
+- Anything on the strength of the October reports, receipts or plans.
+- That hosted runners can run the host integration; nobody has tried.
+- That the host integration is accepted, or works against `main`.
+- Performance, quality, cost or savings.
+- That a synthetic evaluation is empirical evidence. Synthetic HOST receipts are
+  software conformance only; they supply no quality floor, guidance
+  effectiveness or promotion evidence.
+- That a decline is visible to learning.
+- That the deselected launcher tests' behaviour is exercised.
+- That Linux evidence proves JD-084 on macOS.
+- Ratified review, publication, adoption or release readiness.
+
+## Attached backlog
+
+| Item | Disposition |
+| --- | --- |
+| Consiliency/jevdrill#71 (exact counts) | Fix lane, SL-3 |
+| Consiliency/jevdrill#73 (local receipts) | Fix lane, SL-3: same-run receipts only |
+| Consiliency/jevdrill#74, for `host.yml` | Fix lane, SL-3 |
+| Consiliency/jevdrill#82 (handoff against `schemas/`) | Fix lane, SL-0 and SL-3 (J3, J5) |
+| Guard step, ignore rules, conditional upload | Fix lane, SL-3 |
+| Class names in rebuilt ids | Fix lane, SL-3 |
+| Malformed receipt reported | Fix lane, SL-3 |
+| Receipt names the companion commit | Fix lane, SL-3 |
+| `test_route_phase.py`, HOST parts | Fix lane, SL-3 |
+| R1 to R6 and J1 to J7 | R: pin conditions, SL-0. J: fix lanes SL-0 and SL-3 |
+| `host.yml` cut rules | Fix lane, SL-3 |
+| Conformance landing rules, `test_usage_reporting.py` | Fix lane, SL-2 and SL-3 |
+| Handoff, expected lists, HOST coverage and spec-delta | Fix lane, SL-0 and SL-3 |
+| Conditional host run | Owner input, only if hosted runners fail |
+| ROUTE verifier not reopened; the deadline-failure rule | Stated limits, standing |
+
+## Owner inputs
+
+- **Who takes the host integration to a merged state** in
+  `Consiliency/agent-harness`. Without it, all of HOST's execution stays
+  blocked; this plan does not wait for it.
+- **Closing the HOST gate**, including whether synthetic evidence with
+  `insufficient_evidence` closes EC-HOST-3.
+- **A live evaluation**, if wanted: an authority naming budget, models and
+  expiry; added by amendment. Without it, that clause stays not covered.
+- **Making a decline visible to learning**: a contract change. Without it, the
+  limit stands.
+- **A host run**, only if hosted runners prove unable.
+
+## Execution Notes
+
+Execute serially, one writer per lane, each lane under a cut specification and
+the board's rules. No edit to `specs/phase-plans-v1.md`, `plans/manifest.json`
+or `scripts/verify_route_phase.py`, except a defect in the ROUTE verifier that
+the HOST verifier's use exposes. A failure caused by the product's deadline
+follows the standing rule. Product calls keep their five-second deadline. A
+local or diagnostic receipt never enters a verdict.
+
+## Spec Closeout Plan
+
+- schema: `spec_delta_closeout.v1`; decision: `roadmap_amendment` (JD-083 and JD-084)
+- target surfaces: shared event/adapter contracts and platform execution boundaries
+- evidence paths: `evidence/HOST/spec-delta.json`, `evidence/HOST/verification.json`
+- redaction_posture: `metadata_only`; missing/malformed evidence: `blocker_class=contract_bug`, non-human repair
+- downstream handling: `replan_LEARN`, which the reducer checks; LEARN consumes IF-0-HOST-1 as defined here
+
+`evidence/HOST/verification.json` is written inside the run and kept as its
+artifact, not committed. No roadmap text is amended by this plan; any roadmap
+change is collected and made once, after the last plan.
