@@ -55,3 +55,20 @@ Workflows introduced by the stack are pinned to commit SHAs with explicit least-
 ## Order and dependencies
 
 S1 → S2 → S3 → S4 → S5 → S6, reviewed in that order. S3's design ruling can run in parallel with S1 and S2 review. After S5, replan HOST, LEARN, EXPERIMENT and PREPARE against the amended roadmap, as `docs/roadmap-status.md` requires.
+
+## Outcome
+
+Recorded when the stack closed. The text above is the plan as directed on 2026-11-19 and is not edited.
+
+| Plan item | Pull requests |
+| --- | --- |
+| S1 | Consiliency/jevdrill#12 |
+| S2 | Consiliency/jevdrill#18 |
+| S3 | Consiliency/jevdrill#27 |
+| S4 | Consiliency/jevdrill#44 |
+| S5 | Consiliency/jevdrill#54 (S5a) and Consiliency/jevdrill#66 (S5b) |
+| S6 | Consiliency/jevdrill#76 (S6a, the offline calibration instrument) and Consiliency/jevdrill#85 (S6b, the record and the docs) |
+
+One pull request outside these items was made while S6 was reviewed: Consiliency/jevdrill#84 corrected a test that S5a had landed, after it failed once on a fast Windows runner.
+
+S6 did not land as planned. Its HOST, LEARN and EXPERIMENT phase verifiers, their workflows and the HOST conformance tests are not on `main`: they need the agent-harness host integration, which is in draft in that repository (Consiliency/agent-harness#2071) and is not yet reviewed or merged. No Python 3.14 HOST or LEARN receipt was made, on the owner's hosts or anywhere else, and no HOST, LEARN or EXPERIMENT gate is claimed. Those files stay at the tag `pr1-final-record` and are inputs to the replan named in the last line of "Order and dependencies". See [roadmap status](../docs/roadmap-status.md) and [where the record of #1 is](../docs/pr1-review-record.md).

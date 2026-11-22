@@ -1,10 +1,17 @@
 # Roadmap status and execution order
 
-## Current direction — November 19, 2026
+## Current direction — after the stack, November 2026
 
 - `main` is on Python 3.14.
-- The implementation pull request (Consiliency/jevdrill#1) will be split into a six-PR reviewable stack after its Python 3.14 bounded proof (R43). Each PR gets a fresh review under a board whose president is Fable 5.2. See [the split plan](../plans/pr1-stack-split-20261119.md).
-- The 36 evaluation cases in `research/evaluation/cases.json` are treated as public development fixtures. A new private held-out set is required for any quality or benefit claim.
+- The implementation pull request (Consiliency/jevdrill#1) was split into a reviewed stack and closed as superseded: Consiliency/jevdrill#12, #18, #27, #44, #54, #66, #76 and #85. See [the split plan](../plans/pr1-stack-split-20261119.md) and [where the record of #1 is](pr1-review-record.md).
+- **Passing on `main`, natively on Linux, macOS and Windows in GitHub CI:** the CONTRACT verifier (the `Contract conformance` workflow) and the ROUTE verifier, with the controls of EC-ROUTE-1 to 7 and IF-0-VC-2 (the `ROUTE verification` workflow). The progressive discovery loop is implemented. The sections below that call it a gap describe October. Closing a phase is the owner's decision; this bullet reports what the workflows do.
+- **On `main`, with no phase verifier:** the local learning and experiment commands and their modules, with unit tests on three platforms (the `Unit tests` workflow), and the offline calibration diagnostic (the `EXPERIMENT offline boundaries` workflow, on Linux), which produces no phase gate. One LEARN test needs the installed host integration and the `Unit tests` workflow deselects it on all three platforms, and no workflow runs the restricted container.
+- **Not on `main`:** the HOST, LEARN and EXPERIMENT phase verifiers, their workflows and the HOST conformance tests. They need the agent-harness host integration, which on 2026-11-22 was in draft in that repository (Consiliency/agent-harness#2071), not yet reviewed or merged. No HOST, LEARN or EXPERIMENT criterion is verified on `main`. The October 2026 reports for those phases were made on Python 3.13 with unpublished code. They are part of the record of #1 and establish nothing for `main`.
+- **Next:** replan HOST, LEARN, EXPERIMENT and PREPARE against the amended roadmap. The HOST replan starts from a reviewed revision of the host integration; the phase verifiers land with it. What the stack's reviews left for that work is filed as issues; Consiliency/jevdrill#80 and Consiliency/jevdrill#82 concern the verifiers that are not on `main`.
+- The 36 evaluation cases in `research/evaluation/cases.json` and the 12 tasks of `research/evaluation/discovery-calibration/protocol.json` are public development fixtures. A new private held-out set is required for any quality or benefit claim.
+- No study runs from `main` as it stands: the driver refuses to dispatch, because the one study authority expired on 2026-10-15 ([evaluation protocol](evaluation-protocol.md)).
+
+The sections below are earlier status reports, kept as written. Where one disagrees with this block, this block holds.
 
 ## Planning publication — October 8, 2026
 
