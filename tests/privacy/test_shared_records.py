@@ -10,6 +10,7 @@ import base64
 import hashlib
 import hmac
 import json
+import shutil
 import time
 from uuid import uuid4
 
@@ -134,7 +135,8 @@ def test_values_differ_from_main_and_from_another_store_with_the_same_inputs(sha
     assert references == sorted(keyed(f[1]) for f in formula)
     # A second store holding the same producer records, for the same requester. Only the
     # store's key differs, so equal values here would mean the inputs alone rebuild them.
-    other = Application(SQLiteStorage(tmp_path / "other.db"))
+    (tmp_path / "other").mkdir()  # the same file name as the first store, elsewhere
+    other = Application(SQLiteStorage(tmp_path / "other" / app.storage.path.name))
     other.storage.import_recovery(producer, app.storage.export_recovery(producer), time.time())
     assert other.storage.learning_observations(producer) == app.storage.learning_observations(
         producer
@@ -200,10 +202,19 @@ def test_local_observations_are_unchanged(shared):
     )
 
 
-def test_an_exported_bundle_does_not_contain_the_key(shared):
+def test_an_exported_bundle_does_not_contain_the_key(shared, tmp_path):
     app, producer, _context, _decision, _runs, requesters = shared
     ((key,),) = _rows(app, "SELECT key FROM shared_record_key")
     assert len(key) == 32
+    # The key is random: not derived from the store's path or name, which others can know.
+    path = tmp_path / "again" / app.storage.path.name
+    keys = []
+    for _ in range(2):  # the same path twice, the store removed between
+        path.parent.mkdir()
+        with SQLiteStorage(path)._connect() as connection:
+            keys += connection.execute("SELECT key FROM shared_record_key").fetchone()
+        shutil.rmtree(path.parent)
+    assert len({key, *keys}) == 3
     for scope in (producer, *requesters):
         body = json.dumps(app.storage.export_recovery(scope))
         forms = (key.hex(), key.hex().upper(), base64.b64encode(key).decode())
