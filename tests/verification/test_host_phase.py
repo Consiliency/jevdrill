@@ -19,6 +19,7 @@ spec.loader.exec_module(runner)
 HANDOFF = json.loads((ROOT / "evidence/HOST/adapter-handoff.json").read_text())
 RUN = {"run_id": "1001", "run_attempt": "1", "repository": "Consiliency/jevdrill"}
 JEVDRILL_COMMIT = "c" * 40
+GIT_CONFIG = "d" * 64
 PLATFORMS = sorted(runner.MATRIX)
 
 
@@ -200,7 +201,12 @@ def receipt(os_name, copies):
         "python_version": "3.14.0",
         "runner_identity": RUN["run_id"],
         "workflow_run": dict(RUN),
-        "jevdrill": {"repository": RUN["repository"], "commit": JEVDRILL_COMMIT, "clean": True},
+        "jevdrill": {
+            "repository": RUN["repository"],
+            "commit": JEVDRILL_COMMIT,
+            "clean": True,
+            "git_config_sha256": GIT_CONFIG,
+        },
         "input_digest": "fixture",
         "source_stable": True,
         "inherited_call": {"exit_code": 0, "deadline_expired": False},
@@ -226,6 +232,7 @@ def receipt(os_name, copies):
             "repository": HANDOFF["repository"],
             "commit": HANDOFF["commit"],
             "clean": True,
+            "git_config_sha256": GIT_CONFIG,
             "python": {"version": "3.12.9", "minor": "3.12"},
             "installed_provenance": {
                 "modules": HANDOFF["modules"],
@@ -254,11 +261,17 @@ def receipt(os_name, copies):
             "output_sha256": "b" * 64,
         },
         "checkouts_after": {
-            "jevdrill": {"repository": RUN["repository"], "commit": JEVDRILL_COMMIT, "clean": True},
+            "jevdrill": {
+                "repository": RUN["repository"],
+                "commit": JEVDRILL_COMMIT,
+                "clean": True,
+                "git_config_sha256": GIT_CONFIG,
+            },
             "companion": {
                 "repository": HANDOFF["repository"],
                 "commit": HANDOFF["commit"],
                 "clean": True,
+                "git_config_sha256": GIT_CONFIG,
             },
         },
         "parts": {"inherited_seconds": 100.5, "host_seconds": 149.5, "companion_seconds": 40.0},
@@ -1046,7 +1059,8 @@ class Children:
     def __call__(self, args, **kwargs):
         self.calls.append((list(args), kwargs))
         if args[0] == "git":
-            output = {"rev-parse": "a" * 40, "status": "", "remote": ""}[args[3]]
+            command = next(a for a in args[1:] if a in ("rev-parse", "status", "remote"))
+            output = {"rev-parse": "a" * 40, "status": "", "remote": ""}[command]
             return subprocess.CompletedProcess(args, 0, stdout=output)
         if args[1:3] == ["-c", runner.INHERITED_CALL]:
             # The inherited call writes the ROUTE collector's receipt where it is told to.
@@ -1102,8 +1116,10 @@ def collection(tmp_path, monkeypatch):
         pytest.skip("the installed jevdrill CLI is not beside this interpreter")
     seen = []
 
-    def run_child(command, *, cwd, env, timeout, capture=True):
+    def run_child(command, *, cwd, env, timeout, capture=True, launched=None):
         """The collector's one way to start a child, through `subprocess.run` as stood in for."""
+        if launched is not None:
+            launched.append(list(command))
         if command[1:3] == ["-c", runner.INHERITED_CALL]:
             seen.append((dict(env), list(command), timeout))
         try:
@@ -1512,7 +1528,7 @@ def test_requirement_6_the_order_is_fixed_and_checkouts_are_read_again_after_the
         result = children(args, **kwargs)
         if (
             args[0] == "git"
-            and args[3] == "status"
+            and "status" in args
             and any(kind(call) == "static" for call, _ in children.calls)
         ):
             return subprocess.CompletedProcess(args, 0, stdout=" M scripts/verify_host_phase.py")
@@ -1600,8 +1616,9 @@ def test_requirement_7_a_child_and_every_process_it_started_are_stopped(monkeypa
         held.update(connection=connection, pid=int(data))
         if ending != "returned":
             raise subprocess.TimeoutExpired(child.args, timeout)
-        return child.wait()
+        return real_await_exit(child, 120)
 
+    real_await_exit = runner._await_exit
     monkeypatch.setattr(runner, "_await_exit", await_exit)
     command = [runner.sys.executable, "-c", PARENT, GRANDCHILD, str(port), ending]
     try:
@@ -1968,8 +1985,8 @@ def test_requirement_7_a_failed_tree_stop_cannot_leave_an_unbounded_wait(monkeyp
         def __init__(self, child):
             pass
 
-        def stop(self, running):
-            events.append(("stop", running))
+        def stop(self):
+            events.append("stop")
             return False
 
     def deadline(child, timeout):
@@ -1980,4 +1997,346 @@ def test_requirement_7_a_failed_tree_stop_cannot_leave_an_unbounded_wait(monkeyp
     monkeypatch.setattr(runner, "_await_exit", deadline)
     code, _output, expired = runner._run(["child"], cwd=ROOT, env={}, timeout=10)
     assert (code, expired) == (125, True)
-    assert events == [("stop", True), "kill", "wait"]
+    assert events == ["stop", "kill", "wait"]
+
+
+# Round 1 (Consiliency/jevdrill#140).
+
+
+def test_a_receipt_of_schema_4_is_rejected_as_old(evidence):
+    """Schema 5 adds the checkouts' git configuration digests; schema 4 receipts are old."""
+    manifests, reference = evidence
+    row = linux(manifests)
+    row["schema_version"] = 4
+    errors = runner.receipt_errors(manifests, reference)
+    assert [e for e in errors if e.startswith("Linux")] == [
+        "Linux: HOST receipt of an old shape (schema 4)",
+        "Linux: unsupported HOST receipt",
+    ]
+
+
+def test_round1_a_failed_moved_case_stays_in_the_inventory_and_the_failure_summary(
+    collection, tmp_path, monkeypatch
+):
+    """Vendor blocker 1: a failed moved case is recorded with its outcome, and in failed_ids."""
+    companion_root, _ = collection
+    children = Children(tmp_path)
+    moved = "tests/conformance/test_transport_queue.py::test_entered_ack_loss_and_cross_producer_deletion"
+
+    def host_report_with_a_failure(args, **kwargs):
+        result = children(args, **kwargs)
+        if reports(args, "host.xml"):
+            junit = Path(next(a for a in args if a.startswith("--junitxml=")).split("=", 1)[1])
+            junit.write_text(
+                "<testsuites><testsuite>"
+                '<testcase classname="tests.verification.test_host_phase" name="test_one"/>'
+                '<testcase classname="tests.conformance.test_transport_queue"'
+                ' name="test_entered_ack_loss_and_cross_producer_deletion"><failure/></testcase>'
+                "</testsuite></testsuites>"
+            )
+            return subprocess.CompletedProcess(args, 1, b"", b"")
+        return result
+
+    monkeypatch.setattr(runner.subprocess, "run", host_report_with_a_failure)
+    receipt_value = runner.collect(ROOT, companion_root)
+    assert {"node_id": moved, "outcome": "failed"} in receipt_value["host_controls"]["assertions"]
+    assert moved in receipt_value["failed_ids"]
+    assert receipt_value["host_controls"]["exit_code"] == 1
+
+
+def test_round1_27_of_the_28_contract_cases_is_rejected(evidence):
+    """Vendor blocker 2: a presence check would accept this; the exact count does not."""
+    manifests, reference = evidence
+    row = linux(manifests)
+    node = "tests/contracts/test_host_contracts.py::test_host_shared_contract"
+    cases = [r for r in host_rows(row) if r["node_id"].startswith(node + "[")]
+    assert len(cases) == 28
+    host_rows(row).remove(cases[-1])
+    refresh(row)
+    errors = runner.receipt_errors(manifests, reference)
+    assert "Linux: HOST control count not exact: " + node in errors, errors
+
+
+def test_round1_a_malformed_id_in_hosts_command_is_rejected(evidence):
+    """Vendor blocker 2: the singleton control's id with a bare "[" is not a test id."""
+    manifests, reference = evidence
+    row = linux(manifests)
+    case = next(r for r in host_rows(row) if r["node_id"] == _MOVED_CONTROL)
+    case["node_id"] = _MOVED_CONTROL + "["
+    refresh(row)
+    errors = runner.receipt_errors(manifests, reference)
+    assert f"Linux: malformed test id in HOST's command: {_MOVED_CONTROL + '['!r}" in errors, errors
+
+
+def test_round1_an_id_that_appears_twice_in_hosts_command_is_rejected(evidence):
+    manifests, reference = evidence
+    row = linux(manifests)
+    host_rows(row).append({"node_id": _MOVED_CONTROL, "outcome": "passed"})
+    refresh(row)
+    errors = runner.receipt_errors(manifests, reference)
+    assert "Linux: a test appears twice in HOST's command" in errors, errors
+
+
+def test_round1_well_formed_ids_are_accepted_by_shape():
+    for node in (
+        "tests/x.py::test_a",
+        "tests/a/b.py::Class::test_a[case-1: with spaces]",
+        "tests/conformance/test_usage_reporting.py::test_installed_usage_persistence[x[1]]",
+    ):
+        assert runner._TEST_ID.fullmatch(node), node
+    for node in (
+        "tests/x.py::test_a[",
+        "tests/x.py::test_a[]",
+        "tests/x.py",
+        "x.py::t",
+        "tests/x.py::",
+    ):
+        assert not runner._TEST_ID.fullmatch(node), node
+
+
+# HOST's command as the plan's SL-6 fixes it, written out here and not rebuilt from the verifier,
+# so that a change to the verifier's builder fails this test.
+EXPECTED_HOST_COMMAND = [
+    "<python>",
+    "-m",
+    "pytest",
+    "-q",
+    "-o",
+    "faulthandler_timeout=30",
+    "tests/analysis/test_observations.py",
+    "tests/application/test_host_notices.py",
+    "tests/application/test_host_routing.py",
+    "tests/conformance/test_discovery_handoff.py",
+    "tests/conformance/test_launch_paths.py",
+    "tests/conformance/test_notices.py",
+    "tests/conformance/test_transport_queue.py",
+    "tests/conformance/test_usage_reporting.py",
+    "tests/contracts/test_host_contracts.py",
+    "tests/storage/test_dry_run_evidence.py",
+    "tests/storage/test_host_notices.py",
+    "tests/verification/test_host_phase.py",
+    "--junitxml=<temporary>/host.xml",
+    "--basetemp=<temporary>/host-tests",
+]
+
+
+def test_round1_the_receipt_records_the_command_as_launched(collection, tmp_path, monkeypatch):
+    """Vendor blocker 3: what the receipt records is what was launched, and it is the plan's
+    command. A deselection added in the builder, or only at launch, fails here."""
+    companion_root, _ = collection
+    children = Children(tmp_path)
+    monkeypatch.setattr(runner.subprocess, "run", children)
+    receipt_value = runner.collect(ROOT, companion_root)
+    ((launched, _),) = [(args, kw) for args, kw in children.calls if reports(args, "host.xml")]
+    # `_run` is stood in for here, so the check is the comparison with the literal command below;
+    # that the real `_run` launches what it records is test_round1_run_records_exactly_what_it_hands_to_popen.
+    assert receipt_value["host_controls"]["command"] == EXPECTED_HOST_COMMAND
+    assert runner.expected_host_command() == EXPECTED_HOST_COMMAND
+    # Its selection covers every control counted from it, and nothing filters a control out.
+    for node, source in runner.CONTROL_SOURCES.items():
+        if source == runner.HOST:
+            assert node.split("::")[0] in launched, node
+    assert not any(a.startswith(("--deselect", "-k", "--lf", "--sw")) for a in launched)
+    ((companion_launched, _),) = [
+        (args, kw) for args, kw in children.calls if reports(args, "companion.xml")
+    ]
+    assert receipt_value["companion"]["command"] == runner.normalized_command(
+        companion_launched, "companion"
+    )
+
+
+def launched_commands(tmp_path):
+    """Every command the collector hands to `_run`, as its builders make them."""
+    python = runner.sys.executable
+    return {
+        "host": runner.host_test_command(python, tmp_path),
+        **{
+            f"companion-{os_name}": runner.companion_command(python, tmp_path, os_name)
+            for os_name in runner.PLATFORMS
+        },
+        "inherited": [python, "-c", runner.INHERITED_CALL, str(ROOT), str(tmp_path / "route.json")],
+        "probe": [python, "-c", runner.PROVENANCE_PROBE, str(tmp_path), "[]"],
+        "static": [python, *runner.HOST_STATIC_COMMAND[1:]],
+    }
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "host",
+        "companion-Linux",
+        "companion-Darwin",
+        "companion-Windows",
+        "inherited",
+        "probe",
+        "static",
+    ],
+)
+def test_round1_run_records_exactly_what_it_hands_to_popen(monkeypatch, tmp_path, name):
+    """The real `_run`, given each real command the collector launches: what it records is what
+    `Popen` received."""
+    command = launched_commands(tmp_path)[name]
+    seen = []
+
+    class Recorded:
+        pid, returncode = 4242, None
+
+        def __init__(self, args, **_kwargs):
+            seen.append(list(args))
+            self.args = args
+
+        def kill(self):
+            self.returncode = -9
+
+        def wait(self, timeout=None):
+            self.returncode = 0 if self.returncode is None else self.returncode
+            return self.returncode
+
+    class Tree:
+        POPEN_OPTIONS: ClassVar[dict] = {}
+
+        def __init__(self, child):
+            pass
+
+        def stop(self):
+            return True
+
+    monkeypatch.setattr(runner.subprocess, "Popen", Recorded)
+    monkeypatch.setattr(runner, "ProcessTree", Tree)
+    monkeypatch.setattr(runner, "_await_exit", lambda child, timeout: None)
+    launched = []
+    runner._run(command, cwd=ROOT, env={}, timeout=5, launched=launched)
+    assert launched == seen == [command]
+
+
+def test_round1_a_launched_command_with_an_added_deselection_is_rejected(evidence):
+    manifests, reference = evidence
+    row = linux(manifests)
+    command = [*row["host_controls"]["command"]]
+    command.insert(-2, "--deselect=" + _MOVED_CONTROL)
+    row["host_controls"].update(command=command, command_sha256=runner.digest_value(command))
+    errors = runner.receipt_errors(manifests, reference)
+    assert "Linux: HOST command is not the expected command" in errors, errors
+
+
+def git_repository(path):
+    git = ["git", "-c", "user.name=t", "-c", "user.email=t@example.invalid"]
+    path.mkdir()
+    for args in (["init", "-q"], ["add", "."], ["commit", "-q", "-m", "x"]):
+        if args[0] == "add":
+            (path / "file.txt").write_text("x\n")
+        subprocess.run([*git, "-C", str(path), *args], check=True, capture_output=True)
+    return path
+
+
+def test_round1_n1_the_cleanness_check_runs_no_file_system_monitor(tmp_path):
+    """Security N1: a checkout's configuration cannot make the cleanness check run a command."""
+    if shutil.which("git") is None:
+        pytest.skip("git is not installed")
+    repository = git_repository(tmp_path / "repository")
+    marker = tmp_path / "fsmonitor-ran"
+    subprocess.run(
+        ["git", "-C", str(repository), "config", "core.fsmonitor", f"touch '{marker.as_posix()}'"],
+        check=True,
+        capture_output=True,
+    )
+    state = runner.checkout_state(repository, runner.child_environment(tmp_path))
+    assert state["clean"] is True and state["commit"]
+    assert not marker.exists()
+
+
+def test_round1_n1_every_cleanness_git_call_disables_the_monitor(collection, tmp_path, monkeypatch):
+    companion_root, _ = collection
+    children = Children(tmp_path)
+    monkeypatch.setattr(runner.subprocess, "run", children)
+    runner.collect(ROOT, companion_root)
+    git_calls = [args for args, _ in children.calls if args[0] == "git"]
+    assert len(git_calls) == 12
+    assert all(args[1:3] == ["-c", "core.fsmonitor=false"] for args in git_calls)
+
+
+@pytest.mark.parametrize("changed", ["config", "info/exclude", "info/attributes"])
+def test_round1_n1_a_changed_git_configuration_changes_its_digest(tmp_path, changed):
+    if shutil.which("git") is None:
+        pytest.skip("git is not installed")
+    repository = git_repository(tmp_path / "repository")
+    before = runner.git_config_digest(repository)
+    assert runner._is_digest(before) and runner.git_config_digest(repository) == before
+    target = repository / ".git" / changed
+    target.parent.mkdir(exist_ok=True)
+    with target.open("a", encoding="utf-8") as handle:
+        handle.write("\n# changed during a collection\n")
+    assert runner.git_config_digest(repository) != before
+
+
+@pytest.mark.parametrize("checkout", ["jevdrill", "companion", "not_recorded"])
+def test_round1_n1_a_changed_git_configuration_is_rejected(evidence, checkout):
+    manifests, reference = evidence
+    row = linux(manifests)
+    if checkout == "not_recorded":
+        row["jevdrill"]["git_config_sha256"] = None
+        row["checkouts_after"]["jevdrill"]["git_config_sha256"] = None
+    else:
+        row["checkouts_after"][checkout]["git_config_sha256"] = "e" * 64
+    errors = runner.receipt_errors(manifests, reference)
+    assert "Linux: a checkout's git configuration changed during the collection" in errors, errors
+
+
+@pytest.mark.skipif(runner.os.name == "nt", reason="process groups are POSIX")
+def test_round1_n4a_the_group_is_signalled_before_the_child_is_reaped(monkeypatch):
+    """Security N4a: when the tree is stopped after a normal return, the child is still unreaped,
+    so its process id still names its group."""
+    children = []
+    real_popen, real_killpg = runner.subprocess.Popen, runner.os.killpg
+    signalled = []
+
+    def popen(*args, **kwargs):
+        child = real_popen(*args, **kwargs)
+        children.append(child)
+        return child
+
+    def killpg(pgid, sig):
+        signalled.append((sig, children[0].returncode))
+        return real_killpg(pgid, sig)
+
+    monkeypatch.setattr(runner.subprocess, "Popen", popen)
+    monkeypatch.setattr(runner.os, "killpg", killpg)
+    code, _output, expired = runner._run(
+        [runner.sys.executable, "-c", "pass"], cwd=ROOT, env=dict(runner.os.environ), timeout=120
+    )
+    assert (code, expired) == (0, False)
+    assert signalled and all(returncode is None for _sig, returncode in signalled), signalled
+    assert children[0].returncode == 0
+
+
+def test_round1_n5_a_tree_that_cannot_be_made_still_ends_the_child(monkeypatch):
+    """Security N5: the tree is made inside the guarded block, so its failure cannot leave the
+    child running or unwaited."""
+    events = []
+
+    class LiveChild:
+        pid, args, returncode = 4242, ["child"], None
+
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def kill(self):
+            events.append("kill")
+            self.returncode = -9
+
+        def wait(self, timeout=None):
+            assert self.returncode is not None and timeout is not None
+            events.append("wait")
+            return self.returncode
+
+    class BrokenTree:
+        POPEN_OPTIONS: ClassVar[dict] = {}
+
+        def __init__(self, child):
+            raise OSError("no job object")
+
+    monkeypatch.setattr(runner.subprocess, "Popen", LiveChild)
+    monkeypatch.setattr(runner, "ProcessTree", BrokenTree)
+    with pytest.raises(OSError, match="no job object"):
+        runner._run(["child"], cwd=ROOT, env={}, timeout=10)
+    assert events == ["kill", "wait"]

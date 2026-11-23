@@ -12,6 +12,7 @@ accepts it.
 
 import argparse
 import contextlib
+import errno
 import hashlib
 import importlib.util
 import json
@@ -19,6 +20,7 @@ import os
 import platform
 import re
 import secrets
+import select
 import signal
 import subprocess
 import sys
@@ -35,9 +37,9 @@ _route_spec = importlib.util.spec_from_file_location(
 route = importlib.util.module_from_spec(_route_spec)
 _route_spec.loader.exec_module(route)
 
-# Schema 4 divides a collection in two parts (declared change 17). A receipt of schema 3 or
-# below ran HOST's controls inside the inherited command under one bound, and is rejected as old.
-SCHEMA_VERSION = 4
+# Schema 4 divides a collection in two parts (declared change 17); schema 5 adds each checkout's
+# git configuration digest. A receipt of schema 4 or below is rejected as old.
+SCHEMA_VERSION = 5
 MATRIX = route.MATRIX
 PLATFORMS = ("Linux", "Darwin", "Windows")
 # The inherited part's bound: the ROUTE collector's own budget (scripts/verify_route_phase.py,
@@ -909,13 +911,52 @@ def _repository(url):
     return match.group(1) if match else None
 
 
+# A test id as pytest writes it: a file under tests/, one or more names, an optional parameter.
+_TEST_ID = re.compile(r"tests/(?:[\w.-]+/)*[\w.-]+\.py(?:::[A-Za-z_]\w*)+(?:\[.+\])?", re.DOTALL)
+# Given to every git call of the cleanness check: no file-system monitor, which a checkout's own
+# configuration could name as a command to run.
+GIT_SAFE_OPTIONS = ("-c", "core.fsmonitor=false")
+
+
+def git_config_digest(root):
+    """A digest of a checkout's own git configuration and exclude files, read from disk.
+
+    `config`, a worktree's `config.worktree`, and every file under `info/` (exclude, attributes,
+    sparse-checkout). A missing file is recorded as missing; the result names no path.
+    """
+    dot = Path(root) / ".git"
+    try:
+        if dot.is_file():
+            gitdir = Path(dot.read_text(encoding="utf-8").split("gitdir:", 1)[1].strip())
+            gitdir = gitdir if gitdir.is_absolute() else (Path(root) / gitdir)
+            common = gitdir
+            if (gitdir / "commondir").is_file():
+                common = gitdir / (gitdir / "commondir").read_text(encoding="utf-8").strip()
+        else:
+            gitdir = common = dot
+        files = {"config": common / "config", "config.worktree": gitdir / "config.worktree"}
+        for base, label in ((common, "info"), (gitdir, "worktree-info")):
+            if (base / "info").is_dir():
+                for path in sorted((base / "info").rglob("*")):
+                    if path.is_file():
+                        files[f"{label}/{path.relative_to(base / 'info').as_posix()}"] = path
+        return digest_value(
+            {
+                name: hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
+                for name, path in sorted(files.items())
+            }
+        )
+    except OSError, IndexError, ValueError:
+        return None
+
+
 def checkout_state(root, env):
-    """The repository, commit and cleanness of a git checkout; never a path."""
+    """The repository, commit, cleanness and git configuration digest of a checkout; no path."""
 
     def git(*args):
         try:
             result = subprocess.run(
-                ["git", "-C", str(root), *args],
+                ["git", *GIT_SAFE_OPTIONS, "-C", str(root), *args],
                 capture_output=True,
                 text=True,
                 env=env,
@@ -931,6 +972,7 @@ def checkout_state(root, env):
         "repository": _repository(git("remote", "get-url", "origin")),
         "commit": commit if commit and _SHA.fullmatch(commit) else None,
         "clean": git("status", "--porcelain", "--untracked-files=all") == "",
+        "git_config_sha256": git_config_digest(root),
     }
 
 
@@ -1010,15 +1052,16 @@ class ProcessTree:
         self.child = child
         self.job = _windows_job(child.pid) if os.name == "nt" else None
 
-    def stop(self, running):
-        """Stop every process of the tree; whether the stop was carried out. `running`: the child
-        has not been waited for, so its process id still names it and its descendants can be
-        found by parentage. After a normal return no such sweep runs: a descendant outside the
-        process group then survives, even while its parent lives."""
+    def stop(self):
+        """Stop every process of the tree; whether the stop was carried out.
+
+        On Linux and macOS it is called before the child is reaped (`_await_exit` leaves it
+        unreaped), so the child's process id still names its process group, and no other process
+        can have taken it."""
         if os.name != "nt":
             with contextlib.suppress(ProcessLookupError, PermissionError):
                 os.killpg(self.child.pid, signal.SIGSTOP)
-            linked = _descendants(self.child.pid) if running else set()
+            linked = _descendants(self.child.pid)
             with contextlib.suppress(ProcessLookupError, PermissionError):
                 os.killpg(self.child.pid, signal.SIGKILL)
             for pid in sorted(linked):
@@ -1116,25 +1159,72 @@ def _windows_job(pid):
     return job
 
 
+def _ended_unreaped(pid, timeout):
+    """Whether process `pid` ended within `timeout` seconds, without reaping it; None if this
+    platform offers no way (a pidfd on Linux, kqueue on macOS)."""
+    if hasattr(os, "pidfd_open"):
+        try:
+            descriptor = os.pidfd_open(pid)
+        except OSError:
+            return None
+        try:
+            poller = select.poll()
+            poller.register(descriptor, select.POLLIN)
+            return bool(poller.poll(max(0, timeout) * 1000))
+        finally:
+            os.close(descriptor)
+    if hasattr(select, "kqueue"):
+        queue = select.kqueue()
+        try:
+            event = select.kevent(
+                pid,
+                filter=select.KQ_FILTER_PROC,
+                flags=select.KQ_EV_ADD | select.KQ_EV_ENABLE | select.KQ_EV_ONESHOT,
+                fflags=select.KQ_NOTE_EXIT,
+            )
+            try:
+                events = queue.control([event], 1, max(0, timeout))
+            except ProcessLookupError:
+                return True  # it ended before it was registered: an unreaped zombie
+            if any(e.flags & select.KQ_EV_ERROR and e.data == errno.ESRCH for e in events):
+                return True
+            return bool(events)
+        finally:
+            queue.close()
+    return None
+
+
 def _await_exit(child, timeout):
-    """The child's exit code, or TimeoutExpired once `timeout` seconds have passed."""
-    return child.wait(timeout=timeout)
+    """Return once the child has ended, or raise TimeoutExpired after `timeout` seconds.
+
+    On Linux and macOS the child is left unreaped, so that the tree is stopped while its process
+    id still names its group (security finding N4a). Elsewhere it is waited for.
+    """
+    if os.name != "nt":
+        ended = _ended_unreaped(child.pid, timeout)
+        if ended is False:
+            raise subprocess.TimeoutExpired(child.args, timeout)
+        if ended:
+            return
+    child.wait(timeout=timeout)
 
 
-def _run(command, *, cwd, env, timeout, capture=True):
+def _run(command, *, cwd, env, timeout, capture=True, launched=None):
     """Run one child once: (exit code, output, whether its deadline expired). No retry.
 
     When the child returns or its deadline expires, every process it started is stopped
     (ProcessTree). Output goes to a temporary file, not a pipe, so that a descendant still
     holding it cannot keep the collection waiting; with `capture=False` it goes to this
     process's own output instead. A child whose bound is already spent is not started.
+    `launched`, when given, receives the argument list exactly as it was launched.
     """
     if timeout <= 0:
         return 125, b"TimeoutExpired\nthe bound was reached before this child started\n", True
+    argv = list(command)
     with tempfile.TemporaryFile() as sink:
         try:
             child = subprocess.Popen(
-                command,
+                argv,
                 cwd=cwd,
                 env=env,
                 stdout=sink if capture else None,
@@ -1143,25 +1233,31 @@ def _run(command, *, cwd, env, timeout, capture=True):
             )
         except OSError as error:
             return 125, type(error).__name__.encode(), False
-        tree = ProcessTree(child)
-        expired = False
+        if launched is not None:
+            launched.append(argv)
+        tree = None
+        expired = ended = False
         try:
-            code = _await_exit(child, timeout)
+            tree = ProcessTree(child)
+            _await_exit(child, timeout)
+            ended = True
         except subprocess.TimeoutExpired:
-            expired, code = True, 125
+            expired = True
         finally:
-            # On any way out, even an interruption, every process the child started is stopped.
-            if not tree.stop(running=child.returncode is None):
+            # On any way out, even an interruption, every process the child started is stopped,
+            # before the child is reaped.
+            if tree is None or not tree.stop():
                 print("HOST collection: the process tree could not be stopped", flush=True)
-            # Whatever the tree's stop did, the child itself is killed before it is waited for,
-            # and the wait is bounded: no failed stop can leave the collection waiting.
-            if child.returncode is None:
+            # Whatever the tree's stop did, a child that had not ended is killed before it is
+            # waited for, and the wait is bounded: no failed stop can leave the collection waiting.
+            if not ended:
                 with contextlib.suppress(OSError):
                     child.kill()
             try:
                 child.wait(timeout=KILLED_CHILD_WAIT_SECONDS)
             except subprocess.TimeoutExpired:
                 print("HOST collection: a killed child did not end", flush=True)
+        code = 125 if expired or child.returncode is None else child.returncode
         sink.seek(0)
         output = sink.read()
     return code, b"TimeoutExpired\n" + output if expired else output, expired
@@ -1282,11 +1378,13 @@ def collect(root, companion_root):
         # 2. HOST's own controls, in a command of this collector's own.
         host_command = host_test_command(sys.executable, tmp)
         host_started = time.monotonic()
+        host_launched = []
         host_code, host_output, host_expired = _run(
             host_command,
             cwd=root,
             env=route_environment(**host_values),
             timeout=host_remaining(),
+            launched=host_launched,
         )
         host_command_seconds = time.monotonic() - host_started
         print(f"HOST controls: {'passed' if host_code == 0 else 'FAILED'}", flush=True)
@@ -1299,6 +1397,7 @@ def collect(root, companion_root):
         # 3. The companion's own tests.
         command = companion_command(python, tmp, platform.system())
         companion_started = time.monotonic()
+        companion_launched = []
         code, output, expired = _run(
             command,
             cwd=companion_root,
@@ -1310,6 +1409,7 @@ def collect(root, companion_root):
                 **SCHEDULER_SWITCH,
             ),
             timeout=host_remaining(),
+            launched=companion_launched,
         )
         companion_seconds = time.monotonic() - companion_started
         print(f"companion: {'passed' if code == 0 else 'FAILED'}", flush=True)
@@ -1354,8 +1454,12 @@ def collect(root, companion_root):
         if isinstance(discovery, dict) and isinstance(discovery.get("command"), list):
             discovery["command"] = normalized_command(discovery["command"], "discovery")
             discovery["command_sha256"] = digest_value(discovery["command"])
-    normalized = normalized_command(command, "companion")
-    host_normalized = normalized_command(host_command, "host")
+    # The receipt records each command as it was launched, not as it was built; a child that was
+    # never started records an empty command.
+    normalized = normalized_command(
+        companion_launched[0] if companion_launched else [], "companion"
+    )
+    host_normalized = normalized_command(host_launched[0] if host_launched else [], "host")
     copies = contract_copies(root, runtime)
     companion_stable = source_digest(runtime) == companion_before
     host_stable = input_digest(root) == before
@@ -1786,6 +1890,11 @@ def _host_command_errors(host):
     if len({row["node_id"] for row in assertions}) != len(assertions):
         errors.append("a test appears twice in HOST's command")
     errors.extend(
+        f"malformed test id in HOST's command: {row['node_id'][:200]!r}"
+        for row in assertions
+        if not _TEST_ID.fullmatch(row["node_id"])
+    )
+    errors.extend(
         "failed or skipped test in HOST's command: " + row["node_id"]
         for row in assertions
         if row["outcome"] != "passed"
@@ -1896,14 +2005,16 @@ def _platform_errors(manifest, identity, root, reference, handoff, route_digest)
     jevdrill_after = _dict(_dict(manifest.get("checkouts_after")).get("jevdrill"))
     companion_after = _dict(_dict(manifest.get("checkouts_after")).get("companion"))
     companion_state = _dict(manifest.get("companion"))
-    if (
-        jevdrill_after != jevdrill
-        or jevdrill_after.get("clean") is not True
-        or companion_after
-        != {key: companion_state.get(key) for key in ("repository", "commit", "clean")}
-        or companion_after.get("clean") is not True
-    ):
-        errors.append("a checkout changed or was left unclean by the collection")
+    for before, after in ((jevdrill, jevdrill_after), (companion_state, companion_after)):
+        if (
+            any(after.get(key) != before.get(key) for key in ("repository", "commit", "clean"))
+            or after.get("clean") is not True
+        ):
+            errors.append("a checkout changed or was left unclean by the collection")
+        if not _is_digest(before.get("git_config_sha256")) or after.get(
+            "git_config_sha256"
+        ) != before.get("git_config_sha256"):
+            errors.append("a checkout's git configuration changed during the collection")
     inherited = manifest.get("route_regressions")
     rows, _ = _rows(_dict(inherited).get("assertions"), "node_id")
     try:
