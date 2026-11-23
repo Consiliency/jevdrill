@@ -22,9 +22,9 @@ another checkout, its old Python and its claim that a committed record
 verifies IF-0-HOST-1. That plan was reviewed only by its planner and is not
 accepted as the required revision.
 
-The LEARN code is on `main`: the roadmap's two lanes have landed, and the six
-here are what remains, with SL-7. SL-1 to SL-3 and SL-7 need only GitHub CI;
-the rest waits for the host integration and HOST's verifier. Nothing here runs a collector,
+The LEARN code is on `main`: the roadmap's two lanes have landed, and the seven
+here are what remains. SL-1 to SL-3 and SL-7 need only GitHub CI; the rest
+waits for the host integration and HOST's verifier. Nothing here runs a collector,
 lands a held file, requests a host run, spends money or closes a gate.
 
 Length exception: every clause is mapped to code, control, falsifier and
@@ -130,7 +130,7 @@ verified.
 | Persistent local notices | Written `maintenance.py:56-61`, read `storage.py:2311` | main the key-failure test [3] (notices read back from the store); D new, SL-2: read again after reopening it | A notice lost after its run or after reopening | simulated; native CI run |
 | Opt-out and exclusion controls work | `application.py:1270-1275`; `storage.py:765-775`, `:800-801` | main the settings test, `tests/privacy/test_learning.py::test_default_workspace_scope_and_explicit_redacted_user_wide_consent`, `tests/storage/test_learning.py::test_restart_migration_evidence_history_and_optout` | An excluded or opted-out task analysed, or evidence drawn from it before the opt-out kept | native CI run |
 | Sharing project-scoped by default, user-wide only by explicit opt-in | `storage.py:857-859` | main the privacy test (nothing seen without both consents) | An observation shared without producer or requester consent | native CI run |
-| User-wide learning is redacted | `storage.py:994`, `:1008-1010`, `:1022-1030` | D new, SL-1 and SL-7 (the privacy test checks keys an observation never has, so shows no redaction) | Any failure SL-1's or SL-7's control names | native CI run |
+| User-wide learning is redacted | `storage.py:994`, `:997`, `:1008-1010`, `:1022-1030` | D new, SL-1 and SL-7 (the privacy test checks keys an observation never has, so shows no redaction) | Any failure SL-1's or SL-7's control names | native CI run |
 | Benchmark assessments retain source metrics and objective history | `analysis.py:687-701`; objective history `application.py:1283-1286` | main `test_metric_revisions_units_methods_remain_separate`, the missing-failed test (source measurement kept), the batch test, `test_deletion_preserves_unrelated_project_evidence_and_objective_history` | A metric definition or prior objective version lost | native CI run |
 
 **EC-LEARN-5**
@@ -323,18 +323,19 @@ applies on its terms: a possibility, not a request.
   `docs/learn-interfaces.md` that SL-1 changed.
 - **Delivers:** fix lane for Consiliency/jevdrill#86. In a user-wide
   observation, `discovery_revisions` is an unkeyed digest of the discovery's
-  revisions (`storage.py:1024`). Their `authorization_digest` covers the
-  producer's discovery scope, constraints, attachments and required guidance
-  (`application.py:191-193`), so the value differs between producers and is
-  equal for every requester and store. It is treated as SL-1's two values are:
-  keyed with the store's key and the requesting scope, in the same form. Local
-  observations are unchanged; no contract or schema change. The control fails
-  if the value can be recomputed without the store's key; if two requesters, or
-  two stores, receive an equal value; if a requester's value changes between
-  two analyses; if two user-wide observations of one discovery stop sharing a
-  group, or two with unequal revisions start to; or if a local observation's
-  value changes. Evidence stored earlier keeps its values until replaced, and a
-  store rebuilt from a recovery export gives different values; the doc says so.
+  revisions (`storage.py:1024` at `83cfe464c`). Their `authorization_digest`
+  covers the producer's discovery scope, constraints, attachments and required
+  guidance (`application.py:191-193`), so the value differs between producers
+  and is equal for every requester and store. It is treated as SL-1's two values
+  are: keyed with the store's key and the requesting scope, in the same form.
+  Local observations are unchanged; no contract or schema change. The control
+  fails if the value can be recomputed without the store's key; if two
+  requesters, or two independently created stores, receive an equal value; if a
+  requester's value changes between two analyses; if observations with unequal
+  revisions receive an equal value; if two user-wide observations of one
+  discovery stop sharing a group; or if a local observation's value changes.
+  Evidence stored earlier keeps its values until replaced, and a store rebuilt
+  from a recovery export gives different values; the doc says so.
 
 ## Verification
 
@@ -438,7 +439,10 @@ artifact of the run that made it and is never committed.
 - That "retain" is shown except as a refusal to replace an operator-set model.
 - That LEARN evidence informs later discovery or task selection.
 - That a shared record cannot be linked by a condition it still carries, such
-  as its domains or guidance choices, or by values stored before SL-1 or SL-7.
+  as its domains, guidance choices, context fields, policy revision,
+  configuration digests or exact measurements; by a keyed value, which within
+  one requester's view still links every observation sharing it; or by values
+  stored before SL-1 or SL-7.
 - That an export or backup is metadata only: it carries retained raw task,
   output and context content.
 - That import or restore checks the text it writes back.
