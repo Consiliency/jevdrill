@@ -662,9 +662,9 @@
     "tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts": {
       "suite": "jevdrill",
       "counts": {
-        "Linux": 41,
-        "Darwin": 41,
-        "Windows": 41
+        "Linux": 61,
+        "Darwin": 61,
+        "Windows": 61
       }
     },
     "tests/test_jevdrill_adapter.py::test_dry_run_and_recursion_bypass_do_not_route": {

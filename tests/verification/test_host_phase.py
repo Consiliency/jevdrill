@@ -14,7 +14,6 @@ spec = importlib.util.spec_from_file_location(
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
 
-ROUTE_REDUCE = runner.route.reduce_manifests
 HANDOFF = json.loads((ROOT / "evidence/HOST/adapter-handoff.json").read_text())
 RUN = {"run_id": "1001", "run_attempt": "1", "repository": "Consiliency/jevdrill"}
 JEVDRILL_COMMIT = "c" * 40
@@ -119,6 +118,7 @@ def witness():
             "loopback_judgment_requests": 1,
             "decision_status": "ready",
             "routing_decision_id": "judged-decision",
+            "task_id": "judged-task",
         }
     )
     records += [
@@ -189,7 +189,14 @@ def receipt(os_name, copies):
         "jevdrill": {"repository": RUN["repository"], "commit": JEVDRILL_COMMIT, "clean": True},
         "input_digest": "fixture",
         "source_stable": True,
-        "route_regressions": {"assertions": rows_for(runner.CONTROL_COUNTS)},
+        "route_regressions": {
+            "assertions": rows_for(runner.CONTROL_COUNTS),
+            "checks": [],
+            "runner_identity": RUN["run_id"],
+            "python_minor": "3.14",
+            "python_version": "3.14.0",
+            "duration_seconds": 100.0,
+        },
         "companion": {
             "repository": HANDOFF["repository"],
             "commit": HANDOFF["commit"],
@@ -204,7 +211,8 @@ def receipt(os_name, copies):
             },
             "contract_copies": copy.deepcopy(copies),
             "command": command,
-            "command_sha256": runner.digest_value(command),
+            "contract_substitution": list(runner.CONTRACT_SUBSTITUTION),
+            "command_sha256": runner.companion_command_digest(command),
             "input_digest": "companion",
             "source_stable": True,
             "exit_code": 0,
@@ -215,7 +223,13 @@ def receipt(os_name, copies):
         },
         "witnesses": evidence,
         "witness_sha256": runner.digest_value(evidence),
-        "host_static": {"command": list(runner.HOST_STATIC_COMMAND), "exit_code": 0},
+        "host_static": {
+            "command": list(runner.HOST_STATIC_COMMAND),
+            "exit_code": 0,
+            "output_sha256": "b" * 64,
+        },
+        "failed_ids": [],
+        "failed_checks": [],
         "duration_seconds": 250.0,
         "proof_cost_target_exceeded": False,
     }
@@ -243,9 +257,12 @@ def evidence(tmp_path, monkeypatch):
 
 
 def refresh(manifest):
+    """Recompute what a collector derives, so that only the broken fact is wrong."""
+    manifest["failed_ids"], manifest["failed_checks"] = runner.failure_summary(manifest)
     manifest["witness_sha256"] = runner.digest_value(manifest["witnesses"])
     companion = manifest["companion"]
-    companion["assertions_sha256"] = runner.digest_value(companion["assertions"])
+    if "assertions" in companion:
+        companion["assertions_sha256"] = runner.digest_value(companion["assertions"])
     discovery = manifest["witnesses"].get("companion_discovery")
     if isinstance(discovery, dict):
         discovery["assertions_sha256"] = runner.digest_value(discovery["assertions"])
@@ -365,6 +382,57 @@ def mutate(manifests, fault, tmp_path):
         companion["python"] = {"version": "3.14.0", "minor": "3.14"}
     elif fault == "old_schema":
         row["schema_version"] = 2
+    elif fault == "missing_companion":
+        row["companion"] = {}
+    elif fault == "flags_only":
+        row["witnesses"] = {"records": [], "entered": True, "decomposition": True}
+    elif fault == "failed_control":
+        node = "tests/conformance/test_notices.py::test_every_report_connection_queries_notices"
+        next(r for r in row["route_regressions"]["assertions"] if r["node_id"] == node)[
+            "outcome"
+        ] = "failed"
+    elif fault == "missing_model":
+        flow(row)["runs"][1].pop("model")
+    elif fault == "boolean_judgment":
+        judged = next(r for r in records if r.get("flow") == "judged")
+        judged.update(stored_judgments=True, loopback_judgment_requests=True)
+    elif fault == "judged_without_task":
+        next(r for r in records if r.get("flow") == "judged").pop("task_id")
+    elif fault == "exit_code_false":
+        companion["exit_code"] = False
+    elif fault == "discovery_exit_code_false":
+        row["witnesses"]["companion_discovery"]["exit_code"] = False
+    elif fault == "static_exit_code_false":
+        row["host_static"]["exit_code"] = False
+    elif fault == "failed_ids_mismatch":
+        refresh(row)
+        row["failed_ids"] = ["tests/test_jevdrill_queue.py::test_unnamed_0"]
+        return
+    elif fault == "failed_checks_mismatch":
+        refresh(row)
+        row["failed_checks"] = ["tests"]
+        return
+    elif fault == "static_digest_missing":
+        row["host_static"].pop("output_sha256")
+    elif fault == "discovery_lists_disagree":
+        rows = [r for r in row["witnesses"]["assertions"] if "test_jevdrill_discovery" in r["id"]]
+        rows[0]["id"] = "tests.test_jevdrill_discovery::test_other"
+    elif fault == "inherited_other_run":
+        row["route_regressions"]["runner_identity"] = "999"
+    elif fault == "missing_attempt":
+        row["workflow_run"]["run_attempt"] = None
+    elif fault == "companion_version_disagrees":
+        companion["python"]["version"] = "3.13.1"
+        companion["installed_provenance"]["python_version"] = "3.13.1"
+    elif fault == "python_version_disagrees":
+        row["python_version"] = "3.13.0"
+        row["route_regressions"]["python_version"] = "3.13.0"
+    elif fault == "inherited_python_disagrees":
+        row["route_regressions"]["python_version"] = "3.14.9"
+    elif fault == "inherited_longer":
+        row["route_regressions"]["duration_seconds"] = 260.0
+    elif fault == "substitution_missing":
+        companion.pop("contract_substitution")
     elif fault == "collection_error":
         manifests[manifests.index(row)] = {
             "schema_version": runner.SCHEMA_VERSION,
@@ -441,6 +509,35 @@ FAULTS = [
     ("companion_python", "companion Python is not the pinned version"),
     ("old_schema", "unsupported HOST receipt"),
     ("collection_error", "Linux: collection failed: the companion did not import"),
+    # The tag's three cases that had dropped out, each asserting its own error.
+    ("missing_companion", "missing companion receipt"),
+    ("flags_only", "missing production witnesses"),
+    (
+        "failed_control",
+        (
+            "failed or skipped HOST control: "
+            "tests/conformance/test_notices.py::test_every_report_connection_queries_notices"
+        ),
+    ),
+    # Typed two-task and judged-task records.
+    ("missing_model", "missing independent two-task configuration"),
+    ("boolean_judgment", "missing v2 judged task"),
+    ("judged_without_task", "missing v2 judged task"),
+    # A receipt that contradicts itself.
+    ("exit_code_false", "companion tests failed"),
+    ("discovery_exit_code_false", "missing or mismatched integrated companion discovery"),
+    ("static_exit_code_false", "failed or wrong host static check"),
+    ("failed_ids_mismatch", "failed_ids disagrees with the assertions"),
+    ("failed_checks_mismatch", "failed_checks disagrees with the checks"),
+    ("static_digest_missing", "failed or wrong host static check"),
+    ("discovery_lists_disagree", "the two discovery assertion lists disagree"),
+    ("inherited_other_run", "inherited ROUTE receipt is from another run"),
+    ("missing_attempt", "receipt is not from this workflow run"),
+    ("companion_version_disagrees", "companion Python is not the pinned version"),
+    ("python_version_disagrees", "Python version disagrees with the receipt's minor"),
+    ("inherited_python_disagrees", "inherited ROUTE receipt's Python disagrees with the receipt's"),
+    ("inherited_longer", "inherited collection longer than its receipt's"),
+    ("substitution_missing", "companion receipt does not name the contract substitution"),
 ]
 
 
@@ -465,6 +562,7 @@ def test_reducer_accepts_valid_receipts(evidence, monkeypatch):
     assert report["status"] == "blocked" and report["produced_if_gates"] == []
     assert report["not_covered"] == gaps
     assert report["platforms"] == ["Darwin", "Linux", "Windows"]
+    assert report["jevdrill"] == {"repository": RUN["repository"], "commit": JEVDRILL_COMMIT}
     # The same receipts produce the gate only once nothing stands uncovered.
     monkeypatch.setattr(runner, "not_covered", list)
     report = runner.verdict(manifests, reference)
@@ -495,6 +593,15 @@ def test_reducer_rejects_a_reduction_outside_the_run_or_on_a_foreign_checkout(ev
     outside = copy.deepcopy(reference)
     outside["run"]["run_id"] = None
     assert "reduction outside a workflow run" in runner.receipt_errors(manifests, outside)
+    # A run id with no attempt: neither the reduction nor any receipt is accepted.
+    no_attempt = copy.deepcopy(reference)
+    no_attempt["run"]["run_attempt"] = None
+    receipts = copy.deepcopy(manifests)
+    for row in receipts:
+        row["workflow_run"]["run_attempt"] = None
+    errors = runner.receipt_errors(receipts, no_attempt)
+    assert "reduction outside a workflow run" in errors, errors
+    assert "Linux: receipt is not from this workflow run" in errors, errors
     foreign = copy.deepcopy(reference)
     foreign["companion"]["commit"] = "f" * 40
     assert "reducer's companion checkout is not the handoff's clean commit" in (
@@ -524,41 +631,164 @@ def test_missing_companion_configuration_is_failure(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "value",
-    [None, [], "receipt", 7, {"os": "Linux"}, {"os": 1, "python_minor": "3.14"}],
+    ("value", "error"),
+    [
+        (None, "malformed HOST receipt"),
+        ([], "malformed HOST receipt"),
+        ("receipt", "malformed HOST receipt"),
+        (7, "malformed HOST receipt"),
+        ({"os": "Linux"}, "malformed platform identity"),
+        ({"os": 1, "python_minor": "3.14"}, "malformed platform identity"),
+    ],
 )
-def test_a_malformed_receipt_gives_a_verdict_not_a_traceback(evidence, value):
+def test_a_malformed_receipt_gives_a_verdict_not_a_traceback(evidence, value, error):
     manifests, reference = evidence
+    assert runner.receipt_errors(manifests, reference) == []
     errors = runner.receipt_errors([*manifests[1:], value], reference)
-    assert errors
+    assert error in errors, errors
 
 
-def test_every_malformed_field_gives_a_verdict_not_a_traceback(evidence, monkeypatch):
+def deep(depth=100_000):
+    value = []
+    for _ in range(depth):
+        value = [value]
+    return value
+
+
+@pytest.mark.parametrize(
+    ("case", "error"),
+    [
+        # A number too large for a float, where it is compared with the 600-second bound.
+        ("huge_duration", "Linux: collection over 600 seconds, or no valid duration"),
+        # Nesting too deep to digest.
+        ("deep_witness", "Linux: malformed receipt (RecursionError)"),
+        ("architecture_number", "Linux: missing or malformed architecture"),
+        ("architecture_list", "Linux: missing or malformed architecture"),
+        ("python_version_text", "Linux: Python version disagrees with the receipt's minor"),
+        ("collection_error_object", "Linux: collection failed: malformed collection error"),
+    ],
+)
+def test_malformed_fields_are_reported_with_their_own_error(evidence, case, error):
     manifests, reference = evidence
-    monkeypatch.setattr(runner.route, "reduce_manifests", ROUTE_REDUCE)
+    assert runner.receipt_errors(manifests, reference) == []
+    row = next(m for m in manifests if m["os"] == "Linux")
+    if case == "huge_duration":
+        row["duration_seconds"] = 10**400
+    elif case == "deep_witness":
+        row["witnesses"]["records"][0]["nested"] = deep()
+    elif case == "architecture_number":
+        row["architecture"] = 7
+    elif case == "architecture_list":
+        row["architecture"] = ["X64"]
+    elif case == "python_version_text":
+        row["python_version"] = "text"
+    else:
+        manifests[manifests.index(row)] = {"os": "Linux", "python_minor": "3.14"} | {
+            "collection_error": {"nested": deep(10)}
+        }
+    errors = runner.receipt_errors(manifests, reference)
+    assert error in errors, errors
+
+
+def test_a_deeply_nested_platform_name_is_reported_not_raised(evidence):
+    manifests, reference = evidence
+    malformed = {"os": deep(), "python_minor": "3.14", "proof_cost_target_exceeded": True}
+    report = runner.verdict([*manifests[1:], malformed], reference)
+    assert "malformed platform identity" in report["errors"], report["errors"]
+
+
+@pytest.mark.parametrize(
+    ("text", "error"),
+    [
+        ("{", "unreadable HOST receipt Linux-3.14.json: JSONDecodeError"),
+        ("[" * 100_000 + "]" * 100_000, "unreadable HOST receipt Linux-3.14.json: RecursionError"),
+        (
+            '{"duration_seconds": ' + "9" * 5000 + "}",
+            "unreadable HOST receipt Linux-3.14.json: ValueError",
+        ),
+        (
+            '{"os": "Linux", "os": "Darwin"}',
+            "unreadable HOST receipt Linux-3.14.json: duplicate key",
+        ),
+    ],
+    ids=["unparsable", "deep", "long_number", "duplicate_key"],
+)
+def test_unreadable_receipt_files_are_reported(tmp_path, evidence, text, error):
+    manifests, reference = evidence
+    for manifest in manifests:
+        name = f"{manifest['os']}-{manifest['python_minor']}.json"
+        (tmp_path / name).write_text(json.dumps(manifest))
+    (tmp_path / "Linux-3.14.json").write_text(text)
+    receipts = runner.read_receipts(tmp_path)
+    report = runner.verdict(
+        [value for _, value in receipts], reference, names=[name for name, _ in receipts]
+    )
+    assert error in report["errors"], report["errors"]
+    assert "missing Linux/Python 3.14" in report["errors"]
+    assert report["produced_if_gates"] == []
+
+
+def test_a_receipt_file_must_name_its_platform(tmp_path, evidence):
+    manifests, reference = evidence
+    for manifest in manifests:
+        (tmp_path / f"{manifest['os']}-{manifest['python_minor']}.json").write_text(
+            json.dumps(manifest)
+        )
+    receipts = runner.read_receipts(tmp_path)
+    names = [name for name, _ in receipts]
+    values = [value for _, value in receipts]
+    assert runner.receipt_errors(values, reference, names=names) == []
+    swapped = [names[1], names[0], *names[2:]]
+    errors = runner.receipt_errors(values, reference, names=swapped)
+    assert any("names another platform" in item for item in errors), errors
+
+
+def test_an_exception_in_the_inherited_reduction_is_reported(evidence, monkeypatch):
+    manifests, reference = evidence
+    assert runner.receipt_errors(manifests, reference) == []
+
+    def raises(*_args, **_kwargs):
+        raise TypeError("a malformed inherited receipt")
+
+    monkeypatch.setattr(runner.route, "reduce_manifests", raises)
+    errors = runner.receipt_errors(manifests, reference)
+    assert "Linux: ROUTE regression: malformed inherited regressions" in errors, errors
+
+
+def test_every_malformed_field_gives_a_verdict_not_a_traceback(evidence):
+    manifests, reference = evidence
+    assert runner.receipt_errors(manifests, reference) == []
     original = manifests[0]
-    paths = [(key,) for key in original] + [("companion", key) for key in original["companion"]]
+    # Every field the reducer reads. The companion's `environment` is a description it does not
+    # check, and the inherited checks are the (here stubbed) ROUTE reduction's to judge.
+    paths = [(key,) for key in original]
+    paths += [("companion", key) for key in original["companion"] if key != "environment"]
     paths += [("witnesses", key) for key in original["witnesses"]]
     paths += [("witnesses", "companion_discovery", key) for key in witness()["companion_discovery"]]
+    paths += [
+        ("route_regressions", key) for key in original["route_regressions"] if key != "checks"
+    ]
     for path in paths:
-        for value in (None, 7, "text", [1, "x", None], {"x": 1}):
+        for value in (None, 7, "text", [1, "x", None], {"x": 1}, 10**400, True):
+            if (path, value) in (
+                (("architecture",), "text"),
+                (("route_regressions", "duration_seconds"), 7),
+            ):
+                continue  # valid: any architecture string; an inherited collection of 7 seconds
             row = copy.deepcopy(original)
             target = row
             for key in path[:-1]:
                 target = target[key]
+            if type(target[path[-1]]) is type(value) and target[path[-1]] == value:
+                continue  # the value the valid receipt already has
             target[path[-1]] = value
-            assert runner.receipt_errors([row, *manifests[1:]], reference), path
-
-
-def test_unreadable_receipt_files_are_reported(tmp_path, evidence):
-    _, reference = evidence
-    (tmp_path / "Linux-3.14.json").write_text("{")
-    (tmp_path / "Darwin-3.14.json").write_text("[]")
-    receipts = runner.read_receipts(tmp_path)
-    assert receipts[1] is None
-    report = runner.verdict(receipts, reference)
-    assert "malformed HOST receipt" in report["errors"]
-    assert report["produced_if_gates"] == []
+            errors = runner.receipt_errors([row, *manifests[1:]], reference)
+            # The broken receipt has an error of its own, from a reducer that raised nothing.
+            assert any(
+                item.startswith(original["os"] + ":")
+                or item in ("malformed platform identity", "unexpected or duplicate platform")
+                for item in errors
+            ), (path, value, errors)
 
 
 def test_command_digest_ignores_paths_and_binds_every_flag():
@@ -776,7 +1006,9 @@ class Children:
                 '<testsuites><testsuite><testcase classname="tests.test_jevdrill_queue"'
                 ' name="test_one"><failure/></testcase></testsuite></testsuites>'
             )
-            return subprocess.CompletedProcess(args, self.companion_code, b"x", b"")
+            # A failing child's output is printed to the log: it tries to issue a command.
+            output = b"::error::a forged annotation\n::add-mask::hidden\n"
+            return subprocess.CompletedProcess(args, self.companion_code, output, b"")
         return subprocess.CompletedProcess(args, 0, b"", b"")
 
 
@@ -847,6 +1079,21 @@ def test_collector_children_get_only_the_allowlist_and_run_once(collection, tmp_
     assert receipt_value["runner_identity"] == "local"
     assert receipt_value["route_regressions"]["runner_identity"] == "local"
     assert str(tmp_path) not in json.dumps(receipt_value)
+
+
+def test_child_output_in_the_log_cannot_issue_workflow_commands(
+    collection, tmp_path, monkeypatch, capsys
+):
+    companion_root, _ = collection
+    monkeypatch.setattr(runner.subprocess, "run", Children(tmp_path, companion_code=1))
+    runner.collect(ROOT, companion_root)
+    lines = capsys.readouterr().out.splitlines()
+    forged = lines.index("::error::a forged annotation")
+    stops = [i for i, line in enumerate(lines) if line.startswith("::stop-commands::")]
+    assert len(stops) == 1 and stops[0] < forged
+    token = lines[stops[0]].removeprefix("::stop-commands::")
+    assert len(token) == 32 and "::" + token + "::" in lines[forged:]
+    assert lines.index("::" + token + "::") > lines.index("::add-mask::hidden")
 
 
 def test_collector_records_a_deadline_as_a_deadline(collection, tmp_path, monkeypatch):

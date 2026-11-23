@@ -16,6 +16,7 @@ import math
 import os
 import platform
 import re
+import secrets
 import subprocess
 import sys
 import tempfile
@@ -100,6 +101,8 @@ CONTRACT_SCHEMAS = (
 CONTRACT_FIXTURES = ("discovery.json", "host.json", "route-inputs.json")
 TOKEN_COUNTER_PLACEHOLDER = b"<jev-token-counter-revision>"
 TOKEN_COUNTER_REVISION = b"utf8-bytes-upper-bound-v1"
+# The one substitution, as the receipt records it; bound with the companion command's digest.
+CONTRACT_SUBSTITUTION = [TOKEN_COUNTER_PLACEHOLDER.decode(), TOKEN_COUNTER_REVISION.decode()]
 
 # The only parent variables a child sees, as in tests/conformance/conftest.py: what an
 # interpreter needs to start on Linux, macOS and Windows. Everything else is set by name.
@@ -172,7 +175,7 @@ CONTROL_COUNTS = {
     "tests/storage/test_host_notices.py::test_notice_scope_reads_and_cross_producer_deletion": 1,
     "tests/verification/test_host_phase.py::test_missing_companion_configuration_is_failure": 1,
     "tests/verification/test_host_phase.py::test_reducer_accepts_valid_receipts": 1,
-    "tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts": 41,
+    "tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts": 61,
 }
 _ALL = {name: None for name in PLATFORMS}
 _LINUX = {"Linux": None}
@@ -699,6 +702,36 @@ def expected_companion_command(os_name):
     return normalized_command(companion_command("<python>", "<temporary>", os_name), "companion")
 
 
+def companion_command_digest(command):
+    """The command digest: the normalized command and the contract substitution, together."""
+    return digest_value({"command": command, "contract_substitution": CONTRACT_SUBSTITUTION})
+
+
+def _version_minor(version):
+    """The `major.minor` of a full version such as `3.14.0` or `3.12.9rc1`; else None."""
+    match = (
+        re.fullmatch(r"(\d+)\.(\d+)\.\d+[0-9A-Za-z.+-]*", version)
+        if isinstance(version, str)
+        else None
+    )
+    return f"{match.group(1)}.{match.group(2)}" if match else None
+
+
+@contextlib.contextmanager
+def workflow_commands_stopped():
+    """Child output printed inside this block cannot issue workflow commands on a runner.
+
+    The runner reads `::name::` lines in a job log as commands until it sees the token; the
+    token is fresh, printed by this process only, and appears in no child's output.
+    """
+    token = secrets.token_hex(16)
+    print(f"::stop-commands::{token}", flush=True)
+    try:
+        yield token
+    finally:
+        print(f"::{token}::", flush=True)
+
+
 def contract_copies(root, runtime):
     """Compare the companion's contract copies with jevdrill's files (J5).
 
@@ -877,9 +910,12 @@ def collect(root, companion_root):
         raise CollectionError("the handoff record is missing or malformed") from error
     before = input_digest(root)
     companion_before = source_digest(runtime)
-    with tempfile.TemporaryDirectory(
-        prefix="jevdrill-host-", dir=os.environ.get("RUNNER_TEMP")
-    ) as temporary:
+    with (
+        tempfile.TemporaryDirectory(
+            prefix="jevdrill-host-", dir=os.environ.get("RUNNER_TEMP")
+        ) as temporary,
+        workflow_commands_stopped(),
+    ):
         tmp = Path(temporary)
         home = tmp / "home"
         home.mkdir()
@@ -898,7 +934,7 @@ def collect(root, companion_root):
             timeout=30,
         )
         if code != 0:
-            print(output.decode(errors="replace")[-20000:], file=sys.stderr, flush=True)
+            print(output.decode(errors="replace")[-20000:], flush=True)
             raise CollectionError(
                 "the companion did not import" + (" within 30 seconds" if expired else "")
             )
@@ -973,14 +1009,12 @@ def collect(root, companion_root):
             discovery["command"] = normalized_command(discovery["command"], "discovery")
             discovery["command_sha256"] = digest_value(discovery["command"])
     normalized = normalized_command(command, "companion")
-    failed = sorted(
-        row["node_id"]
-        for rows in (inherited.get("assertions", []), assertions)
-        for row in rows
-        if row.get("outcome") != "passed"
-    )
-    duration = round(time.monotonic() - started, 3)
-    return {
+    copies = contract_copies(root, runtime)
+    companion_stable = source_digest(runtime) == companion_before
+    host_stable = input_digest(root) == before
+    # Taken after the collection's last operation, and recorded unrounded.
+    duration = time.monotonic() - started
+    receipt = {
         "schema_version": SCHEMA_VERSION,
         "phase": "HOST",
         "execution_kind": "native",
@@ -992,16 +1026,17 @@ def collect(root, companion_root):
         "workflow_run": run,
         "jevdrill": jevdrill,
         "input_digest": before,
-        "source_stable": input_digest(root) == before,
+        "source_stable": host_stable,
         "route_regressions": inherited,
         "companion": {
             **companion,
             "python": {
                 "version": provenance.get("python_version"),
-                "minor": ".".join(str(provenance.get("python_version", "")).split(".")[:2]),
+                "minor": _version_minor(provenance.get("python_version")),
             },
             "installed_provenance": provenance,
-            "contract_copies": contract_copies(root, runtime),
+            "contract_copies": copies,
+            "contract_substitution": CONTRACT_SUBSTITUTION,
             "environment": sorted(
                 child_environment(
                     Path(),
@@ -1012,9 +1047,9 @@ def collect(root, companion_root):
                 )
             ),
             "command": normalized,
-            "command_sha256": digest_value(normalized),
+            "command_sha256": companion_command_digest(normalized),
             "input_digest": companion_before,
-            "source_stable": source_digest(runtime) == companion_before,
+            "source_stable": companion_stable,
             "exit_code": code,
             "deadline_expired": expired,
             "output_sha256": hashlib.sha256(output).hexdigest(),
@@ -1028,15 +1063,34 @@ def collect(root, companion_root):
             "exit_code": static_code,
             "output_sha256": hashlib.sha256(static_output).hexdigest(),
         },
-        "failed_ids": failed,
-        "failed_checks": sorted(
-            check.get("name")
-            for check in inherited.get("checks", [])
-            if isinstance(check, dict) and check.get("exit_code") != 0
-        ),
         "duration_seconds": duration,
         "proof_cost_target_exceeded": duration > PROOF_COST_TARGET_SECONDS,
     }
+    receipt["failed_ids"], receipt["failed_checks"] = failure_summary(receipt)
+    return receipt
+
+
+def failure_summary(manifest):
+    """What failed, derived from the assertion lists and checks a receipt holds."""
+    rows = [
+        row
+        for value in (
+            _dict(manifest.get("route_regressions")).get("assertions"),
+            _dict(manifest.get("companion")).get("assertions"),
+        )
+        for row in _rows(value, "node_id")[0]
+    ]
+    checks = _dict(manifest.get("route_regressions")).get("checks")
+    return (
+        sorted(row["node_id"] for row in rows if row["outcome"] != "passed"),
+        sorted(
+            check["name"]
+            for check in (checks if isinstance(checks, list) else [])
+            if isinstance(check, dict)
+            and isinstance(check.get("name"), str)
+            and check.get("exit_code") != 0
+        ),
+    )
 
 
 def _dict(value):
@@ -1077,7 +1131,11 @@ def _dotted(node):
 
 def witness_errors(witness):
     errors = []
-    if not isinstance(witness, dict) or not isinstance(witness.get("records"), list):
+    if (
+        not isinstance(witness, dict)
+        or not isinstance(witness.get("records"), list)
+        or not witness["records"]
+    ):
         return ["missing production witnesses"]
     records = [row for row in witness["records"] if isinstance(row, dict)]
     if len(records) != len(witness["records"]):
@@ -1133,11 +1191,19 @@ def witness_errors(witness):
             errors.append("missing entered harness decomposition")
         runs = flow.get("runs")
         runs = [run for run in runs if isinstance(run, dict)] if isinstance(runs, list) else []
+        # Each run names its task, model and effort as non-empty strings; a missing value is
+        # never a second configuration.
+        typed = all(
+            isinstance(run.get(key), str) and run[key]
+            for run in runs
+            for key in ("task_id", "model", "effort")
+        )
         if (
             len(runs) < 2
-            or len({str(run.get("task_id")) for run in runs}) != len(runs)
-            or len({str(run.get("model")) for run in runs}) < 2
-            or len({str(run.get("effort")) for run in runs}) < 2
+            or not typed
+            or len({run.get("task_id") for run in runs}) != len(runs)
+            or len({run.get("model") for run in runs}) < 2
+            or len({run.get("effort") for run in runs}) < 2
         ):
             errors.append("missing independent two-task configuration")
         if len({str(_dict(run.get("discovery_ref")).get("discovery_id")) for run in runs}) != 1:
@@ -1163,14 +1229,20 @@ def witness_errors(witness):
     ):
         errors.append("missing or reused routing decision")
     # Declared change 14: one task of the installed flow was judged at JudgeCandidate-v2.
+    # The two counts are integers (a boolean is not one judgment), and the row names its task.
     judged = [row for row in records if row.get("flow") == "judged"]
     if (
         len(judged) != 1
         or judged[0].get("stored_function_revision") != "JudgeCandidate-v2"
-        or judged[0].get("stored_judgments") != 1
-        or judged[0].get("loopback_judgment_requests") != 1
+        or type(judged[0].get("stored_judgments")) is not int
+        or judged[0]["stored_judgments"] != 1
+        or type(judged[0].get("loopback_judgment_requests")) is not int
+        or judged[0]["loopback_judgment_requests"] != 1
         or judged[0].get("decision_status") != "ready"
-        or not judged[0].get("routing_decision_id")
+        or not isinstance(judged[0].get("routing_decision_id"), str)
+        or not judged[0]["routing_decision_id"]
+        or not isinstance(judged[0].get("task_id"), str)
+        or not judged[0]["task_id"]
     ):
         errors.append("missing v2 judged task")
     controls = [row for row in records if row.get("flow") == "discovery-control"]
@@ -1216,7 +1288,8 @@ def _discovery_errors(receipt, companion_digest):
         or receipt.get("command_sha256") != digest_value(list(DISCOVERY_COMMAND))
         or receipt.get("input_digest") != companion_digest
         or receipt.get("source_stable") is not True
-        or receipt.get("exit_code") != 0
+        or type(receipt.get("exit_code")) is not int
+        or receipt["exit_code"] != 0
         or not _is_digest(receipt.get("output_sha256"))
     ):
         errors.append("missing or mismatched integrated companion discovery")
@@ -1243,7 +1316,9 @@ def _companion_errors(companion, os_name, handoff, reference):
     if companion.get("clean") is not True:
         errors.append("companion checkout was not clean")
     python = _dict(companion.get("python"))
-    if python.get("minor") != COMPANION_PYTHON or not isinstance(python.get("version"), str):
+    if python.get("minor") != COMPANION_PYTHON or _version_minor(python.get("version")) != (
+        COMPANION_PYTHON
+    ):
         errors.append("companion Python is not the pinned version")
     provenance = _dict(companion.get("installed_provenance"))
     if (
@@ -1264,7 +1339,9 @@ def _companion_errors(companion, os_name, handoff, reference):
     expected = expected_companion_command(os_name)
     if companion.get("command") != expected:
         errors.append("companion command is not the expected command")
-    if companion.get("command_sha256") != digest_value(expected):
+    if companion.get("contract_substitution") != CONTRACT_SUBSTITUTION:
+        errors.append("companion receipt does not name the contract substitution")
+    if companion.get("command_sha256") != companion_command_digest(expected):
         errors.append("companion command digest mismatch")
     if (
         companion.get("input_digest") != reference.get("digest")
@@ -1273,7 +1350,11 @@ def _companion_errors(companion, os_name, handoff, reference):
         errors.append("stale or changed companion sources")
     if companion.get("deadline_expired") is not False:
         errors.append("companion tests exceeded the collection deadline")
-    if companion.get("exit_code") != 0 or not _is_digest(companion.get("output_sha256")):
+    if (
+        type(companion.get("exit_code")) is not int
+        or companion["exit_code"] != 0
+        or not _is_digest(companion.get("output_sha256"))
+    ):
         errors.append("companion tests failed")
     assertions, well_formed = _rows(companion.get("assertions"), "node_id")
     if not well_formed or companion.get("assertions_sha256") != digest_value(
@@ -1312,13 +1393,17 @@ def _platform_errors(manifest, identity, root, reference, handoff, route_digest)
     if (
         not run.get("run_id")
         or workflow.get("run_id") != run.get("run_id")
+        or not isinstance(workflow.get("run_attempt"), str)
+        or not workflow["run_attempt"]
         or workflow.get("run_attempt") != run.get("run_attempt")
         or workflow.get("repository") != run.get("repository")
         or manifest.get("runner_identity") != run.get("run_id")
     ):
         errors.append("receipt is not from this workflow run")
-    if not manifest.get("architecture") or not isinstance(manifest.get("python_version"), str):
-        errors.append("missing runner identity")
+    if not isinstance(manifest.get("architecture"), str) or not manifest["architecture"]:
+        errors.append("missing or malformed architecture")
+    if _version_minor(manifest.get("python_version")) != identity[1]:
+        errors.append("Python version disagrees with the receipt's minor")
     jevdrill, expected = _dict(manifest.get("jevdrill")), _dict(reference.get("jevdrill"))
     if (
         not expected.get("commit")
@@ -1341,9 +1426,28 @@ def _platform_errors(manifest, identity, root, reference, handoff, route_digest)
     except AttributeError, IndexError, KeyError, TypeError, ValueError:
         inherited_errors = ["malformed inherited regressions"]
     errors.extend("ROUTE regression: " + error for error in inherited_errors)
+    inner = _dict(inherited)
+    if inner.get("runner_identity") != manifest.get("runner_identity"):
+        errors.append("inherited ROUTE receipt is from another run")
+    if inner.get("python_minor") != identity[1] or inner.get("python_version") != manifest.get(
+        "python_version"
+    ):
+        errors.append("inherited ROUTE receipt's Python disagrees with the receipt's")
     for node, count in CONTROL_COUNTS.items():
         if _count(rows, "node_id", node) != count:
             errors.append("HOST control count not exact: " + node)
+        if any(
+            row["outcome"] != "passed"
+            and (row["node_id"] == node or row["node_id"].startswith(node + "["))
+            for row in rows
+        ):
+            errors.append("failed or skipped HOST control: " + node)
+    if manifest.get("failed_ids") != failure_summary(manifest)[0]:
+        errors.append("failed_ids disagrees with the assertions")
+    if manifest.get("failed_checks") != failure_summary(manifest)[1]:
+        errors.append("failed_checks disagrees with the checks")
+    if not isinstance(manifest.get("companion"), dict) or not manifest["companion"]:
+        errors.append("missing companion receipt")
     companion = _dict(manifest.get("companion"))
     errors.extend(
         _companion_errors(companion, identity[0], handoff, _dict(reference.get("companion")))
@@ -1352,24 +1456,39 @@ def _platform_errors(manifest, identity, root, reference, handoff, route_digest)
     if manifest.get("witness_sha256") != digest_value(witness):
         errors.append("witness digest mismatch")
     errors.extend(witness_errors(witness))
-    errors.extend(
-        _discovery_errors(
-            _dict(witness).get("companion_discovery"),
-            _dict(reference.get("companion")).get("digest"),
-        )
-    )
+    discovery = _dict(witness).get("companion_discovery")
+    errors.extend(_discovery_errors(discovery, _dict(reference.get("companion")).get("digest")))
+    # The witness's discovery ids and the integrated discovery receipt's are the same run.
+    entered, _ = _rows(_dict(witness).get("assertions"), "id")
+    integrated, _ = _rows(_dict(discovery).get("assertions"), "node_id")
+    if sorted(
+        (row["id"], row["outcome"])
+        for row in entered
+        if row["id"].startswith("tests.test_jevdrill_discovery::")
+    ) != sorted((_dotted(row["node_id"]), row["outcome"]) for row in integrated):
+        errors.append("the two discovery assertion lists disagree")
     static = _dict(manifest.get("host_static"))
-    if static.get("exit_code") != 0 or static.get("command") != list(HOST_STATIC_COMMAND):
+    if (
+        type(static.get("exit_code")) is not int
+        or static["exit_code"] != 0
+        or static.get("command") != list(HOST_STATIC_COMMAND)
+        or not _is_digest(static.get("output_sha256"))
+    ):
         errors.append("failed or wrong host static check")
     duration = manifest.get("duration_seconds")
+    # The range is checked before finiteness, so that no number can raise.
     if (
         type(duration) not in (int, float)
-        or not math.isfinite(duration)
         or not 0 < duration <= COLLECTION_BOUND_SECONDS
+        or not math.isfinite(duration)
     ):
         errors.append("collection over 600 seconds, or no valid duration")
-    elif manifest.get("proof_cost_target_exceeded") is not (duration > PROOF_COST_TARGET_SECONDS):
-        errors.append("misreported five-minute proof-cost flag")
+    else:
+        if manifest.get("proof_cost_target_exceeded") is not (duration > PROOF_COST_TARGET_SECONDS):
+            errors.append("misreported five-minute proof-cost flag")
+        inner_duration = inner.get("duration_seconds")
+        if type(inner_duration) not in (int, float) or not inner_duration <= duration:
+            errors.append("inherited collection longer than its receipt's")
     return errors
 
 
@@ -1437,8 +1556,31 @@ def expected_control_table():
     return table
 
 
-def receipt_errors(manifests, reference, root=ROOT, *, required_platforms=None):
-    """Every reason the receipts, the checkouts or the records cannot be accepted."""
+class UnreadableReceipt:
+    """A receipt file that could not be read as one unambiguous JSON object."""
+
+    def __init__(self, reason):
+        self.reason = reason
+
+
+# Any of these, raised while one receipt is read or checked, is that receipt's error.
+MALFORMED = (
+    AttributeError,
+    IndexError,
+    KeyError,
+    OverflowError,
+    RecursionError,
+    TypeError,
+    ValueError,
+)
+
+
+def receipt_errors(manifests, reference, root=ROOT, *, required_platforms=None, names=None):
+    """Every reason the receipts, the checkouts or the records cannot be accepted.
+
+    `names`, when given, are the receipts' file names, in order; each must name the platform
+    and minor its receipt states.
+    """
     errors = []
     try:
         handoff = _handoff(root)
@@ -1446,7 +1588,9 @@ def receipt_errors(manifests, reference, root=ROOT, *, required_platforms=None):
         handoff = {}
         errors.append("missing or malformed handoff record")
     reference = _dict(reference)
-    if not _dict(reference.get("run")).get("run_id"):
+    if not _dict(reference.get("run")).get("run_id") or not _dict(reference.get("run")).get(
+        "run_attempt"
+    ):
         errors.append("reduction outside a workflow run")
     companion = _dict(reference.get("companion"))
     if (
@@ -1459,7 +1603,11 @@ def receipt_errors(manifests, reference, root=ROOT, *, required_platforms=None):
         errors.append("reducer's companion contract copies differ from jevdrill's")
     seen = set()
     route_digest = route.input_digest(root)
-    for manifest in manifests:
+    for index, manifest in enumerate(manifests):
+        name = names[index] if names is not None and index < len(names) else None
+        if isinstance(manifest, UnreadableReceipt):
+            errors.append(f"unreadable HOST receipt {name or index}: {manifest.reason}")
+            continue
         if not isinstance(manifest, dict):
             errors.append("malformed HOST receipt")
             continue
@@ -1470,15 +1618,25 @@ def receipt_errors(manifests, reference, root=ROOT, *, required_platforms=None):
         if identity not in MATRIX or identity in seen:
             errors.append("unexpected or duplicate platform")
         seen.add(identity)
-        if "collection_error" in manifest:
-            errors.append(f"{identity[0]}: collection failed: {manifest['collection_error']}")
-            continue
-        errors.extend(
-            f"{identity[0]}: {error}"
-            for error in _platform_errors(
-                manifest, identity, root, reference, handoff, route_digest
+        if name is not None and name != f"{identity[0]}-{identity[1]}.json":
+            errors.append(f"{identity[0]}: receipt file {name} names another platform")
+        try:
+            if "collection_error" in manifest:
+                message = manifest["collection_error"]
+                errors.append(
+                    f"{identity[0]}: collection failed: "
+                    + (message if isinstance(message, str) else "malformed collection error")
+                )
+                continue
+            errors.extend(
+                f"{identity[0]}: {error}"
+                for error in _platform_errors(
+                    manifest, identity, root, reference, handoff, route_digest
+                )
             )
-        )
+        except MALFORMED as error:
+            # Reported, never raised: a number too large, nesting too deep, a wrong type.
+            errors.append(f"{identity[0]}: malformed receipt ({type(error).__name__})")
     required = MATRIX if required_platforms is None else required_platforms
     errors.extend(f"missing {name}/Python {minor}" for name, minor in sorted(required - seen))
     errors.extend(coverage_errors(root))
@@ -1524,19 +1682,32 @@ def reference_state(root, companion_root):
     }
 
 
+def _unique_keys(pairs):
+    keys = [key for key, _ in pairs]
+    if len(set(keys)) != len(keys):
+        raise ValueError("duplicate key")
+    return dict(pairs)
+
+
 def read_receipts(directory):
-    """Every receipt in the directory; one that cannot be read is kept as None and reported."""
+    """(file name, receipt) for every receipt in the directory.
+
+    A file that cannot be read as one unambiguous JSON object (unparsable, nesting too deep, a
+    number too long, a duplicate key) is kept as an UnreadableReceipt and reported.
+    """
     receipts = []
     for path in sorted(directory.glob("*.json")):
         try:
-            receipts.append(json.loads(path.read_text(encoding="utf-8")))
-        except OSError, ValueError:
-            receipts.append(None)
+            value = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=_unique_keys)
+        except (OSError, RecursionError, ValueError) as error:
+            reason = "duplicate key" if str(error) == "duplicate key" else type(error).__name__
+            value = UnreadableReceipt(reason)
+        receipts.append((path.name, value))
     return receipts
 
 
-def verdict(manifests, reference, root=ROOT):
-    errors = receipt_errors(manifests, reference, root)
+def verdict(manifests, reference, root=ROOT, *, names=None):
+    errors = receipt_errors(manifests, reference, root, names=names)
     gaps = not_covered()
     blocked = bool(errors or gaps)
     return {
@@ -1549,17 +1720,28 @@ def verdict(manifests, reference, root=ROOT):
         # A gate produced here still rests on the plan's reading of these clauses.
         "outside_reading": outside_reading(),
         "proof_cost_over_five_minutes": sorted(
-            str(item.get("os"))
+            item["os"]
             for item in manifests
-            if isinstance(item, dict) and item.get("proof_cost_target_exceeded") is True
+            if isinstance(item, dict)
+            and isinstance(item.get("os"), str)
+            and item.get("proof_cost_target_exceeded") is True
         ),
         "input_digest": reference.get("input_digest"),
+        # The jevdrill commit this verdict judged, so that the artifact alone says so.
+        "jevdrill": {
+            key: _dict(reference.get("jevdrill")).get(key) for key in ("repository", "commit")
+        },
         "companion": {
             key: _dict(reference.get("companion")).get(key)
             for key in ("repository", "commit", "digest")
         },
         "run": reference.get("run"),
-        "platforms": sorted(str(item.get("os")) for item in manifests if isinstance(item, dict)),
+        # Only a string is named: a malformed `os` is reported as an error, never rendered.
+        "platforms": sorted(
+            item["os"]
+            for item in manifests
+            if isinstance(item, dict) and isinstance(item.get("os"), str)
+        ),
         "produced_if_gates": [] if blocked else ["IF-0-HOST-1"],
     }
 
@@ -1603,7 +1785,10 @@ def main(argv=None):
         errors = receipt_errors([current], reference, ROOT, required_platforms={identity})
         print(json.dumps({"local_errors": errors}, indent=2))
         return int(bool(errors))
-    report = verdict(read_receipts(platforms), reference, ROOT)
+    receipts = read_receipts(platforms)
+    report = verdict(
+        [value for _, value in receipts], reference, ROOT, names=[name for name, _ in receipts]
+    )
     (OUTPUT / "verification.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))
     return int(report["status"] != "passed")
