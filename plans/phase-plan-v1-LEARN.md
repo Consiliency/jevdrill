@@ -8,10 +8,10 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 # LEARN: Local learning and maintenance
 
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
-> with three seats (correctness; security and privacy; alternate vendor).
-> Rounds: one, and a confirmation of its fixes. Pull request:
-> Consiliency/jevdrill#92. Amended to add SL-7 (Consiliency/jevdrill#122) and
-> SL-8 (Consiliency/jevdrill#126), each reviewed the same way. This is a reviewed plan. It verifies no criterion.
+> and three seats (correctness, security and privacy, alternate vendor); one
+> round and a confirmation. Pull request: Consiliency/jevdrill#92. Amended to
+> add SL-7 (Consiliency/jevdrill#122) and SL-8 (Consiliency/jevdrill#126). This
+> is a reviewed plan. It verifies no criterion.
 
 ## Context
 
@@ -20,9 +20,9 @@ IF-0-LEARN-1. The October plan at the tag `pr1-final-record` was reviewed only
 by its planner and is not accepted as the required revision.
 
 The LEARN code is on `main`: the roadmap's two lanes have landed, and the eight
-here are what remains. SL-1 to SL-3, SL-7 and SL-8 need only GitHub CI; the
-rest waits for the host integration and HOST's verifier. Nothing here runs a
-collector, lands a held file, requests a host run, spends money or closes a gate.
+here are what remains. SL-1 to SL-3, SL-7 and SL-8 need only GitHub CI; the rest
+waits for the host integration and HOST's verifier. Nothing here runs a
+collector, requests a host run, spends money or closes a gate.
 
 Length exception: every clause is mapped to code, control, falsifier and
 evidence kind.
@@ -38,7 +38,7 @@ one that needs the host integration,
 
 **Held at the tag, not on `main`:** SL-4's verifier, tests and workflow, and
 `docs/learn-readiness.md`. October's evidence is not restored; SL-4 and SL-5
-make it again, and receipts and verdicts are never committed.
+remake its records, and receipts, verdicts and history are never committed.
 
 **Exists nowhere:** an accepted host-integration commit, a hosted LEARN
 receipt or expected-test list, the controls marked "D new", or use of an
@@ -99,7 +99,7 @@ verified.
 | Clock and key-failure fixtures on three platforms | `maintenance.py:124-125`, `:76-80`; `integrations/archive.py:28` | main `tests/retention/test_retention.py::test_clock_rollback_and_corruption_enter_production_retention`, `::test_key_failures_keep_pending_active_content_and_notice` [3], `test_maintenance.py::test_os_key_store_failure_is_bounded_without_plaintext_fallback` | Retention after the clock moves back, or content lost when the key fails | simulated; native CI run |
 | 30-day active retention, seven-day archive grace | `maintenance.py:160-169` | main `test_retention.py::test_active_grace_encrypted_archive_one_year_expiry_and_measurement_persistence` | A prompt before day 30, or archival before seven more days | native CI run |
 | Encrypted archival; never archive unencrypted | `maintenance.py:170-224`; `integrations/archive.py:17-24` | main the active-grace and key-failure tests, `test_retention.py::test_archive_crash_retry_keeps_source_until_durable_verification`, `::test_archive_tamper_cannot_restore` | Plaintext in an archive, or an archive made without a key | simulated; native CI run |
-| One-year expiry notices | `maintenance.py:153-159` | main the active-grace test; D new, SL-2: a failing item leaves the others on time (Consiliency/jevdrill#45); re-archived content expires and is announced one year after its first archival (#46); D new, SL-8 | A notice missing or misdated before expiry; restored content retired in the run that archives it again; an earlier failing item unreported or abandoned; later healthy content kept past expiry; unverified content retired | native CI run |
+| One-year expiry notices | `maintenance.py:153-159` | main the active-grace test; D new, SL-2: a failing item leaves the others on time (Consiliency/jevdrill#45); re-archived content expires and is announced one year after its first archival (#46); D new, SL-8 | A notice missing or misdated before expiry; a restored copy archived after its earlier archive expired, lost before a year from that archival; an earlier failing item unreported or abandoned; later healthy content kept past expiry; unverified content retired | native CI run |
 | Restoration | `maintenance.py:366-401` | main `tests/maintenance/test_recovery.py::test_native_archive_restore_and_portable_archive_export`, the tamper test; D new, SL-3: restored bytes equal the original | Restored bytes that differ, or a tampered or deleted archive restored | native CI run |
 | Deletion propagation | `storage.py:1045-1049`; `delete_task` `storage.py:2384-2397` | main the active-grace and native-restore tests; `test_observations.py::test_source_digest_recheck_prevents_deleted_analysis_commit`; `tests/storage/test_learning.py::test_deletion_preserves_unrelated_project_evidence_and_objective_history`; D new, SL-2: deletion while another connection reads (Consiliency/jevdrill#21); an archived copy's file gone after task deletion | Deleted content, archived copies included, left on disk, readable or analysed; `deleted` reported while a payload stays in the write-ahead log, or erasure still incomplete after the reader closes and deletion is retried | native CI run |
 | Missing credentials, headless Linux included, keep content pending with notices | `maintenance.py:170-173`; `storage.py:2311` | main the key-failure test [3] | Content removed, or no notice, without a key | simulated; native CI run |
@@ -176,10 +176,10 @@ verified.
   files are host-platform regressions, cited for no LEARN clause; the installed
   control is EC-LEARN-5's.
 - **Re-archived content (Consiliency/jevdrill#46)** reuses the first archive
-  and its time (`maintenance.py:188-197`; `storage.py:2202`), so expires a year
-  after the first archival (`specs/jevdrill-design-input.md:364`).
-- **No companion-free diagnostic mode** is planned; one added by a declared
-  change would produce no gate.
+  and its time (`maintenance.py:188-197`; `storage.py:2202`), so content
+  archived again before that archive expires keeps its expiry; "Cold archives
+  expire one year after archival" (`specs/jevdrill-design-input.md:364`) is
+  read so.
 
 ## Cross-Repo Gate
 
@@ -202,7 +202,7 @@ applies on its terms: a possibility, not a request.
 - SL-5 — Expected-test lists; Depends on: SL-4 and one dispatched run; Blocks: SL-6; Parallel-safe: no
 - SL-6 — Readiness doc; Depends on: SL-5 and one dispatched run; Blocks: (none); Parallel-safe: no
 - SL-7 — Revisions digest in shared records; Depends on: SL-1; Blocks: SL-4; Parallel-safe: no
-- SL-8 — Restored content kept; Depends on: SL-2; Blocks: SL-4; Parallel-safe: no
+- SL-8 — Restored content kept; Depends on: SL-2, SL-7; Blocks: SL-4; Parallel-safe: no
 
 ## Lanes
 
@@ -322,19 +322,21 @@ applies on its terms: a possibility, not a request.
 ### SL-8 — Restored content kept
 
 - **Needs:** GitHub CI alone.
-- **Owned files:** `src/jevdrill/maintenance.py` (archiving a restored copy;
-  retiring an archive), `src/jevdrill/storage.py` (only where an archive row is
+- **Owned files:** `src/jevdrill/maintenance.py` (archiving restored copies;
+  retiring archives), `src/jevdrill/storage.py` (only where an archive row is
   reused), `tests/maintenance/test_lifecycle_faults.py`, the sentence of
   `docs/learn-interfaces.md` naming #125.
 - **Delivers:** fix lane for Consiliency/jevdrill#125 (at `5ba5e62e9`:
-  `maintenance.py:395`, `:249`, `:212`, `:157-159`; `storage.py:2232`). Content
-  restored before its archive expires is kept or lost the same way whether or
-  not a run falls between that archive's expiry and the copy's archival. No
-  contract or schema change. The control fails if, in #125's sequence, the
-  content cannot be restored afterwards with its original bytes; if the outcome
-  differs with and without a run in that window, or with the order the two items
-  are reached; if content restored and archived again before the archive
-  expires stops keeping that expiry; or if anything unverified is retired.
+  `maintenance.py:395`, `:249`, `:212`, `:157-159`; `storage.py:2232`). A
+  restored copy archived after its earlier archive has expired, by the rule of
+  `maintenance.py:157`, expires one year after that archival, whatever the order
+  and timing of runs. No contract or schema change. The control fails if the
+  content cannot be restored with its original bytes before a year from that
+  archival, or still can after a run past that year: in #125's sequence in
+  either order, with the two items reached in different runs, or at the
+  archive's exact deadline; if content restored and archived again before the
+  archive expires stops keeping that expiry; or if anything unverified is
+  retired.
 
 ## Verification
 
