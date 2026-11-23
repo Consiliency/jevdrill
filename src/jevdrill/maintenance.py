@@ -41,10 +41,13 @@ class Maintenance:
         pair = self.storage._task_scope(scope)
         notice = {
             "notice_id": str(uuid5(NAMESPACE_URL, canonical_digest([pair, task, kind, identity]))),
-            "kind": "archive_prompt" if kind == "archive_prompt" else "decision_required",
+            "kind": {"archive_prompt": "archive_prompt", "item_failed": "failure"}.get(
+                kind, "decision_required"
+            ),
             "summary": {
                 "archive_prompt": "Content is 30 days old. Encrypted archival is due after seven days.",
-                "archive_expiry": "Archived content expires in seven days. Restore or export it before the deadline.",
+                "archive_expiry": "Archived content expires in seven days. Restore or export it before the deadline. Content restored and archived again before this archive expires keeps this expiry.",
+                "item_failed": f"Maintenance could not verify item {identity}; it stays as it is and is tried again on a later run.",
                 "archive_key_missing": "Archive key unavailable; content remains local. Configure the supported OS key store and retry.",
                 "clock_rollback": "The clock moved backwards; retention remains paused until it catches up.",
             }[kind],
@@ -172,56 +175,42 @@ class Maintenance:
                             self._notice(scope, task, "archive_key_missing", identity)
                             result["pending"] += 1
                         else:
-                            content = (
-                                self.storage._artifact_directory(pair) / identity
-                            ).read_bytes()
-                            if hashlib.sha256(content).hexdigest() != digest:
-                                raise ContractError("artifact digest mismatch")
-                            body = {
-                                "scope": pair,
-                                "task": task,
-                                "kind": kind,
-                                "content": content.hex(),
-                                "digest": digest,
-                                "source_id": identity,
-                            }
-                            with self.storage._connect() as c:
-                                existing = c.execute(
-                                    "SELECT a.artifact_id FROM artifacts a JOIN artifact_lifecycle l ON a.scope=l.scope AND a.artifact_id=l.artifact_id WHERE a.scope=? AND l.source_id=? AND a.kind='archive'",
-                                    (pair, identity),
-                                ).fetchone()
-                            encrypted = (
-                                (self.storage._artifact_directory(pair) / existing[0]).read_bytes()
-                                if existing
-                                else encode_archive(body, key)
-                            )
-                            if json.loads(decrypt_archive(encrypted, key)) != body:
-                                raise ContractError("archive verification failed")
-                            archive_id = self.storage.stage_artifact(
-                                scope,
-                                task,
-                                encrypted,
-                                kind="archive",
-                                retention="archive",
-                                encryption="fernet-v1",
-                                archive_source=identity,
-                                archived_at=now,
-                            )
-                            assert archive_id is not None
-                            if (
-                                json.loads(
-                                    decrypt_archive(
-                                        (
-                                            self.storage._artifact_directory(pair) / archive_id
-                                        ).read_bytes(),
-                                        key,
-                                    )
+                            try:
+                                body, encrypted = self._verified_archive(
+                                    pair, identity, task, kind, digest, key
                                 )
-                                != body
-                            ):
-                                raise ContractError("durable archive verification failed")
-                            self._retire(scope, identity)
-                            result["processed"] += 1
+                            except ValueError:
+                                # This item cannot be verified: report it by its identity,
+                                # leave it as it is, and go on; a later run tries it again
+                                # (#45). Storage and file-system errors still stop the run.
+                                self._notice(scope, task, "item_failed", identity)
+                                result["pending"] += 1
+                            else:
+                                archive_id = self.storage.stage_artifact(
+                                    scope,
+                                    task,
+                                    encrypted,
+                                    kind="archive",
+                                    retention="archive",
+                                    encryption="fernet-v1",
+                                    archive_source=identity,
+                                    archived_at=now,
+                                )
+                                assert archive_id is not None
+                                if (
+                                    json.loads(
+                                        decrypt_archive(
+                                            (
+                                                self.storage._artifact_directory(pair) / archive_id
+                                            ).read_bytes(),
+                                            key,
+                                        )
+                                    )
+                                    != body
+                                ):
+                                    raise ContractError("durable archive verification failed")
+                                self._retire(scope, identity)
+                                result["processed"] += 1
                 with self.storage._connect(True) as c:
                     c.execute(
                         "UPDATE maintenance_control SET cursor=? WHERE scope=?", (identity, pair)
@@ -232,6 +221,40 @@ class Maintenance:
             result["pending"] += max(0, len(rows) - request["max_items"])
             result["notices"] = self.storage.load_notices(scope)
         return result
+
+    def _verified_archive(
+        self, pair: str, identity: str, task: str, kind: str, digest: str, key: bytes
+    ) -> tuple[dict[str, Any], bytes]:
+        """The item's archive body and encrypted bytes, verified; ValueError if not.
+
+        Only this item's own checks raise ValueError here: its digest, an existing
+        archive's authentication, and its decrypted body. Storage and file-system
+        errors propagate.
+        """
+        content = (self.storage._artifact_directory(pair) / identity).read_bytes()
+        if hashlib.sha256(content).hexdigest() != digest:
+            raise ContractError("artifact digest mismatch")
+        body = {
+            "scope": pair,
+            "task": task,
+            "kind": kind,
+            "content": content.hex(),
+            "digest": digest,
+            "source_id": identity,
+        }
+        with self.storage._connect() as c:
+            existing = c.execute(
+                "SELECT a.artifact_id FROM artifacts a JOIN artifact_lifecycle l ON a.scope=l.scope AND a.artifact_id=l.artifact_id WHERE a.scope=? AND l.source_id=? AND a.kind='archive'",
+                (pair, identity),
+            ).fetchone()
+        encrypted = (
+            (self.storage._artifact_directory(pair) / existing[0]).read_bytes()
+            if existing
+            else encode_archive(body, key)
+        )
+        if json.loads(decrypt_archive(encrypted, key)) != body:
+            raise ContractError("archive verification failed")
+        return body, encrypted
 
     def _retire(self, scope: Mapping[str, str], identity: str) -> None:
         pair = self.storage._task_scope(scope)
@@ -249,6 +272,7 @@ class Maintenance:
                     "archive_key_missing",
                     "archive_expiry",
                     "clock_rollback",
+                    "item_failed",
                 ):
                     notice_id = str(
                         uuid5(NAMESPACE_URL, canonical_digest([pair, row[0], kind, identity]))
@@ -286,8 +310,10 @@ class Maintenance:
             / canonical_digest(self.storage._task_scope(request["scope"]))[:16]
         )
         directory.mkdir(parents=True, exist_ok=True)
+        # -P: nothing from the job's working directory goes on the import path (#52).
         argv = [
             sys.executable,
+            "-P",
             "-m",
             "jevdrill.cli",
             "--storage",
