@@ -1,9 +1,11 @@
+import contextlib
 import copy
 import importlib.util
 import json
 import shutil
 import subprocess
 from pathlib import Path
+from typing import ClassVar
 
 import pytest
 
@@ -176,6 +178,18 @@ def receipt(os_name, copies):
         "tests/test_jevdrill_queue.py",
     )
     evidence = witness()
+    by_source = {
+        source: rows_for(
+            {
+                node: count
+                for node, count in runner.CONTROL_COUNTS.items()
+                if runner.CONTROL_SOURCES[node] == source
+            }
+        )
+        for source in (runner.INHERITED, runner.HOST)
+    }
+    host_command = runner.expected_host_command()
+    inherited_command = runner.expected_inherited_command(os_name)
     return {
         "schema_version": runner.SCHEMA_VERSION,
         "phase": "HOST",
@@ -189,13 +203,24 @@ def receipt(os_name, copies):
         "jevdrill": {"repository": RUN["repository"], "commit": JEVDRILL_COMMIT, "clean": True},
         "input_digest": "fixture",
         "source_stable": True,
+        "inherited_call": {"exit_code": 0, "deadline_expired": False},
         "route_regressions": {
-            "assertions": rows_for(runner.CONTROL_COUNTS),
-            "checks": [],
+            "assertions": by_source[runner.INHERITED],
+            "checks": [{"name": "tests", "command": inherited_command, "exit_code": 0}],
             "runner_identity": RUN["run_id"],
             "python_minor": "3.14",
             "python_version": "3.14.0",
             "duration_seconds": 100.0,
+        },
+        "host_controls": {
+            "command": host_command,
+            "command_sha256": runner.digest_value(host_command),
+            "exit_code": 0,
+            "deadline_expired": False,
+            "output_sha256": "c" * 64,
+            "assertions": by_source[runner.HOST],
+            "assertions_sha256": runner.digest_value(by_source[runner.HOST]),
+            "duration_seconds": 90.0,
         },
         "companion": {
             "repository": HANDOFF["repository"],
@@ -228,6 +253,15 @@ def receipt(os_name, copies):
             "exit_code": 0,
             "output_sha256": "b" * 64,
         },
+        "checkouts_after": {
+            "jevdrill": {"repository": RUN["repository"], "commit": JEVDRILL_COMMIT, "clean": True},
+            "companion": {
+                "repository": HANDOFF["repository"],
+                "commit": HANDOFF["commit"],
+                "clean": True,
+            },
+        },
+        "parts": {"inherited_seconds": 100.5, "host_seconds": 149.5, "companion_seconds": 40.0},
         "failed_ids": [],
         "failed_checks": [],
         "duration_seconds": 250.0,
@@ -263,6 +297,9 @@ def refresh(manifest):
     companion = manifest["companion"]
     if "assertions" in companion:
         companion["assertions_sha256"] = runner.digest_value(companion["assertions"])
+    host = manifest.get("host_controls")
+    if isinstance(host, dict) and "assertions" in host:
+        host["assertions_sha256"] = runner.digest_value(host["assertions"])
     discovery = manifest["witnesses"].get("companion_discovery")
     if isinstance(discovery, dict):
         discovery["assertions_sha256"] = runner.digest_value(discovery["assertions"])
@@ -368,8 +405,9 @@ def mutate(manifests, fault, tmp_path):
         next(r for r in records if r.get("flow") == "discovery-control").pop("discovery_id")
     elif fault == "missing_positive_checks":
         records[:] = [r for r in records if r.get("damaged") or r.get("flow")]
-    elif fault == "over_600_seconds":
-        row.update(duration_seconds=600.5, proof_cost_target_exceeded=True)
+    elif fault == "inherited_over_600_seconds":
+        row["parts"].update(inherited_seconds=600.5, host_seconds=149.5)
+        row.update(duration_seconds=750.0, proof_cost_target_exceeded=True)
     elif fault == "misreported_flag":
         row.update(duration_seconds=400.0, proof_cost_target_exceeded=False)
     elif fault == "stale_input":
@@ -388,9 +426,9 @@ def mutate(manifests, fault, tmp_path):
         row["witnesses"] = {"records": [], "entered": True, "decomposition": True}
     elif fault == "failed_control":
         node = "tests/conformance/test_notices.py::test_every_report_connection_queries_notices"
-        next(r for r in row["route_regressions"]["assertions"] if r["node_id"] == node)[
-            "outcome"
-        ] = "failed"
+        next(r for r in row["host_controls"]["assertions"] if r["node_id"] == node)["outcome"] = (
+            "failed"
+        )
     elif fault == "missing_model":
         flow(row)["runs"][1].pop("model")
     elif fault == "non_object_run":
@@ -505,8 +543,9 @@ FAULTS = [
     ("quality_claim", "ineligible performance claim"),
     ("fault_only_control", "missing linked control rejection evidence"),
     ("missing_positive_checks", "missing independent positive artifact checks"),
-    # Property 9: the 600-second bound and the five-minute flag.
-    ("over_600_seconds", "collection over 600 seconds, or no valid duration"),
+    # Property 9, as declared change 17 divides it: the inherited part's 600-second bound, and
+    # the five-minute flag. HOST's part and the other time faults are in test_time_faults_*.
+    ("inherited_over_600_seconds", "inherited part over 600 seconds"),
     ("misreported_flag", "misreported five-minute proof-cost flag"),
     # The receipt's own source, provenance and interpreter.
     ("stale_input", "stale HOST input digest"),
@@ -577,7 +616,9 @@ def test_reducer_accepts_valid_receipts(evidence, monkeypatch):
     report = runner.verdict(manifests, reference)
     assert report["status"] == "passed" and report["produced_if_gates"] == ["IF-0-HOST-1"]
     # Over five minutes is flagged, not rejected.
+    # The total is the sum of the two parts (declared change 17), so the HOST part moves with it.
     manifests[0].update(duration_seconds=301.0, proof_cost_target_exceeded=True)
+    manifests[0]["parts"]["host_seconds"] = 200.5
     report = runner.verdict(manifests, reference)
     assert report["proof_cost_over_five_minutes"] == [manifests[0]["os"]]
     assert report["produced_if_gates"] == ["IF-0-HOST-1"]
@@ -670,7 +711,7 @@ def deep(depth=200):
     ("case", "error"),
     [
         # A number too large for a float, where it is compared with the 600-second bound.
-        ("huge_duration", "Linux: collection over 600 seconds, or no valid duration"),
+        ("huge_duration", "Linux: no valid collection duration"),
         # Nesting deeper than the verifier's explicit bound.
         ("deep_witness", "Linux: malformed receipt (nesting deeper than 64)"),
         ("architecture_number", "Linux: missing or malformed architecture"),
@@ -1007,6 +1048,11 @@ class Children:
         if args[0] == "git":
             output = {"rev-parse": "a" * 40, "status": "", "remote": ""}[args[3]]
             return subprocess.CompletedProcess(args, 0, stdout=output)
+        if args[1:3] == ["-c", runner.INHERITED_CALL]:
+            # The inherited call writes the ROUTE collector's receipt where it is told to.
+            route_receipt = {"assertions": [], "checks": [], "runner_identity": "machine"}
+            Path(args[4]).write_text(json.dumps(route_receipt))
+            return subprocess.CompletedProcess(args, 0, b"", b"")
         if args[1] == "-c":
             provenance = {
                 "modules": HANDOFF["modules"],
@@ -1020,6 +1066,12 @@ class Children:
             if self.timeout:
                 raise subprocess.TimeoutExpired(args, kwargs["timeout"])
             junit = Path(next(a for a in args if a.startswith("--junitxml=")).split("=", 1)[1])
+            if junit.name == "host.xml":
+                junit.write_text(
+                    '<testsuites><testsuite><testcase classname="tests.verification.test_host_phase"'
+                    ' name="test_one"/></testsuite></testsuites>'
+                )
+                return subprocess.CompletedProcess(args, 0, b"", b"")
             junit.write_text(
                 '<testsuites><testsuite><testcase classname="tests.test_jevdrill_queue"'
                 ' name="test_one"><failure/></testcase></testsuite></testsuites>'
@@ -1050,11 +1102,19 @@ def collection(tmp_path, monkeypatch):
         pytest.skip("the installed jevdrill CLI is not beside this interpreter")
     seen = []
 
-    def route_collect(root, *, extra_test_paths):
-        seen.append((dict(runner.os.environ), extra_test_paths))
-        return {"assertions": [], "checks": [], "runner_identity": "machine"}
+    def run_child(command, *, cwd, env, timeout, capture=True):
+        """The collector's one way to start a child, through `subprocess.run` as stood in for."""
+        if command[1:3] == ["-c", runner.INHERITED_CALL]:
+            seen.append((dict(env), list(command), timeout))
+        try:
+            result = runner.subprocess.run(
+                command, cwd=cwd, env=env, capture_output=True, timeout=timeout, check=False
+            )
+        except subprocess.TimeoutExpired:
+            return 125, b"TimeoutExpired\n", True
+        return result.returncode, result.stdout + result.stderr, False
 
-    monkeypatch.setattr(runner.route, "collect", route_collect)
+    monkeypatch.setattr(runner, "_run", run_child)
     return companion_root, seen
 
 
@@ -1064,10 +1124,21 @@ def test_collector_children_get_only_the_allowlist_and_run_once(collection, tmp_
     monkeypatch.setattr(runner.subprocess, "run", children)
     receipt_value = runner.collect(ROOT, companion_root)
     allowed = {*runner.INHERITED_VARIABLES, "HOME", "USERPROFILE", "NO_PROXY", "no_proxy"}
-    companion_runs = [kw for args, kw in children.calls if "pytest" in args]
+    companion_runs = [kw for args, kw in children.calls if reports(args, "companion.xml")]
     assert len(companion_runs) == 1  # No retry and no rerun on failure.
+    # The inherited call and HOST's command get the ROUTE allowlist and the four HOST values.
+    route_children = [
+        (args, kw)
+        for args, kw in children.calls
+        if args[1:3] == ["-c", runner.INHERITED_CALL] or reports(args, "host.xml")
+    ]
+    assert len(route_children) == 2
     for args, kwargs in children.calls:
         env = kwargs["env"]
+        if (args, kwargs) in route_children:
+            assert set(env) <= {*runner.ROUTE_INHERITED_VARIABLES, *runner.HOST_VARIABLES}, args
+            assert "PHASE_LOOP_TDD_EXPECT_SCHED" not in env
+            continue
         named = (
             {"PYTHONPATH", "JEVDRILL_TEST_CLI", "JEVDRILL_TEST_PYTHON"}
             if "pytest" in args
@@ -1077,18 +1148,15 @@ def test_collector_children_get_only_the_allowlist_and_run_once(collection, tmp_
         assert set(env) <= allowed | named, args
         assert ("PHASE_LOOP_TDD_EXPECT_SCHED" in env) is ("pytest" in args)
     assert companion_runs[0]["env"]["PHASE_LOOP_TDD_EXPECT_SCHED"] == "1"
-    assert companion_runs[0]["timeout"] <= runner.COLLECTION_BOUND_SECONDS
-    ((route_env, paths),) = seen
-    assert paths == runner.TEST_PATHS
-    assert set(route_env) <= {
-        *runner.ROUTE_INHERITED_VARIABLES,
-        "JEVDRILL_AGENT_HARNESS_ROOT",
-        "JEVDRILL_AGENT_HARNESS_PYTHON",
-        "JEVDRILL_TEST_CLI",
-        "JEVDRILL_EVALUATION_OUTPUT",
-    }
+    assert companion_runs[0]["timeout"] <= runner.HOST_BOUND_SECONDS
+    # One call of the ROUTE collector: no path is added, its budget is ROUTE's own.
+    ((route_env, command, timeout),) = seen
+    assert command[:3] == [runner.sys.executable, "-c", runner.INHERITED_CALL]
+    assert command[3] == str(ROOT) and len(command) == 5
+    assert timeout == runner.INHERITED_BOUND_SECONDS + runner.INHERITED_WATCHDOG_GRACE_SECONDS
+    assert set(route_env) <= {*runner.ROUTE_INHERITED_VARIABLES, *runner.HOST_VARIABLES}
     assert "GITHUB_TOKEN" not in route_env and "HTTPS_PROXY" not in route_env
-    assert runner.os.environ["GITHUB_TOKEN"] == "planted-credential"  # restored afterwards
+    assert runner.os.environ["GITHUB_TOKEN"] == "planted-credential"  # never removed
     companion = receipt_value["companion"]
     assert companion["command"] == runner.expected_companion_command(runner.platform.system())
     assert companion["exit_code"] == 1 and companion["deadline_expired"] is False
@@ -1097,6 +1165,11 @@ def test_collector_children_get_only_the_allowlist_and_run_once(collection, tmp_
     assert receipt_value["runner_identity"] == "local"
     assert receipt_value["route_regressions"]["runner_identity"] == "local"
     assert str(tmp_path) not in json.dumps(receipt_value)
+
+
+def reports(args, name):
+    """Whether a child is the pytest command that writes the JUnit report `name`."""
+    return any(part.startswith("--junitxml=") and part.endswith(name) for part in args)
 
 
 def test_child_output_in_the_log_cannot_issue_workflow_commands(
@@ -1119,7 +1192,7 @@ def test_collector_records_a_deadline_as_a_deadline(collection, tmp_path, monkey
     children = Children(tmp_path, timeout=True)
     monkeypatch.setattr(runner.subprocess, "run", children)
     receipt_value = runner.collect(ROOT, companion_root)
-    assert len([args for args, _ in children.calls if "pytest" in args]) == 1
+    assert len([args for args, _ in children.calls if reports(args, "companion.xml")]) == 1
     companion = receipt_value["companion"]
     assert companion["deadline_expired"] is True and companion["exit_code"] == 125
     assert companion["assertions"] == [] and receipt_value["failed_ids"] == []
@@ -1141,3 +1214,770 @@ def test_collector_stops_when_the_companion_does_not_import(collection, tmp_path
     with pytest.raises(runner.CollectionError, match="companion did not import"):
         runner.collect(ROOT, companion_root)
     assert seen == [] and not any("pytest" in args for args in calls)
+
+
+# Declared change 17 (HOST plan, SL-6): the inherited part and HOST's own part.
+
+
+def linux(manifests):
+    return next(m for m in manifests if m["os"] == "Linux")
+
+
+def host_rows(manifest):
+    return manifest["host_controls"]["assertions"]
+
+
+_INHERITED_CONTROL = (
+    "tests/privacy/test_sink_proof.py::"
+    "test_a_report_with_a_refused_identifier_is_refused_before_it_is_stored"
+)
+_MOVED_CONTROL = (
+    "tests/conformance/test_transport_queue.py::test_entered_ack_loss_and_cross_producer_deletion"
+)
+
+
+REQUIREMENT_1_CASES = [
+    ("no_host_receipt", "missing HOST command receipt"),
+    ("no_host_assertions", "missing or malformed HOST command assertions"),
+    ("host_exit_code", "HOST command failed"),
+    ("host_output_digest", "HOST command failed"),
+    ("host_deadline", "HOST command stopped at HOST's 900-second bound"),
+    ("host_time_missing", "missing or malformed part time"),
+    ("failed_unnamed_host_test", "failed or skipped test in HOST's command: tests/x.py::t"),
+    ("duplicate_host_test", "a test appears twice in HOST's command"),
+]
+
+
+@pytest.mark.parametrize(
+    ("fault", "error"),
+    REQUIREMENT_1_CASES,
+    ids=[fault for fault, _ in REQUIREMENT_1_CASES],
+)
+def test_requirement_1_hosts_command_is_an_inventory_of_its_own(evidence, fault, error):
+    """Requirement 1: HOST's command, exit code, each test's id and outcome, and its time."""
+    manifests, reference = evidence
+    row = linux(manifests)
+    host = row["host_controls"]
+    if fault == "no_host_receipt":
+        del row["host_controls"]
+    elif fault == "no_host_assertions":
+        host["assertions"] = []
+    elif fault == "host_exit_code":
+        host["exit_code"] = 1
+    elif fault == "host_output_digest":
+        del host["output_sha256"]
+    elif fault == "host_deadline":
+        host["deadline_expired"] = True
+    elif fault == "host_time_missing":
+        del host["duration_seconds"]
+    elif fault == "failed_unnamed_host_test":
+        host["assertions"].append({"node_id": "tests/x.py::t", "outcome": "failed"})
+    else:
+        host["assertions"].append(dict(host["assertions"][0]))
+    refresh(row)
+    errors = runner.receipt_errors(manifests, reference)
+    assert "Linux: " + error in errors, errors
+
+
+def test_requirement_1_the_collector_records_hosts_command(collection, tmp_path, monkeypatch):
+    companion_root, _ = collection
+    monkeypatch.setattr(runner.subprocess, "run", Children(tmp_path))
+    host = runner.collect(ROOT, companion_root)["host_controls"]
+    assert host["command"] == runner.expected_host_command()
+    assert host["command_sha256"] == runner.digest_value(runner.expected_host_command())
+    assert host["exit_code"] == 0 and host["deadline_expired"] is False
+    assert host["assertions"] == [
+        {"node_id": "tests/verification/test_host_phase.py::test_one", "outcome": "passed"}
+    ]
+    assert host["assertions_sha256"] == runner.digest_value(host["assertions"])
+    assert runner._seconds(host["duration_seconds"])
+
+
+def test_requirement_2_every_control_has_one_stated_source(tmp_path):
+    """The source table names every control once; "inherited" exactly when ROUTE selects it."""
+    assert set(runner.CONTROL_SOURCES) == set(runner.CONTROL_COUNTS)
+    assert set(runner.CONTROL_SOURCES.values()) == {runner.INHERITED, runner.HOST}
+    for os_name in runner.PLATFORMS:
+        command = runner.route.commands_for("python", tmp_path, os_name)["tests"]
+        selected = [arg for arg in command if arg.startswith("tests/")]
+
+        def routed(path, selected=selected):
+            return any(path == arg or path.startswith(arg + "/") for arg in selected)
+
+        for node, source in runner.CONTROL_SOURCES.items():
+            assert routed(node.split("::")[0]) is (source == runner.INHERITED), node
+        # HOST's command selects nothing ROUTE's command selects: no test runs in both.
+        assert not any(routed(path) for path in runner.HOST_TEST_PATHS)
+        deselected = [arg for arg in command if arg.startswith("--deselect=")]
+        assert not any(
+            arg.split("=", 1)[1].split("::")[0] in runner.HOST_TEST_PATHS for arg in deselected
+        )
+    assert runner.HOST_TEST_PATHS == tuple(
+        sorted({n.split("::")[0] for n, s in runner.CONTROL_SOURCES.items() if s == runner.HOST})
+    )
+
+
+REQUIREMENT_2_CASES = [
+    (
+        "inherited_control_also_in_host",
+        "control counted from two sources: " + _INHERITED_CONTROL,
+    ),
+    ("moved_control_also_inherited", "control counted from two sources: " + _MOVED_CONTROL),
+    ("any_test_in_both", "a test ran in both commands: tests/x.py::t"),
+    ("control_without_source", "control without a stated source: " + _MOVED_CONTROL),
+]
+
+
+@pytest.mark.parametrize(
+    ("fault", "error"),
+    REQUIREMENT_2_CASES,
+    ids=[fault for fault, _ in REQUIREMENT_2_CASES],
+)
+def test_requirement_2_a_control_found_in_both_commands_is_rejected(
+    evidence, monkeypatch, fault, error
+):
+    manifests, reference = evidence
+    row = linux(manifests)
+    inherited = row["route_regressions"]["assertions"]
+    if fault == "inherited_control_also_in_host":
+        host_rows(row).append({"node_id": _INHERITED_CONTROL, "outcome": "passed"})
+    elif fault == "moved_control_also_inherited":
+        inherited.append({"node_id": _MOVED_CONTROL, "outcome": "passed"})
+    elif fault == "any_test_in_both":
+        inherited.append({"node_id": "tests/x.py::t", "outcome": "passed"})
+        host_rows(row).append({"node_id": "tests/x.py::t", "outcome": "passed"})
+    else:
+        sources = dict(runner.CONTROL_SOURCES)
+        del sources[_MOVED_CONTROL]
+        monkeypatch.setattr(runner, "CONTROL_SOURCES", sources)
+    refresh(row)
+    errors = runner.receipt_errors(manifests, reference)
+    assert "Linux: " + error in errors, errors
+
+
+@pytest.mark.parametrize("fault", ["moved_control_missing", "host_command_never_ran"])
+def test_requirement_3_a_receipt_missing_a_moved_control_is_rejected(evidence, fault):
+    manifests, reference = evidence
+    row = linux(manifests)
+    host = row["host_controls"]
+    if fault == "moved_control_missing":
+        host["assertions"] = [r for r in host["assertions"] if r["node_id"] != _MOVED_CONTROL]
+        moved = [_MOVED_CONTROL]
+    else:
+        # A HOST command that never ran leaves every moved control missing.
+        host.update(assertions=[], exit_code=125, deadline_expired=True)
+        moved = [n for n, s in runner.CONTROL_SOURCES.items() if s == runner.HOST]
+    refresh(row)
+    errors = runner.receipt_errors(manifests, reference)
+    for node in moved:
+        assert "Linux: HOST control count not exact: " + node in errors, errors
+
+
+def test_requirement_3_a_failure_summary_must_name_a_failed_moved_case(evidence):
+    manifests, reference = evidence
+    row = linux(manifests)
+    case = next(r for r in host_rows(row) if r["node_id"].startswith(_MOVED_CONTROL))
+    case["outcome"] = "failed"
+    refresh(row)
+    assert case["node_id"] in row["failed_ids"]
+    assert "Linux: failed_ids disagrees with the assertions" not in (
+        runner.receipt_errors(manifests, reference)
+    )
+    row["failed_ids"] = [i for i in row["failed_ids"] if i != case["node_id"]]
+    errors = runner.receipt_errors(manifests, reference)
+    assert "Linux: failed_ids disagrees with the assertions" in errors, errors
+
+
+PLANTED = {
+    "GITHUB_TOKEN": "planted-credential",
+    "ACTIONS_RUNTIME_TOKEN": "planted-credential",
+    "ACTIONS_ID_TOKEN_REQUEST_TOKEN": "planted-credential",
+    "ACTIONS_ID_TOKEN_REQUEST_URL": "https://planted.invalid",
+    "AWS_SECRET_ACCESS_KEY": "planted-credential",
+    "NPM_TOKEN": "planted-credential",
+    "SSH_AUTH_SOCK": "/planted/agent",
+    "HTTP_PROXY": "http://planted-proxy",
+    "HTTPS_PROXY": "http://planted-proxy",
+    "http_proxy": "http://planted-proxy",
+    "https_proxy": "http://planted-proxy",
+    "ALL_PROXY": "http://planted-proxy",
+    "NO_PROXY": "planted.invalid",
+    "PHASE_LOOP_TDD_EXPECT_SCHED": "1",
+}
+
+
+def test_requirement_4_hosts_command_gets_the_allowlist_and_four_values_only(
+    collection, tmp_path, monkeypatch
+):
+    companion_root, seen = collection
+    for name, value in PLANTED.items():
+        monkeypatch.setenv(name, value)
+    children = Children(tmp_path)
+    monkeypatch.setattr(runner.subprocess, "run", children)
+    runner.collect(ROOT, companion_root)
+    ((_host_args, host_kwargs),) = [
+        (args, kw) for args, kw in children.calls if reports(args, "host.xml")
+    ]
+    env = host_kwargs["env"]
+    allowlisted = {
+        name
+        for name in runner.ROUTE_INHERITED_VARIABLES
+        if name in runner.os.environ and runner.os.environ.get(name) is not None
+    }
+    assert set(env) == allowlisted | set(runner.HOST_VARIABLES)
+    assert not set(PLANTED) & set(env), set(PLANTED) & set(env)
+    assert "PHASE_LOOP_TDD_EXPECT_SCHED" not in env
+    for name in allowlisted:
+        assert env[name] == runner.os.environ[name]
+    assert env["JEVDRILL_AGENT_HARNESS_ROOT"] == str(companion_root)
+    assert (
+        env["JEVDRILL_AGENT_HARNESS_PYTHON"] == runner.os.environ["JEVDRILL_AGENT_HARNESS_PYTHON"]
+    )
+    assert Path(env["JEVDRILL_TEST_CLI"]).parent == Path(runner.sys.executable).parent
+    assert Path(env["JEVDRILL_EVALUATION_OUTPUT"]).name == "witness.json"
+    # The same environment as the inherited call's: the allowlist SL-3 gave it, and the values.
+    ((route_env, _command, _timeout),) = seen
+    assert env == route_env
+    assert host_kwargs["cwd"] == ROOT
+
+
+REQUIREMENT_5_CASES = [
+    ("dropped_path", "HOST command is not the expected command"),
+    ("added_selection", "HOST command is not the expected command"),
+    ("changed_flag", "HOST command is not the expected command"),
+    ("added_deselection", "HOST command is not the expected command"),
+    ("wrong_digest", "HOST command digest mismatch"),
+]
+
+
+@pytest.mark.parametrize(
+    ("fault", "error"),
+    REQUIREMENT_5_CASES,
+    ids=[fault for fault, _ in REQUIREMENT_5_CASES],
+)
+def test_requirement_5_hosts_command_is_rebuilt_from_the_verifiers_constants(
+    evidence, fault, error
+):
+    manifests, reference = evidence
+    row = linux(manifests)
+    host = row["host_controls"]
+    command = list(host["command"])
+    if fault == "dropped_path":
+        command.remove("tests/conformance/test_usage_reporting.py")
+    elif fault == "added_selection":
+        command[4:4] = ["-k", "not usage"]
+    elif fault == "changed_flag":
+        command[command.index("faulthandler_timeout=30")] = "faulthandler_timeout=3000"
+    elif fault == "added_deselection":
+        command.insert(-2, "--deselect=" + _MOVED_CONTROL)
+    if fault == "wrong_digest":
+        host["command_sha256"] = runner.digest_value(["<python>", "--help"])
+    else:
+        # A command and its own digest, consistent with each other, are still not the command.
+        host.update(command=command, command_sha256=runner.digest_value(command))
+    refresh(row)
+    errors = runner.receipt_errors(manifests, reference)
+    assert "Linux: " + error in errors, errors
+
+
+def test_requirement_5_hosts_command_digest_ignores_paths_and_platforms():
+    posix = runner.host_test_command("/opt/runner/python", "/tmp/jevdrill-host-1")
+    windows = runner.host_test_command("D:\\a\\python.exe", "D:\\a\\_temp\\jevdrill-host-1")
+    assert runner.normalized_command(posix, "host") == runner.normalized_command(windows, "host")
+    assert runner.normalized_command(posix, "host") == runner.expected_host_command()
+    assert [a for a in posix if a.startswith("tests/")] == list(runner.HOST_TEST_PATHS)
+
+
+def kind(args):
+    if args[0] == "git":
+        return "git"
+    if args[1:3] == ["-c", runner.INHERITED_CALL]:
+        return "inherited"
+    if args[1] == "-c":
+        return "probe"
+    if reports(args, "host.xml"):
+        return "host"
+    if reports(args, "companion.xml"):
+        return "companion"
+    return "static" if "ruff" in args else "other"
+
+
+def test_requirement_6_the_order_is_fixed_and_checkouts_are_read_again_after_the_last(
+    collection, tmp_path, monkeypatch
+):
+    companion_root, _ = collection
+    children = Children(tmp_path)
+
+    def dirtied_at_the_end(args, **kwargs):
+        result = children(args, **kwargs)
+        if (
+            args[0] == "git"
+            and args[3] == "status"
+            and any(kind(call) == "static" for call, _ in children.calls)
+        ):
+            return subprocess.CompletedProcess(args, 0, stdout=" M scripts/verify_host_phase.py")
+        return result
+
+    monkeypatch.setattr(runner.subprocess, "run", dirtied_at_the_end)
+    receipt_value = runner.collect(ROOT, companion_root)
+    order = [kind(args) for args, _ in children.calls]
+    children_only = [name for name in order if name != "git"]
+    assert children_only == ["probe", "inherited", "host", "companion", "static"]
+    # Both checkouts are read before the first child and again after the last.
+    assert order[:6] == ["git"] * 6 and order[-6:] == ["git"] * 6
+    assert receipt_value["jevdrill"]["clean"] is True
+    assert receipt_value["checkouts_after"]["jevdrill"]["clean"] is False
+    assert receipt_value["checkouts_after"]["companion"]["clean"] is False
+
+
+@pytest.mark.parametrize(
+    "fault",
+    [
+        "jevdrill_unclean_after",
+        "companion_unclean_after",
+        "jevdrill_commit_changed",
+        "companion_commit_changed",
+        "no_second_reading",
+    ],
+)
+def test_requirement_6_a_collection_that_left_a_checkout_changed_is_rejected(evidence, fault):
+    manifests, reference = evidence
+    row = linux(manifests)
+    after = row["checkouts_after"]
+    if fault == "jevdrill_unclean_after":
+        after["jevdrill"]["clean"] = False
+    elif fault == "companion_unclean_after":
+        after["companion"]["clean"] = False
+    elif fault == "jevdrill_commit_changed":
+        after["jevdrill"]["commit"] = "e" * 40
+    elif fault == "companion_commit_changed":
+        after["companion"]["commit"] = "e" * 40
+    else:
+        del row["checkouts_after"]
+    errors = runner.receipt_errors(manifests, reference)
+    assert "Linux: a checkout changed or was left unclean by the collection" in errors, errors
+
+
+GRANDCHILD = (
+    "import os, socket, sys, time\n"
+    "connection = socket.create_connection(('127.0.0.1', int(sys.argv[1])))\n"
+    "connection.sendall(str(os.getpid()).encode() + b'\\n')\n"
+    "time.sleep(300)\n"
+)
+PARENT = (
+    "import os, subprocess, sys, time\n"
+    "own_session = sys.argv[3] == 'own_session' and os.name != 'nt'\n"
+    "subprocess.Popen([sys.executable, '-c', sys.argv[1], sys.argv[2]], start_new_session=own_session)\n"
+    "if sys.argv[3] != 'returned':\n"
+    "    time.sleep(120)\n"
+)
+
+
+@pytest.mark.parametrize("ending", ["deadline", "own_session", "returned"])
+def test_requirement_7_a_child_and_every_process_it_started_are_stopped(monkeypatch, ending):
+    """A real child starts a grandchild that would outlive it; neither outlives `_run`.
+
+    "deadline": the child's bound is reached while both run. "own_session": the same, with the
+    grandchild in a session of its own on Linux and macOS, as the companion's launcher starts
+    its children. "returned": the child ends and leaves the grandchild running. The grandchild holds a loopback connection open, so its end
+    is seen as the connection closing, on Linux, macOS and Windows alike. Nothing here waits on
+    a deadline: the bound is reached when the grandchild is known to be running.
+    """
+    import signal
+    import socket
+
+    listener = socket.create_server(("127.0.0.1", 0))
+    listener.settimeout(120)
+    port = listener.getsockname()[1]
+    held = {}
+
+    def await_exit(child, timeout):
+        connection, _ = listener.accept()
+        connection.settimeout(120)
+        data = b""
+        while not data.endswith(b"\n"):
+            data += connection.recv(64)
+        held.update(connection=connection, pid=int(data))
+        if ending != "returned":
+            raise subprocess.TimeoutExpired(child.args, timeout)
+        return child.wait()
+
+    monkeypatch.setattr(runner, "_await_exit", await_exit)
+    command = [runner.sys.executable, "-c", PARENT, GRANDCHILD, str(port), ending]
+    try:
+        code, output, expired = runner._run(
+            command, cwd=ROOT, env=dict(runner.os.environ), timeout=600
+        )
+        assert expired is (ending != "returned")
+        assert code == (0 if ending == "returned" else 125), output
+        connection = held["connection"]
+        connection.settimeout(60)
+        try:
+            ended = connection.recv(64) == b""
+        except ConnectionResetError, ConnectionAbortedError:
+            ended = True
+        except TimeoutError:
+            ended = False
+        assert ended, "the grandchild outlived its child's stop"
+    finally:
+        listener.close()
+        if "connection" in held:
+            held["connection"].close()
+        if "pid" in held:
+            with contextlib.suppress(OSError):
+                runner.os.kill(held["pid"], getattr(signal, "SIGKILL", signal.SIGTERM))
+
+
+def test_requirement_7_a_child_whose_bound_is_spent_is_never_started(monkeypatch):
+    def never(*_args, **_kwargs):
+        raise AssertionError("no child is started once its bound is spent")
+
+    monkeypatch.setattr(runner.subprocess, "Popen", never)
+    assert runner._run(["python"], cwd=ROOT, env={}, timeout=0) == (
+        125,
+        b"TimeoutExpired\nthe bound was reached before this child started\n",
+        True,
+    )
+    assert runner._run(["python"], cwd=ROOT, env={}, timeout=-1.0)[2] is True
+
+
+def test_requirement_7_each_part_has_its_bound_and_outside_ci_the_limit_is_stated(
+    collection, tmp_path, monkeypatch, capsys
+):
+    companion_root, seen = collection
+    children = Children(tmp_path)
+    monkeypatch.setattr(runner.subprocess, "run", children)
+    runner.collect(ROOT, companion_root)
+    out = capsys.readouterr().out
+    assert f"at most {runner.TOTAL_LIMIT_SECONDS} seconds in total" in out
+    assert runner.TOTAL_LIMIT_SECONDS == 1530
+    ((_env, _command, timeout),) = seen
+    assert timeout == runner.INHERITED_BOUND_SECONDS + runner.INHERITED_WATCHDOG_GRACE_SECONDS
+    for args, kwargs in children.calls:
+        if kind(args) in ("host", "companion", "static"):
+            assert 0 < kwargs["timeout"] <= runner.HOST_BOUND_SECONDS, args
+        if kind(args) == "probe":
+            assert 0 < kwargs["timeout"] <= 30
+    # In CI the run's own log says it; nothing is stated there.
+    monkeypatch.setenv("GITHUB_RUN_ID", "1001")
+    runner.collect(ROOT, companion_root)
+    assert "seconds in total" not in capsys.readouterr().out
+
+
+TIME_CASES = [
+    ("host_over_900", "HOST part over 900 seconds"),
+    ("inherited_over_600", "inherited part over 600 seconds"),
+    ("parts_do_not_sum", "parts do not sum to the total"),
+    ("parts_overshoot_total", "parts do not sum to the total"),
+    ("parts_undershoot_total", "parts do not sum to the total"),
+    ("inherited_615_after_its_bound", "inherited part over 600 seconds"),
+    (
+        "inherited_shorter_than_route",
+        "inherited part shorter than the ROUTE receipt's own duration",
+    ),
+    ("commands_exceed_host_part", "HOST command and companion times exceed HOST's part"),
+    ("no_parts", "missing or malformed part time"),
+    ("missing_part", "missing or malformed part time"),
+    ("text_part", "missing or malformed part time"),
+    ("negative_part", "missing or malformed part time"),
+    ("nan_part", "missing or malformed part time"),
+    ("huge_part", "missing or malformed part time"),
+    ("extra_part", "missing or malformed part time"),
+]
+
+
+@pytest.mark.parametrize(
+    ("fault", "error"),
+    TIME_CASES,
+    ids=[fault for fault, _ in TIME_CASES],
+)
+def test_time_faults_are_each_their_own_error(evidence, fault, error):
+    manifests, reference = evidence
+    row = linux(manifests)
+    parts = row["parts"]
+    if fault == "host_over_900":
+        parts["host_seconds"] = 900.5
+        row.update(duration_seconds=1001.0, proof_cost_target_exceeded=True)
+    elif fault == "inherited_over_600":
+        parts["inherited_seconds"] = 600.001
+        row.update(duration_seconds=749.501, proof_cost_target_exceeded=True)
+    elif fault == "parts_do_not_sum":
+        parts["host_seconds"] = 150.5
+    elif fault == "parts_overshoot_total":
+        # The inherited part raised alone: the parts no longer sum to the total.
+        parts["inherited_seconds"] += 10
+    elif fault == "parts_undershoot_total":
+        parts.update(inherited_seconds=100.5, host_seconds=140.0)
+        row.update(duration_seconds=1100.0, proof_cost_target_exceeded=True)
+    elif fault == "inherited_615_after_its_bound":
+        # An inherited call that ended inside the collector's watchdog grace, after ROUTE's 600 s.
+        parts.update(inherited_seconds=615.0, host_seconds=149.5)
+        row.update(duration_seconds=764.5, proof_cost_target_exceeded=True)
+    elif fault == "inherited_shorter_than_route":
+        parts.update(inherited_seconds=99.0, host_seconds=151.0)
+    elif fault == "commands_exceed_host_part":
+        parts["companion_seconds"] = 60.0
+    elif fault == "no_parts":
+        del row["parts"]
+    elif fault == "missing_part":
+        del parts["companion_seconds"]
+    elif fault == "text_part":
+        parts["host_seconds"] = "149.5"
+    elif fault == "negative_part":
+        parts.update(inherited_seconds=-1.0, host_seconds=251.0)
+    elif fault == "nan_part":
+        parts["host_seconds"] = float("nan")
+    elif fault == "huge_part":
+        parts["host_seconds"] = 10**400
+    else:
+        parts["setup_seconds"] = 1.0
+    errors = runner.receipt_errors(manifests, reference)
+    assert "Linux: " + error in errors, errors
+
+
+def test_each_part_at_its_bound_is_accepted(evidence):
+    manifests, reference = evidence
+    row = linux(manifests)
+    row["parts"].update(inherited_seconds=600.0, host_seconds=900.0, companion_seconds=40.0)
+    row.update(duration_seconds=1500.0, proof_cost_target_exceeded=True)
+    assert runner.receipt_errors(manifests, reference) == []
+    # The ROUTE receipt rounds its duration to the millisecond; that rounding is allowed.
+    row["route_regressions"]["duration_seconds"] = 600.0004
+    assert runner.receipt_errors(manifests, reference) == []
+
+
+def test_the_inherited_budget_is_routes_own(tmp_path, monkeypatch):
+    """ROUTE's collector gives its children 600 seconds and its reducer allows 600; so does HOST."""
+    import types
+
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append((list(command), kwargs.get("timeout")))
+        return subprocess.CompletedProcess(command, 0, b"", b"")
+
+    monkeypatch.setattr(runner.route.subprocess, "run", run)
+    monkeypatch.setattr(runner.route, "time", types.SimpleNamespace(monotonic=lambda: 0.0))
+    monkeypatch.setattr(runner.route, "input_digest", lambda _root: "route")
+    monkeypatch.setenv("RUNNER_TEMP", str(tmp_path))
+    runner.route.collect(ROOT)
+    budgets = {timeout for command, timeout in calls if command[-1] != "--version"}
+    assert budgets == {runner.INHERITED_BOUND_SECONDS}
+
+    def proof_cost_rejected(seconds):
+        manifest = {"os": "Linux", "python_minor": "3.14", "duration_seconds": seconds}
+        errors = runner.route.reduce_manifests([manifest], "route", ROOT)
+        return "invalid or excessive single-node proof cost" in errors
+
+    assert not proof_cost_rejected(runner.INHERITED_BOUND_SECONDS)
+    assert proof_cost_rejected(runner.INHERITED_BOUND_SECONDS + 0.001)
+
+
+@pytest.mark.parametrize("fault", ["host_paths_added", "no_tests_check", "other_os_command"])
+def test_the_inherited_command_is_routes_own(evidence, monkeypatch, fault):
+    manifests, reference = evidence
+    row = linux(manifests)
+    check = row["route_regressions"]["checks"][0]
+    if fault == "host_paths_added":
+        # The old inherited command: ROUTE's with HOST's paths added.
+        old = runner.route.commands_for(
+            "<python>", Path("<temporary>"), "Linux", extra_test_paths=runner.TEST_PATHS
+        )["tests"]
+        check["command"] = runner.route.normalized_command(old, "tests")
+    elif fault == "no_tests_check":
+        row["route_regressions"]["checks"] = []
+    else:
+        check["command"] = runner.expected_inherited_command("Windows")
+    errors = runner.receipt_errors(manifests, reference)
+    assert "Linux: inherited command differs from ROUTE's own" in errors, errors
+
+
+def test_the_inherited_receipt_is_reduced_as_routes_own(evidence, monkeypatch):
+    manifests, reference = evidence
+    seen = []
+    monkeypatch.setattr(runner.route, "reduce_manifests", lambda *a, **k: seen.append(k) or [])
+    assert runner.receipt_errors(manifests, reference) == []
+    assert len(seen) == 3 and all(set(k) == {"required_platforms"} for k in seen), seen
+
+
+@pytest.mark.parametrize("fault", ["call_failed", "call_stopped", "call_missing"])
+def test_an_inherited_call_that_failed_or_hit_its_bound_is_rejected(evidence, fault):
+    manifests, reference = evidence
+    row = linux(manifests)
+    if fault == "call_failed":
+        row["inherited_call"]["exit_code"] = 1
+    elif fault == "call_stopped":
+        row["inherited_call"].update(exit_code=125, deadline_expired=True)
+    else:
+        del row["inherited_call"]
+    errors = runner.receipt_errors(manifests, reference)
+    assert (
+        "Linux: inherited ROUTE call failed or was stopped by the collector's watchdog" in errors
+    ), errors
+
+
+def test_a_receipt_of_the_old_shape_is_rejected_as_old(evidence):
+    manifests, reference = evidence
+    row = linux(manifests)
+    # As SL-3's collector wrote it: HOST's controls inside the inherited command, one bound.
+    row["schema_version"] = 3
+    row["route_regressions"]["assertions"] += row.pop("host_controls")["assertions"]
+    for key in ("parts", "inherited_call", "checkouts_after"):
+        del row[key]
+    refresh(row)
+    errors = runner.receipt_errors(manifests, reference)
+    assert "Linux: HOST receipt of an old shape (schema 3)" in errors, errors
+    assert [e for e in errors if e.startswith("Linux")] == [
+        "Linux: HOST receipt of an old shape (schema 3)",
+        "Linux: unsupported HOST receipt",
+    ]
+
+
+class FakeClock:
+    """A monotonic clock that moves only when a stood-in child runs."""
+
+    def __init__(self):
+        self.now = 1000.0
+
+    def monotonic(self):
+        return self.now
+
+
+# Seconds each stood-in child takes on the fake clock.
+CHILD_SECONDS = {"probe": 5.0, "inherited": 100.0, "host": 200.0, "companion": 50.0, "static": 10.0}
+
+
+def clocked(monkeypatch, tmp_path, seconds=CHILD_SECONDS):
+    clock = FakeClock()
+    monkeypatch.setattr(runner, "time", clock)
+    children = Children(tmp_path)
+
+    def run(args, **kwargs):
+        result = children(args, **kwargs)
+        clock.now += seconds.get(kind(args), 0.0)
+        return result
+
+    monkeypatch.setattr(runner.subprocess, "run", run)
+    return children
+
+
+def test_the_collectors_clock_gives_each_child_hosts_remaining_time(
+    collection, tmp_path, monkeypatch
+):
+    """Blocker 2: the remaining time each child is given, and the parts recorded, on one clock."""
+    companion_root, _ = collection
+    children = clocked(monkeypatch, tmp_path)
+    receipt_value = runner.collect(ROOT, companion_root)
+    timeouts = {
+        kind(args): kwargs["timeout"] for args, kwargs in children.calls if kind(args) != "git"
+    }
+    # The probe comes first in HOST's part; the inherited call (5 s in) is not HOST's part.
+    assert timeouts == {
+        "probe": 30,
+        "inherited": runner.INHERITED_BOUND_SECONDS + runner.INHERITED_WATCHDOG_GRACE_SECONDS,
+        "host": 900 - 5.0,
+        "companion": 900 - (5.0 + 200.0),
+        "static": 900 - (5.0 + 200.0 + 50.0),
+    }
+    assert receipt_value["parts"] == {
+        "inherited_seconds": 100.0,
+        "host_seconds": 265.0,
+        "companion_seconds": 50.0,
+    }
+    assert receipt_value["host_controls"]["duration_seconds"] == 200.0
+    assert receipt_value["duration_seconds"] == 365.0
+
+
+def test_the_watchdog_lets_routes_own_deadline_fire_and_hosts_part_is_unaffected(
+    collection, tmp_path, monkeypatch
+):
+    """The president's ruling: a 30 s watchdog after the inherited bound, not a budget."""
+    companion_root, seen = collection
+    children = clocked(monkeypatch, tmp_path, {**CHILD_SECONDS, "inherited": 615.0})
+    receipt_value = runner.collect(ROOT, companion_root)
+    ((_env, _command, timeout),) = seen
+    # Not stopped before ROUTE's own 600-second deadline has had time to fire.
+    assert timeout > runner.INHERITED_BOUND_SECONDS
+    assert timeout == runner.INHERITED_BOUND_SECONDS + runner.INHERITED_WATCHDOG_GRACE_SECONDS
+    assert receipt_value["inherited_call"] == {"exit_code": 0, "deadline_expired": False}
+    # HOST's part is unaffected: a late inherited call neither eats into its 900 s nor is
+    # charged to it.
+    timeouts = {
+        kind(args): kwargs["timeout"] for args, kwargs in children.calls if kind(args) != "git"
+    }
+    assert timeouts["host"] == 900 - 5.0
+    assert receipt_value["parts"]["inherited_seconds"] == 615.0
+    assert receipt_value["parts"]["host_seconds"] == 265.0
+    # The reducer is unchanged: an inherited part of 615 s is rejected
+    # (test_time_faults_are_each_their_own_error[inherited_615_after_its_bound]).
+
+
+@pytest.mark.parametrize("changed", ["jevdrill_inputs", "companion_sources"])
+def test_requirement_6_the_collector_reads_its_inputs_again_after_the_last_child(
+    collection, tmp_path, monkeypatch, changed
+):
+    """Blocker 3: the collector's own second reading of input stability, after the last child."""
+    companion_root, _ = collection
+    children = Children(tmp_path)
+    monkeypatch.setattr(runner.subprocess, "run", children)
+    name = "input_digest" if changed == "jevdrill_inputs" else "source_digest"
+    real = getattr(runner, name)
+    readings = []
+
+    def digest(root):
+        # The first reading is before any child; any later one sees changed inputs.
+        readings.append([kind(args) for args, _ in children.calls])
+        return real(root) if len(readings) == 1 else "changed during the collection"
+
+    monkeypatch.setattr(runner, name, digest)
+    receipt_value = runner.collect(ROOT, companion_root)
+    assert readings[0] == [] and "static" in readings[-1]
+    if changed == "jevdrill_inputs":
+        assert receipt_value["source_stable"] is False
+        assert receipt_value["companion"]["source_stable"] is True
+    else:
+        assert receipt_value["companion"]["source_stable"] is False
+        assert receipt_value["source_stable"] is True
+
+
+def test_requirement_7_a_failed_tree_stop_cannot_leave_an_unbounded_wait(monkeypatch):
+    """If the tree's stop fails (TerminateJobObject or taskkill on Windows), the child itself is
+    killed before it is waited for, and the wait is bounded."""
+    events = []
+
+    class LiveChild:
+        pid, args, returncode = 4242, ["child"], None
+
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def kill(self):
+            events.append("kill")
+            self.returncode = -9
+
+        def wait(self, timeout=None):
+            if self.returncode is None:
+                raise AssertionError("waited for a live child")
+            assert timeout is not None, "an unbounded wait"
+            events.append("wait")
+            return self.returncode
+
+    class FailingTree:
+        POPEN_OPTIONS: ClassVar[dict] = {}
+
+        def __init__(self, child):
+            pass
+
+        def stop(self, running):
+            events.append(("stop", running))
+            return False
+
+    def deadline(child, timeout):
+        raise subprocess.TimeoutExpired(child.args, timeout)
+
+    monkeypatch.setattr(runner.subprocess, "Popen", LiveChild)
+    monkeypatch.setattr(runner, "ProcessTree", FailingTree)
+    monkeypatch.setattr(runner, "_await_exit", deadline)
+    code, _output, expired = runner._run(["child"], cwd=ROOT, env={}, timeout=10)
+    assert (code, expired) == (125, True)
+    assert events == [("stop", True), "kill", "wait"]
