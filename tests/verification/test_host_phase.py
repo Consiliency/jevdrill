@@ -1059,8 +1059,8 @@ class Children:
     def __call__(self, args, **kwargs):
         self.calls.append((list(args), kwargs))
         if args[0] == "git":
-            command = next(a for a in args[1:] if a in ("rev-parse", "status", "remote"))
-            output = {"rev-parse": "a" * 40, "status": "", "remote": ""}[command]
+            command = next(a for a in args[1:] if a in ("rev-parse", "status", "remote", "config"))
+            output = {"rev-parse": "a" * 40, "status": "", "remote": "", "config": ""}[command]
             return subprocess.CompletedProcess(args, 0, stdout=output)
         if args[1:3] == ["-c", runner.INHERITED_CALL]:
             # The inherited call writes the ROUTE collector's receipt where it is told to.
@@ -1161,6 +1161,8 @@ def test_collector_children_get_only_the_allowlist_and_run_once(collection, tmp_
             else set()
         )
         named |= set(runner.SCHEDULER_SWITCH) if "pytest" in args else set()
+        # The cleanness check's git calls also name an empty global configuration and no system one.
+        named |= {"GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM"} if args[0] == "git" else set()
         assert set(env) <= allowed | named, args
         assert ("PHASE_LOOP_TDD_EXPECT_SCHED" in env) is ("pytest" in args)
     assert companion_runs[0]["env"]["PHASE_LOOP_TDD_EXPECT_SCHED"] == "1"
@@ -1540,7 +1542,7 @@ def test_requirement_6_the_order_is_fixed_and_checkouts_are_read_again_after_the
     children_only = [name for name in order if name != "git"]
     assert children_only == ["probe", "inherited", "host", "companion", "static"]
     # Both checkouts are read before the first child and again after the last.
-    assert order[:6] == ["git"] * 6 and order[-6:] == ["git"] * 6
+    assert order[:8] == ["git"] * 8 and order[-8:] == ["git"] * 8
     assert receipt_value["jevdrill"]["clean"] is True
     assert receipt_value["checkouts_after"]["jevdrill"]["clean"] is False
     assert receipt_value["checkouts_after"]["companion"]["clean"] is False
@@ -2219,28 +2221,66 @@ def test_round1_a_launched_command_with_an_added_deselection_is_rejected(evidenc
     assert "Linux: HOST command is not the expected command" in errors, errors
 
 
+def setup_environment(tmp_path):
+    """For setting a test repository up: no user or system configuration of this machine's."""
+    empty = tmp_path / "setup-gitconfig"
+    empty.write_bytes(b"")
+    return {**runner.os.environ, "GIT_CONFIG_GLOBAL": str(empty), "GIT_CONFIG_NOSYSTEM": "1"}
+
+
 def git_repository(path):
     git = ["git", "-c", "user.name=t", "-c", "user.email=t@example.invalid"]
     path.mkdir()
+    env = setup_environment(path.parent)
     for args in (["init", "-q"], ["add", "."], ["commit", "-q", "-m", "x"]):
         if args[0] == "add":
             (path / "file.txt").write_text("x\n")
-        subprocess.run([*git, "-C", str(path), *args], check=True, capture_output=True)
+        subprocess.run([*git, "-C", str(path), *args], check=True, capture_output=True, env=env)
     return path
 
 
+def marker_command(marker, passthrough=False):
+    """A shell command that writes `marker`, portable to the `sh` Git for Windows runs commands
+    under: this interpreter, quoted, with forward slashes. With `passthrough` it also copies its
+    standard input to its output, as a clean filter must."""
+    code = f"import pathlib,sys;pathlib.Path('{marker.as_posix()}').write_text('ran')"
+    if passthrough:
+        code += ";sys.stdout.buffer.write(sys.stdin.buffer.read())"
+    return f'"{Path(runner.sys.executable).as_posix()}" -c "{code}"'
+
+
+def set_config(tmp_path, key, value, *, repository=None, file=None):
+    """Set a configuration value with git itself, which quotes it for the file."""
+    command = (
+        ["git", "config", "--file", str(file), key, value]
+        if file is not None
+        else ["git", "-C", str(repository), "config", key, value]
+    )
+    subprocess.run(command, check=True, capture_output=True, env=setup_environment(tmp_path))
+
+
+def plain_status(repository, env):
+    """`git status` as an unisolated caller would run it: `env` as given, no option added."""
+    return subprocess.run(
+        ["git", "-C", str(repository), "status", "--porcelain", "--untracked-files=all"],
+        capture_output=True,
+        text=True,
+        env=env,
+        check=True,
+    ).stdout
+
+
 def test_round1_n1_the_cleanness_check_runs_no_file_system_monitor(tmp_path):
-    """Security N1: a checkout's configuration cannot make the cleanness check run a command."""
-    if shutil.which("git") is None:
-        pytest.skip("git is not installed")
+    """Security N1: a checkout's configuration cannot make the cleanness check run a command.
+    Witness first: without the cleanness check's options, the configured monitor does run."""
     repository = git_repository(tmp_path / "repository")
     marker = tmp_path / "fsmonitor-ran"
-    subprocess.run(
-        ["git", "-C", str(repository), "config", "core.fsmonitor", f"touch '{marker.as_posix()}'"],
-        check=True,
-        capture_output=True,
-    )
-    state = runner.checkout_state(repository, runner.child_environment(tmp_path))
+    set_config(tmp_path, "core.fsmonitor", marker_command(marker), repository=repository)
+    env = runner.child_environment(tmp_path)
+    plain_status(repository, env)
+    assert marker.exists(), "witness: git did not run the configured monitor"
+    marker.unlink()
+    state = runner.checkout_state(repository, env)
     assert state["clean"] is True and state["commit"]
     assert not marker.exists()
 
@@ -2251,14 +2291,12 @@ def test_round1_n1_every_cleanness_git_call_disables_the_monitor(collection, tmp
     monkeypatch.setattr(runner.subprocess, "run", children)
     runner.collect(ROOT, companion_root)
     git_calls = [args for args, _ in children.calls if args[0] == "git"]
-    assert len(git_calls) == 12
+    assert len(git_calls) == 16
     assert all(args[1:3] == ["-c", "core.fsmonitor=false"] for args in git_calls)
 
 
 @pytest.mark.parametrize("changed", ["config", "info/exclude", "info/attributes"])
 def test_round1_n1_a_changed_git_configuration_changes_its_digest(tmp_path, changed):
-    if shutil.which("git") is None:
-        pytest.skip("git is not installed")
     repository = git_repository(tmp_path / "repository")
     before = runner.git_config_digest(repository)
     assert runner._is_digest(before) and runner.git_config_digest(repository) == before
@@ -2340,3 +2378,190 @@ def test_round1_n5_a_tree_that_cannot_be_made_still_ends_the_child(monkeypatch):
     with pytest.raises(OSError, match="no job object"):
         runner._run(["child"], cwd=ROOT, env={}, timeout=10)
     assert events == ["kill", "wait"]
+
+
+# Final-ruling patch (president, #140).
+
+
+def force_rehash(path):
+    """Move a tracked file's modification time, so that `git status` must read it again."""
+    stat = path.stat()
+    runner.os.utime(path, (stat.st_atime + 100, stat.st_mtime + 100))
+
+
+@pytest.mark.parametrize(
+    "where",
+    ["home_gitconfig", "home_default_ignore", "xdg_variable", "global_variable", "system_variable"],
+)
+def test_final_a_user_or_system_ignore_file_cannot_hide_an_untracked_file(tmp_path, where):
+    """(a) The cleanness check sees an untracked file whatever ignore file the user's or the
+    system's configuration names; it runs with its own home and no such configuration."""
+    repository = git_repository(tmp_path / "repository")
+    (repository / "planted.py").write_text("x = 1\n")
+    home = tmp_path / "home"
+    home.mkdir()
+    ignore = tmp_path / "ignore-everything"
+    ignore.write_text("*\n")
+    config = tmp_path / "config"
+    config.write_text(f"[core]\n\texcludesFile = {ignore.as_posix()}\n")
+    env = runner.child_environment(home)
+    if where == "home_gitconfig":
+        (home / ".gitconfig").write_text(config.read_text())
+    elif where == "home_default_ignore":
+        (home / ".config" / "git").mkdir(parents=True)
+        (home / ".config" / "git" / "ignore").write_text("*\n")
+    elif where == "xdg_variable":
+        (tmp_path / "xdg" / "git").mkdir(parents=True)
+        (tmp_path / "xdg" / "git" / "ignore").write_text("*\n")
+        env["XDG_CONFIG_HOME"] = str(tmp_path / "xdg")
+    elif where == "global_variable":
+        env["GIT_CONFIG_GLOBAL"] = str(config)
+    else:
+        env["GIT_CONFIG_SYSTEM"] = str(config)
+    # Witness first: under the same environment a plain `git status` does not see the file.
+    assert "planted.py" not in plain_status(repository, env), "witness: the ignore did not apply"
+    bare_home = tmp_path / "bare-home"
+    bare_home.mkdir()
+    assert "planted.py" in plain_status(repository, runner.child_environment(bare_home))
+    assert runner.checkout_state(repository, env)["clean"] is False
+
+
+def test_final_a_a_user_attributes_file_and_clean_filter_do_not_run(tmp_path):
+    """(a) A filter named by the user's configuration is not run by `git status`. Witness first:
+    a plain `git status` under the same environment does run it."""
+    repository = git_repository(tmp_path / "repository")
+    marker = tmp_path / "filter-ran"
+    attributes = tmp_path / "attributes"
+    attributes.write_text("* filter=x\n")
+    home = tmp_path / "home"
+    home.mkdir()
+    set_config(tmp_path, "core.attributesFile", attributes.as_posix(), file=home / ".gitconfig")
+    set_config(tmp_path, "filter.x.clean", marker_command(marker, True), file=home / ".gitconfig")
+    env = runner.child_environment(home)
+    force_rehash(repository / "file.txt")
+    plain_status(repository, env)
+    assert marker.exists(), "witness: git did not run the user's filter"
+    marker.unlink()
+    force_rehash(repository / "file.txt")
+    state = runner.checkout_state(repository, env)
+    assert not marker.exists()
+    assert state["clean"] is True
+
+
+def test_final_a_a_change_to_an_included_configuration_file_is_seen(tmp_path):
+    """(a) The digest covers the repository's effective configuration, included files among
+    them; and a changed configuration stops the second reading before `git status`."""
+    repository = git_repository(tmp_path / "repository")
+    included = tmp_path / "included.gitconfig"
+    included.write_text("[user]\n\tname = before\n")
+    with (repository / ".git" / "config").open("a", encoding="utf-8") as handle:
+        handle.write(f"[include]\n\tpath = {included.as_posix()}\n")
+    env = runner.child_environment(tmp_path)
+    before = runner.checkout_state(repository, env)
+    assert runner._is_digest(before["git_config_sha256"]) and before["clean"] is True
+    assert (
+        runner.checkout_state(repository, env)["git_config_sha256"] == before["git_config_sha256"]
+    )
+    included.write_text("[user]\n\tname = after\n")
+    after = runner.checkout_state(repository, env, expected_config=before["git_config_sha256"])
+    assert after["git_config_sha256"] != before["git_config_sha256"]
+    assert after["clean"] is False
+
+
+def test_final_a_a_filter_added_during_the_collection_is_not_run_at_the_second_reading(tmp_path):
+    """(a) A filter the collection adds to the repository's own configuration does not run when
+    the checkout is read again: the changed configuration is seen first."""
+    repository = git_repository(tmp_path / "repository")
+    env = runner.child_environment(tmp_path)
+    before = runner.checkout_state(repository, env)["git_config_sha256"]
+    marker = tmp_path / "filter-ran"
+    set_config(tmp_path, "filter.x.clean", marker_command(marker, True), repository=repository)
+    (repository / ".git" / "info").mkdir(exist_ok=True)
+    (repository / ".git" / "info" / "attributes").write_text("* filter=x\n")
+    # Witness first: a plain `git status` runs the filter the configuration now names.
+    force_rehash(repository / "file.txt")
+    plain_status(repository, env)
+    assert marker.exists(), "witness: git did not run the repository's filter"
+    marker.unlink()
+    force_rehash(repository / "file.txt")
+    after = runner.checkout_state(repository, env, expected_config=before)
+    assert not marker.exists()
+    assert after["clean"] is False and after["git_config_sha256"] != before
+
+
+def test_final_b_a_path_with_dot_segments_is_not_a_test_id(evidence):
+    """(b) `tests/../example.py::test_sample`, added with its digest refreshed, is rejected."""
+    manifests, reference = evidence
+    row = linux(manifests)
+    host_rows(row).append({"node_id": "tests/../example.py::test_sample", "outcome": "passed"})
+    refresh(row)
+    errors = runner.receipt_errors(manifests, reference)
+    assert (
+        "Linux: malformed test id in HOST's command: 'tests/../example.py::test_sample'" in errors
+    )
+    for node in (
+        "tests/../example.py::test_sample",
+        "tests/./example.py::test_sample",
+        "tests//example.py::test_sample",
+        "/tests/example.py::test_sample",
+        "tests/a/../../example.py::test_sample",
+        "tests/...py::test_sample",
+    ):
+        assert not runner._TEST_ID.fullmatch(node), node
+    assert runner._TEST_ID.fullmatch("tests/a.b/c-d/test_e.py::test_f")
+
+
+@pytest.mark.parametrize(
+    ("root", "value"),
+    [
+        ("/tmp/jevdrill-host-1", "/tmp/jevdrill-host-1/x/y"),
+        ("D:\\a\\_temp\\jevdrill-host-1", "D:\\a\\_temp\\jevdrill-host-1\\x\\y"),
+    ],
+    ids=["posix", "windows"],
+)
+def test_final_c_normalization_keeps_what_follows_the_temporary_root(root, value):
+    command = ["python", "-m", "pytest", f"--basetemp={value}", f"--junitxml={root}/host.xml"]
+    assert runner.normalized_command(command, "host", temporary=root)[3:] == [
+        "--basetemp=<temporary>/x/y",
+        "--junitxml=<temporary>/host.xml",
+    ]
+    # A value outside the root is kept whole, so that it cannot match an expected command.
+    assert (
+        runner.normalized_command(["python", "--basetemp=/elsewhere/x"], "host", temporary=root)[1]
+        == "--basetemp=/elsewhere/x"
+    )
+
+
+@pytest.mark.parametrize("command_of", ["host_controls", "companion"])
+def test_final_c_a_command_with_another_temporary_directory_is_rejected(evidence, command_of):
+    """(c) `<temporary>/x/y` in place of the expected directory is rejected, for HOST's command
+    and for the companion's."""
+    manifests, reference = evidence
+    row = linux(manifests)
+    receipt_part = row[command_of]
+    command = [
+        "--basetemp=<temporary>/x/y" if part.startswith("--basetemp=") else part
+        for part in receipt_part["command"]
+    ]
+    receipt_part["command"] = command
+    if command_of == "host_controls":
+        receipt_part["command_sha256"] = runner.digest_value(command)
+        error = "Linux: HOST command is not the expected command"
+    else:
+        receipt_part["command_sha256"] = runner.companion_command_digest(command)
+        error = "Linux: companion command is not the expected command"
+    errors = runner.receipt_errors(manifests, reference)
+    assert error in errors, errors
+
+
+def test_final_c_the_expected_temporary_directories_are_the_plans():
+    """(c) Written out here, not rebuilt: the directories each command's receipt must name."""
+    assert runner.expected_host_command()[-2:] == [
+        "--junitxml=<temporary>/host.xml",
+        "--basetemp=<temporary>/host-tests",
+    ]
+    for os_name in runner.PLATFORMS:
+        assert runner.expected_companion_command(os_name)[-2:] == [
+            "--junitxml=<temporary>/companion.xml",
+            "--basetemp=<temporary>/companion-tests",
+        ]

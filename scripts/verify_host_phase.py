@@ -790,28 +790,51 @@ def host_test_command(python, temporary):
     ]
 
 
-def normalized_command(command, report):
-    """The command with its interpreter and temporary paths replaced; no flag is touched."""
+def _under_temporary(value, temporary):
+    """`value` with the temporary root replaced by `<temporary>` and what follows it kept, with
+    `/` separators; a value outside the root is returned unchanged, so that it cannot match."""
+    root = str(temporary)
+    if value == root or value.startswith((root + "/", root + "\\")):
+        return "<temporary>" + value[len(root) :].replace("\\", "/")
+    return value
+
+
+def normalized_command(command, report, temporary=None):
+    """The command with its interpreter and temporary paths replaced; no flag is touched.
+
+    With `temporary`, the root of the collection's temporary directory, only that root is replaced
+    in a `--junitxml` or `--basetemp` value, and what follows it is kept, so the reducer sees the
+    exact directory a command used. Without it (the conformance fixture's discovery child, whose
+    root the collector does not know) the whole value is replaced.
+    """
     suffix = "tests" if report in ("companion", "host") else "child"
-    return [
-        "<python>"
-        if index == 0
-        else f"--junitxml=<temporary>/{report}.xml"
-        if part.startswith("--junitxml=")
-        else f"--basetemp=<temporary>/{report}-{suffix}"
-        if part.startswith("--basetemp=")
-        else part
-        for index, part in enumerate(command)
-    ]
+    normalized = []
+    for index, part in enumerate(command):
+        if index == 0:
+            normalized.append("<python>")
+        elif part.startswith(("--junitxml=", "--basetemp=")):
+            flag, value = part.split("=", 1)
+            if temporary is not None:
+                normalized.append(f"{flag}={_under_temporary(value, temporary)}")
+            elif flag == "--junitxml":
+                normalized.append(f"--junitxml=<temporary>/{report}.xml")
+            else:
+                normalized.append(f"--basetemp=<temporary>/{report}-{suffix}")
+        else:
+            normalized.append(part)
+    return normalized
 
 
 def expected_companion_command(os_name):
-    return normalized_command(companion_command("<python>", "<temporary>", os_name), "companion")
+    command = companion_command("<python>", "<temporary>", os_name)
+    return normalized_command(command, "companion", temporary="<temporary>")
 
 
 def expected_host_command():
     """HOST's command as the reducer rebuilds it from this verifier's own constants."""
-    return normalized_command(host_test_command("<python>", "<temporary>"), "host")
+    return normalized_command(
+        host_test_command("<python>", "<temporary>"), "host", temporary="<temporary>"
+    )
 
 
 def expected_inherited_command(os_name):
@@ -912,7 +935,11 @@ def _repository(url):
 
 
 # A test id as pytest writes it: a file under tests/, one or more names, an optional parameter.
-_TEST_ID = re.compile(r"tests/(?:[\w.-]+/)*[\w.-]+\.py(?:::[A-Za-z_]\w*)+(?:\[.+\])?", re.DOTALL)
+# No `.` or `..` segment, no empty segment, no absolute path.
+_TEST_ID = re.compile(
+    r"tests/(?:(?!\.{1,2}/)[\w.-]+/)*(?!\.{1,2}\.py)[\w.-]+\.py(?:::[A-Za-z_]\w*)+(?:\[.+\])?",
+    re.DOTALL,
+)
 # Given to every git call of the cleanness check: no file-system monitor, which a checkout's own
 # configuration could name as a command to run.
 GIT_SAFE_OPTIONS = ("-c", "core.fsmonitor=false")
@@ -950,29 +977,64 @@ def git_config_digest(root):
         return None
 
 
-def checkout_state(root, env):
-    """The repository, commit, cleanness and git configuration digest of a checkout; no path."""
+def git_environment(env, home):
+    """The cleanness check's git environment: `env` without any HOME of a child's, with a home of
+    its own that no child uses, an empty global configuration file in it, and no system
+    configuration. So no user or system configuration (ignore files, attributes, filters,
+    include targets) reaches these calls, on any platform."""
+    config = Path(home) / "empty-gitconfig"
+    config.write_bytes(b"")
+    clean = {k: v for k, v in env.items() if k != "XDG_CONFIG_HOME"}
+    clean.update(
+        HOME=str(home),
+        USERPROFILE=str(home),
+        GIT_CONFIG_GLOBAL=str(config),
+        GIT_CONFIG_NOSYSTEM="1",
+    )
+    return clean
 
-    def git(*args):
-        try:
-            result = subprocess.run(
-                ["git", *GIT_SAFE_OPTIONS, "-C", str(root), *args],
-                capture_output=True,
-                text=True,
-                env=env,
-                timeout=30,
-                check=False,
-            )
-        except OSError, subprocess.SubprocessError:
-            return None
-        return result.stdout.strip() if result.returncode == 0 else None
 
-    commit = git("rev-parse", "HEAD")
+def checkout_state(root, env, expected_config=None):
+    """The repository, commit, cleanness and git configuration digest of a checkout; no path.
+
+    The git calls run in `git_environment`. The configuration digest is taken first; when
+    `expected_config` is given (the second reading) and the configuration has changed since,
+    `git status` is not run at all, so that nothing a collection added to the configuration (a
+    filter, say) can run, and the checkout is not reported clean.
+    """
+    with tempfile.TemporaryDirectory(prefix="jevdrill-git-home-") as home:
+        git_env = git_environment(env, home)
+
+        def git(*args):
+            try:
+                result = subprocess.run(
+                    ["git", *GIT_SAFE_OPTIONS, "-C", str(root), *args],
+                    capture_output=True,
+                    text=True,
+                    env=git_env,
+                    timeout=30,
+                    check=False,
+                )
+            except OSError, subprocess.SubprocessError:
+                return None
+            return result.stdout.strip() if result.returncode == 0 else None
+
+        effective = git("config", "--list", "--show-origin", "--includes", "-z")
+        files = git_config_digest(root)
+        config = (
+            digest_value({"files": files, "effective": effective})
+            if files is not None and effective is not None
+            else None
+        )
+        commit = git("rev-parse", "HEAD")
+        repository = _repository(git("remote", "get-url", "origin"))
+        changed = expected_config is not None and config != expected_config
+        clean = False if changed else git("status", "--porcelain", "--untracked-files=all") == ""
     return {
-        "repository": _repository(git("remote", "get-url", "origin")),
+        "repository": repository,
         "commit": commit if commit and _SHA.fullmatch(commit) else None,
-        "clean": git("status", "--porcelain", "--untracked-files=all") == "",
-        "git_config_sha256": git_config_digest(root),
+        "clean": clean,
+        "git_config_sha256": config,
     }
 
 
@@ -1427,8 +1489,12 @@ def collect(root, companion_root):
         )
         # After the last child: both checkouts again, so a collection that changed or dirtied
         # either is seen.
-        jevdrill_after = checkout_state(root, child_environment(home))
-        companion_after = checkout_state(companion_root, child_environment(home))
+        jevdrill_after = checkout_state(
+            root, child_environment(home), expected_config=jevdrill["git_config_sha256"]
+        )
+        companion_after = checkout_state(
+            companion_root, child_environment(home), expected_config=companion["git_config_sha256"]
+        )
         try:
             witness = json.loads(witness_path.read_text(encoding="utf-8"))
         except OSError, ValueError:
@@ -1457,9 +1523,11 @@ def collect(root, companion_root):
     # The receipt records each command as it was launched, not as it was built; a child that was
     # never started records an empty command.
     normalized = normalized_command(
-        companion_launched[0] if companion_launched else [], "companion"
+        companion_launched[0] if companion_launched else [], "companion", temporary=tmp
     )
-    host_normalized = normalized_command(host_launched[0] if host_launched else [], "host")
+    host_normalized = normalized_command(
+        host_launched[0] if host_launched else [], "host", temporary=tmp
+    )
     copies = contract_copies(root, runtime)
     companion_stable = source_digest(runtime) == companion_before
     host_stable = input_digest(root) == before
