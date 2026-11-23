@@ -367,11 +367,15 @@ possibility, not a request.
 - **Needs:** GitHub CI.
 - **Owned files:** `scripts/verify_host_phase.py`,
   `tests/verification/test_host_phase.py`; `.github/workflows/host.yml`, its job
-  timeout only.
-- **Delivers:** declared change 17. Its control fails if the inherited command
-  differs from ROUTE's own; a part over its bound, or a receipt lacking part
-  times, is accepted; a control's id or count stops being required; or the
-  inherited budget differs from ROUTE's.
+  timeout only; `tests/verification/test_route_phase.py`, its downstream-command
+  test only.
+- **Delivers:** declared change 17. HOST's part is all of a collection outside
+  the unmodified ROUTE collector call, timed by the collection's own clock. Its
+  control fails if the inherited command differs from ROUTE's own; a part over
+  its bound, or a receipt lacking part times, is accepted; a moved control is
+  missing from the receipt, or a failed one from its failure summary; a
+  control's id or count stops being required, or is counted from two sources; or
+  the inherited budget differs from ROUTE's.
 
 ## Verification
 
