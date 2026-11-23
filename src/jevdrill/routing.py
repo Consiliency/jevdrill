@@ -8,6 +8,10 @@ from typing import Any
 from .contracts import canonical_digest
 from .costing import AttemptCost, estimate_attempt_cost
 
+# A decision made for a dry run carries this code; storage reads it to keep the
+# decision out of learning observations, here and after export and import.
+DRY_RUN_DIAGNOSTIC = "dry_run_decision"
+
 
 def candidate_fingerprint(candidate: Mapping[str, Any]) -> str:
     """Pin model, effort and guidance revisions independently of task identities."""
@@ -53,7 +57,16 @@ def decision_details(
         "created_at": envelope["created_at"],
         "optimization_objective": request["optimization_objective"],
         "versions": request["versions"],
-        "diagnostics": [],
+        "diagnostics": [
+            {
+                "code": DRY_RUN_DIAGNOSTIC,
+                "summary": "Decision for a dry run; excluded from learning observations.",
+                "evidence_refs": [],
+                "resolution_advice": [],
+            }
+        ]
+        if request["execution_mode"] == "dry_run"
+        else [],
         "capability_mismatches": [],
         "evidence_refs": [],
         "exclusions": exclusions,

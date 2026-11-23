@@ -50,7 +50,7 @@ from .integrations.jev import (
     judgment_template_binding,
 )
 from .inventory import fresh, validate_snapshot
-from .routing import decision_details, select_plan
+from .routing import DRY_RUN_DIAGNOSTIC, decision_details, select_plan
 from .settings import resolve_settings
 from .storage import SQLiteStorage
 from .telemetry import retain_jev_call
@@ -689,6 +689,14 @@ class Application:
         )
         if cached is not None and any(
             row["code"] == "learned_policy_ordering"
+            for row in cached["decision"]["details"]["diagnostics"]
+        ):
+            cached = None
+        # A cached decision is reused only when its mode matches the request's: a
+        # dry-run decision cached before its mode was recorded lacks the diagnostic,
+        # and a real request must never be served a decision that carries it.
+        if cached is not None and (request["execution_mode"] == "dry_run") != any(
+            row["code"] == DRY_RUN_DIAGNOSTIC
             for row in cached["decision"]["details"]["diagnostics"]
         ):
             cached = None
