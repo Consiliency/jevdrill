@@ -330,17 +330,17 @@ applies on its terms: a possibility, not a request.
   `maintenance.py:395`, `:249`, `:212`, `:157-159`; `storage.py:2232`). A
   restored copy archived after its earlier archive has expired, by the rule of
   `maintenance.py:157`, expires one year after that archival, whatever the order
-  and timing of runs. Also fix lane for Consiliency/jevdrill#128: the first run
-  in an archive's last seven days writes its notice, whatever the cursor's
-  position and the store's size; no archive is kept past its year. No contract
-  or schema change. The control fails if the content cannot be restored with its
-  original bytes before a year from that archival, or still can after a run past
-  that year: in #125's sequence in either order, with the two items reached in
-  different runs, or at the archive's exact deadline; if content restored and
-  archived again before the archive expires stops keeping that expiry; if, in a
-  store larger than seven days of runs pass through, an archive is retired with
-  no expiry notice written before its expiry; or if anything unverified is
-  retired.
+  and timing of runs. For Consiliency/jevdrill#128: for an archive the query
+  admits, the first run in its last seven days, unless paused, cancelled or busy
+  at start, writes its notice wherever the cursor is, even if stopped early;
+  retirement never waits for one. No contract or schema change. The control
+  fails if the content cannot be restored with its original bytes before a year
+  from that archival, or still can after a run past that year: in #125's
+  sequence in either order, with the two items reached in different runs, or at
+  the archive's exact deadline; if content restored and archived again before
+  the archive expires stops keeping that expiry; if such a run leaves no expiry
+  notice, or a run keeps an expired archive for want of one; or if anything
+  unverified is retired.
 
 ## Verification
 
