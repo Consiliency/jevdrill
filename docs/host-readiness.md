@@ -58,7 +58,7 @@ A red run is one of two kinds. If a native job fails, the reduction does not run
 
 ## Artifacts
 
-Receipts (`host-native-Linux`, `host-native-Darwin`, `host-native-Windows`) and any verdict (`host-verification`) are artifacts of the run that made them, and GitHub deletes them under its artifact retention. This run's three artifacts expire on 2027-02-21. The verifier's outputs under `evidence/HOST/` are ignored by git, and a verdict is never committed.
+Receipts (`host-native-Linux`, `host-native-Darwin`, `host-native-Windows`) and any verdict (`host-verification`) are artifacts of the run that made them, and GitHub deletes them under its artifact retention. This run's three artifacts expire on 2027-02-21. The verifier's outputs under `evidence/HOST/` are ignored by git, and a verdict is never committed. A receipt's digests show that its content is consistent with itself and with the two checkouts; that it came from this run rests on the workflow's artifact boundary, not on the digests.
 
 ## Not shown
 
