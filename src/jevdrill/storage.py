@@ -1,8 +1,10 @@
 """Local transactional storage with scoped retries and deletion-safe recovery."""
 
 import hashlib
+import hmac
 import json
 import os
+import secrets
 import sqlite3
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
@@ -701,8 +703,16 @@ class SQLiteStorage:
                 "CREATE TABLE IF NOT EXISTS artifact_lifecycle (scope TEXT, artifact_id TEXT, created REAL NOT NULL, prompted REAL, archived REAL, source_id TEXT, PRIMARY KEY(scope,artifact_id))",
                 "CREATE TABLE IF NOT EXISTS discovery_content_artifacts (scope TEXT, discovery_id TEXT, artifact_id TEXT, PRIMARY KEY(scope,artifact_id))",
                 "CREATE TABLE IF NOT EXISTS lifecycle_notices (scope TEXT, task TEXT, notice_id TEXT, payload TEXT NOT NULL, PRIMARY KEY(scope,notice_id))",
+                # One random key per store for user-wide observation values. Only
+                # learning_observations reads it; no export, backup or notice includes this table.
+                "CREATE TABLE IF NOT EXISTS shared_record_key (id INTEGER PRIMARY KEY CHECK (id = 1), key BLOB NOT NULL)",
             ):
                 connection.execute(statement)
+            # Made here, under the write lock, not on first read: save_evidence recomputes the
+            # observations while it holds a write transaction, so a read could not insert it.
+            connection.execute(
+                "INSERT OR IGNORE INTO shared_record_key VALUES (1,?)", (secrets.token_bytes(32),)
+            )
             dependency_columns = connection.execute(
                 "PRAGMA table_info(learning_dependencies)"
             ).fetchall()
@@ -854,6 +864,14 @@ class SQLiteStorage:
                     "SELECT discovery_id,domains FROM recovered_discovery_metadata"
                 )
             }
+            (key,) = connection.execute("SELECT key FROM shared_record_key").fetchone()
+
+        def shared(value: str) -> str:
+            """A user-wide value specific to the requester and to this store (#86)."""
+            return hmac.new(
+                key, canonical_digest([pair_requested, value]).encode(), hashlib.sha256
+            ).hexdigest()
+
         observations = []
         for pair, task, payload, decision_scope, bundle_json in contexts:
             context, bundle = json.loads(payload), json.loads(bundle_json)
@@ -996,7 +1014,9 @@ class SQLiteStorage:
                     )
                     conditions.update(
                         discovery_status=discovery["status"],
-                        discovery_identity=canonical_digest(linkage),
+                        discovery_identity=canonical_digest(linkage)
+                        if pair == pair_requested
+                        else shared(canonical_digest(linkage)),
                         discovery_domains=self._encode(domains),
                         discovery_choices=self._encode(discovery["details"]["guidance_refs"]),
                         discovery_revisions=canonical_digest(discovery["details"]["revisions"]),
@@ -1007,11 +1027,14 @@ class SQLiteStorage:
                     if e["payload"]["kind"] in {"usage", "evaluation"}
                     for m in e["payload"]["measurements"]
                 ]
+                reference = canonical_digest(
+                    [pair, task, context["routing_decision_id"], linkage, run, current]
+                )
                 observations.append(
                     {
                         "conditions": conditions,
-                        "observation_ref": canonical_digest(
-                            [pair, task, context["routing_decision_id"], linkage, run, current]
+                        "observation_ref": (
+                            reference if pair == pair_requested else shared(reference)
                         ),
                         "status": terminal[-1]["payload"]["event_type"] if terminal else None,
                         "accepted": accepted,

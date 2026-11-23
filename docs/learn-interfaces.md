@@ -11,8 +11,17 @@ observations require requesting consent and producer consent; their
 task/decision/run/discovery identities are left out of the observation's source
 (the source origin is `user_wide_redacted`). For an observation linked to a
 discovery, the group conditions still carry the discovery's status, domains and
-guidance choices and SHA-256 digests of the producer's discovery reference and
-of the discovery's revisions. Each group lists digests of its observations.
+guidance choices and a SHA-256 digest of the discovery's revisions. Each group
+lists digests of its observations. In a user-wide observation, the digest of the
+producer's discovery reference and the observation's digest are each keyed with
+a random key that the store keeps and never exports, together with the
+requesting project and workspace, so they differ between requesters and between
+stores; one requester gets the same values from one store each time. Evidence
+stored before this change keeps its earlier values until it is replaced, so the
+first analysis after it counts every user-wide observation as new, once. A store
+rebuilt elsewhere from a recovery export has its own key and gives a requester
+different values; a copy of the store's file keeps the key. A policy promoted on
+earlier evidence is not changed.
 
 Comparable groups retain task family/group, environment/isolation, actual
 evaluator/rubric revisions, source measurement definitions and selected/applied
