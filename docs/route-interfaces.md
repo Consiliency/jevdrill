@@ -12,7 +12,7 @@ stable across moves while workspaces isolate execution.
 | `StoragePort` | `commit_decision(scope, key, digest, bundle)` | Persist an immutable decision before returning a ready result. |
 | `StoragePort` | `ingest_report(scope, key, digest, event)` | Durably append or acknowledge one immutable event. |
 | `StoragePort` | `load_replay(scope, decision_id)` | Return recorded routing material without a provider call. |
-| `StoragePort` | `delete_task(scope, task_id)` | Remove task material and leave a tombstone that prevents resurrection. It answers `erasure_pending` while a deleted payload may remain in the database file or the write-ahead log until the log is checkpointed. |
+| `StoragePort` | `delete_task(scope, task_id)` | Remove task material and leave a tombstone that prevents resurrection. While deleted content has not yet been erased from the store's files it fails as a storage failure; the deletion is committed, and the same request finishes the erasure. |
 | `InventoryPort` | `snapshot(target, deadline)` | Return a fresh validated inventory snapshot before the shared deadline. |
 | `TokenCounter` | `count(text, model_revision)` | Count complete routed text against the exact selected revision. |
 | `JudgmentPort` | `judge(task, candidates, deadline)` | Judge only offered candidates before the shared deadline. |

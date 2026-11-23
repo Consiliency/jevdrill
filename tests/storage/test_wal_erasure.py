@@ -1,8 +1,9 @@
 """LEARN SL-2 Part A: task deletion and the write-ahead log (Consiliency/jevdrill#21).
 
-A deletion is reported finished only once no deleted byte remains in any of the
-store's files. The test holds another connection's read transaction open itself,
-so nothing here depends on timing.
+A deletion answers `deleted` only once the task's deleted payload rows are erased
+from the database file and its write-ahead log. Until then it fails as a storage
+failure, after committing the deletion. The test holds another connection's read
+transaction open itself, so nothing here depends on timing.
 """
 
 import json
@@ -50,14 +51,18 @@ def reader(store):
     return connection
 
 
+def unfinished(store, scope, task_id):
+    """True if the request failed as a storage failure, as an unfinished erasure does."""
+    with pytest.raises(sqlite3.OperationalError, match="not yet erased"):
+        store.delete_task(scope, task_id)
+    return True
+
+
 def test_deletion_is_not_reported_finished_while_a_reader_holds_the_log(task):
     store, scope, task_id, sentinel = task
     held = reader(store)
     try:
-        assert store.delete_task(scope, task_id) == {
-            "status": "erasure_pending",
-            "task_id": task_id,
-        }
+        assert unfinished(store, scope, task_id)
         assert found(store, sentinel)
         # The logical deletion is committed: nothing deleted is readable through storage.
         assert store.is_deleted(scope, task_id)
@@ -82,9 +87,9 @@ def test_the_repeated_request_finishes_the_erasure_once_the_reader_closes(task):
     store, scope, task_id, sentinel = task
     keeper, held = idle(store), reader(store)
     try:
-        assert store.delete_task(scope, task_id)["status"] == "erasure_pending"
+        assert unfinished(store, scope, task_id)
         # Repeated while the reader is still open: still not finished.
-        assert store.delete_task(scope, task_id)["status"] == "erasure_pending"
+        assert unfinished(store, scope, task_id)
         assert found(store, sentinel)
         held.close()
         assert found(store, sentinel)  # closing the reader alone erases nothing
@@ -129,7 +134,14 @@ def delete_by_command_line(store, scope, task_id):
     return result.returncode, json.loads(result.stdout)
 
 
-def test_the_command_line_gives_both_answers_with_exit_code_zero(task):
+STORAGE_FAILURE = {
+    "schema_version": "1",
+    "status": "storage_failure",
+    "code": "infrastructure_failure",
+}
+
+
+def test_the_command_line_answers_a_storage_failure_then_deleted(task):
     store, scope, task_id, sentinel = task
     keeper, held = idle(store), reader(store)
     try:
@@ -141,5 +153,5 @@ def test_the_command_line_gives_both_answers_with_exit_code_zero(task):
     finally:
         held.close()
         keeper.close()
-    assert pending == (0, {"schema_version": "1", "status": "erasure_pending", "task_id": task_id})
+    assert pending == (4, STORAGE_FAILURE)
     assert finished == (0, {"schema_version": "1", "status": "deleted", "task_id": task_id})

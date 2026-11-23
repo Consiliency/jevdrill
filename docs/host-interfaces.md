@@ -16,8 +16,6 @@ This page describes the host integration at the commit [`evidence/HOST/adapter-h
 | `notices` | `NoticeRequest` | `NoticeInbox` |
 | `delete` | `DeleteRequest` | exactly `{"schema_version": "1", "status": "deleted", "task_id": …}` |
 
-JEV Drill on `main` can also answer `delete` with `{"schema_version": "1", "status": "erasure_pending", "task_id": …}` while another reader keeps the write-ahead log from being checkpointed; the deletion is committed and the same request finishes it later. The transport at the pinned commit refuses that answer as an invalid acknowledgment.
-
 The schemas are in [`schemas/`](../schemas/). The host integration carries copies of them, and the collector compares those copies with jevdrill's files.
 
 - `discover`, `route`, `report` and `notices` send the request on standard input; `inspect-discovery`, `delete-discovery` and `delete` give it as command-line arguments. `inspect-discovery` refuses a replay request.
