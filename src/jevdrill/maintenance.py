@@ -30,17 +30,20 @@ class Maintenance:
     ) -> None:
         self.storage, self.key_provider, self.clock = storage, key_provider, clock
 
-    def _notice(
-        self,
-        scope: Mapping[str, str],
-        task: str,
-        kind: str,
-        identity: str,
-        deadline: float | None = None,
-    ) -> None:
-        pair = self.storage._task_scope(scope)
-        notice = {
-            "notice_id": str(uuid5(NAMESPACE_URL, canonical_digest([pair, task, kind, identity]))),
+    @staticmethod
+    def _expiry(archived: float) -> float:
+        """When an archive made at `archived` expires: it is expired once `now >= _expiry`."""
+        return archived + 365 * DAY
+
+    @staticmethod
+    def _notice_id(pair: str, task: str, kind: str, identity: str) -> str:
+        return str(uuid5(NAMESPACE_URL, canonical_digest([pair, task, kind, identity])))
+
+    def _notice_payload(
+        self, pair: str, task: str, kind: str, identity: str, deadline: float | None
+    ) -> dict[str, Any]:
+        return {
+            "notice_id": self._notice_id(pair, task, kind, identity),
             "kind": {"archive_prompt": "archive_prompt", "item_failed": "failure"}.get(
                 kind, "decision_required"
             ),
@@ -56,12 +59,56 @@ class Maintenance:
             else None,
             "automatic_action": "archive" if kind == "archive_prompt" else "none",
         }
+
+    def _notice(
+        self,
+        scope: Mapping[str, str],
+        task: str,
+        kind: str,
+        identity: str,
+        deadline: float | None = None,
+    ) -> None:
+        pair = self.storage._task_scope(scope)
+        notice = self._notice_payload(pair, task, kind, identity, deadline)
         with self.storage._connect(True) as c:
             if self.storage._admit(c, pair, task):
                 c.execute(
                     "INSERT OR REPLACE INTO lifecycle_notices VALUES (?,?,?,?)",
                     (pair, task, notice["notice_id"], self.storage._encode(notice)),
                 )
+
+    def _announce_expiries(self, pair: str, now: float) -> None:
+        """Write the expiry notice of each archive in its last seven days that has none (#128).
+
+        Every archive the run's filters admit is considered, whatever page the cursor is
+        on: same scope, task not deleted, not retired. It reads each archive's identity,
+        task and archival time, and the scope's notice identities; no content. A notice
+        already written is left as it is, so each archive's notice is written once, by
+        the first run in its last seven days that gets this far.
+        """
+        with self.storage._connect(True) as c:
+            archives = c.execute(
+                "SELECT a.artifact_id,a.task,l.archived FROM artifacts a JOIN artifact_lifecycle l ON a.scope=l.scope AND a.artifact_id=l.artifact_id JOIN tasks t ON a.scope=t.scope AND a.task=t.task WHERE a.scope=? AND t.deleted=0 AND a.retention!='retired' AND l.archived IS NOT NULL ORDER BY a.artifact_id",
+                (pair,),
+            ).fetchall()
+            written = {
+                row[0]
+                for row in c.execute(
+                    "SELECT notice_id FROM lifecycle_notices WHERE scope=?", (pair,)
+                )
+            }
+            for identity, task, archived in archives:
+                expiry = self._expiry(archived)
+                if not expiry - 7 * DAY <= now < expiry:
+                    continue
+                if self._notice_id(pair, task, "archive_expiry", identity) in written:
+                    continue
+                if self.storage._admit(c, pair, task):
+                    notice = self._notice_payload(pair, task, "archive_expiry", identity, expiry)
+                    c.execute(
+                        "INSERT OR REPLACE INTO lifecycle_notices VALUES (?,?,?,?)",
+                        (pair, task, notice["notice_id"], self.storage._encode(notice)),
+                    )
 
     def _interactive(self, request: Mapping[str, Any]) -> bool:
         if request["interactive_busy"]:
@@ -141,6 +188,8 @@ class Maintenance:
                     self._notice(scope, rows[0][1], "clock_rollback", rows[0][0])
                 result["notices"] = self.storage.load_notices(scope)
                 return result
+            # Before any item, so a run that stops early has still written them (#128).
+            self._announce_expiries(pair, now)
             for identity, task, kind, digest, created, prompted, archived in rows[
                 : request["max_items"]
             ]:
@@ -154,12 +203,11 @@ class Maintenance:
                     )
                     break
                 if archived is not None:
-                    expiry = archived + 365 * DAY
-                    if now >= expiry:
+                    # Its expiry notice is written by `_announce_expiries`; retirement never
+                    # waits for one (#128).
+                    if now >= self._expiry(archived):
                         self._retire(scope, identity)
                         result["processed"] += 1
-                    elif now >= expiry - 7 * DAY:
-                        self._notice(scope, task, "archive_expiry", identity, expiry)
                 elif kind in {"raw_task", "raw_output", "context"} and now >= created + 30 * DAY:
                     if prompted is None:
                         self._notice(scope, task, "archive_prompt", identity, now + 7 * DAY)
@@ -176,8 +224,8 @@ class Maintenance:
                             result["pending"] += 1
                         else:
                             try:
-                                body, encrypted = self._verified_archive(
-                                    pair, identity, task, kind, digest, key
+                                body, encrypted, expired = self._verified_archive(
+                                    pair, identity, task, kind, digest, key, now
                                 )
                             except ValueError:
                                 # This item cannot be verified: report it by its identity,
@@ -186,6 +234,12 @@ class Maintenance:
                                 self._notice(scope, task, "item_failed", identity)
                                 result["pending"] += 1
                             else:
+                                if expired is not None:
+                                    # A restored copy whose earlier archive has expired
+                                    # (#125): retire that archive, as a run reaching it
+                                    # would, so the copy gets an archive of its own made
+                                    # now, not the expired one and its archival time.
+                                    self._retire(scope, expired)
                                 archive_id = self.storage.stage_artifact(
                                     scope,
                                     task,
@@ -223,15 +277,19 @@ class Maintenance:
         return result
 
     def _verified_archive(
-        self, pair: str, identity: str, task: str, kind: str, digest: str, key: bytes
-    ) -> tuple[dict[str, Any], bytes]:
+        self, pair: str, identity: str, task: str, kind: str, digest: str, key: bytes, now: float
+    ) -> tuple[dict[str, Any], bytes, str | None]:
         """The item's archive body and encrypted bytes, verified; ValueError if not.
 
+        An existing archive of the item is reused, with its archival time, unless it
+        has expired at `now` by the rule of `run`; then the bytes are a new archive,
+        and the expired archive's identity is returned third, for retirement (#125).
+
         ValueError here means this item could not be verified: its digest does not
-        match, or an existing archive of it does not decrypt with the key given or
-        does not match. A replaced key therefore fails every item that has an archive;
-        a malformed key fails every item. Storage and file-system errors,
-        including a missing file, propagate.
+        match, or an existing unexpired archive of it does not decrypt with the key
+        given or does not match. A replaced key therefore fails every item that has an
+        unexpired archive; a malformed key fails every item. Storage and file-system
+        errors, including a missing file, propagate.
         """
         content = (self.storage._artifact_directory(pair) / identity).read_bytes()
         if hashlib.sha256(content).hexdigest() != digest:
@@ -246,9 +304,12 @@ class Maintenance:
         }
         with self.storage._connect() as c:
             existing = c.execute(
-                "SELECT a.artifact_id FROM artifacts a JOIN artifact_lifecycle l ON a.scope=l.scope AND a.artifact_id=l.artifact_id WHERE a.scope=? AND l.source_id=? AND a.kind='archive'",
+                "SELECT a.artifact_id,l.archived FROM artifacts a JOIN artifact_lifecycle l ON a.scope=l.scope AND a.artifact_id=l.artifact_id WHERE a.scope=? AND l.source_id=? AND a.kind='archive'",
                 (pair, identity),
             ).fetchone()
+        expired = None
+        if existing and existing[1] is not None and now >= self._expiry(existing[1]):
+            expired, existing = existing[0], None
         encrypted = (
             (self.storage._artifact_directory(pair) / existing[0]).read_bytes()
             if existing
@@ -256,7 +317,7 @@ class Maintenance:
         )
         if json.loads(decrypt_archive(encrypted, key)) != body:
             raise ContractError("archive verification failed")
-        return body, encrypted
+        return body, encrypted, expired
 
     def _retire(self, scope: Mapping[str, str], identity: str) -> None:
         pair = self.storage._task_scope(scope)
@@ -276,9 +337,7 @@ class Maintenance:
                     "clock_rollback",
                     "item_failed",
                 ):
-                    notice_id = str(
-                        uuid5(NAMESPACE_URL, canonical_digest([pair, row[0], kind, identity]))
-                    )
+                    notice_id = self._notice_id(pair, row[0], kind, identity)
                     c.execute(
                         "DELETE FROM lifecycle_notices WHERE scope=? AND notice_id=?",
                         (pair, notice_id),
