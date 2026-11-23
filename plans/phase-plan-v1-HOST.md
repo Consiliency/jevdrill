@@ -10,17 +10,14 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
 > with three seats (correctness; security and privacy; alternate vendor).
 > Rounds: one, and a confirmation of its fixes. Pull request:
-> Consiliency/jevdrill#89; amended by Consiliency/jevdrill#111, one round.
+> Consiliency/jevdrill#89; amended by Consiliency/jevdrill#111 and
+> Consiliency/jevdrill#132, one round each.
 > This is a reviewed plan. It verifies no criterion.
 
 ## Context
 
-This plan revises HOST against the amended roadmap, EC-HOST-1 to 4 and
-IF-0-HOST-1. It starts from the October plan held at the tag
-`pr1-final-record` and replaces what is false of `main` today: local paths, the
-old Python, the October worktrees, the committed verdicts and every ticked box.
-That plan was reviewed only by its planner and is not accepted as the required
-revision.
+The October plan (tag `pr1-final-record`) was reviewed only by its planner and
+is not accepted.
 
 The JEV Drill side of HOST is largely on `main`. The host side lives in
 `Consiliency/agent-harness`, where it is a draft (Consiliency/agent-harness#2071).
@@ -36,18 +33,9 @@ conditions are stated in full.
 
 ## State of `main` at `998912b1e`
 
-**On `main`, by stack pull request.**
-
-| What | Pull request |
-| --- | --- |
-| Notice, report, acknowledgment, `ExecutionRun`, discovery and route-v2 contracts; `tests/contracts/fixtures/host.json` and `tests/contracts/test_host_contracts.py` | Consiliency/jevdrill#12 |
-| Report ingest, acknowledgments, notice retrieval, objective tombstones, discovery link checks (`src/jevdrill/storage.py`); `src/jevdrill/evaluation.py`; `research/evaluation/host/protocol.json`; `tests/evaluation/test_host_acceptance.py`; `tests/storage/test_host_notices.py` | Consiliency/jevdrill#18 |
-| `discover`, linked route-v2, `report`, `notices`, `inspect-discovery`, `delete-discovery`, `--remaining-budget-ms` (`src/jevdrill/application.py`, `src/jevdrill/cli.py`); host-notice application and CLI tests; discovery application tests | Consiliency/jevdrill#54 |
-| The ROUTE verifier and its three-platform matrix, which HOST inherits | Consiliency/jevdrill#66 |
-| The current status block and readiness docs | Consiliency/jevdrill#85 |
-
-The October plan's contracts and notices lanes and its evaluator and protocol
-have therefore landed; its probes have not.
+**On `main`.** The stack in [`plans/pr1-stack-split-20261119.md`](pr1-stack-split-20261119.md)
+landed October's contracts, notices, evaluator and protocol, and the inherited
+ROUTE verifier, not its probes.
 
 **Held at the tag, not on `main`.** `scripts/verify_host_phase.py`,
 `tests/verification/test_host_phase.py`, `.github/workflows/host.yml`, the seven
@@ -287,9 +275,9 @@ hosted Linux, macOS and Windows runners, JEV Drill on Python 3.14. Only if
 hosted runners prove unable to run the host integration
 would a host run be requested, then and not now: one collection per machine on
 one Linux, one macOS and one Windows machine; both commits as full SHAs with
-clean checkouts; no root, no sudoers entry, no docker; 600 seconds each; a
-receipt carrying both commits, the UTC start time and a nonce issued with the
-request, and no hostname or local path; nothing committed. This is a
+clean checkouts; no root, no sudoers entry, no docker; the verifier's two
+bounds; a receipt carrying both commits, the UTC start time and a nonce issued
+with the request, and no hostname or local path; nothing committed. This is a
 possibility, not a request.
 
 ## Lane Index & Dependencies
@@ -298,8 +286,9 @@ possibility, not a request.
 - SL-1 — JEV-side controls; Depends on: (none); Blocks: SL-3; Parallel-safe: no
 - SL-2 — Conformance and probes; Depends on: SL-0; Blocks: SL-3; Parallel-safe: no
 - SL-3 — Verifier and workflow; Depends on: SL-0, SL-1, SL-2, SL-5; Blocks: SL-4; Parallel-safe: no
-- SL-4 — Readiness docs; Depends on: SL-3 and one dispatched run; Blocks: (none); Parallel-safe: no
+- SL-4 — Readiness docs; Depends on: SL-6 and a run after it; Blocks: (none); Parallel-safe: no
 - SL-5 — Dry-run evidence fix; Depends on: (none); Blocks: SL-3; Parallel-safe: no
+- SL-6 — Collection bound; Depends on: SL-3; Blocks: the next dispatch; Parallel-safe: no
 
 ## Lanes
 
@@ -349,7 +338,7 @@ possibility, not a request.
 
 ### SL-4 — Readiness docs
 
-- **Needs:** the result of SL-3's dispatched run, with its verdict artifact if
+- **Needs:** the result of the run after SL-6, with its verdict artifact if
   there is one.
 - **Owned files:** `docs/host-interfaces.md`, `docs/host-readiness.md`, and the
   first block of `docs/roadmap-status.md`.
@@ -372,6 +361,21 @@ possibility, not a request.
   within the public contract, declared under CONTRACT's rules. If the received store needs a public contract change,
   that half is "not covered: needs an owner input"; the deciding store is
   still fixed.
+
+### SL-6 — Collection bound
+
+- **Needs:** GitHub CI.
+- **Owned files:** `scripts/verify_host_phase.py`,
+  `tests/verification/test_host_phase.py`; `.github/workflows/host.yml`, its job
+  timeout only; `tests/verification/test_route_phase.py`, its downstream-command
+  test only.
+- **Delivers:** declared change 17. HOST's part is all of a collection outside
+  the unmodified ROUTE collector call, timed by the collection's own clock. Its
+  control fails if the inherited command differs from ROUTE's own; a part over
+  its bound, or a receipt lacking part times, is accepted; a moved control is
+  missing from the receipt, or a failed one from its failure summary; a
+  control's id or count stops being required, or is counted from two sources; or
+  the inherited budget differs from ROUTE's.
 
 ## Verification
 
@@ -413,10 +417,13 @@ workflow run; the companion at the pinned commit with a clean checkout; no
 selected companion test failed or skipped; the deselection and substitution
 constants bound in the command digest; the companion's contract copies equal to
 jevdrill's; two or more tasks, each with its own decision; the coverage and
-spec-delta records; the 600-second collection bound, flagging proof over five
-minutes; a malformed receipt reported, not raised. A clause of the four criteria
-that is not covered is reported so, never as passed, and no gate is produced
-while one stands.
+spec-delta records; two bounds, each part's time recorded: the inherited
+regressions within ROUTE's own 600 seconds
+(`scripts/verify_route_phase.py:556`), the rest within 900 seconds; a
+collection over five minutes flagged (`specs/phase-plans-v1.md:354`); a
+malformed receipt reported, not raised. A clause of the four criteria that is
+not covered is reported so, never as passed, and no gate is produced while one
+stands.
 
 **It reads** the jevdrill checkout and the companion checkout at the pinned
 commit.
@@ -455,6 +462,9 @@ that made it and is never committed.
 15. The witness requires a distinct decision per task.
 16. A clause not covered blocks the gate; the reducer's tests accept a valid
     receipt.
+17. HOST's controls leave the inherited command, now `route.yml`'s, for a
+    digest-bound command of the HOST collector's own; a receipt lacking a part's
+    time, or a part over its bound, is rejected (SL-6).
 
 Changes 12, 13, 15 and 16 bind the verdict to the rows' controls; 14 is
 explained under "Readings and points settled".
@@ -500,6 +510,7 @@ and JD-084 (`specs/phase-plans-v1.md:216`).
 | Consiliency/jevdrill#109 (dry-run counting) | Fix lane, SL-5 |
 | Conditional host run | Owner input, only if hosted runners fail |
 | ROUTE verifier not reopened; the deadline-failure rule | Stated limits, standing |
+| `host.yml` run 45236348900 | Fix lane, SL-6 |
 
 ## Owner inputs
 
