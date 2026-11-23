@@ -58,6 +58,8 @@ AWKWARD = b"first\r\nsecond\rthird\n\x00\xff\xfe" + bytes(range(256)) + b"\r\n"
 RAW = ("raw_task", "raw_output")
 # Valid UTF-8 with every line ending, so a step that decodes text first is tried too.
 TEXT = "first\r\nsecond\rthird\nnon-ASCII: \u00e9\u00f8\u2713\r\n".encode()
+# The same text after a UTF-8 byte-order mark.
+BOM = b"\xef\xbb\xbf" + TEXT
 
 
 class NoProvider:
@@ -568,6 +570,11 @@ def test_analysis_writes_no_policy_record(tmp_path, synthetic):
         analysis(scope, objectives=[dict(store.objective, version="reclassified-v2")]),
         # Nothing new and within the interval: not due.
         analysis(scope, objectives=[dict(store.objective, version="reclassified-v2")]),
+        # The same, reading user-wide evidence as well.
+        dict(
+            analysis(scope, objectives=[dict(store.objective, version="reclassified-v2")]),
+            include_user_wide=True,
+        ),
         analysis(scope, "inspect"),
     ]
     statuses = []
@@ -576,24 +583,28 @@ def test_analysis_writes_no_policy_record(tmp_path, synthetic):
         statuses.append(app.analyze(step)["status"])
         assert policy_writes(app) == []
         assert policy_rows(app) == before
-    assert statuses == ["recorded", "updated", "updated", "not_due", "inspected"]
+    assert statuses == ["recorded", "updated", "updated", "not_due", "not_due", "inspected"]
     assert evidence_revision(app, scope) != revision
 
 
-def test_maintenance_follow_up_analysis_writes_no_policy_record(tmp_path, synthetic):
-    """EC-LEARN-1 "Under existing policy" (D new, SL-3), for the follow-up analysis."""
+@pytest.mark.parametrize("run", ["retire", "retire_and_prompt"])
+def test_maintenance_follow_up_analysis_writes_no_policy_record(tmp_path, synthetic, run):
+    """EC-LEARN-1 "Under existing policy" (D new, SL-3), for the follow-up analysis. The
+    run retires an expired archive and writes no notice (`retire`), or also writes an
+    archive prompt for a 30-day-old item (`retire_and_prompt`)."""
     store = learning_store(tmp_path / "route.db", synthetic)
     app, scope = store.app, store.scope
-    # An item 30 days old when the run comes, so the run writes an archive prompt too.
     synthetic.now = store.archived + 366 * DAY
-    stage(app, scope, str(uuid4()), b"synthetic task", created=synthetic.now - 30 * DAY)
+    if run == "retire_and_prompt":
+        stage(app, scope, str(uuid4()), b"synthetic task", created=synthetic.now - 30 * DAY)
     before = policy_rows(app)
     assert len(before) == 7 and before["policy_records"] and before["policy_uses"]
     watch_policy_writes(app)
     revision = evidence_revision(app, scope)
     result = app.maintain(maintenance(scope))
-    assert result["status"] == "completed" and result["processed"] == 2
-    assert [n["kind"] for n in result["notices"]] == ["archive_prompt"]
+    prompted = run == "retire_and_prompt"
+    assert result["status"] == "completed" and result["processed"] == 1 + prompted
+    assert [n["kind"] for n in result["notices"]] == ["archive_prompt"] * prompted
     # The follow-up ran over the prior evidence and saved new evidence.
     assert evidence_revision(app, scope) != revision
     assert policy_writes(app) == []
@@ -614,7 +625,8 @@ def test_identical_inputs_give_the_same_later_discovery_and_route(
     both, so the identities and the trace digests that cover them are compared as well.
     The later requests are: a discovery with no catalog resource and a route linked to it;
     an unlinked route; a discovery that selects guidance and a route linked to it; the
-    failed run's route sent again; and a retry of that failed run.
+    failed run's route sent again; a retry of that failed run; and the guided discovery
+    sent again.
     """
     original = tmp_path / "original"
     store = learning_store(original / "route.db", synthetic)
@@ -706,8 +718,11 @@ def test_identical_inputs_give_the_same_later_discovery_and_route(
             ),
             route_task(app, store.route, failed_task, failed_request),
             route_task(app, retry, failed_task, "00000000-0000-4000-8000-000000000108"),
+            # The guided discovery sent again: the stored result comes back.
+            discover(app, guided, "00000000-0000-4000-8000-000000000106"),
         ]
-    found, linked, plain, selected, guided_linked, again, retried = later["before"]
+    found, linked, plain, selected, guided_linked, again, retried, repeated = later["before"]
+    assert repeated == selected
     assert found["status"] == "no_optional_guidance"
     assert selected["status"] == "selected_guidance" and selected["details"]["guidance_refs"]
     assert guided_linked["details"]["discovery_ref"] == linkage(selected)
@@ -765,7 +780,12 @@ def test_import_and_restore_write_saved_text_back_unchecked(tmp_path, synthetic,
         source.report({"envelope": envelope, "event": event})
     # The store holds it as saved before today's check: as raw task text, as raw output,
     # as recorded context and as a report.
-    identities = {kind: stage(source, scope, task, text.encode(), kind) for kind in RAW}
+    # Distinct bytes for each raw kind, each refused today.
+    saved = {"raw_task": text.encode(), "raw_output": (text + "\nsynthetic output").encode()}
+    for content in saved.values():
+        with pytest.raises(ContractError):
+            redact(content.decode())
+    identities = {kind: stage(source, scope, task, saved[kind], kind) for kind in RAW}
     source.storage.record_learning_context(scope, context_for(decision, task_group=text))
     assert (
         source.storage.ingest_report(
@@ -783,7 +803,7 @@ def test_import_and_restore_write_saved_text_back_unchecked(tmp_path, synthetic,
     imported = fresh.recover(recovery(scope, "import", key, bundle))
     assert imported["status"] == "imported" and imported["restored_count"] == len(RAW)
     for kind in RAW:
-        assert active_bytes(fresh, scope, task, kind) == [text.encode()]
+        assert active_bytes(fresh, scope, task, kind) == [saved[kind]]
     groups = fresh.analyze(analysis(scope))["groups"]
     assert [g["conditions"]["task_group"] for g in groups] == [text]
     events = fresh.storage.project_run(scope, event["execution_run_id"])["events"]
@@ -798,7 +818,7 @@ def test_import_and_restore_write_saved_text_back_unchecked(tmp_path, synthetic,
     for kind, (archived, _) in zip(RAW, archives, strict=True):
         restored = source.recover(recovery(scope, "restore", artifact=archived))
         assert restored["status"] == "restored" and restored["restored_count"] == 1
-        assert active_bytes(source, scope, task, kind) == [text.encode()]
+        assert active_bytes(source, scope, task, kind) == [saved[kind]]
 
 
 def test_completed_maintenance_whose_follow_up_refuses_stored_objectives_answers_invalid_input(
@@ -845,51 +865,62 @@ def test_completed_maintenance_whose_follow_up_refuses_stored_objectives_answers
             (identity, synthetic.now),
         ).fetchone()
 
-    # A completed run with nothing to process answers the same way.
+    # A completed run with nothing to process answers the same way: invalid_input.
     synthetic.now += 1
-    with pytest.raises(ContractError, match="credential-like material"):
+    with pytest.raises(ContractError, match="credential-like material") as answer:
         app.maintain(maintenance(scope))
+    assert isinstance(answer.value, ValueError) and "conflict" not in str(answer.value)
 
 
-@pytest.mark.parametrize("split", ["holdout", "regression"])
-def test_deleted_supporting_data_restores_no_earlier_verified_policy(tmp_path, synthetic, split):
+def test_deleted_supporting_data_restores_no_earlier_verified_policy(tmp_path, synthetic):
     """EC-LEARN-3 "Policy validation becomes stale without automatic rollback" (D new,
-    SL-3): with an earlier verified policy, none restored. The deleted task supports the
-    later policy as a holdout case, or as a regression case."""
+    SL-3): with an earlier verified policy, none restored.
+
+    The later policy shares no supporting task with the earlier one, so the earlier one
+    stays verified and current whichever task goes. Each of the later policy's 200
+    supporting tasks (100 holdout cases, then 100 regression cases, the last one recorded
+    included) is deleted in turn, each in its own copy of the store.
+    """
     _, route, scope = inputs()
-    app = application(tmp_path / "route.db", scope, synthetic, policy=True)
-    tasks = [str(uuid4()) for _ in range(201)]
+    template = tmp_path / "template"
+    app = application(template / "route.db", scope, synthetic, policy=True)
+    tasks = [str(uuid4()) for _ in range(400)]
     for task in tasks:
         seed_task(app.storage, scope, task)
     first = promote(app, scope, definition("one", "execution-ceilings-v1", route, tasks[:200]))
-    # The later policy differs from the earlier one in a single supporting task: its first
-    # holdout case (index 0) or its first regression case (index 100).
-    index = 0 if split == "holdout" else 100
-    supporting = [*tasks[:index], tasks[200], *tasks[index + 1 : 200]]
-    second = promote(app, scope, definition("two", "one", route, supporting))
-    assert inspect_policy(app, second)["definition"]["cases"][index]["split"] == "policy_" + split
+    second = promote(app, scope, definition("two", "one", route, tasks[200:]))
     earlier = inspect_policy(app, first)
     assert earlier["policy_status"] == "evaluated" and earlier["reasons"] == []
-    assert inspect_policy(app, second)["previous_policy_revision"] == "one"
+    later = inspect_policy(app, second)
+    assert later["previous_policy_revision"] == "one"
+    supporting = [case["task_id"] for case in later["definition"]["cases"]]
+    assert supporting == tasks[200:]
     routed = route_task(app, route, str(uuid4()), str(uuid4()))
     assert routed["status"] == "ready"
     assert routed["details"]["versions"]["policy_revision"] == "two"
 
-    assert app.delete_task(scope, tasks[200])["status"] == "deleted"
-    later = inspect_policy(app, second)
-    assert later["policy_status"] == "stale" and later["reasons"] == ["supporting_data_deleted"]
-    for _ in range(2):
-        routed = route_task(app, route, str(uuid4()), str(uuid4()))
-        assert routed["status"] == "routing_failed"
-        assert routed["error_code"] == "policy_verification_required"
-    assert inspect_policy(app, first) == earlier
+    for position, task in enumerate(supporting):
+        copied = tmp_path / "deleted"
+        shutil.copytree(template, copied)
+        store = application(copied / "route.db", scope, synthetic, policy=True)
+        assert store.delete_task(scope, task)["status"] == "deleted"
+        stale = inspect_policy(store, second)
+        assert stale["policy_status"] == "stale", position
+        assert stale["reasons"] == ["supporting_data_deleted"], position
+        for _ in range(2):
+            routed = route_task(store, route, str(uuid4()), str(uuid4()))
+            assert routed["status"] == "routing_failed", position
+            assert routed["error_code"] == "policy_verification_required", position
+        assert inspect_policy(store, first) == earlier, position
+        shutil.rmtree(copied)
 
 
-@pytest.mark.parametrize("content", [AWKWARD, TEXT], ids=["invalid-utf8", "utf8"])
+@pytest.mark.parametrize("content", [AWKWARD, TEXT, BOM], ids=["invalid-utf8", "utf8", "utf8-bom"])
 @pytest.mark.parametrize("kind", ["raw_task", "raw_output", "context"])
 def test_restored_bytes_equal_the_original(tmp_path, synthetic, kind, content):
     """EC-LEARN-3 "Restoration" (D new, SL-3): restored bytes equal the original, for
-    bytes that are not text and for valid UTF-8 text, each with every line ending."""
+    bytes that are not text, for valid UTF-8 text and for that text after a byte-order
+    mark, each with every line ending."""
     _, route, scope = inputs()
     app = application(tmp_path / "route.db", scope, synthetic)
     task = str(uuid4())
@@ -950,6 +981,11 @@ def test_backup_deletion_records_are_honoured_in_a_fresh_store(tmp_path, synthet
     fresh = application(tmp_path / "fresh" / "route.db", scope, synthetic)
     for bundle in [earlier, later] if order == "deletions_last" else [later, earlier]:
         assert fresh.recover(recovery(scope, "import", key, bundle))["status"] == "imported"
+        if bundle is later:
+            # Straight after this import, the destination holds the objective's tombstone.
+            held = fresh.recover(recovery(scope, "backup", key))["encrypted_bundle"]
+            objectives = json.loads(decrypt_archive(held.encode(), key))["objectives"]
+            assert objectives == {link["work_objective_id"]: True}
     expected = set() if order == "tombstones_only" else {kept["details"]["task_id"]}
     assert analysed(fresh, scope) == expected
     for decision in removed:
