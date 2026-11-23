@@ -330,9 +330,9 @@ applies on its terms: a possibility, not a request.
   `maintenance.py:395`, `:249`, `:212`, `:157-159`; `storage.py:2232`). A
   restored copy archived after its earlier archive has expired, by the rule of
   `maintenance.py:157`, expires one year after that archival, whatever the order
-  and timing of runs. For Consiliency/jevdrill#128: for an archive the query
-  admits, the first run in its last seven days, unless paused, cancelled or busy
-  at start, writes its notice wherever the cursor is, even if stopped early;
+  and timing of runs. For Consiliency/jevdrill#128: for an archive the run's
+  filters admit, in any page, the first run in its last seven days, unless
+  paused, cancelled or busy at start, writes its notice, even if stopped early;
   retirement never waits for one. No contract or schema change. The control
   fails if the content cannot be restored with its original bytes before a year
   from that archival, or still can after a run past that year: in #125's
