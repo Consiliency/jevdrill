@@ -1,19 +1,23 @@
 """JEV-side HOST controls, entered through ``Application.route`` (HOST plan, SL-1).
 
 No request leaves the runner: every test injects a judgment port, so
-``Application`` never builds the real ``JevAdapter``, and
+``Application`` never judges with the real ``JevAdapter`` (it builds one only to
+bound candidate size, which renders a request locally and sends nothing), and
 no test reads a credential or opens a socket. Each control has a sibling case in
-which the guarded condition is absent and the same stand-in is reached, so the
-assertion can fail.
+which the guarded condition is absent and the observed outcome differs (a judge
+call, an applied policy order, a mismatch row), so the assertion can fail.
 """
 
 import json
+from copy import deepcopy
 from pathlib import Path
 from uuid import uuid4
 
 import pytest
 
 from jevdrill.application import Application
+from jevdrill.contracts import canonical_digest
+from jevdrill.routing import candidate_fingerprint
 from jevdrill.storage import SQLiteStorage
 
 REFRESH_ADVICE = ["Refresh the host-supplied authorized inventory."]
@@ -44,7 +48,7 @@ def judgment_policy():
 
 
 class RecordingJudge:
-    """Stand-in judgment port: records each call and answers every candidate True."""
+    """Stand-in judgment port: records each call."""
 
     model_revision = "jev-latest"
 
@@ -82,26 +86,52 @@ def test_recursion_bypass_makes_no_judgment_call(tmp_path, bypass):
 
 
 @pytest.mark.parametrize("mode", ["dry_run", "main"])
-def test_dry_run_is_never_ordered_by_learned_policy(tmp_path, mode):
+def test_dry_run_is_never_ordered_by_learned_policy(tmp_path, monkeypatch, mode):
     """EC-HOST-1 dry-run clause, ORDERING HALF ONLY: a dry run never reaches learned
     policy ordering. Whether a dry run's terminal report is counted as a completed
     run is not tested here: Consiliency/jevdrill#109."""
     value = inputs()
     value["request"]["execution_mode"] = mode
-    grouped = []
+    candidates = value["inventory"]["candidates"]
+    cheaper = candidates[0]
+    preferred = deepcopy(cheaper)
+    preferred.update(
+        candidate_id="preferred", model_id="preferred", resolved_model_revision="preferred-v1"
+    )
+    preferred["rates"].update(input_rate="0.01", output_rate="0.01")
+    candidates.append(preferred)
+    # Prepared candidate ids carry the digest of their optional guidance (none here).
+    suffix = canonical_digest([])[:12]
+    calls = []
 
-    def task_group(request):
-        # Recording only; the implicit None means "no task group", so ordering stops here.
-        grouped.append(request["execution_mode"])
+    def ordering(scope, group, objective, request_id, task_id):
+        # Stand-in for the lifecycle's ordering: an available policy preferring the
+        # candidate the router would not otherwise choose. No policy store is built.
+        calls.append(group)
+        return {
+            "status": "ready",
+            "policy_revision": "host-test-policy",
+            "evidence_digest": "a" * 64,
+            "candidate_order": [
+                {
+                    "candidate_id": f"{row['candidate_id']}:{suffix}",
+                    "candidate_fingerprint": candidate_fingerprint(row),
+                }
+                for row in (preferred, cheaper)
+            ],
+        }
 
     app = Application(
         SQLiteStorage(tmp_path / "route.db"),
         judgments=ForbiddenJudge(),
-        policy_task_group=task_group,
+        policy_task_group=lambda request: "host-test-group",
     )
+    monkeypatch.setattr(app.policy_lifecycle, "ordering", ordering)
     result = app.route(value)
     assert result["status"] == "ready"
-    assert grouped == ([] if mode == "dry_run" else ["main"])
+    assert calls == ([] if mode == "dry_run" else ["host-test-group"])
+    chosen = cheaper if mode == "dry_run" else preferred
+    assert result["execution_plan"]["model_id"] == chosen["model_id"]
 
 
 @pytest.mark.parametrize("runtime", [["text", "tools"], ["text"]], ids=["mismatch", "match"])
