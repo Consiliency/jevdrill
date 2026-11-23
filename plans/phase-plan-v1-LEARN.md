@@ -9,9 +9,9 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
 > and three seats (correctness, security and privacy, alternate vendor); one
-> round and a confirmation. Pull request: Consiliency/jevdrill#92. Amended to
-> add SL-7 (Consiliency/jevdrill#122) and SL-8 (Consiliency/jevdrill#126,
-> #131). This is a reviewed plan. It verifies no criterion.
+> round and a confirmation. Pull request: Consiliency/jevdrill#92; amended by
+> #122 (SL-7), #126 and #131 (SL-8), and #143 (SL-9). A reviewed plan; it verifies
+> no criterion.
 
 ## Context
 
@@ -19,8 +19,8 @@ This plan revises LEARN against the amended roadmap, EC-LEARN-1 to 5 and
 IF-0-LEARN-1. The October plan at the tag `pr1-final-record` was reviewed only
 by its planner and is not accepted as the required revision.
 
-The LEARN code is on `main`: the roadmap's two lanes have landed, and the eight
-here are what remains. SL-1 to SL-3, SL-7 and SL-8 need only GitHub CI; the rest
+The LEARN code is on `main`: the roadmap's two lanes have landed, and the nine
+here are what remains. SL-1 to SL-3 and SL-7 to SL-9 need only GitHub CI; the rest
 waits for the host integration and HOST's verifier. Nothing here runs a
 collector, requests a host run, spends money or closes a gate.
 
@@ -28,9 +28,6 @@ Length exception: every clause is mapped to code, control, falsifier and
 evidence kind.
 
 ## State of `main` at `d58e52e85`
-
-The stack pull requests that put LEARN on `main` are listed in
-`plans/pr1-stack-split-20261119.md`.
 
 `unit.yml` runs the LEARN tests on three platforms, deselecting for good the
 one that needs the host integration,
@@ -46,9 +43,7 @@ installed scheduler or real key store.
 
 ## External Inputs
 
-- Host integration, inspected: as in the HOST plan (draft
-  Consiliency/agent-harness#2071 at `784d1595a08f42519862ae5f9336f20186d83c4b`,
-  unchanged on 2026-11-22).
+- Host integration, inspected: the draft in the HOST plan.
 - JEV Drill on Python 3.14 (`pyproject.toml:9`); BAML `baml-language-0.20.1`
   and `baml-bridge==0.20.1`; `cryptography` 50.0.2 and `keyring` 25.7.0 as
   locked in `uv.lock`, within `pyproject.toml:10`.
@@ -101,7 +96,7 @@ verified.
 | Encrypted archival; never archive unencrypted | `maintenance.py:170-224`; `integrations/archive.py:17-24` | main the active-grace and key-failure tests, `test_retention.py::test_archive_crash_retry_keeps_source_until_durable_verification`, `::test_archive_tamper_cannot_restore` | Plaintext in an archive, or an archive made without a key | simulated; native CI run |
 | One-year expiry notices | `maintenance.py:153-159` | main the active-grace test; D new, SL-2: a failing item leaves the others on time (Consiliency/jevdrill#45); re-archived content expires and is announced one year after its first archival (#46); D new, SL-8 | A notice missing or misdated before expiry; a restored copy archived after its earlier archive expired, lost before a year from that archival; an earlier failing item unreported or abandoned; later healthy content kept past expiry; unverified content retired | native CI run |
 | Restoration | `maintenance.py:366-401` | main `tests/maintenance/test_recovery.py::test_native_archive_restore_and_portable_archive_export`, the tamper test; D new, SL-3: restored bytes equal the original | Restored bytes that differ, or a tampered or deleted archive restored | native CI run |
-| Deletion propagation | `storage.py:1045-1049`; `delete_task` `storage.py:2384-2397` | main the active-grace and native-restore tests; `test_observations.py::test_source_digest_recheck_prevents_deleted_analysis_commit`; `tests/storage/test_learning.py::test_deletion_preserves_unrelated_project_evidence_and_objective_history`; D new, SL-2: deletion while another connection reads (Consiliency/jevdrill#21); an archived copy's file gone after task deletion | Deleted content, archived copies included, left on disk, readable or analysed; `deleted` reported while a payload stays in the write-ahead log, or erasure still incomplete after the reader closes and deletion is retried | native CI run |
+| Deletion propagation | `storage.py:1045-1049`; `delete_task` `storage.py:2384-2397` | main the active-grace and native-restore tests; `test_observations.py::test_source_digest_recheck_prevents_deleted_analysis_commit`; `tests/storage/test_learning.py::test_deletion_preserves_unrelated_project_evidence_and_objective_history`; D new, SL-2: deletion while another connection reads (Consiliency/jevdrill#21); an archived copy's file gone after task deletion; D new, SL-9 | Deleted content, archived copies included, left on disk, readable or analysed; `deleted` reported while a payload stays in the write-ahead log, or erasure still incomplete after the reader closes and deletion is retried; metadata or a notice of a deleted discovery left in the store | native CI run |
 | Missing credentials, headless Linux included, keep content pending with notices | `maintenance.py:170-173`; `storage.py:2311` | main the key-failure test [3] | Content removed, or no notice, without a key | simulated; native CI run |
 | Inspectable export, import and backup verify integrity and portable keys | `maintenance.py:403-439`; `storage.py:1115`, `:1211` | main `test_recovery.py::test_portable_export_backup_import_preserves_lineage_and_deletion_precedes_sources`, `::test_malformed_or_conflicting_import_rejects_transactionally` [6] | A tampered or conflicting bundle importing anything | native CI run |
 | Deletion records applied before restored or imported analysis | `storage.py:1211` | main the portable-export test; `test_recovery.py::test_imported_optout_never_reenables_analysis_or_policy_validation`; D new, SL-3: a backup's own deletion records honoured in a fresh store | A tombstoned objective or task, or an opted-out task, analysed after import | native CI run |
@@ -198,11 +193,12 @@ applies on its terms: a possibility, not a request.
 - SL-1 — Shared-record fingerprint; Depends on: (none); Blocks: SL-4; Parallel-safe: no
 - SL-2 — Deletion, retention and scheduler fixes; Depends on: (none); Blocks: SL-4; Parallel-safe: no
 - SL-3 — LEARN-side controls; Depends on: (none); Blocks: SL-4; Parallel-safe: no
-- SL-4 — Verifier and workflow; Depends on: SL-1, SL-2, SL-3, SL-7, SL-8, HOST's verifier lane on `main`; Blocks: SL-5; Parallel-safe: no
+- SL-4 — Verifier and workflow; Depends on: SL-1, SL-2, SL-3, SL-7, SL-8, SL-9, HOST's verifier lane on `main`; Blocks: SL-5; Parallel-safe: no
 - SL-5 — Expected-test lists; Depends on: SL-4 and one dispatched run; Blocks: SL-6; Parallel-safe: no
 - SL-6 — Readiness doc; Depends on: SL-5 and one dispatched run; Blocks: (none); Parallel-safe: no
 - SL-7 — Revisions digest in shared records; Depends on: SL-1; Blocks: SL-4; Parallel-safe: no
 - SL-8 — Restored content kept; Depends on: SL-2, SL-7; Blocks: SL-4; Parallel-safe: no
+- SL-9 — Discovery erasure; Depends on: SL-8; Blocks: SL-4; Parallel-safe: no
 
 ## Lanes
 
@@ -271,7 +267,13 @@ applies on its terms: a possibility, not a request.
   pinned commit's fixtures, keeping its checks and witness; if the pin cannot
   support them, that row is not covered.
 - **Delivers:** the held verifier, tests and workflow with every declared
-  change below; its reducer tests pass in CI. On `main`, its writer
+  change below; its reducer tests pass in CI. They fail if a part over its
+  bound, parts not summing to the collection's time, or a receipt lacking part
+  times passes; a control is missing or counted
+  from two sources; the inherited call differs from HOST's; the inherited
+  interval is not the HOST call's, start to return; or a LEARN
+  child sees more than HOST's child allowlist and an empty home, or the HOST call
+  starts from a changed environment. On `main`, its writer
   dispatches `learn.yml` with the pinned SHA and records the run, which has no
   lists yet and so produces no gate.
 
@@ -330,10 +332,11 @@ applies on its terms: a possibility, not a request.
   `maintenance.py:395`, `:249`, `:212`, `:157-159`; `storage.py:2232`). A
   restored copy archived after its earlier archive has expired, by the rule of
   `maintenance.py:157`, expires one year after that archival, whatever the order
-  and timing of runs. For Consiliency/jevdrill#128: for an archive the run's
-  filters admit, in any page, the first run in its last seven days, unless
-  paused, cancelled or busy at start, writes its notice, even if stopped early;
-  retirement never waits for one. No contract or schema change. The control
+  and timing of runs. For Consiliency/jevdrill#128, for an archive the run's
+  filters admit, in any page, while the archive is still in its last seven
+  days: the first run, unless paused, cancelled or busy at start, writes its
+  notice; a run out of time keeps those it wrote, following runs the rest
+  (#139). Retirement never waits for one. No contract or schema change. The control
   fails if the content cannot be restored with its original bytes before a year
   from that archival, or still can after a run past that year: in #125's
   sequence in either order, with the two items reached in different runs, or at
@@ -341,6 +344,22 @@ applies on its terms: a possibility, not a request.
   the archive expires stops keeping that expiry; if such a run leaves no expiry
   notice, or a run keeps an expired archive for want of one; or if anything
   unverified is retired.
+
+### SL-9 — Discovery erasure
+
+- **Owned files:** `src/jevdrill/storage.py` (`delete_discovery`, import of
+  deletion records, their callees), `tests/storage/test_discovery_erasure.py`
+  (new).
+- **Delivers:** fix lane for Consiliency/jevdrill#138, #144
+  and #21's `delete-discovery` half. A finished
+  deletion, requested or imported, leaves neither the discovery's recovered
+  metadata nor a notice row naming its items in the store's files; until then
+  it answers as `delete_task` since SL-2. No contract or schema change. The
+  control fails if, after a finished deletion, its domain label is
+  in a store file, an item identity of it in a notice, or either in a store that
+  imported the discovery and then its deletion record; if it answers finished
+  while a reader blocks the checkpoint; or if another discovery's metadata or
+  notices go.
 
 ## Verification
 
@@ -353,7 +372,7 @@ uv run python -m pytest -q tests/analysis tests/maintenance tests/retention test
 Deliverables (the verifier commands are `learn.yml` steps):
 
 ```sh
-uv run python -m pytest -q tests/privacy/test_shared_records.py tests/maintenance/test_lifecycle_faults.py tests/storage/test_wal_erasure.py tests/application/test_learning_limits.py
+uv run python -m pytest -q tests/privacy/test_shared_records.py tests/maintenance/test_lifecycle_faults.py tests/storage/test_wal_erasure.py tests/application/test_learning_limits.py tests/storage/test_discovery_erasure.py
 uv run python -m pytest -q tests/verification/test_learn_phase.py
 uv run python scripts/verify_learn_phase.py --local-only --agent-harness .host/companion
 uv run python scripts/verify_learn_phase.py --reduce-only --agent-harness .host/companion
@@ -377,12 +396,13 @@ witness; the inherited HOST receipts, by the HOST verifier; three native
 receipts from one run, each naming its runner, command, platform, versions and
 result; the companion at the pinned commit, clean, and the jevdrill checkout unchanged after its code ran; the extras
 against each platform's list; module provenance; the coverage record and a
-`no_spec_delta` closeout; the 600-second bound, flagging proof over five
-minutes; a malformed receipt reported, not raised. A clause of
-EC-LEARN-1 to 5 that is not covered is reported so, never as passed, and blocks
-IF-0-LEARN-1. Five HOST clauses are not covered today, so the inherited HOST
-part would not produce IF-0-HOST-1; while that holds, IF-0-LEARN-1 is not
-produced.
+`no_spec_delta` closeout; each part's time recorded: HOST's call
+within its two bounds, LEARN's part within 600 seconds;
+flagging proof over five minutes; a malformed receipt reported, not raised. A
+clause of EC-LEARN-1 to 5 that is not covered is reported so, never as passed,
+and blocks IF-0-LEARN-1. HOST clauses are not covered today
+(`evidence/HOST/coverage.json:54`), so the inherited HOST part would not produce
+IF-0-HOST-1; while that holds, IF-0-LEARN-1 is not produced.
 
 **It reads** the jevdrill checkout and the companion checkout at the pinned
 commit. **It writes** `evidence/LEARN/platforms/` and
@@ -424,6 +444,9 @@ artifact of the run that made it and is never committed.
     holds the lock and encryption of EC-LEARN-2 and 3.
 11. The spec-delta record is re-made in the roadmap's words. Reason: the tag's
     names paths the roadmap does not.
+12. As HOST's change 17: one unmodified HOST call, all else LEARN's part in
+    LEARN's own commands, no test in two. Reason: `host.yml` run 45279806415,
+    638.98 seconds on macOS.
 
 ## Acceptance Criteria
 
@@ -452,6 +475,11 @@ artifact of the run that made it and is never committed.
   output and context content.
 - That import or restore checks the text it writes back.
 - That a measurement's text is checked for more than credential-like material.
+- That a deleted discovery's item identities, as references or unsalted digests
+  a catalog holder can map back, are gone from the decisions and retries of
+  tasks routed with it or from notices copied into decisions, or that request
+  text such a task supplied is gone: those records go when their task is
+  deleted.
 - Ratified review, publication, adoption or release readiness.
 
 ## Attached backlog
@@ -461,7 +489,8 @@ artifact of the run that made it and is never committed.
 | Consiliency/jevdrill#86 (shared-record fingerprint) | Fix lane, SL-1, by the owner's decision; fix lane, SL-7, for `discovery_revisions` |
 | Consiliency/jevdrill#21, #45 (both contradict EC-LEARN-3), #46, #52 | Fix lanes, SL-2 |
 | Consiliency/jevdrill#125 | Fix lane, SL-8 |
-| Consiliency/jevdrill#128 | Fix lane, SL-8 |
+| Consiliency/jevdrill#128, #139 | Fix lane, SL-8 |
+| Consiliency/jevdrill#138, #144, #21 | Fix lane, SL-9 |
 | Consiliency/jevdrill#53, #58 (recovery and maintenance as ratified) | Verified as built by SL-3's controls; stated limits; the issues stay open as records |
 | Consiliency/jevdrill#74 for `learn.yml`, and the changes ruled earlier for this cut (declared changes 1 to 5) | Fix lane, SL-4 |
 | The held spec paragraph | Plan text and a "may not claim" line |
@@ -471,7 +500,7 @@ artifact of the run that made it and is never committed.
 ## Owner inputs
 
 - **Who takes the host integration to a merged state**, as in the HOST plan.
-  Without it only SL-1 to SL-3, SL-7 and SL-8 can run.
+  Without it only SL-1 to SL-3 and SL-7 to SL-9 can run.
 - **Closing the LEARN gate**, including whether generated scheduler
   configuration and simulated key-store states satisfy EC-LEARN-2 and 3 under
   `specs/phase-plans-v1.md:354`, and what to do about each clause not covered,
