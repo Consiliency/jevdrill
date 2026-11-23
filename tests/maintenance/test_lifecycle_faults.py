@@ -747,3 +747,49 @@ def test_128_a_wave_cut_off_part_way_keeps_its_notices_and_the_next_run_finishes
     result = Maintenance(store, lambda _: KEY, lambda: clock[0]).run(request(scope))
     assert announced(app, scope, context, archives, expiry)
     assert result["processed"] == 1  # the item's archive prompt: the run reached the items
+
+
+class DeletesBeforeWriting(Maintenance):
+    """A run whose notice pass has read its wave; before the first expiry notice is
+    written, `delete` commits (as another process's deletion would)."""
+
+    def __init__(self, storage, clock, delete):
+        super().__init__(storage, lambda _: KEY, clock)
+        self.delete = delete
+
+    def _notice_payload(self, pair, task, kind, identity, deadline):
+        if kind == "archive_expiry" and self.delete is not None:
+            self.delete, delete = None, self.delete
+            delete()
+        return super()._notice_payload(pair, task, kind, identity, deadline)
+
+
+def test_128_no_notice_for_an_archive_erased_after_the_wave_was_read(tmp_path, discovery_inputs):
+    """A discovery's deletion retires its archive after the notice pass read the wave and
+    before it writes; no notice is written for the erased archive."""
+    app, scope, context, _ = case(tmp_path, discovery_inputs)
+    discovery = context["discovery_ref"]
+    store, pair = app.storage, app.storage._task_scope(scope)
+    source = store.stage_artifact(
+        scope,
+        discovery["discovery_id"],
+        b"an item linked to the discovery",
+        kind="raw_task",
+        retention="active",
+        encryption="none",
+        retain_raw_tasks=True,
+        discovery_id=discovery["discovery_id"],
+        created_at=100,
+    )
+    clock = [START]
+    due(app, scope, clock).run(request(scope))
+    archive, archived = archive_of(store, scope, source)
+    clock[0] = archived + 358 * DAY + 3600  # the first run in its last seven days
+    DeletesBeforeWriting(
+        store,
+        lambda: clock[0],
+        lambda: store.delete_discovery(
+            dict(scope, operation="discover"), discovery["work_objective_id"]
+        ),
+    ).run(request(scope))
+    assert expiry_notice(store, pair, discovery["discovery_id"], archive) is None

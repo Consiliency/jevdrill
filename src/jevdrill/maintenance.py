@@ -71,11 +71,24 @@ class Maintenance:
         pair = self.storage._task_scope(scope)
         notice = self._notice_payload(pair, task, kind, identity, deadline)
         with self.storage._connect(True) as c:
-            if self.storage._admit(c, pair, task):
-                c.execute(
-                    "INSERT OR REPLACE INTO lifecycle_notices VALUES (?,?,?,?)",
-                    (pair, task, notice["notice_id"], self.storage._encode(notice)),
-                )
+            if not self.storage._admit(c, pair, task):
+                return
+            # The artifact the notice names must still be held in this scope. A deletion
+            # that committed after the run read it (a discovery's, which retires its
+            # archives without deleting the task) leaves nothing to announce.
+            if (
+                identity is not None
+                and c.execute(
+                    "SELECT 1 FROM artifacts WHERE scope=? AND artifact_id=? AND retention!='retired'",
+                    (pair, identity),
+                ).fetchone()
+                is None
+            ):
+                return
+            c.execute(
+                "INSERT OR REPLACE INTO lifecycle_notices VALUES (?,?,?,?)",
+                (pair, task, notice["notice_id"], self.storage._encode(notice)),
+            )
 
     def _announce_expiries(self, scope: Mapping[str, str], now: float) -> None:
         """Write the expiry notice of each archive in its last seven days that has none (#128).
