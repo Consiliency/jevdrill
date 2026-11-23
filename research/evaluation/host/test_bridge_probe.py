@@ -1,6 +1,7 @@
 """Controlled executors through real host entrypoints and the installed JEV CLI.
 
-Run with the companion interpreter; the two BAML runtimes stay in separate processes.
+Run with the companion interpreter, through tests/conformance/conftest.py or an equally
+stripped environment; the two BAML runtimes stay in separate processes.
 Provider authentication and output are synthetic. Routing, reporting, launch construction,
 the final subprocess and durable storage use production implementations.
 """
@@ -12,6 +13,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.parse
 import urllib.request
 from copy import deepcopy
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -36,31 +38,42 @@ from test_jevdrill_adapter import FIXTURES, adapter_fixture
 from test_jevdrill_discovery import installed_discovery, linked_task  # noqa: F401
 
 CASES = json.loads(Path(__file__).with_name("protocol.json").read_text())["cases"]
+# grant: which side permits the fixture's capability. "both" launches; "neither" and the two
+# one-sided grants must be refused before launch (the host intersects declared and runtime).
+GRANTS = {
+    "both": (["text"], ["text"]),
+    "neither": ([], []),
+    "declared": (["text"], []),
+    "runtime": ([], ["text"]),
+}
 RUNS = [
-    (mode, True, index, False)
+    (mode, "both", index, False)
     for index, mode in enumerate(["main", "delegated", "lane", "main", "delegated", "lane"])
 ]
-RUNS += [(mode, True, index, True) for mode, index in [("main", 0), ("delegated", 2), ("lane", 4)]]
-RUNS += [(mode, False, 0, False) for mode in ("main", "delegated", "lane")]
+RUNS += [
+    (mode, "both", index, True) for mode, index in [("main", 0), ("delegated", 2), ("lane", 4)]
+]
+RUNS += [(mode, "neither", 0, False) for mode in ("main", "delegated", "lane")]
+RUNS += [("main", "declared", 0, False), ("main", "runtime", 0, False)]
 
 # Seeds one pending notice through JEV Drill's own archive path (no archive key), in a
-# JEV Drill process so that the two BAML runtimes stay apart. Prints the notice id.
+# JEV Drill process so that the two BAML runtimes stay apart. Reads it back through the
+# public notice query, requires exactly one, and prints its id.
 SEED_NOTICE = """
 import json, sys
 from pathlib import Path
-from uuid import NAMESPACE_URL, uuid5
-from jevdrill.contracts import canonical_digest
 from jevdrill.storage import SQLiteStorage
 store = SQLiteStorage(Path(sys.argv[1]))
 scope = dict(json.loads(sys.argv[2]), operation="route")
 store.archive(scope, "pending-notice-task", b"synthetic", lambda: None, lambda c, k: c)
-pair = store._task_scope(scope)
-print(uuid5(NAMESPACE_URL, canonical_digest([pair, "pending-notice-task", "archive_key_missing"])))
+(notice,) = store.load_notices(scope)
+print(notice["notice_id"])
 """
 
 
-@pytest.mark.parametrize("entrypoint,permitted,case_index,damaged", RUNS)
-def test_real_bridge(tmp_path, monkeypatch, entrypoint, permitted, case_index, damaged):
+@pytest.mark.parametrize("entrypoint,grant,case_index,damaged", RUNS)
+def test_real_bridge(tmp_path, monkeypatch, entrypoint, grant, case_index, damaged):
+    permitted = grant == "both"
     adapter, inputs, _, _, _, _ = adapter_fixture(tmp_path)
     adapter.transport = JevDrillTransport(
         (os.environ["JEVDRILL_TEST_PYTHON"], "-m", "jevdrill.cli"),
@@ -118,8 +131,7 @@ def test_real_bridge(tmp_path, monkeypatch, entrypoint, permitted, case_index, d
     ).stdout.split()
     delivered = []
     adapter.notice_sink = lambda notice: delivered.append(notice["notice_id"])
-    if not permitted:
-        adapter.capabilities_for = lambda _: ([], [])
+    adapter.capabilities_for = lambda _: GRANTS[grant]
     repo = make_repo(tmp_path)
     roadmap = repo / "specs/phase-plans-v1.md"
     plan = write_phase_plan(repo, "RUNNER", roadmap, owned_files=("notes.md",))
@@ -276,11 +288,13 @@ def test_real_bridge(tmp_path, monkeypatch, entrypoint, permitted, case_index, d
     assert entered == [entrypoint]
     assert len(completed) == int(permitted)
     if not permitted:
-        (Path(os.environ["JEVDRILL_TEST_ARTIFACTS"]) / f"permission-{entrypoint}.json").write_text(
+        artifacts = Path(os.environ["JEVDRILL_TEST_ARTIFACTS"])
+        (artifacts / f"permission-{entrypoint}-{grant}.json").write_text(
             json.dumps(
                 {
                     "control": "permission_denial",
                     "entrypoint": entrypoint,
+                    "grant": grant,
                     "entered": entered,
                     "launched": len(completed),
                 }
@@ -304,28 +318,84 @@ JUDGMENT_POLICY = {
     "token_counter_revision": "utf8-bytes-upper-bound-v1",
 }
 # JEV Drill's judge call reads `jevdrill.integrations.jev.JudgeCandidate`; this wrapper binds
-# it, and discovery, to the SDK's loopback mocks, which refuse a blank JEVDRILL_TEST_URL.
+# it, and discovery, to the SDK's loopback mocks, which refuse a blank JEVDRILL_TEST_URL. It
+# fails if either name is not the SDK function it expects to replace, so a rename cannot leave
+# the provider function in place.
 JUDGED_WRAPPER = """
 import baml_sdk
 import jevdrill.integrations.jev as bridge
 from jevdrill import cli
+assert bridge.ObserveDiscoveryOption is baml_sdk.ObserveDiscoveryOption
+assert bridge.JudgeCandidate is baml_sdk.ObserveCandidate
 bridge.ObserveDiscoveryOption = baml_sdk.MockObserveDiscoveryOption
 bridge.JudgeCandidate = baml_sdk.MockObserveCandidate
 raise SystemExit(cli.main())
 """
+# The instruction that opens every IsSuitable request (baml_src/jev.baml); a judgment request
+# carries it, and a discovery-option request carries an option row with a level.
+JUDGMENT_MARKER = "Judge whether this prospective execution configuration is suitable"
+PROXY_VARIABLES = (
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "ALL_PROXY",
+    "http_proxy",
+    "https_proxy",
+    "all_proxy",
+)
+
+
+def objects(value):
+    """Every JSON object in a request body, including objects embedded in its strings."""
+    if isinstance(value, dict):
+        yield value
+        for child in value.values():
+            yield from objects(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from objects(child)
+    elif isinstance(value, str):
+        for index, char in enumerate(value):
+            if char == "{":
+                try:
+                    child, _ = json.JSONDecoder().raw_decode(value[index:])
+                except ValueError:
+                    continue
+                if isinstance(child, dict):
+                    yield child
+
+
+def request_kind(body):
+    try:
+        parsed = json.loads(body)
+    except ValueError:
+        return None
+    if any("option_id" in row and "level" in row for row in objects(parsed)):
+        return "discovery"
+    if JUDGMENT_MARKER in json.dumps(parsed):
+        return "judgment"
+    return None
 
 
 def test_installed_flow_carries_a_judged_task(installed_discovery, tmp_path, monkeypatch):  # noqa: F811
     """One task of the installed two-task flow carries a JudgeCandidate-v2 policy.
 
-    No judgment request leaves the runner: the wrapper binds the judge to the loopback mock,
-    and the only URL it is given is this loopback server's. Discovery-option requests are
-    forwarded to the companion fixture's own loopback handler, which answers them as in its
-    own test; judgment requests are answered here and recorded.
+    No judgment request leaves the runner. The wrapper binds the judge to the loopback mock
+    and fails if the binding does not take; the only URL it is given is this loopback server's;
+    this test removes the provider key and every proxy variable itself, and forwards without a
+    proxy. Discovery-option requests are forwarded to the companion fixture's own loopback
+    handler, which answers them as in its own test; judgment requests are answered here and
+    recorded; a request of neither kind fails the test.
     """
     adapter, inputs, base, kwargs, _, _ = installed_discovery
     upstream = os.environ["JEVDRILL_TEST_URL"]
-    judgments = []
+    assert urllib.parse.urlsplit(upstream).hostname == "127.0.0.1"
+    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    for name in PROXY_VARIABLES:
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("NO_PROXY", "127.0.0.1,localhost")
+    monkeypatch.setenv("no_proxy", "127.0.0.1,localhost")
+    direct = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    judgments, unexpected = [], []
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_args):
@@ -333,14 +403,20 @@ def test_installed_flow_carries_a_judged_task(installed_discovery, tmp_path, mon
 
         def do_POST(self):
             body = self.rfile.read(int(self.headers["Content-Length"]))
-            if b"option_id" in body:
+            kind = request_kind(body)
+            if kind is None:
+                unexpected.append({"path": self.path, "bytes": len(body)})
+                self.send_response(500)
+                self.end_headers()
+                return
+            if kind == "discovery":
                 forwarded = urllib.request.Request(
                     upstream + self.path,
                     data=body,
                     method="POST",
                     headers={"Content-Type": "application/json"},
                 )
-                with urllib.request.urlopen(forwarded, timeout=5) as response:
+                with direct.open(forwarded, timeout=5) as response:
                     answer = response.read()
             else:
                 judgments.append({"path": self.path, "bytes": len(body)})
@@ -389,6 +465,7 @@ def test_installed_flow_carries_a_judged_task(installed_discovery, tmp_path, mon
         adapter.inputs_for = lambda _context: deepcopy(value)
         adapter.prepare(mode="main", dry_run=False, **kwargs)
         decision = adapter.last_decision
+        assert unexpected == []
         assert decision["status"] == "ready" and len(judgments) == 1
         # What JEV Drill itself recorded for the decision: the replay bundle's judgment record.
         with sqlite3.connect(tmp_path / "jev.sqlite") as db:

@@ -6,7 +6,10 @@ def test_real_main_delegated_lane_constructors(host_conformance):
 
 def test_entered_permission_expansion_denials(host_conformance):
     rows = [r for r in host_conformance["records"] if r.get("control") == "permission_denial"]
-    assert {r["entrypoint"] for r in rows} == {"main", "delegated", "lane"}
+    assert sorted((r["entrypoint"], r["grant"]) for r in rows) == sorted(
+        [("main", "neither"), ("delegated", "neither"), ("lane", "neither")]
+        + [("main", "declared"), ("main", "runtime")]
+    )
     assert all(r["entered"] and not r["launched"] for r in rows)
 
 
@@ -37,3 +40,5 @@ def test_independent_checks_reject_entered_routed_artifacts(host_conformance):
             value = row[timing]
             assert isinstance(value, (int, float)) and not isinstance(value, bool)
             assert 0 <= value < bound
+        # Routing and reporting always take time; zero means the interval was not measured.
+        assert row["routing_ms"] > 0 and row["reporting_and_bridge_ms"] > 0

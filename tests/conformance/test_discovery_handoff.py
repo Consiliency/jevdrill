@@ -22,7 +22,7 @@ def test_installed_flow_carries_a_judged_task(host_conformance):
     assert len(rows) == 1
     row = rows[0]
     assert row["stored_function_revision"] == "JudgeCandidate-v2"
-    assert row["stored_judgments"] >= 1
+    assert row["stored_judgments"] == 1
     assert row["loopback_judgment_requests"] == 1
     assert row["decision_status"] == "ready" and row["routing_decision_id"]
 

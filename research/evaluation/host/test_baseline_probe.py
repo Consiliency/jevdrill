@@ -1,4 +1,8 @@
-"""Paired synthetic baselines; provider quality and observed token usage stay unknown."""
+"""Paired synthetic baselines; provider quality and observed token usage stay unknown.
+
+Run with the companion interpreter, through tests/conformance/conftest.py or an equally
+stripped environment.
+"""
 
 import json
 import os

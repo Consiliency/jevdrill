@@ -16,6 +16,38 @@ from jevdrill.evaluation import evaluate_host_artifact, validate_splits
 HOST_PROBES_WATCHDOG_SECONDS = 420
 # The one marker deselected from the other repository's tests (HOST plan, R4 and J6).
 DESELECTION = ("-m", "not dotfiles_integration")
+# The only parent variables a child sees: what an interpreter needs to start on Linux, macOS
+# and Windows. Everything else the children read is set below by name; nothing else passes,
+# so no credential, proxy or behaviour switch reaches the other repository's code.
+INHERITED_VARIABLES = (
+    "PATH",
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "TMPDIR",
+    "TEMP",
+    "TMP",
+    "SYSTEMROOT",
+    "SystemRoot",
+    "WINDIR",
+    "COMSPEC",
+    "PATHEXT",
+)
+
+
+def child_environment(home, **values):
+    """A child's whole environment: the allowlist, an empty home, and the named values."""
+    env = {name: os.environ[name] for name in INHERITED_VARIABLES if name in os.environ}
+    env.update(HOME=str(home), USERPROFILE=str(home), NO_PROXY="127.0.0.1,localhost")
+    env["no_proxy"] = env["NO_PROXY"]
+    env.update(values)
+    return env
+
+
+def last_test_id(text):
+    """The last pytest node id a verbose child printed, or None if it printed none."""
+    ids = [line.split(" ", 1)[0] for line in text.splitlines() if "::" in line.split(" ", 1)[0]]
+    return ids[-1] if ids else None
 
 
 def run_child(command, *, cwd, env, timeout, name):
@@ -35,12 +67,18 @@ def run_child(command, *, cwd, env, timeout, name):
             check=False,
         )
     except subprocess.TimeoutExpired as expired:
-        printed = "".join(
+        stdout, stderr = (
             part.decode(errors="replace") if isinstance(part, bytes) else (part or "")
             for part in (expired.stdout, expired.stderr)
         )
-        tail = "\n".join(printed.splitlines()[-40:])
-        pytest.fail(f"{name} exceeded its {timeout} s watchdog; last output:\n{tail}")
+        in_flight = last_test_id(stdout) or "none printed (collection or setup)"
+        pytest.fail(
+            f"{name} exceeded its {timeout} s watchdog; last test id: {in_flight}\n"
+            + "stdout tail:\n"
+            + "\n".join(stdout.splitlines()[-30:])
+            + "\nstderr tail:\n"
+            + "\n".join(stderr.splitlines()[-30:])
+        )
 
 
 @pytest.fixture(scope="session")
@@ -64,12 +102,10 @@ def host_conformance(tmp_path_factory):
     artifacts.mkdir()
     cli = Path(sys.executable).parent / ("jevdrill.exe" if os.name == "nt" else "jevdrill")
     assert cli.is_file()
-    env = {
-        k: v
-        for k, v in os.environ.items()
-        if not k.endswith(("_API_KEY", "_TOKEN", "_SECRET")) and k != "PYTHONHOME"
-    }
-    env.update(
+    home = tmp / "home"
+    home.mkdir()
+    env = child_environment(
+        home,
         JEVDRILL_TEST_CLI=str(cli),
         JEVDRILL_TEST_PYTHON=sys.executable,
         JEVDRILL_TEST_ARTIFACTS=str(artifacts),
