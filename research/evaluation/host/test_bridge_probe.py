@@ -39,7 +39,8 @@ from test_jevdrill_discovery import installed_discovery, linked_task  # noqa: F4
 
 CASES = json.loads(Path(__file__).with_name("protocol.json").read_text())["cases"]
 # grant: which side permits the fixture's capability. "both" launches; "neither" and the two
-# one-sided grants must be refused before launch (the host intersects declared and runtime).
+# one-sided grants must be refused before launch. Both the host and JEV Drill intersect
+# declared and runtime, so these cases do not isolate the host's own intersection.
 GRANTS = {
     "both": (["text"], ["text"]),
     "neither": ([], []),
