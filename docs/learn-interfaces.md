@@ -97,9 +97,12 @@ Active raw task/output/context content is prompted at 30 days, archived after
 seven additional days, and expires one year after successful archival with
 seven-day advance notice. Content restored and archived again before its first
 archive expires keeps that archive and its expiry, and the expiry notice says so
-(Consiliency/jevdrill#46). Restored content can be destroyed in the run that
-archives it again if its first archive has expired by then
-(Consiliency/jevdrill#125). Measurements persist until explicit deletion. Each
+(Consiliency/jevdrill#46). Content restored and archived again after its first
+archive has expired gets a new archive, which expires one year after that
+archival, whatever the order and timing of runs (Consiliency/jevdrill#125).
+When more archives enter their last seven days than one run can announce, the
+rest are announced by the following runs, and nothing written is lost.
+Measurements persist until explicit deletion. Each
 is a number, or a reason from a fixed list when the value is unknown, with a
 metric name, version, method, unit and parent metric that the reporting host
 chooses; that text is checked only for credential-like material. Only
