@@ -1,0 +1,880 @@
+{
+  "schema_version": 2,
+  "phase": "HOST",
+  "claim_scope": "synthetic_conformance_only",
+  "note": "Each clause of the HOST plan's tables. A clause whose status is not_covered blocks the gate. scripts/verify_host_phase.py holds the same clauses, controls and counts as constants and rejects a record that disagrees.",
+  "clauses": {
+    "EC-HOST-1/validated-plans": {
+      "criterion": "EC-HOST-1",
+      "clause": "Main, delegated and lane execution apply validated plans",
+      "status": "covered",
+      "controls": [
+        "tests/conformance/test_launch_paths.py::test_real_main_delegated_lane_constructors",
+        "tests/test_jevdrill_adapter.py::test_real_runner_construction_sites_reach_bridge"
+      ]
+    },
+    "EC-HOST-1/substitutions": {
+      "criterion": "EC-HOST-1",
+      "clause": "Report substitutions and observations",
+      "status": "covered",
+      "controls": [
+        "tests/analysis/test_observations.py::test_substitution_preference_and_evaluation_are_distinct",
+        "tests/test_jevdrill_adapter.py::test_observed_substitution_is_not_attributed_to_selected_plan"
+      ]
+    },
+    "EC-HOST-1/permissions": {
+      "criterion": "EC-HOST-1",
+      "clause": "Preserve permission restrictions",
+      "status": "covered",
+      "controls": [
+        "tests/conformance/test_launch_paths.py::test_entered_permission_expansion_denials",
+        "tests/test_jevdrill_adapter.py::test_forged_capability_or_candidate_cannot_expand_authority"
+      ]
+    },
+    "EC-HOST-1/recursion": {
+      "criterion": "EC-HOST-1",
+      "clause": "Prevent recursive routing",
+      "status": "covered",
+      "controls": [
+        "tests/application/test_host_routing.py::test_recursion_bypass_makes_no_judgment_call",
+        "tests/test_jevdrill_adapter.py::test_dry_run_and_recursion_bypass_do_not_route"
+      ]
+    },
+    "EC-HOST-1/rerouting-context-bound": {
+      "criterion": "EC-HOST-1",
+      "clause": "Acceptance failures supply bounded rerouting context: JEV Drill's bound",
+      "status": "covered",
+      "controls": [
+        "tests/application/test_route_integration.py::test_retry_requires_recorded_run_and_remaining_attempt_authority"
+      ]
+    },
+    "EC-HOST-1/rerouting-context-host": {
+      "criterion": "EC-HOST-1",
+      "clause": "Acceptance failures supply bounded rerouting context: the host half",
+      "status": "not_covered",
+      "controls": [],
+      "reason": "The plan records that the host integration builds no retry_context; it only forwards one."
+    },
+    "EC-HOST-1/guidance-once": {
+      "criterion": "EC-HOST-1",
+      "clause": "Guidance not reinjected on retries",
+      "status": "covered",
+      "controls": [
+        "tests/test_jevdrill_adapter.py::test_guidance_is_verified_injected_once_and_deactivated"
+      ]
+    },
+    "EC-HOST-1/deactivation": {
+      "criterion": "EC-HOST-1",
+      "clause": "Deactivates at task end",
+      "status": "covered",
+      "controls": [
+        "tests/test_jevdrill_adapter.py::test_guidance_is_verified_injected_once_and_deactivated"
+      ]
+    },
+    "EC-HOST-1/host-limitations": {
+      "criterion": "EC-HOST-1",
+      "clause": "Deactivates at task end, reporting host limitations",
+      "status": "not_covered",
+      "controls": [],
+      "reason": "The plan records that the host integration sends every lifecycle reason as null."
+    },
+    "EC-HOST-1/dry-run-ordering": {
+      "criterion": "EC-HOST-1",
+      "clause": "Dry runs never become execution-success evidence: ordering",
+      "status": "covered",
+      "controls": [
+        "tests/application/test_host_routing.py::test_dry_run_is_never_ordered_by_learned_policy",
+        "tests/test_jevdrill_adapter.py::test_dry_run_and_recursion_bypass_do_not_route"
+      ]
+    },
+    "EC-HOST-1/dry-run-counting": {
+      "criterion": "EC-HOST-1",
+      "clause": "Dry runs never become execution-success evidence: counting",
+      "status": "covered",
+      "controls": [
+        "tests/storage/test_dry_run_evidence.py::test_cached_decision_is_reused_only_when_its_mode_matches",
+        "tests/storage/test_dry_run_evidence.py::test_no_dry_run_becomes_an_observation",
+        "tests/storage/test_dry_run_evidence.py::test_routing_and_storage_share_the_dry_run_code"
+      ]
+    },
+    "EC-HOST-2/one-queue": {
+      "criterion": "EC-HOST-2",
+      "clause": "Hooks and explicit reporting use one durable bounded queue",
+      "status": "covered",
+      "controls": [
+        "tests/test_jevdrill_queue.py::test_overflow_and_expiry_have_persistent_loss_counters",
+        "tests/conformance/test_transport_queue.py::test_entered_ack_loss_and_cross_producer_deletion"
+      ]
+    },
+    "EC-HOST-2/explicit-reports-same-queue": {
+      "criterion": "EC-HOST-2",
+      "clause": "That explicit reports enter the same queue",
+      "status": "not_covered",
+      "controls": [],
+      "reason": "No control shows it (plan, EC-HOST-2)."
+    },
+    "EC-HOST-2/redaction": {
+      "criterion": "EC-HOST-2",
+      "clause": "Redacted before persistence",
+      "status": "covered",
+      "controls": [
+        "tests/privacy/test_round41_learning.py::test_report_sensitive_map_key_rejects_before_persistence",
+        "tests/privacy/test_sink_proof.py::test_a_report_with_a_refused_identifier_is_refused_before_it_is_stored",
+        "tests/test_jevdrill_adapter.py::test_production_sanitizer_rejects_raw_fields_and_erases_free_text",
+        "tests/conformance/test_usage_reporting.py::test_installed_usage_persistence"
+      ]
+    },
+    "EC-HOST-2/acknowledgments": {
+      "criterion": "EC-HOST-2",
+      "clause": "Idempotent acknowledgments and recovery",
+      "status": "covered",
+      "controls": [
+        "tests/application/test_application.py::test_report_is_a_versioned_durable_acknowledgment",
+        "tests/test_jevdrill_queue.py::test_acknowledgment_loss_replays_exact_report",
+        "tests/test_jevdrill_queue.py::test_process_crash_windows_recover_durable_reports",
+        "tests/test_jevdrill_queue.py::test_only_matching_durable_acknowledgment_removes_report"
+      ]
+    },
+    "EC-HOST-2/mismatch-advice": {
+      "criterion": "EC-HOST-2",
+      "clause": "Capability mismatches include supported resolution advice",
+      "status": "covered",
+      "controls": [
+        "tests/application/test_host_routing.py::test_capability_mismatch_carries_supported_refresh_advice"
+      ]
+    },
+    "EC-HOST-2/disconnect-advice": {
+      "criterion": "EC-HOST-2",
+      "clause": "Disconnects include supported resolution advice",
+      "status": "not_covered",
+      "controls": [],
+      "reason": "The plan records that the host integration's outage test asserts a disposition only."
+    },
+    "EC-HOST-2/host-choices": {
+      "criterion": "EC-HOST-2",
+      "clause": "Host choices separate from check results",
+      "status": "covered",
+      "controls": [
+        "tests/analysis/test_observations.py::test_substitution_preference_and_evaluation_are_distinct"
+      ]
+    },
+    "EC-HOST-2/unknown-telemetry": {
+      "criterion": "EC-HOST-2",
+      "clause": "Unknown telemetry is not fabricated",
+      "status": "covered",
+      "controls": [
+        "tests/analysis/test_observations.py::test_missing_failed_canceled_corrected_and_unknown_observations",
+        "tests/test_jevdrill_usage.py::test_incomplete_drain_is_unknown_and_bounded",
+        "tests/test_jevdrill_discovery.py::test_native_unsupported_observer_records_unknown_capture",
+        "tests/conformance/test_usage_reporting.py::test_installed_usage_persistence"
+      ]
+    },
+    "EC-HOST-2/pending-notices": {
+      "criterion": "EC-HOST-2",
+      "clause": "Pending notices shown on the next connection",
+      "status": "covered",
+      "controls": [
+        "tests/storage/test_host_notices.py::test_notice_scope_reads_and_cross_producer_deletion",
+        "tests/application/test_host_notices.py::test_notice_snapshots_do_not_mutate_retry_or_replay",
+        "tests/conformance/test_notices.py::test_every_report_connection_queries_notices",
+        "tests/conformance/test_notices.py::test_pending_notice_reaches_the_notice_sink"
+      ]
+    },
+    "EC-HOST-3/contract-suites": {
+      "criterion": "EC-HOST-3",
+      "clause": "Linux, macOS and Windows contract suites pass",
+      "status": "covered",
+      "controls": [
+        "tests/contracts/test_host_contracts.py::test_host_shared_contract"
+      ]
+    },
+    "EC-HOST-3/independent-evaluations": {
+      "criterion": "EC-HOST-3",
+      "clause": "Independent implementation, review and documentation evaluations pass predefined correctness and privacy gates on development and validation splits",
+      "status": "covered",
+      "controls": [
+        "tests/evaluation/test_host_acceptance.py::test_independent_controlled_artifact_checks",
+        "tests/conformance/test_launch_paths.py::test_independent_checks_reject_entered_routed_artifacts"
+      ]
+    },
+    "EC-HOST-3/holdout-reserved": {
+      "criterion": "EC-HOST-3",
+      "clause": "Untouched holdout reserved for PREPARE",
+      "status": "covered",
+      "controls": [
+        "tests/evaluation/test_host_acceptance.py::test_frozen_groups_are_disjoint_and_holdouts_unopened"
+      ]
+    },
+    "EC-HOST-3/baselines-and-overhead": {
+      "criterion": "EC-HOST-3",
+      "clause": "Uncertainty and routing overhead against all applicable baselines (uncertainty recorded as insufficient_evidence)",
+      "status": "covered",
+      "controls": [
+        "tests/conformance/test_launch_paths.py::test_independent_checks_reject_entered_routed_artifacts"
+      ]
+    },
+    "EC-HOST-3/insufficient-evidence": {
+      "criterion": "EC-HOST-3",
+      "clause": "Insufficient evidence blocks performance claims",
+      "status": "covered",
+      "controls": [
+        "tests/evaluation/test_host_acceptance.py::test_frozen_groups_are_disjoint_and_holdouts_unopened"
+      ],
+      "reducer_checks": [
+        "witness performance_claims must be insufficient_evidence"
+      ]
+    },
+    "EC-HOST-3/live-evaluation": {
+      "criterion": "EC-HOST-3",
+      "clause": "A live development or validation evaluation",
+      "status": "outside_reading",
+      "controls": [],
+      "reason": "Outside the criterion as the plan reads it (\"Readings and points settled\"); none is authorized. Whether the synthetic reading closes EC-HOST-3 is the owner's decision at the gate."
+    },
+    "EC-HOST-4/installed-flow": {
+      "criterion": "EC-HOST-4",
+      "clause": "Installed flow takes an objective through discovery and returns selected guidance (with the JudgeCandidate-v2 task of declared change 14)",
+      "status": "covered",
+      "controls": [
+        "tests/test_jevdrill_discovery.py::test_installed_discovery_decomposition_two_task_launch",
+        "tests/test_jevdrill_discovery.py::test_installed_discovery_status_gates_planning[no_optional_guidance]",
+        "tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks",
+        "tests/conformance/test_discovery_handoff.py::test_installed_flow_carries_a_judged_task"
+      ],
+      "reducer_checks": [
+        "witness: exactly one judged task at JudgeCandidate-v2"
+      ]
+    },
+    "EC-HOST-4/harness-decomposes": {
+      "criterion": "EC-HOST-4",
+      "clause": "The harness decomposes it",
+      "status": "covered",
+      "controls": [
+        "tests/test_jevdrill_discovery.py::test_entered_discovery_requires_harness_decomposition",
+        "tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks"
+      ]
+    },
+    "EC-HOST-4/two-tasks": {
+      "criterion": "EC-HOST-4",
+      "clause": "At least two tasks routed independently",
+      "status": "covered",
+      "controls": [
+        "tests/application/test_discovery_application.py::test_public_discovery_two_independent_tasks_and_replay",
+        "tests/test_jevdrill_discovery.py::test_installed_discovery_decomposition_two_task_launch",
+        "tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks"
+      ]
+    },
+    "EC-HOST-4/links": {
+      "criterion": "EC-HOST-4",
+      "clause": "Objective, skill, task and decision links",
+      "status": "covered",
+      "controls": [
+        "tests/application/test_discovery_application.py::test_bad_links_never_enter_prepare",
+        "tests/conformance/test_discovery_handoff.py::test_entered_reference_deletion_revision_and_policy_controls",
+        "tests/test_jevdrill_discovery.py::test_entered_linked_launch_rejections"
+      ]
+    },
+    "EC-HOST-4/guidance-lifetime": {
+      "criterion": "EC-HOST-4",
+      "clause": "Guidance lifetime and substitutions",
+      "status": "covered",
+      "controls": [
+        "tests/test_jevdrill_adapter.py::test_guidance_is_verified_injected_once_and_deactivated",
+        "tests/test_jevdrill_discovery.py::test_installed_discovery_decomposition_two_task_launch"
+      ]
+    },
+    "EC-HOST-4/retain-model-refusal": {
+      "criterion": "EC-HOST-4",
+      "clause": "The harness may retain its current model: an operator-set model refuses the route",
+      "status": "covered",
+      "controls": [
+        "tests/test_jevdrill_adapter.py::test_override_staleness_and_final_token_enforcement"
+      ]
+    },
+    "EC-HOST-4/retain-model-launch": {
+      "criterion": "EC-HOST-4",
+      "clause": "The harness may retain its current model: a launch that keeps it",
+      "status": "not_covered",
+      "controls": [],
+      "reason": "No control shows a launch that keeps an operator-set model (plan, EC-HOST-4)."
+    },
+    "EC-HOST-4/decline": {
+      "criterion": "EC-HOST-4",
+      "clause": "Or decline a recommendation",
+      "status": "covered",
+      "controls": [
+        "tests/test_jevdrill_discovery.py::test_entered_linked_launch_rejections[decline]",
+        "tests/conformance/test_discovery_handoff.py::test_entered_reference_deletion_revision_and_policy_controls"
+      ]
+    },
+    "EC-HOST-4/production-paths": {
+      "criterion": "EC-HOST-4",
+      "clause": "Production paths, no injected preselected guidance",
+      "status": "covered",
+      "controls": [
+        "tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks",
+        "tests/test_jevdrill_discovery.py::test_installed_discovery_decomposition_two_task_launch"
+      ],
+      "reducer_checks": [
+        "witness entered path: main, open_application, discover, next_question, route"
+      ]
+    },
+    "EC-HOST-4/no-recursion-no-single-model": {
+      "criterion": "EC-HOST-4",
+      "clause": "No recursive routing; no forced single model per skill",
+      "status": "covered",
+      "controls": [
+        "tests/application/test_host_routing.py::test_recursion_bypass_makes_no_judgment_call",
+        "tests/test_jevdrill_adapter.py::test_dry_run_and_recursion_bypass_do_not_route",
+        "tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks"
+      ],
+      "reducer_checks": [
+        "witness: a distinct decision per task, two models and two efforts per flow"
+      ]
+    },
+    "JD-084/leased-launch": {
+      "criterion": "JD-084",
+      "clause": "JD-084: leased macOS launch rejects before startup and names a Linux worker; Linux proves leased cleanup",
+      "status": "covered",
+      "controls": [
+        "tests/test_phase_loop_launcher.py::test_launcher_accepts_explicit_nonserialized_lease_authority",
+        "tests/test_phase_loop_launcher.py::test_supervised_launch_drains_retained_stdout_before_returning"
+      ]
+    },
+    "JD-083/ceilings": {
+      "criterion": "JD-083",
+      "clause": "JD-083: estimated cost with no ceiling; ceilings need verified whole-run limits",
+      "status": "covered",
+      "controls": [
+        "tests/application/test_route_integration.py::test_builtin_task_judgment_keeps_verified_spending_bounds",
+        "tests/test_jevdrill_adapter.py::test_requested_ceiling_rejects_unproven_executor_limits",
+        "tests/test_jevdrill_adapter.py::test_override_staleness_and_final_token_enforcement",
+        "tests/test_jevdrill_adapter.py::test_no_requested_ceiling_does_not_require_token_enforcement"
+      ]
+    },
+    "IF-0-HOST-1/installed-flow": {
+      "criterion": "IF-0-HOST-1",
+      "clause": "IF-0-HOST-1: installed discover to two independently routed tasks, launch, report and acknowledgment, on three platforms in one run",
+      "status": "covered",
+      "controls": [
+        "tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks"
+      ],
+      "reducer_checks": [
+        "three receipts of one workflow run; no clause not covered"
+      ]
+    },
+    "IF-0-VC-2/reducer": {
+      "criterion": "IF-0-VC-2",
+      "clause": "IF-0-VC-2: the verifier rejects invalid, stale, skipped, constant-only or foreign receipts",
+      "status": "covered",
+      "controls": [
+        "tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts",
+        "tests/verification/test_host_phase.py::test_missing_companion_configuration_is_failure",
+        "tests/verification/test_host_phase.py::test_reducer_accepts_valid_receipts"
+      ]
+    },
+    "scope/readiness-recheck-before-launch": {
+      "criterion": "scope",
+      "clause": "Scope note: the readiness recheck before launch",
+      "status": "not_covered",
+      "controls": [],
+      "reason": "Untested (plan, \"Other scope notes\")."
+    },
+    "scope/budget-after-host-spawn": {
+      "criterion": "scope",
+      "clause": "Scope note: the budget passed after host spawn time",
+      "status": "not_covered",
+      "controls": [],
+      "reason": "The plan records that the host integration computes it before the spawn."
+    },
+    "scope/ordinary-macos-execution-local": {
+      "criterion": "scope",
+      "clause": "Scope note: ordinary macOS execution staying local",
+      "status": "not_covered",
+      "controls": [],
+      "reason": "No control (plan, \"Other scope notes\")."
+    },
+    "scope/no-silent-forwarding": {
+      "criterion": "scope",
+      "clause": "Scope note: the absence of silent forwarding",
+      "status": "not_covered",
+      "controls": [],
+      "reason": "No control (plan, \"Other scope notes\")."
+    }
+  },
+  "controls": {
+    "tests/analysis/test_observations.py::test_missing_failed_canceled_corrected_and_unknown_observations": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/analysis/test_observations.py::test_substitution_preference_and_evaluation_are_distinct": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/application/test_application.py::test_report_is_a_versioned_durable_acknowledgment": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/application/test_discovery_application.py::test_bad_links_never_enter_prepare": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 8,
+        "Darwin": 8,
+        "Windows": 8
+      }
+    },
+    "tests/application/test_discovery_application.py::test_public_discovery_two_independent_tasks_and_replay": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/application/test_host_notices.py::test_notice_snapshots_do_not_mutate_retry_or_replay": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/application/test_host_routing.py::test_capability_mismatch_carries_supported_refresh_advice": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 2,
+        "Darwin": 2,
+        "Windows": 2
+      }
+    },
+    "tests/application/test_host_routing.py::test_dry_run_is_never_ordered_by_learned_policy": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 2,
+        "Darwin": 2,
+        "Windows": 2
+      }
+    },
+    "tests/application/test_host_routing.py::test_recursion_bypass_makes_no_judgment_call": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 2,
+        "Darwin": 2,
+        "Windows": 2
+      }
+    },
+    "tests/application/test_route_integration.py::test_builtin_task_judgment_keeps_verified_spending_bounds": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 2,
+        "Darwin": 2,
+        "Windows": 2
+      }
+    },
+    "tests/application/test_route_integration.py::test_retry_requires_recorded_run_and_remaining_attempt_authority": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/conformance/test_discovery_handoff.py::test_entered_reference_deletion_revision_and_policy_controls": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/conformance/test_discovery_handoff.py::test_installed_flow_carries_a_judged_task": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/conformance/test_launch_paths.py::test_entered_permission_expansion_denials": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/conformance/test_launch_paths.py::test_independent_checks_reject_entered_routed_artifacts": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/conformance/test_launch_paths.py::test_real_main_delegated_lane_constructors": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/conformance/test_notices.py::test_every_report_connection_queries_notices": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/conformance/test_notices.py::test_pending_notice_reaches_the_notice_sink": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/conformance/test_transport_queue.py::test_entered_ack_loss_and_cross_producer_deletion": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/conformance/test_usage_reporting.py::test_installed_usage_persistence": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 11,
+        "Darwin": 11,
+        "Windows": 11
+      }
+    },
+    "tests/contracts/test_host_contracts.py::test_host_shared_contract": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 28,
+        "Darwin": 28,
+        "Windows": 28
+      }
+    },
+    "tests/evaluation/test_host_acceptance.py::test_frozen_groups_are_disjoint_and_holdouts_unopened": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/evaluation/test_host_acceptance.py::test_independent_controlled_artifact_checks": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 6,
+        "Darwin": 6,
+        "Windows": 6
+      }
+    },
+    "tests/privacy/test_round41_learning.py::test_report_sensitive_map_key_rejects_before_persistence": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/privacy/test_sink_proof.py::test_a_report_with_a_refused_identifier_is_refused_before_it_is_stored": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 2,
+        "Darwin": 2,
+        "Windows": 2
+      }
+    },
+    "tests/storage/test_dry_run_evidence.py::test_cached_decision_is_reused_only_when_its_mode_matches": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 4,
+        "Darwin": 4,
+        "Windows": 4
+      }
+    },
+    "tests/storage/test_dry_run_evidence.py::test_no_dry_run_becomes_an_observation": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 22,
+        "Darwin": 22,
+        "Windows": 22
+      }
+    },
+    "tests/storage/test_dry_run_evidence.py::test_routing_and_storage_share_the_dry_run_code": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/storage/test_host_notices.py::test_notice_scope_reads_and_cross_producer_deletion": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/verification/test_host_phase.py::test_missing_companion_configuration_is_failure": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/verification/test_host_phase.py::test_reducer_accepts_valid_receipts": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts": {
+      "suite": "jevdrill",
+      "counts": {
+        "Linux": 64,
+        "Darwin": 64,
+        "Windows": 64
+      }
+    },
+    "tests/test_jevdrill_adapter.py::test_dry_run_and_recursion_bypass_do_not_route": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_jevdrill_adapter.py::test_forged_capability_or_candidate_cannot_expand_authority": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_jevdrill_adapter.py::test_guidance_is_verified_injected_once_and_deactivated": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_jevdrill_adapter.py::test_no_requested_ceiling_does_not_require_token_enforcement": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_jevdrill_adapter.py::test_observed_substitution_is_not_attributed_to_selected_plan": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_jevdrill_adapter.py::test_override_staleness_and_final_token_enforcement": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_jevdrill_adapter.py::test_production_sanitizer_rejects_raw_fields_and_erases_free_text": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_jevdrill_adapter.py::test_real_runner_construction_sites_reach_bridge": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 3,
+        "Darwin": 3,
+        "Windows": 3
+      }
+    },
+    "tests/test_jevdrill_adapter.py::test_requested_ceiling_rejects_unproven_executor_limits": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 3,
+        "Darwin": 3,
+        "Windows": 3
+      }
+    },
+    "tests/test_jevdrill_queue.py::test_acknowledgment_loss_replays_exact_report": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_jevdrill_queue.py::test_only_matching_durable_acknowledgment_removes_report": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 2,
+        "Darwin": 2,
+        "Windows": 2
+      }
+    },
+    "tests/test_jevdrill_queue.py::test_overflow_and_expiry_have_persistent_loss_counters": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_jevdrill_queue.py::test_process_crash_windows_recover_durable_reports": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 3,
+        "Darwin": 3,
+        "Windows": 3
+      }
+    },
+    "tests/test_jevdrill_usage.py::test_incomplete_drain_is_unknown_and_bounded": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 1
+      }
+    },
+    "tests/test_phase_loop_launcher.py::test_launcher_accepts_explicit_nonserialized_lease_authority": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_phase_loop_launcher.py::test_supervised_launch_drains_retained_stdout_before_returning": {
+      "suite": "companion",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_jevdrill_discovery.py::test_entered_discovery_requires_harness_decomposition": {
+      "suite": "companion_discovery",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_jevdrill_discovery.py::test_entered_linked_launch_rejections": {
+      "suite": "companion_discovery",
+      "counts": {
+        "Linux": 5,
+        "Darwin": 5,
+        "Windows": 5
+      }
+    },
+    "tests/test_jevdrill_discovery.py::test_entered_linked_launch_rejections[decline]": {
+      "suite": "companion_discovery",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_jevdrill_discovery.py::test_installed_discovery_decomposition_two_task_launch": {
+      "suite": "companion_discovery",
+      "counts": {
+        "Linux": 2,
+        "Darwin": 2,
+        "Windows": 2
+      }
+    },
+    "tests/test_jevdrill_discovery.py::test_installed_discovery_status_gates_planning[no_optional_guidance]": {
+      "suite": "companion_discovery",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    },
+    "tests/test_jevdrill_discovery.py::test_native_unsupported_observer_records_unknown_capture": {
+      "suite": "companion_discovery",
+      "counts": {
+        "Linux": 1,
+        "Darwin": 1,
+        "Windows": 1
+      }
+    }
+  },
+  "launch_paths": {
+    "main": [
+      "tests/conformance/test_launch_paths.py::test_real_main_delegated_lane_constructors",
+      "tests/test_jevdrill_adapter.py::test_real_runner_construction_sites_reach_bridge[main]"
+    ],
+    "delegated": [
+      "tests/conformance/test_launch_paths.py::test_real_main_delegated_lane_constructors",
+      "tests/test_jevdrill_adapter.py::test_real_runner_construction_sites_reach_bridge[delegated]"
+    ],
+    "lane": [
+      "tests/conformance/test_launch_paths.py::test_real_main_delegated_lane_constructors",
+      "tests/test_jevdrill_adapter.py::test_real_runner_construction_sites_reach_bridge[lane]"
+    ],
+    "widened_launch_refused": [
+      "tests/conformance/test_launch_paths.py::test_entered_permission_expansion_denials",
+      "tests/test_jevdrill_adapter.py::test_forged_capability_or_candidate_cannot_expand_authority"
+    ],
+    "dry_run_and_recursion_bypass_not_routed": [
+      "tests/test_jevdrill_adapter.py::test_dry_run_and_recursion_bypass_do_not_route"
+    ],
+    "installed_two_task_launch": [
+      "tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks",
+      "tests/test_jevdrill_discovery.py::test_installed_discovery_decomposition_two_task_launch"
+    ],
+    "leased_launch": [
+      "tests/test_phase_loop_launcher.py::test_launcher_accepts_explicit_nonserialized_lease_authority",
+      "tests/test_phase_loop_launcher.py::test_supervised_launch_drains_retained_stdout_before_returning"
+    ]
+  },
+  "deselected_launcher_tests": {
+    "marker": "dotfiles_integration",
+    "class": "tests/test_phase_loop_launcher.py::PhaseLoopLauncherTest",
+    "count": 53,
+    "not_exercised": "Launcher skill and adoption bundle building, and the execute path that resolves a dotfiles skill source and profile overlay. HOST's evidence says nothing about them."
+  }
+}

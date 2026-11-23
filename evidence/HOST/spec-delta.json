@@ -1,0 +1,27 @@
+{
+  "schema": "spec_delta_closeout.v1",
+  "phase": "HOST",
+  "decision": "roadmap_amendment",
+  "roadmap_amendment_items": [
+    "JD-083",
+    "JD-084"
+  ],
+  "roadmap_text_amended": false,
+  "target_surfaces": [
+    "shared event/adapter contracts",
+    "platform execution boundaries"
+  ],
+  "evidence_paths": [
+    "evidence/HOST/spec-delta.json",
+    "evidence/HOST/verification.json"
+  ],
+  "redaction_posture": "metadata_only",
+  "missing_or_malformed_evidence": {
+    "blocker_class": "contract_bug",
+    "repair": "non_human"
+  },
+  "downstream_handling": "replan_LEARN",
+  "canonical_adoption": false,
+  "publication_performed": false,
+  "closeout_status": "verification_pending"
+}

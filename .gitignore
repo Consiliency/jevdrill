@@ -23,3 +23,9 @@ evidence/ROUTE/verification.json
 evidence/EXPERIMENT/discovery-offline.json
 evidence/EXPERIMENT/calibration-offline.json
 evidence/EXPERIMENT/studies/
+# Written by scripts/verify_host_phase.py. Receipts and the verdict are CI artifacts; none is
+# ever committed. host.yml checks the companion out under .host/.
+evidence/HOST/platforms/
+evidence/HOST/evaluation.json
+evidence/HOST/verification.json
+.host/
