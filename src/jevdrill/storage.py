@@ -2423,5 +2423,11 @@ class SQLiteStorage:
             self._purge_task(connection, pair, task_id)
         self.recover_artifacts()
         with self._connect() as connection:
-            connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            busy, _, _ = connection.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+        if busy:
+            # Another connection's read transaction kept the checkpoint from finishing, so
+            # deleted payloads may remain in the database file or the write-ahead log until
+            # the log is checkpointed. The logical deletion is committed; the same request,
+            # once that reader has closed, finishes the erasure.
+            return {"status": "erasure_pending", "task_id": task_id}
         return {"status": "deleted", "task_id": task_id}
