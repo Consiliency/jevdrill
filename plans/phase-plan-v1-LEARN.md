@@ -10,8 +10,8 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
 > and three seats (correctness, security and privacy, alternate vendor); one
 > round and a confirmation. Pull request: Consiliency/jevdrill#92. Amended to
-> add SL-7 (Consiliency/jevdrill#122) and SL-8 (Consiliency/jevdrill#126). This
-> is a reviewed plan. It verifies no criterion.
+> add SL-7 (Consiliency/jevdrill#122) and SL-8 (Consiliency/jevdrill#126,
+> #AMEND). This is a reviewed plan. It verifies no criterion.
 
 ## Context
 
@@ -330,12 +330,16 @@ applies on its terms: a possibility, not a request.
   `maintenance.py:395`, `:249`, `:212`, `:157-159`; `storage.py:2232`). A
   restored copy archived after its earlier archive has expired, by the rule of
   `maintenance.py:157`, expires one year after that archival, whatever the order
-  and timing of runs. No contract or schema change. The control fails if the
-  content cannot be restored with its original bytes before a year from that
-  archival, or still can after a run past that year: in #125's sequence in
-  either order, with the two items reached in different runs, or at the
-  archive's exact deadline; if content restored and archived again before the
-  archive expires stops keeping that expiry; or if anything unverified is
+  and timing of runs. Also fix lane for Consiliency/jevdrill#128: the first run
+  in an archive's last seven days writes its notice, whatever the cursor's
+  position and the store's size; no archive is kept past its year. No contract
+  or schema change. The control fails if the content cannot be restored with its
+  original bytes before a year from that archival, or still can after a run past
+  that year: in #125's sequence in either order, with the two items reached in
+  different runs, or at the archive's exact deadline; if content restored and
+  archived again before the archive expires stops keeping that expiry; if, in a
+  store larger than seven days of runs pass through, an archive is retired with
+  no expiry notice written before its expiry; or if anything unverified is
   retired.
 
 ## Verification
@@ -456,7 +460,8 @@ artifact of the run that made it and is never committed.
 | --- | --- |
 | Consiliency/jevdrill#86 (shared-record fingerprint) | Fix lane, SL-1, by the owner's decision; fix lane, SL-7, for `discovery_revisions` |
 | Consiliency/jevdrill#21, #45 (both contradict EC-LEARN-3), #46, #52 | Fix lanes, SL-2 |
-| Consiliency/jevdrill#125 (restored content destroyed on re-archival) | Fix lane, SL-8 |
+| Consiliency/jevdrill#125 | Fix lane, SL-8 |
+| Consiliency/jevdrill#128 | Fix lane, SL-8 |
 | Consiliency/jevdrill#53, #58 (recovery and maintenance as ratified) | Verified as built by SL-3's controls; stated limits; the issues stay open as records |
 | Consiliency/jevdrill#74 for `learn.yml`, and the changes ruled earlier for this cut (declared changes 1 to 5) | Fix lane, SL-4 |
 | The held spec paragraph | Plan text and a "may not claim" line |
