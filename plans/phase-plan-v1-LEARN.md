@@ -331,11 +331,12 @@ applies on its terms: a possibility, not a request.
   Local observations are unchanged; no contract or schema change. The control
   fails if the value can be recomputed without the store's key; if two
   requesters, or two independently created stores, receive an equal value; if a
-  requester's value changes between two analyses; if observations with unequal
-  revisions receive an equal value; if two user-wide observations of one
-  discovery stop sharing a group; or if a local observation's value changes.
-  Evidence stored earlier keeps its values until replaced, and a store rebuilt
-  from a recovery export gives different values; the doc says so.
+  requester's value changes between two analyses; if, for one requester and
+  store, observations with unequal revisions receive an equal value or with
+  equal revisions unequal values; if two user-wide observations of one discovery
+  stop sharing a group; or if a local observation's value changes. Evidence
+  stored earlier keeps its values until replaced, and a store rebuilt from a
+  recovery export gives different values; the doc says so.
 
 ## Verification
 
@@ -438,11 +439,11 @@ artifact of the run that made it and is never committed.
 - That a decline that starts no run is visible to learning.
 - That "retain" is shown except as a refusal to replace an operator-set model.
 - That LEARN evidence informs later discovery or task selection.
-- That a shared record cannot be linked by a condition it still carries, such
-  as its domains, guidance choices, context fields, policy revision,
-  configuration digests or exact measurements; by a keyed value, which within
-  one requester's view still links every observation sharing it; or by values
-  stored before SL-1 or SL-7.
+- That a shared record cannot be linked by a condition or value it still
+  carries, such as its domains, guidance choices, context fields, policy
+  revision, configuration digests or exact measurements; by a keyed value, which
+  within one requester's view still links every observation sharing it; or by
+  values stored before SL-1 or SL-7.
 - That an export or backup is metadata only: it carries retained raw task,
   output and context content.
 - That import or restore checks the text it writes back.
