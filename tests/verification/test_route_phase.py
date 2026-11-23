@@ -114,7 +114,7 @@ def evidence_root(tmp_path):
     return tmp_path
 
 
-@pytest.mark.parametrize("phase", ["route", "contracts"])
+@pytest.mark.parametrize("phase", ["route", "contracts", "host"])
 def test_native_download_excludes_prior_reduction_reports(phase):
     workflow = yaml.safe_load((ROOT / ".github/workflows" / f"{phase}.yml").read_text())
     jobs = workflow["jobs"]
@@ -164,6 +164,25 @@ def test_phase_test_command_covers_controls_without_downstream_companion(tmp_pat
             assert any(file == path or file.startswith(path + "/") for path in selected)
 
 
+@pytest.mark.parametrize("phase", ["host"])
+def test_downstream_commands_cover_phase_controls_and_bind_extra_paths(tmp_path, phase):
+    spec = importlib.util.spec_from_file_location(
+        "downstream_" + phase, ROOT / "scripts" / f"verify_{phase}_phase.py"
+    )
+    downstream = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(downstream)
+    command = runner.commands_for("python", tmp_path, extra_test_paths=downstream.TEST_PATHS)[
+        "tests"
+    ]
+    selected = [arg for arg in command if arg.startswith("tests/")]
+    for controls in downstream.CONTROLS.values():
+        for control in controls:
+            file = control.split("::")[0]
+            assert any(file == path or file.startswith(path + "/") for path in selected)
+    assert len(selected) == len(set(selected))
+    assert command != runner.commands_for("python", tmp_path)["tests"]
+
+
 def test_windows_command_leaves_out_only_the_listed_inapplicable_tests(tmp_path):
     controls = {control for controls in runner.REQUIRED_CONTROLS.values() for control in controls}
     assert runner.WINDOWS_DESELECTED
@@ -182,7 +201,11 @@ def test_windows_command_leaves_out_only_the_listed_inapplicable_tests(tmp_path)
 
 @pytest.mark.parametrize(
     ("phase", "native", "variable"),
-    [("route", "native", "NATIVE_RESULT"), ("contracts", "platform", "PLATFORM_RESULT")],
+    [
+        ("route", "native", "NATIVE_RESULT"),
+        ("contracts", "platform", "PLATFORM_RESULT"),
+        ("host", "native", "NATIVE_RESULT"),
+    ],
 )
 def test_reduction_runs_only_after_every_native_job_succeeded(phase, native, variable):
     workflow = yaml.safe_load((ROOT / ".github/workflows" / f"{phase}.yml").read_text())
