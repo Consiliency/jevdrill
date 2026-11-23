@@ -32,7 +32,7 @@ file, requests a host run, spends money or closes a gate.
 
 Length exception: this plan exceeds 3,000 words because every clause is mapped
 to code, control, falsifier and evidence kind, and the cross-repository
-conditions are stated in full. It is held to 5,200 words.
+conditions are stated in full.
 
 ## State of `main` at `998912b1e`
 
@@ -116,7 +116,7 @@ below is verified.
 | Guidance not reinjected on retries | `jevdrill_adapter.py:491-492` | HI `test_jevdrill_adapter.py::test_guidance_is_verified_injected_once_and_deactivated` | An optional revision appended again when the prompt is reused | needs the host integration |
 | Deactivates at task end, reporting host limitations | `guidance_deactivated` `contracts.baml:79`; emitted in the host integration | Same HI test. "Reporting host limitations": not covered; the draft sends every lifecycle `reason` as null | No deactivation event at task end | needs the host integration |
 | Dry runs never become execution-success evidence: ordering | `dry_run` `contracts.baml:78`; excluded from ordering `application.py:898` | D new, SL-1; HI `test_dry_run_and_recursion_bypass_do_not_route` | A dry run that reaches learned-policy ordering | native CI run; needs the host integration |
-| Dry runs never become execution-success evidence: counting | Counted on `main` (`storage.py:884-935`; Consiliency/jevdrill#109) | D new, SL-5 | A dry run counted as completed, failed or canceled, in the deciding store or after export, import, backup or restore | native CI run |
+| Dry runs never become execution-success evidence: counting | Counted on `main` (`storage.py:884-935`; Consiliency/jevdrill#109) | D new, SL-5 | A dry run counted, in the deciding store or after export, import, backup or restore | native CI run |
 
 **EC-HOST-2**
 
@@ -316,8 +316,8 @@ possibility, not a request.
 
 ### SL-1 — JEV-side controls
 
-- **Needs:** GitHub CI alone. With SL-5, a lane that needs no accepted
-  commit; it may be executed before the pin step.
+- **Needs:** GitHub CI alone. It needs no accepted commit and may be
+  executed before the pin step.
 - **Owned files:** `tests/application/test_host_routing.py` (new).
 - **Delivers:** controls, entered through `Application.route`, for: recursion
   bypass makes no judgment call; a dry run is never ordered; a
@@ -361,8 +361,8 @@ possibility, not a request.
 
 ### SL-5 — Dry-run evidence fix
 
-- **Needs:** GitHub CI alone. Never cut together with the LEARN plan's SL-1,
-  which also owns `learning_observations`.
+- **Needs:** GitHub CI alone. Not cut together with LEARN's SL-1, which also
+  owns `learning_observations`.
 - **Owned files:** `src/jevdrill/storage.py`, `application.py` and
   `routing.py`, only where a decision's mode is recorded or read;
   `tests/storage/test_dry_run_evidence.py` (new); any storage migration.
@@ -483,7 +483,7 @@ and JD-084 (`specs/phase-plans-v1.md:216`).
 - That Linux evidence proves JD-084 on macOS.
 - That usage capture is exercised outside Linux.
 - That dry runs decided before SL-5's fix are excluded.
-- That an importing store detects a dry run whose mark was removed.
+- That an import detects a bundle altered to hide a dry run.
 - Ratified review, publication, adoption or release readiness.
 
 ## Attached backlog
