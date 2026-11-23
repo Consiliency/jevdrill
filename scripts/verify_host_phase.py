@@ -1,22 +1,27 @@
 """Collect one native HOST receipt with the pinned companion, or reduce one run's receipts.
 
-A receipt is collected on a hosted runner of one `host.yml` run. It holds the inherited ROUTE
-regressions (with the HOST controls added to their test command), the companion's own tests
-at the handoff's commit, and the witness the conformance fixture writes. The reduction accepts
-exactly three receipts of the workflow run it is part of. A local collection is a diagnostic:
-it is never uploaded and no reduction accepts it.
+A receipt is collected on a hosted runner of one `host.yml` run. In a fixed order it holds the
+inherited ROUTE regressions (one unmodified call of the ROUTE collector, its command the one
+`route.yml` runs), HOST's own controls (one command of this collector's own), the companion's
+own tests at the handoff's commit, and the witness the conformance fixture writes. The inherited
+part keeps ROUTE's own 600 seconds; everything else is HOST's part, bounded at 900 seconds
+(HOST plan, declared change 17). The reduction accepts exactly three receipts of the workflow
+run it is part of. A local collection is a diagnostic: it is never uploaded and no reduction
+accepts it.
 """
 
 import argparse
 import contextlib
+import errno
 import hashlib
 import importlib.util
 import json
-import math
 import os
 import platform
 import re
 import secrets
+import select
+import signal
 import subprocess
 import sys
 import tempfile
@@ -32,11 +37,38 @@ _route_spec = importlib.util.spec_from_file_location(
 route = importlib.util.module_from_spec(_route_spec)
 _route_spec.loader.exec_module(route)
 
-SCHEMA_VERSION = 3
+# Schema 4 divides a collection in two parts (declared change 17); schema 5 adds each checkout's
+# git configuration digest. A receipt of schema 4 or below is rejected as old.
+SCHEMA_VERSION = 5
 MATRIX = route.MATRIX
 PLATFORMS = ("Linux", "Darwin", "Windows")
-COLLECTION_BOUND_SECONDS = 600
+# The inherited part's bound: the ROUTE collector's own budget (scripts/verify_route_phase.py,
+# `600 - elapsed` per child in `collect`; `<= 600` in `reduce_manifests`), not reopened here.
+INHERITED_BOUND_SECONDS = 600
+# A watchdog on the inherited call, not a bound and not a budget: the ROUTE collector keeps its
+# own 600-second deadline, which is neither changed nor passed in. The collector stops the call
+# only this long after that deadline, so that ROUTE's own timeout handling can run and its receipt
+# keep its timeout output, as the collector before declared change 17 kept it. The reducer still
+# rejects an inherited part over INHERITED_BOUND_SECONDS, however it ended.
+INHERITED_WATCHDOG_GRACE_SECONDS = 30
+# HOST's part: everything in a collection outside the ROUTE collector call (HOST plan, SL-6).
+HOST_BOUND_SECONDS = 900
+# The longest a collection's children can run, stated when it is run outside CI: the inherited
+# call until its watchdog, then HOST's part. A receipt over either part's bound is still rejected.
+TOTAL_LIMIT_SECONDS = (
+    INHERITED_BOUND_SECONDS + INHERITED_WATCHDOG_GRACE_SECONDS + HOST_BOUND_SECONDS
+)
+# How long the collector waits for a child it has killed before it gives up waiting.
+KILLED_CHILD_WAIT_SECONDS = 30
 PROOF_COST_TARGET_SECONDS = 300
+# The ROUTE receipt's own duration is rounded to the millisecond (verify_route_phase.py, the
+# end of `collect`); the inherited part may be shorter than it by at most this rounding.
+ROUTE_DURATION_ROUNDING = 0.0005
+# The parts are recorded unrounded from one clock; their sum may differ from the total only by
+# floating-point error, never by a time anyone could move.
+PARTS_SUM_TOLERANCE = 1e-6
+# Every recorded time is a number of seconds in this range; anything else is malformed.
+MAX_RECORDED_SECONDS = 10**6
 # The Python the companion's own CI tests (HOST plan, R6 and J7). The workflow syncs the
 # companion on it, and the receipt records it.
 COMPANION_PYTHON = "3.12"
@@ -134,14 +166,24 @@ ROUTE_INHERITED_VARIABLES = (
     "GITHUB_RUN_ID",
     "BAML_CLI",
 )
-# The one behaviour switch the collector sets: it activates the two JD-084 launcher tests,
-# which skip without it (HOST plan, "Readings and points settled").
+# The four values the collector adds by name to the inherited call's and HOST's command's
+# environment: the companion checkout and interpreter, the installed CLI, and the witness file
+# the conformance fixture writes. Nothing else is added to either.
+HOST_VARIABLES = (
+    "JEVDRILL_AGENT_HARNESS_ROOT",
+    "JEVDRILL_AGENT_HARNESS_PYTHON",
+    "JEVDRILL_TEST_CLI",
+    "JEVDRILL_EVALUATION_OUTPUT",
+)
+# The one behaviour switch the collector sets, for the companion's command only: it activates
+# the two JD-084 launcher tests, which skip without it (HOST plan, "Readings and points settled").
 SCHEDULER_SWITCH = {"PHASE_LOOP_TDD_EXPECT_SCHED": "1"}
 
 REQUIREMENTS = {f"EC-HOST-{number}" for number in range(1, 5)} | {"IF-0-HOST-1", "IF-0-VC-2"}
 
-# Every JEV Drill control the clause tables name, with its exact case count. Each runs in the
-# inherited ROUTE test command on all three platforms. A changed count is a declared change.
+# Every JEV Drill control the clause tables name, with its exact case count, on all three
+# platforms. CONTROL_SOURCES says which command each is counted from. A changed count is a
+# declared change.
 CONTROL_COUNTS = {
     "tests/analysis/test_observations.py::test_missing_failed_canceled_corrected_and_unknown_observations": 1,
     "tests/analysis/test_observations.py::test_substitution_preference_and_evaluation_are_distinct": 1,
@@ -177,6 +219,52 @@ CONTROL_COUNTS = {
     "tests/verification/test_host_phase.py::test_reducer_accepts_valid_receipts": 1,
     "tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts": 64,
 }
+INHERITED = "inherited"
+HOST = "host"
+# The one source each JEV Drill control is counted from (declared change 17). "inherited": its
+# file is a path the ROUTE collector's own test command already selects, so it is counted from
+# the inherited results and its file is not in HOST's command. "host": counted from HOST's own
+# command. A control found in both is rejected.
+CONTROL_SOURCES = {
+    "tests/analysis/test_observations.py::test_missing_failed_canceled_corrected_and_unknown_observations": HOST,
+    "tests/analysis/test_observations.py::test_substitution_preference_and_evaluation_are_distinct": HOST,
+    "tests/application/test_application.py::test_report_is_a_versioned_durable_acknowledgment": INHERITED,
+    "tests/application/test_discovery_application.py::test_bad_links_never_enter_prepare": INHERITED,
+    "tests/application/test_discovery_application.py::test_public_discovery_two_independent_tasks_and_replay": INHERITED,
+    "tests/application/test_host_notices.py::test_notice_snapshots_do_not_mutate_retry_or_replay": HOST,
+    "tests/application/test_host_routing.py::test_capability_mismatch_carries_supported_refresh_advice": HOST,
+    "tests/application/test_host_routing.py::test_dry_run_is_never_ordered_by_learned_policy": HOST,
+    "tests/application/test_host_routing.py::test_recursion_bypass_makes_no_judgment_call": HOST,
+    "tests/application/test_route_integration.py::test_builtin_task_judgment_keeps_verified_spending_bounds": INHERITED,
+    "tests/application/test_route_integration.py::test_retry_requires_recorded_run_and_remaining_attempt_authority": INHERITED,
+    "tests/conformance/test_discovery_handoff.py::test_entered_reference_deletion_revision_and_policy_controls": HOST,
+    "tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks": HOST,
+    "tests/conformance/test_discovery_handoff.py::test_installed_flow_carries_a_judged_task": HOST,
+    "tests/conformance/test_launch_paths.py::test_entered_permission_expansion_denials": HOST,
+    "tests/conformance/test_launch_paths.py::test_independent_checks_reject_entered_routed_artifacts": HOST,
+    "tests/conformance/test_launch_paths.py::test_real_main_delegated_lane_constructors": HOST,
+    "tests/conformance/test_notices.py::test_every_report_connection_queries_notices": HOST,
+    "tests/conformance/test_notices.py::test_pending_notice_reaches_the_notice_sink": HOST,
+    "tests/conformance/test_transport_queue.py::test_entered_ack_loss_and_cross_producer_deletion": HOST,
+    "tests/conformance/test_usage_reporting.py::test_installed_usage_persistence": HOST,
+    "tests/contracts/test_host_contracts.py::test_host_shared_contract": HOST,
+    "tests/evaluation/test_host_acceptance.py::test_frozen_groups_are_disjoint_and_holdouts_unopened": INHERITED,
+    "tests/evaluation/test_host_acceptance.py::test_independent_controlled_artifact_checks": INHERITED,
+    "tests/privacy/test_round41_learning.py::test_report_sensitive_map_key_rejects_before_persistence": INHERITED,
+    "tests/privacy/test_sink_proof.py::test_a_report_with_a_refused_identifier_is_refused_before_it_is_stored": INHERITED,
+    "tests/storage/test_dry_run_evidence.py::test_cached_decision_is_reused_only_when_its_mode_matches": HOST,
+    "tests/storage/test_dry_run_evidence.py::test_no_dry_run_becomes_an_observation": HOST,
+    "tests/storage/test_dry_run_evidence.py::test_routing_and_storage_share_the_dry_run_code": HOST,
+    "tests/storage/test_host_notices.py::test_notice_scope_reads_and_cross_producer_deletion": HOST,
+    "tests/verification/test_host_phase.py::test_missing_companion_configuration_is_failure": HOST,
+    "tests/verification/test_host_phase.py::test_reducer_accepts_valid_receipts": HOST,
+    "tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts": HOST,
+}
+# HOST's own command selects exactly the files of the controls counted from it, and nothing the
+# ROUTE collector's command selects: no test runs in both.
+HOST_TEST_PATHS = tuple(
+    sorted({node.split("::")[0] for node, source in CONTROL_SOURCES.items() if source == HOST})
+)
 _ALL = {name: None for name in PLATFORMS}
 _LINUX = {"Linux": None}
 # Every host-integration control the clause tables name, with its exact count on each platform
@@ -515,7 +603,7 @@ CLAUSES = {
     "scope/ordinary-macos-execution-local": ("scope", "not_covered", ()),
     "scope/no-silent-forwarding": ("scope", "not_covered", ()),
 }
-# The JEV Drill controls of each criterion; their files join the inherited test command.
+# The JEV Drill controls of each criterion; each is counted from its source in CONTROL_SOURCES.
 CONTROLS = {
     criterion: sorted(
         {
@@ -684,22 +772,88 @@ def companion_command(python, temporary, os_name):
     ]
 
 
-def normalized_command(command, report):
-    """The command with its interpreter and temporary paths replaced; no flag is touched."""
+def host_test_command(python, temporary):
+    """HOST's own command: its controls' files, with the flags the ROUTE test command uses.
+
+    The same on every platform: none of these files holds a test ROUTE leaves out on Windows.
+    """
     return [
-        "<python>"
-        if index == 0
-        else f"--junitxml=<temporary>/{report}.xml"
-        if part.startswith("--junitxml=")
-        else f"--basetemp=<temporary>/{report}-{'tests' if report == 'companion' else 'child'}"
-        if part.startswith("--basetemp=")
-        else part
-        for index, part in enumerate(command)
+        str(python),
+        "-m",
+        "pytest",
+        "-q",
+        "-o",
+        "faulthandler_timeout=30",
+        *HOST_TEST_PATHS,
+        f"--junitxml={Path(temporary) / 'host.xml'}",
+        f"--basetemp={Path(temporary) / 'host-tests'}",
     ]
 
 
+# The path separators of each platform a receipt can record. On Linux and macOS a backslash is an
+# ordinary file-name character, so `<root>\\host-tests` names a sibling of the root, not a path
+# under it.
+PLATFORM_SEPARATORS = {"Linux": ("/",), "Darwin": ("/",), "Windows": ("\\", "/")}
+
+
+def _under_temporary(value, temporary, separators):
+    """`value` with the temporary root replaced by `<temporary>` and what follows it kept, with
+    `/` separators. A path is under the root only through one of `separators`; a value outside
+    the root is returned unchanged, so that it cannot match."""
+    root = str(temporary)
+    if value == root or value.startswith(tuple(root + separator for separator in separators)):
+        rest = value[len(root) :]
+        for separator in separators:
+            rest = rest.replace(separator, "/")
+        return "<temporary>" + rest
+    return value
+
+
+def normalized_command(command, report, temporary=None, os_name=None):
+    """The command with its interpreter and temporary paths replaced; no flag is touched.
+
+    With `temporary`, the root of the collection's temporary directory, only that root is replaced
+    in a `--junitxml` or `--basetemp` value, and what follows it is kept, so the reducer sees the
+    exact directory a command used. Without it (the conformance fixture's discovery child, whose
+    root the collector does not know) the whole value is replaced. `os_name` is the platform whose
+    separators count: the collector passes its own, which is the platform its receipt records;
+    the reducer's expected commands, joined on the reducer's own platform, use the reducer's.
+    """
+    separators = PLATFORM_SEPARATORS[os_name or platform.system()]
+    suffix = "tests" if report in ("companion", "host") else "child"
+    normalized = []
+    for index, part in enumerate(command):
+        if index == 0:
+            normalized.append("<python>")
+        elif part.startswith(("--junitxml=", "--basetemp=")):
+            flag, value = part.split("=", 1)
+            if temporary is not None:
+                normalized.append(f"{flag}={_under_temporary(value, temporary, separators)}")
+            elif flag == "--junitxml":
+                normalized.append(f"--junitxml=<temporary>/{report}.xml")
+            else:
+                normalized.append(f"--basetemp=<temporary>/{report}-{suffix}")
+        else:
+            normalized.append(part)
+    return normalized
+
+
 def expected_companion_command(os_name):
-    return normalized_command(companion_command("<python>", "<temporary>", os_name), "companion")
+    command = companion_command("<python>", "<temporary>", os_name)
+    return normalized_command(command, "companion", temporary="<temporary>")
+
+
+def expected_host_command():
+    """HOST's command as the reducer rebuilds it from this verifier's own constants."""
+    return normalized_command(
+        host_test_command("<python>", "<temporary>"), "host", temporary="<temporary>"
+    )
+
+
+def expected_inherited_command(os_name):
+    """The ROUTE collector's own test command on `os_name`, with no added path, normalized."""
+    command = route.commands_for("<python>", Path("<temporary>"), os_name)["tests"]
+    return route.normalized_command(command, "tests")
 
 
 def companion_command_digest(command):
@@ -781,23 +935,11 @@ def child_environment(home, **values):
 
 
 def route_environment(**values):
-    """The ROUTE regression checks' whole environment: their allowlist and the named values."""
+    """The whole environment of the inherited call and of HOST's command: the ROUTE allowlist
+    and the named values (HOST_VARIABLES), nothing else."""
     env = {name: os.environ[name] for name in ROUTE_INHERITED_VARIABLES if name in os.environ}
     env.update(values)
     return env
-
-
-@contextlib.contextmanager
-def process_environment(env):
-    """Run the in-process ROUTE collection with exactly `env`, so its children inherit only it."""
-    saved = dict(os.environ)
-    os.environ.clear()
-    os.environ.update(env)
-    try:
-        yield
-    finally:
-        os.environ.clear()
-        os.environ.update(saved)
 
 
 def _repository(url):
@@ -805,28 +947,107 @@ def _repository(url):
     return match.group(1) if match else None
 
 
-def checkout_state(root, env):
-    """The repository, commit and cleanness of a git checkout; never a path."""
+# A test id as pytest writes it: a file under tests/, one or more names, an optional parameter.
+# No `.` or `..` segment, no empty segment, no absolute path.
+_TEST_ID = re.compile(
+    r"tests/(?:(?!\.{1,2}/)[\w.-]+/)*(?!\.{1,2}\.py)[\w.-]+\.py(?:::[A-Za-z_]\w*)+(?:\[.+\])?",
+    re.DOTALL,
+)
+# Given to every git call of the cleanness check: no file-system monitor, which a checkout's own
+# configuration could name as a command to run.
+GIT_SAFE_OPTIONS = ("-c", "core.fsmonitor=false")
 
-    def git(*args):
-        try:
-            result = subprocess.run(
-                ["git", "-C", str(root), *args],
-                capture_output=True,
-                text=True,
-                env=env,
-                timeout=30,
-                check=False,
-            )
-        except OSError, subprocess.SubprocessError:
-            return None
-        return result.stdout.strip() if result.returncode == 0 else None
 
-    commit = git("rev-parse", "HEAD")
+def git_config_digest(root):
+    """A digest of a checkout's own git configuration and exclude files, read from disk.
+
+    `config`, a worktree's `config.worktree`, and every file under `info/` (exclude, attributes,
+    sparse-checkout). A missing file is recorded as missing; the result names no path.
+    """
+    dot = Path(root) / ".git"
+    try:
+        if dot.is_file():
+            gitdir = Path(dot.read_text(encoding="utf-8").split("gitdir:", 1)[1].strip())
+            gitdir = gitdir if gitdir.is_absolute() else (Path(root) / gitdir)
+            common = gitdir
+            if (gitdir / "commondir").is_file():
+                common = gitdir / (gitdir / "commondir").read_text(encoding="utf-8").strip()
+        else:
+            gitdir = common = dot
+        files = {"config": common / "config", "config.worktree": gitdir / "config.worktree"}
+        for base, label in ((common, "info"), (gitdir, "worktree-info")):
+            if (base / "info").is_dir():
+                for path in sorted((base / "info").rglob("*")):
+                    if path.is_file():
+                        files[f"{label}/{path.relative_to(base / 'info').as_posix()}"] = path
+        return digest_value(
+            {
+                name: hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
+                for name, path in sorted(files.items())
+            }
+        )
+    except OSError, IndexError, ValueError:
+        return None
+
+
+def git_environment(env, home):
+    """The cleanness check's git environment: `env` without any HOME of a child's, with a home of
+    its own that no child uses, an empty global configuration file in it, and no system
+    configuration. So no user or system configuration (ignore files, attributes, filters,
+    include targets) reaches these calls, on any platform."""
+    config = Path(home) / "empty-gitconfig"
+    config.write_bytes(b"")
+    clean = {k: v for k, v in env.items() if k != "XDG_CONFIG_HOME"}
+    clean.update(
+        HOME=str(home),
+        USERPROFILE=str(home),
+        GIT_CONFIG_GLOBAL=str(config),
+        GIT_CONFIG_NOSYSTEM="1",
+    )
+    return clean
+
+
+def checkout_state(root, env, expected_config=None):
+    """The repository, commit, cleanness and git configuration digest of a checkout; no path.
+
+    The git calls run in `git_environment`. The configuration digest is taken first; when
+    `expected_config` is given (the second reading) and the configuration has changed since,
+    `git status` is not run at all, so that nothing a collection added to the configuration (a
+    filter, say) can run, and the checkout is not reported clean.
+    """
+    with tempfile.TemporaryDirectory(prefix="jevdrill-git-home-") as home:
+        git_env = git_environment(env, home)
+
+        def git(*args):
+            try:
+                result = subprocess.run(
+                    ["git", *GIT_SAFE_OPTIONS, "-C", str(root), *args],
+                    capture_output=True,
+                    text=True,
+                    env=git_env,
+                    timeout=30,
+                    check=False,
+                )
+            except OSError, subprocess.SubprocessError:
+                return None
+            return result.stdout.strip() if result.returncode == 0 else None
+
+        effective = git("config", "--list", "--show-origin", "--includes", "-z")
+        files = git_config_digest(root)
+        config = (
+            digest_value({"files": files, "effective": effective})
+            if files is not None and effective is not None
+            else None
+        )
+        commit = git("rev-parse", "HEAD")
+        repository = _repository(git("remote", "get-url", "origin"))
+        changed = expected_config is not None and config != expected_config
+        clean = False if changed else git("status", "--porcelain", "--untracked-files=all") == ""
     return {
-        "repository": _repository(git("remote", "get-url", "origin")),
+        "repository": repository,
         "commit": commit if commit and _SHA.fullmatch(commit) else None,
-        "clean": git("status", "--porcelain", "--untracked-files=all") == "",
+        "clean": clean,
+        "git_config_sha256": config,
     }
 
 
@@ -874,26 +1095,270 @@ print(json.dumps({
 """
 
 
-def _run(command, *, cwd, env, timeout):
-    """Run one child once: (exit code, output, whether its deadline expired). No retry."""
+# Run by this collector's own interpreter as the inherited part: one call of the unmodified ROUTE
+# collector with no added path, whose receipt is written to the file named second.
+INHERITED_CALL = r"""
+import importlib.util, json, sys
+from pathlib import Path
+root = Path(sys.argv[1])
+spec = importlib.util.spec_from_file_location("route_regressions", root / "scripts/verify_route_phase.py")
+route = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(route)
+Path(sys.argv[2]).write_text(json.dumps(route.collect(root)), encoding="utf-8")
+"""
+
+
+class ProcessTree:
+    """Every process one child starts, so that all of them can be stopped together.
+
+    On Linux and macOS the child leads a new session, so it and every descendant that stays in
+    the session's process group are signalled together. While the child is still running (its
+    bound was reached), the group is first frozen and every process still linked to the child
+    by parentage is found, so that a descendant that started a session of its own is stopped
+    too. A descendant that left the group and whose parent had already ended is not found. On
+    Windows the child is assigned to a job object as soon as it exists; every process it starts
+    afterwards is in the job, even once its parent has ended, and terminating the job ends them
+    all. If the job cannot be made, `taskkill /T` stops the tree as linked at that moment.
+    """
+
+    POPEN_OPTIONS = {} if os.name == "nt" else {"start_new_session": True}
+
+    def __init__(self, child):
+        self.child = child
+        self.job = _windows_job(child.pid) if os.name == "nt" else None
+
+    def stop(self):
+        """Stop every process of the tree; whether the stop was carried out.
+
+        On Linux and macOS it is called before the child is reaped (`_await_exit` leaves it
+        unreaped), so the child's process id still names its process group, and no other process
+        can have taken it."""
+        if os.name != "nt":
+            with contextlib.suppress(ProcessLookupError, PermissionError):
+                os.killpg(self.child.pid, signal.SIGSTOP)
+            linked = _descendants(self.child.pid)
+            with contextlib.suppress(ProcessLookupError, PermissionError):
+                os.killpg(self.child.pid, signal.SIGKILL)
+            for pid in sorted(linked):
+                with contextlib.suppress(ProcessLookupError, PermissionError):
+                    os.kill(pid, signal.SIGKILL)
+            return True
+        if self.job is not None:
+            kernel32 = _kernel32()
+            stopped = bool(kernel32.TerminateJobObject(self.job, 1))
+            kernel32.CloseHandle(self.job)
+            self.job = None
+            return stopped
+        try:
+            result = subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(self.child.pid)],
+                capture_output=True,
+                env=_system_environment(),
+                timeout=30,
+                check=False,
+            )
+        except OSError, subprocess.SubprocessError:
+            return False
+        return result.returncode == 0
+
+
+def _system_environment():
+    """What a system tool (`ps`, `taskkill`) needs to start: the allowlist, nothing else."""
+    return {name: os.environ[name] for name in INHERITED_VARIABLES if name in os.environ}
+
+
+def _descendants(pid):
+    """Every process linked to `pid` by parentage now, on Linux and macOS (`ps`)."""
     try:
-        result = subprocess.run(
-            command, cwd=cwd, env=env, capture_output=True, timeout=timeout, check=False
-        )
-        return result.returncode, result.stdout + result.stderr, False
-    except subprocess.TimeoutExpired as error:
-        return 125, b"TimeoutExpired\n" + (error.stdout or b"") + (error.stderr or b""), True
-    except OSError as error:
-        return 125, type(error).__name__.encode(), False
+        listing = subprocess.run(
+            ["ps", "-A", "-o", "pid=", "-o", "ppid="],
+            capture_output=True,
+            text=True,
+            env=_system_environment(),
+            timeout=30,
+            check=False,
+        ).stdout
+    except OSError, subprocess.SubprocessError:
+        listing = None
+    if listing is None or not listing.strip():
+        # Without a listing no descendant outside the process group can be found.
+        print("HOST collection: ps gave no process listing; only the group is stopped", flush=True)
+        return set()
+    children = {}
+    for line in listing.splitlines():
+        fields = line.split()
+        if len(fields) == 2 and all(field.isdigit() for field in fields):
+            children.setdefault(int(fields[1]), []).append(int(fields[0]))
+    found, pending = set(), [pid]
+    while pending:
+        for child in children.get(pending.pop(), ()):
+            if child not in found and child != pid:
+                found.add(child)
+                pending.append(child)
+    return found
+
+
+def _kernel32():
+    import ctypes
+    from ctypes import wintypes
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.CreateJobObjectW.restype = wintypes.HANDLE
+    kernel32.CreateJobObjectW.argtypes = (ctypes.c_void_p, wintypes.LPCWSTR)
+    kernel32.OpenProcess.restype = wintypes.HANDLE
+    kernel32.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+    kernel32.AssignProcessToJobObject.restype = wintypes.BOOL
+    kernel32.AssignProcessToJobObject.argtypes = (wintypes.HANDLE, wintypes.HANDLE)
+    kernel32.TerminateJobObject.restype = wintypes.BOOL
+    kernel32.TerminateJobObject.argtypes = (wintypes.HANDLE, wintypes.UINT)
+    kernel32.CloseHandle.restype = wintypes.BOOL
+    kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
+    return kernel32
+
+
+def _windows_job(pid):
+    """A job object holding the process `pid`, or None if one cannot be made."""
+    kernel32 = _kernel32()
+    job = kernel32.CreateJobObjectW(None, None)
+    if not job:
+        return None
+    # PROCESS_SET_QUOTA | PROCESS_TERMINATE: what AssignProcessToJobObject needs.
+    process = kernel32.OpenProcess(0x0100 | 0x0001, False, pid)
+    assigned = bool(process) and bool(kernel32.AssignProcessToJobObject(job, process))
+    if process:
+        kernel32.CloseHandle(process)
+    if not assigned:
+        kernel32.CloseHandle(job)
+        print("HOST collection: no job object; taskkill /T will stop this child", flush=True)
+        return None
+    return job
+
+
+def _ended_unreaped(pid, timeout):
+    """Whether process `pid` ended within `timeout` seconds, without reaping it; None if this
+    platform offers no way (a pidfd on Linux, kqueue on macOS)."""
+    if hasattr(os, "pidfd_open"):
+        try:
+            descriptor = os.pidfd_open(pid)
+        except OSError:
+            return None
+        try:
+            poller = select.poll()
+            poller.register(descriptor, select.POLLIN)
+            return bool(poller.poll(max(0, timeout) * 1000))
+        finally:
+            os.close(descriptor)
+    if hasattr(select, "kqueue"):
+        queue = select.kqueue()
+        try:
+            event = select.kevent(
+                pid,
+                filter=select.KQ_FILTER_PROC,
+                flags=select.KQ_EV_ADD | select.KQ_EV_ENABLE | select.KQ_EV_ONESHOT,
+                fflags=select.KQ_NOTE_EXIT,
+            )
+            try:
+                events = queue.control([event], 1, max(0, timeout))
+            except ProcessLookupError:
+                return True  # it ended before it was registered: an unreaped zombie
+            if any(e.flags & select.KQ_EV_ERROR and e.data == errno.ESRCH for e in events):
+                return True
+            return bool(events)
+        finally:
+            queue.close()
+    return None
+
+
+def _await_exit(child, timeout):
+    """Return once the child has ended, or raise TimeoutExpired after `timeout` seconds.
+
+    On Linux and macOS the child is left unreaped, so that the tree is stopped while its process
+    id still names its group (security finding N4a). Elsewhere it is waited for.
+    """
+    if os.name != "nt":
+        ended = _ended_unreaped(child.pid, timeout)
+        if ended is False:
+            raise subprocess.TimeoutExpired(child.args, timeout)
+        if ended:
+            return
+    child.wait(timeout=timeout)
+
+
+def _run(command, *, cwd, env, timeout, capture=True, launched=None):
+    """Run one child once: (exit code, output, whether its deadline expired). No retry.
+
+    When the child returns or its deadline expires, every process it started is stopped
+    (ProcessTree). Output goes to a temporary file, not a pipe, so that a descendant still
+    holding it cannot keep the collection waiting; with `capture=False` it goes to this
+    process's own output instead. A child whose bound is already spent is not started.
+    `launched`, when given, receives the argument list exactly as it was launched.
+    """
+    if timeout <= 0:
+        return 125, b"TimeoutExpired\nthe bound was reached before this child started\n", True
+    argv = list(command)
+    with tempfile.TemporaryFile() as sink:
+        try:
+            child = subprocess.Popen(
+                argv,
+                cwd=cwd,
+                env=env,
+                stdout=sink if capture else None,
+                stderr=subprocess.STDOUT if capture else None,
+                **ProcessTree.POPEN_OPTIONS,
+            )
+        except OSError as error:
+            return 125, type(error).__name__.encode(), False
+        if launched is not None:
+            launched.append(argv)
+        tree = None
+        expired = ended = False
+        try:
+            tree = ProcessTree(child)
+            _await_exit(child, timeout)
+            ended = True
+        except subprocess.TimeoutExpired:
+            expired = True
+        finally:
+            # On any way out, even an interruption, every process the child started is stopped,
+            # before the child is reaped.
+            if tree is None or not tree.stop():
+                print("HOST collection: the process tree could not be stopped", flush=True)
+            # Whatever the tree's stop did, a child that had not ended is killed before it is
+            # waited for, and the wait is bounded: no failed stop can leave the collection waiting.
+            if not ended:
+                with contextlib.suppress(OSError):
+                    child.kill()
+            try:
+                child.wait(timeout=KILLED_CHILD_WAIT_SECONDS)
+            except subprocess.TimeoutExpired:
+                print("HOST collection: a killed child did not end", flush=True)
+        code = 125 if expired or child.returncode is None else child.returncode
+        sink.seek(0)
+        output = sink.read()
+    return code, b"TimeoutExpired\n" + output if expired else output, expired
 
 
 def collect(root, companion_root):
+    """Collect one receipt, in a fixed order: the inherited call, HOST's command, the companion.
+
+    One clock covers the collection. The inherited part is the time of the ROUTE collector call;
+    HOST's part is the total less that. Each part's children are stopped at its bound.
+    """
     started = time.monotonic()
     run = {
         "run_id": os.environ.get("GITHUB_RUN_ID"),
         "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
         "repository": os.environ.get("GITHUB_REPOSITORY"),
     }
+    if not run["run_id"]:
+        print(
+            f"HOST collection outside CI: at most {TOTAL_LIMIT_SECONDS} seconds in total "
+            f"({INHERITED_BOUND_SECONDS} for the inherited ROUTE regressions under ROUTE's own "
+            f"deadline, a {INHERITED_WATCHDOG_GRACE_SECONDS}-second watchdog after it, and "
+            f"{HOST_BOUND_SECONDS} for HOST's own part); every process a part started is stopped "
+            "when it ends, and a receipt over either part's bound is rejected.",
+            flush=True,
+        )
     configured = os.environ.get("JEVDRILL_AGENT_HARNESS_PYTHON")
     if not configured or not Path(configured).is_file():
         raise CollectionError("JEVDRILL_AGENT_HARNESS_PYTHON must name the companion interpreter")
@@ -910,9 +1375,15 @@ def collect(root, companion_root):
         raise CollectionError("the handoff record is missing or malformed") from error
     before = input_digest(root)
     companion_before = source_digest(runtime)
+    inherited_seconds = 0.0
+
+    def host_remaining():
+        # HOST's part is everything outside the ROUTE collector call, on the collection's clock.
+        return HOST_BOUND_SECONDS - (time.monotonic() - started - inherited_seconds)
+
     with (
         tempfile.TemporaryDirectory(
-            prefix="jevdrill-host-", dir=os.environ.get("RUNNER_TEMP")
+            prefix="jevdrill-host-", dir=os.environ.get("RUNNER_TEMP"), ignore_cleanup_errors=True
         ) as temporary,
         workflow_commands_stopped(),
     ):
@@ -931,7 +1402,7 @@ def collect(root, companion_root):
             ],
             cwd=companion_root,
             env=child_environment(home),
-            timeout=30,
+            timeout=min(30, host_remaining()),
         )
         if code != 0:
             print(output.decode(errors="replace")[-20000:], flush=True)
@@ -945,19 +1416,63 @@ def collect(root, companion_root):
         if not isinstance(provenance, dict):
             raise CollectionError("the companion's provenance could not be read")
         witness_path = tmp / "witness.json"
-        with process_environment(
-            route_environment(
-                JEVDRILL_AGENT_HARNESS_ROOT=str(companion_root),
-                JEVDRILL_AGENT_HARNESS_PYTHON=str(python),
-                JEVDRILL_TEST_CLI=str(cli),
-                JEVDRILL_EVALUATION_OUTPUT=str(witness_path),
+        host_values = dict(
+            zip(
+                HOST_VARIABLES,
+                (str(companion_root), str(python), str(cli), str(witness_path)),
+                strict=True,
             )
-        ):
-            inherited = route.collect(root, extra_test_paths=TEST_PATHS)
-        if not run["run_id"]:
+        )
+        # 1. The inherited part: one call of the ROUTE collector, its command route.yml's own,
+        # under its own 600-second budget. The collector's watchdog stops the call only after that
+        # budget and its grace have passed. Its output goes straight to the log, as in route.yml.
+        route_receipt = tmp / "route.json"
+        call_started = time.monotonic()
+        call_code, _, call_expired = _run(
+            [sys.executable, "-c", INHERITED_CALL, str(root), str(route_receipt)],
+            cwd=root,
+            env=route_environment(**host_values),
+            timeout=INHERITED_BOUND_SECONDS + INHERITED_WATCHDOG_GRACE_SECONDS,
+            capture=False,
+        )
+        inherited_seconds = time.monotonic() - call_started
+        print(
+            f"inherited ROUTE regressions: {'returned' if call_code == 0 else 'FAILED'}"
+            + (" (stopped by the collector's watchdog)" if call_expired else ""),
+            flush=True,
+        )
+        try:
+            inherited = json.loads(route_receipt.read_text(encoding="utf-8"))
+        except OSError, ValueError:
+            inherited = None
+        if not isinstance(inherited, dict):
+            inherited = {}
+        if not run["run_id"] and "runner_identity" in inherited:
             # route.collect names the machine outside CI; a HOST receipt never does.
             inherited["runner_identity"] = "local"
+        # 2. HOST's own controls, in a command of this collector's own.
+        host_command = host_test_command(sys.executable, tmp)
+        host_started = time.monotonic()
+        host_launched = []
+        host_code, host_output, host_expired = _run(
+            host_command,
+            cwd=root,
+            env=route_environment(**host_values),
+            timeout=host_remaining(),
+            launched=host_launched,
+        )
+        host_command_seconds = time.monotonic() - host_started
+        print(f"HOST controls: {'passed' if host_code == 0 else 'FAILED'}", flush=True)
+        if host_code:
+            print(host_output.decode(errors="replace")[-20000:], flush=True)
+        try:
+            host_assertions = assertions_from(tmp / "host.xml", root)
+        except OSError, ET.ParseError:
+            host_assertions = []
+        # 3. The companion's own tests.
         command = companion_command(python, tmp, platform.system())
+        companion_started = time.monotonic()
+        companion_launched = []
         code, output, expired = _run(
             command,
             cwd=companion_root,
@@ -968,8 +1483,10 @@ def collect(root, companion_root):
                 JEVDRILL_TEST_PYTHON=sys.executable,
                 **SCHEDULER_SWITCH,
             ),
-            timeout=max(0.001, COLLECTION_BOUND_SECONDS - (time.monotonic() - started)),
+            timeout=host_remaining(),
+            launched=companion_launched,
         )
+        companion_seconds = time.monotonic() - companion_started
         print(f"companion: {'passed' if code == 0 else 'FAILED'}", flush=True)
         if code:
             print(output.decode(errors="replace")[-20000:], flush=True)
@@ -981,7 +1498,15 @@ def collect(root, companion_root):
             [sys.executable, *HOST_STATIC_COMMAND[1:]],
             cwd=root,
             env=child_environment(home),
-            timeout=max(0.001, COLLECTION_BOUND_SECONDS - (time.monotonic() - started)),
+            timeout=host_remaining(),
+        )
+        # After the last child: both checkouts again, so a collection that changed or dirtied
+        # either is seen.
+        jevdrill_after = checkout_state(
+            root, child_environment(home), expected_config=jevdrill["git_config_sha256"]
+        )
+        companion_after = checkout_state(
+            companion_root, child_environment(home), expected_config=companion["git_config_sha256"]
         )
         try:
             witness = json.loads(witness_path.read_text(encoding="utf-8"))
@@ -1008,11 +1533,25 @@ def collect(root, companion_root):
         if isinstance(discovery, dict) and isinstance(discovery.get("command"), list):
             discovery["command"] = normalized_command(discovery["command"], "discovery")
             discovery["command_sha256"] = digest_value(discovery["command"])
-    normalized = normalized_command(command, "companion")
+    # The receipt records each command as it was launched, not as it was built; a child that was
+    # never started records an empty command.
+    normalized = normalized_command(
+        companion_launched[0] if companion_launched else [],
+        "companion",
+        temporary=tmp,
+        os_name=platform.system(),
+    )
+    host_normalized = normalized_command(
+        host_launched[0] if host_launched else [],
+        "host",
+        temporary=tmp,
+        os_name=platform.system(),
+    )
     copies = contract_copies(root, runtime)
     companion_stable = source_digest(runtime) == companion_before
     host_stable = input_digest(root) == before
-    # Taken after the collection's last operation, and recorded unrounded.
+    # Sampled after the last child, the checkouts' second reading, the final source digests and
+    # the contract comparison; what follows hashes values in memory. Recorded unrounded.
     duration = time.monotonic() - started
     receipt = {
         "schema_version": SCHEMA_VERSION,
@@ -1027,7 +1566,18 @@ def collect(root, companion_root):
         "jevdrill": jevdrill,
         "input_digest": before,
         "source_stable": host_stable,
+        "inherited_call": {"exit_code": call_code, "deadline_expired": call_expired},
         "route_regressions": inherited,
+        "host_controls": {
+            "command": host_normalized,
+            "command_sha256": digest_value(host_normalized),
+            "exit_code": host_code,
+            "deadline_expired": host_expired,
+            "output_sha256": hashlib.sha256(host_output).hexdigest(),
+            "assertions": host_assertions,
+            "assertions_sha256": digest_value(host_assertions),
+            "duration_seconds": host_command_seconds,
+        },
         "companion": {
             **companion,
             "python": {
@@ -1063,6 +1613,14 @@ def collect(root, companion_root):
             "exit_code": static_code,
             "output_sha256": hashlib.sha256(static_output).hexdigest(),
         },
+        "checkouts_after": {"jevdrill": jevdrill_after, "companion": companion_after},
+        # The two parts on the collection's one clock, and as information the time of the
+        # companion's tests inside HOST's part (HOST's command's own is in `host_controls`).
+        "parts": {
+            "inherited_seconds": inherited_seconds,
+            "host_seconds": duration - inherited_seconds,
+            "companion_seconds": companion_seconds,
+        },
         "duration_seconds": duration,
         "proof_cost_target_exceeded": duration > PROOF_COST_TARGET_SECONDS,
     }
@@ -1076,6 +1634,7 @@ def failure_summary(manifest):
         row
         for value in (
             _dict(manifest.get("route_regressions")).get("assertions"),
+            _dict(manifest.get("host_controls")).get("assertions"),
             _dict(manifest.get("companion")).get("assertions"),
         )
         for row in _rows(value, "node_id")[0]
@@ -1117,6 +1676,16 @@ def _count(rows, key, node):
         for row in rows
         if row.get("outcome") == "passed" and (row[key] == node or row[key].startswith(node + "["))
     )
+
+
+def _matching(rows, node):
+    """The rows of `node`, a whole test or one of its parameters, whatever their outcome."""
+    return [row for row in rows if row["node_id"] == node or row["node_id"].startswith(node + "[")]
+
+
+def _seconds(value):
+    """Whether `value` is a recorded time: a number of seconds, compared before any arithmetic."""
+    return type(value) in (int, float) and 0 <= value <= MAX_RECORDED_SECONDS
 
 
 def _is_digest(value):
@@ -1382,15 +1951,117 @@ def _companion_errors(companion, os_name, handoff, reference):
     return errors
 
 
+def _host_command_errors(host):
+    """HOST's own command: rebuilt from this verifier's constants, run whole, every case passed."""
+    errors = []
+    expected = expected_host_command()
+    if host.get("command") != expected:
+        errors.append("HOST command is not the expected command")
+    if host.get("command_sha256") != digest_value(expected):
+        errors.append("HOST command digest mismatch")
+    if host.get("deadline_expired") is not False:
+        errors.append(f"HOST command stopped at HOST's {HOST_BOUND_SECONDS}-second bound")
+    if (
+        type(host.get("exit_code")) is not int
+        or host["exit_code"] != 0
+        or not _is_digest(host.get("output_sha256"))
+    ):
+        errors.append("HOST command failed")
+    assertions, well_formed = _rows(host.get("assertions"), "node_id")
+    if (
+        not well_formed
+        or not assertions
+        or host.get("assertions_sha256") != digest_value(host.get("assertions"))
+    ):
+        errors.append("missing or malformed HOST command assertions")
+    if len({row["node_id"] for row in assertions}) != len(assertions):
+        errors.append("a test appears twice in HOST's command")
+    errors.extend(
+        f"malformed test id in HOST's command: {row['node_id'][:200]!r}"
+        for row in assertions
+        if not _TEST_ID.fullmatch(row["node_id"])
+    )
+    errors.extend(
+        "failed or skipped test in HOST's command: " + row["node_id"]
+        for row in assertions
+        if row["outcome"] != "passed"
+    )
+    return errors
+
+
+def _source_errors(inherited_rows, host_rows):
+    """Each control counted exactly, from its one stated source; none found in both commands."""
+    errors = []
+    both = {row["node_id"] for row in inherited_rows} & {row["node_id"] for row in host_rows}
+    errors.extend("a test ran in both commands: " + node for node in sorted(both))
+    sources = {INHERITED: inherited_rows, HOST: host_rows}
+    for node, count in CONTROL_COUNTS.items():
+        source = CONTROL_SOURCES.get(node)
+        if source not in sources:
+            errors.append("control without a stated source: " + node)
+            continue
+        own = sources[source]
+        other = sources[HOST if source == INHERITED else INHERITED]
+        elsewhere = _matching(other, node)
+        if elsewhere:
+            errors.append("control counted from two sources: " + node)
+        if _count(own, "node_id", node) != count or elsewhere:
+            errors.append("HOST control count not exact: " + node)
+        if any(row["outcome"] != "passed" for row in _matching(own, node) + elsewhere):
+            errors.append("failed or skipped HOST control: " + node)
+    return errors
+
+
+def _time_errors(manifest, inner_duration):
+    """The total, the two parts and their bounds, on the collection's one clock."""
+    errors = []
+    duration = manifest.get("duration_seconds")
+    total_valid = _seconds(duration) and duration > 0
+    if not total_valid:
+        errors.append("no valid collection duration")
+    else:
+        if manifest.get("proof_cost_target_exceeded") is not (duration > PROOF_COST_TARGET_SECONDS):
+            errors.append("misreported five-minute proof-cost flag")
+        if type(inner_duration) not in (int, float) or not inner_duration <= duration:
+            errors.append("inherited collection longer than its receipt's")
+    parts = manifest.get("parts")
+    host_command = _dict(manifest.get("host_controls")).get("duration_seconds")
+    if (
+        not isinstance(parts, dict)
+        or set(parts) != {"inherited_seconds", "host_seconds", "companion_seconds"}
+        or not all(_seconds(value) for value in parts.values())
+        or not _seconds(host_command)
+    ):
+        errors.append("missing or malformed part time")
+        return errors
+    inherited_part, host_part = parts["inherited_seconds"], parts["host_seconds"]
+    if inherited_part > INHERITED_BOUND_SECONDS:
+        errors.append(f"inherited part over {INHERITED_BOUND_SECONDS} seconds")
+    if host_part > HOST_BOUND_SECONDS:
+        errors.append(f"HOST part over {HOST_BOUND_SECONDS} seconds")
+    if total_valid and abs(inherited_part + host_part - duration) > PARTS_SUM_TOLERANCE:
+        errors.append("parts do not sum to the total")
+    if _seconds(inner_duration) and inherited_part + ROUTE_DURATION_ROUNDING < inner_duration:
+        errors.append("inherited part shorter than the ROUTE receipt's own duration")
+    if host_command + parts["companion_seconds"] > host_part + PARTS_SUM_TOLERANCE:
+        errors.append("HOST command and companion times exceed HOST's part")
+    return errors
+
+
 def _platform_errors(manifest, identity, root, reference, handoff, route_digest):
     errors = []
     run = _dict(reference.get("run"))
+    schema = manifest.get("schema_version")
     if (
         manifest.get("phase") != "HOST"
-        or manifest.get("schema_version") != SCHEMA_VERSION
+        or schema != SCHEMA_VERSION
         or manifest.get("execution_kind") != "native"
     ):
         errors.append("unsupported HOST receipt")
+    if type(schema) is int and 0 < schema < SCHEMA_VERSION:
+        # Its HOST controls ran inside the inherited command under one bound: nothing in it can
+        # be read as the two parts this verifier requires.
+        return [*errors, f"HOST receipt of an old shape (schema {schema})"]
     if manifest.get("input_digest") != reference.get("input_digest"):
         errors.append("stale HOST input digest")
     if manifest.get("source_stable") is not True:
@@ -1418,36 +2089,64 @@ def _platform_errors(manifest, identity, root, reference, handoff, route_digest)
         or jevdrill.get("clean") is not True
     ):
         errors.append("jevdrill checkout is not the reduced commit, or was not clean")
+    jevdrill_after = _dict(_dict(manifest.get("checkouts_after")).get("jevdrill"))
+    companion_after = _dict(_dict(manifest.get("checkouts_after")).get("companion"))
+    companion_state = _dict(manifest.get("companion"))
+    for before, after in ((jevdrill, jevdrill_after), (companion_state, companion_after)):
+        if (
+            any(after.get(key) != before.get(key) for key in ("repository", "commit", "clean"))
+            or after.get("clean") is not True
+        ):
+            errors.append("a checkout changed or was left unclean by the collection")
+        if not _is_digest(before.get("git_config_sha256")) or after.get(
+            "git_config_sha256"
+        ) != before.get("git_config_sha256"):
+            errors.append("a checkout's git configuration changed during the collection")
     inherited = manifest.get("route_regressions")
     rows, _ = _rows(_dict(inherited).get("assertions"), "node_id")
     try:
+        # The inherited command is ROUTE's own: no path is added (declared change 17).
         inherited_errors = route.reduce_manifests(
-            [inherited],
-            route_digest,
-            root,
-            required_platforms={identity},
-            extra_test_paths=TEST_PATHS,
+            [inherited], route_digest, root, required_platforms={identity}
         )
     # A malformed inherited receipt is a verdict, never a traceback.
     except AttributeError, IndexError, KeyError, TypeError, ValueError:
         inherited_errors = ["malformed inherited regressions"]
     errors.extend("ROUTE regression: " + error for error in inherited_errors)
     inner = _dict(inherited)
+    checks = inner.get("checks")
+    tests = (
+        [check for check in checks if isinstance(check, dict) and check.get("name") == "tests"]
+        if isinstance(checks, list)
+        else []
+    )
+    if (
+        len(tests) != 1
+        or not isinstance(tests[0].get("command"), list)
+        or not all(isinstance(part, str) for part in tests[0]["command"])
+        or route.normalized_command(tests[0]["command"], "tests")
+        != expected_inherited_command(identity[0])
+    ):
+        errors.append("inherited command differs from ROUTE's own")
+    call = _dict(manifest.get("inherited_call"))
+    if (
+        type(call.get("exit_code")) is not int
+        or call["exit_code"] != 0
+        or call.get("deadline_expired") is not False
+    ):
+        errors.append("inherited ROUTE call failed or was stopped by the collector's watchdog")
     if inner.get("runner_identity") != manifest.get("runner_identity"):
         errors.append("inherited ROUTE receipt is from another run")
     if inner.get("python_minor") != identity[1] or inner.get("python_version") != manifest.get(
         "python_version"
     ):
         errors.append("inherited ROUTE receipt's Python disagrees with the receipt's")
-    for node, count in CONTROL_COUNTS.items():
-        if _count(rows, "node_id", node) != count:
-            errors.append("HOST control count not exact: " + node)
-        if any(
-            row["outcome"] != "passed"
-            and (row["node_id"] == node or row["node_id"].startswith(node + "["))
-            for row in rows
-        ):
-            errors.append("failed or skipped HOST control: " + node)
+    host = _dict(manifest.get("host_controls"))
+    if not host:
+        errors.append("missing HOST command receipt")
+    errors.extend(_host_command_errors(host))
+    host_rows, _ = _rows(host.get("assertions"), "node_id")
+    errors.extend(_source_errors(rows, host_rows))
     if manifest.get("failed_ids") != failure_summary(manifest)[0]:
         errors.append("failed_ids disagrees with the assertions")
     if manifest.get("failed_checks") != failure_summary(manifest)[1]:
@@ -1481,20 +2180,8 @@ def _platform_errors(manifest, identity, root, reference, handoff, route_digest)
         or not _is_digest(static.get("output_sha256"))
     ):
         errors.append("failed or wrong host static check")
-    duration = manifest.get("duration_seconds")
-    # The range is checked before finiteness, so that no number can raise.
-    if (
-        type(duration) not in (int, float)
-        or not 0 < duration <= COLLECTION_BOUND_SECONDS
-        or not math.isfinite(duration)
-    ):
-        errors.append("collection over 600 seconds, or no valid duration")
-    else:
-        if manifest.get("proof_cost_target_exceeded") is not (duration > PROOF_COST_TARGET_SECONDS):
-            errors.append("misreported five-minute proof-cost flag")
-        inner_duration = inner.get("duration_seconds")
-        if type(inner_duration) not in (int, float) or not inner_duration <= duration:
-            errors.append("inherited collection longer than its receipt's")
+    # Every range is checked before any arithmetic, so that no number can raise.
+    errors.extend(_time_errors(manifest, inner.get("duration_seconds")))
     return errors
 
 

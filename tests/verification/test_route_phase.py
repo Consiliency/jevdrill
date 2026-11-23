@@ -171,16 +171,26 @@ def test_downstream_commands_cover_phase_controls_and_bind_extra_paths(tmp_path,
     )
     downstream = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(downstream)
-    command = runner.commands_for("python", tmp_path, extra_test_paths=downstream.TEST_PATHS)[
-        "tests"
-    ]
-    selected = [arg for arg in command if arg.startswith("tests/")]
+    # The downstream phase adds no path to this command (HOST plan, declared change 17); its
+    # own command covers every control whose source is that command.
+    inherited = runner.commands_for("python", tmp_path)["tests"]
+    own = downstream.host_test_command("python", tmp_path)
+    selected = {
+        downstream.INHERITED: [arg for arg in inherited if arg.startswith("tests/")],
+        downstream.HOST: [arg for arg in own if arg.startswith("tests/")],
+    }
     for controls in downstream.CONTROLS.values():
         for control in controls:
             file = control.split("::")[0]
-            assert any(file == path or file.startswith(path + "/") for path in selected)
-    assert len(selected) == len(set(selected))
-    assert command != runner.commands_for("python", tmp_path)["tests"]
+            paths = selected[downstream.CONTROL_SOURCES[control]]
+            assert any(file == path or file.startswith(path + "/") for path in paths), control
+    assert len(selected[downstream.HOST]) == len(set(selected[downstream.HOST]))
+    # No test runs in both commands.
+    assert not any(
+        path == arg or path.startswith(arg + "/")
+        for path in selected[downstream.HOST]
+        for arg in selected[downstream.INHERITED]
+    )
 
 
 def test_windows_command_leaves_out_only_the_listed_inapplicable_tests(tmp_path):
