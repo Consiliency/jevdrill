@@ -270,81 +270,91 @@ def keyed_value(app, scope, value):
     return hmac.new(key, canonical_digest([pair, value]).encode(), hashlib.sha256).hexdigest()
 
 
-def received(app, scope):
-    """The `discovery_revisions` values `scope` receives in user-wide observations."""
-    return [
-        o["conditions"]["discovery_revisions"]
-        for o in app.storage.learning_observations(scope, True)
-        if o["source"]["origin"] == "user_wide_redacted"
-    ]
+def per_discovery(app, scope, made, analyze=False):
+    """name -> (revisions value, sorted observation refs) as `scope` receives them.
+
+    Read from the analysis response (the public value) when `analyze`, otherwise from
+    the observations. Discoveries are matched by their expected keyed identity, so a
+    value attached to the wrong discovery fails.
+    """
+    rows = {}
+    if analyze:
+        for group in Application(app.storage).analyze(request(scope))["groups"]:
+            conditions = group["conditions"]
+            rows.setdefault(conditions["discovery_identity"], []).append(
+                (conditions["discovery_revisions"], tuple(sorted(group["observation_refs"])))
+            )
+    else:
+        for o in app.storage.learning_observations(scope, True):
+            if o["source"]["origin"] == "user_wide_redacted":
+                c = o["conditions"]
+                rows.setdefault(c["discovery_identity"], []).append(
+                    (c["discovery_revisions"], (o["observation_ref"],))
+                )
+    result = {}
+    for name, context in made.items():
+        entries = rows.pop(keyed_value(app, scope, canonical_digest(context["discovery_ref"])))
+        assert not analyze or len(entries) == 1, f"{name}: one discovery, one group"
+        values = {value for value, _ in entries}
+        assert len(values) == 1, name
+        result[name] = (values.pop(), tuple(sorted(r for _, refs in entries for r in refs)))
+    assert rows == {}
+    return result
 
 
 def test_revisions_value_needs_the_store_key(revisions):
     app, _producer, made, requesters = revisions
-    got = set(received(app, requesters[0]))
-    unkeyed = {revisions_of(app, context) for context in made.values()}
-    assert len(got) == 2 and not got & unkeyed
-    assert got == {keyed_value(app, requesters[0], value) for value in unkeyed}
+    public = per_discovery(app, requesters[0], made, analyze=True)
+    for name, context in made.items():
+        unkeyed = revisions_of(app, context)
+        assert public[name][0] == keyed_value(app, requesters[0], unkeyed) != unkeyed
 
 
 def test_revisions_value_differs_between_requesters_and_stores(revisions, tmp_path):
-    app, producer, _made, requesters = revisions
-    first, second = (set(received(app, r)) for r in requesters)
-    assert len(first) == len(second) == 2 and not first & second
+    app, producer, made, requesters = revisions
+    first, second = (per_discovery(app, r, made, analyze=True) for r in requesters)
+    assert all(first[name][0] != second[name][0] for name in made)
     (tmp_path / "elsewhere").mkdir()
-    other = SQLiteStorage(tmp_path / "elsewhere" / app.storage.path.name)
-    other.import_recovery(producer, app.storage.export_recovery(producer), time.time())
-    elsewhere = {
-        o["conditions"]["discovery_revisions"]
-        for o in other.learning_observations(requesters[0], True)
-        if o["source"]["origin"] == "user_wide_redacted"
-    }
-    assert len(elsewhere) == 2 and not elsewhere & first
+    other = Application(SQLiteStorage(tmp_path / "elsewhere" / app.storage.path.name))
+    other.storage.import_recovery(producer, app.storage.export_recovery(producer), time.time())
+    elsewhere = per_discovery(other, requesters[0], made, analyze=True)
+    assert all(elsewhere[name][0] != first[name][0] for name in made)
 
 
 def test_revisions_value_is_stable_for_a_requester(revisions):
-    app, _producer, _made, requesters = revisions
-    first = received(app, requesters[0])
-    assert len(first) == 4  # A1's two runs, A2 and A3
-    assert received(app, requesters[0]) == first
-    assert values(app.analyze(request(requesters[0]))) == values(
-        Application(SQLiteStorage(app.storage.path)).analyze(request(requesters[0]))
-    )
-    reopened = SQLiteStorage(app.storage.path)
-    assert [
-        o["conditions"]["discovery_revisions"]
-        for o in reopened.learning_observations(requesters[0], True)
-        if o["source"]["origin"] == "user_wide_redacted"
-    ] == first
+    app, _producer, made, requesters = revisions
+    first = per_discovery(app, requesters[0], made, analyze=True)
+    assert len(first) == 3
+    assert per_discovery(app, requesters[0], made, analyze=True) == first
+    reopened = Application(SQLiteStorage(app.storage.path))
+    assert per_discovery(reopened, requesters[0], made, analyze=True) == first
 
 
 def test_equal_revisions_get_equal_values_and_unequal_ones_differ(revisions):
     app, _producer, made, requesters = revisions
     assert revisions_of(app, made["A1"]) == revisions_of(app, made["A2"])
     assert revisions_of(app, made["A1"]) != revisions_of(app, made["A3"])
-    per_discovery = {}
-    for o in app.storage.learning_observations(requesters[0], True):
-        if o["source"]["origin"] == "user_wide_redacted":
-            per_discovery.setdefault(o["conditions"]["discovery_identity"], set()).add(
-                o["conditions"]["discovery_revisions"]
-            )
-    assert len(per_discovery) == 3 and all(len(v) == 1 for v in per_discovery.values())
-    a1, a2, a3 = (keyed_value(app, requesters[0], revisions_of(app, made[n])) for n in made)
-    assert {next(iter(v)) for v in per_discovery.values()} == {a1, a3}
-    assert a1 == a2 != a3
+    public = per_discovery(app, requesters[0], made, analyze=True)
+    assert public["A1"][0] == public["A2"][0] != public["A3"][0]
 
 
 def test_one_discovery_still_shares_a_group_with_all_three_values_keyed(revisions):
-    app, _producer, _made, requesters = revisions
-    groups = app.analyze(request(requesters[0]))["groups"]
-    assert sorted(len(g["observation_refs"]) for g in groups) == [1, 1, 2]
+    app, _producer, made, requesters = revisions
+    observed = per_discovery(app, requesters[0], made)
+    public = per_discovery(app, requesters[0], made, analyze=True)
+    # A1's two observations are one group, holding exactly those two references.
+    assert len(observed["A1"][1]) == 2 and public["A1"][1] == observed["A1"][1]
+    assert all(public[name][1] == observed[name][1] for name in made)
 
 
 def test_local_revisions_values_are_unchanged(revisions):
     app, producer, made, _requesters = revisions
-    local = {
-        o["conditions"]["discovery_revisions"]
-        for o in app.storage.learning_observations(producer, True)
-        if o["source"]["origin"] == "local"
+    local = {}
+    for o in app.storage.learning_observations(producer, True):
+        if o["source"]["origin"] == "local":
+            c = o["conditions"]
+            local.setdefault(c["discovery_identity"], set()).add(c["discovery_revisions"])
+    assert local == {
+        canonical_digest(context["discovery_ref"]): {revisions_of(app, context)}
+        for context in made.values()
     }
-    assert local == {revisions_of(app, context) for context in made.values()}

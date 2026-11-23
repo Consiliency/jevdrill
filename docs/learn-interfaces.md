@@ -30,11 +30,16 @@ holds such groups, because the stored source digest no longer matches. A store
 rebuilt elsewhere from a recovery export has its own key and gives a requester
 different values; a copy of the store's file keeps the key. A policy promoted on
 earlier evidence is not changed. The discovery's status, domains and guidance
-choices are not keyed: they are the same for every requester and store, so they
-can still link one discovery's groups across requesters, and to a holder of the
-producer's discovery result. Within one requester's view, a keyed value still
-links every observation that shares it, for example the observations of one
-producer's discoveries made with the same constraints, catalog and settings.
+choices are not keyed, nor are the group's other conditions (context fields,
+configuration digests, policy revision, model) or its measurements: they are the
+same for every requester and store, so they can still link one producer's groups
+across requesters, and a holder of the producer's discovery result can match its
+status and guidance choices. Keying protects only values a requester has not
+already received: one holding output from before the revisions digest was keyed
+can pair its old and new values through the unchanged observation digests.
+Within one requester's view, a keyed value still links every observation that
+shares it, for example the observations of one producer's discoveries made with
+the same constraints, catalog and settings.
 
 Comparable groups retain task family/group, environment/isolation, actual
 evaluator/rubric revisions, source measurement definitions and selected/applied
