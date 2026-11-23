@@ -31,6 +31,7 @@ from cryptography.fernet import Fernet
 from jevdrill.application import Application
 from jevdrill.context import redact
 from jevdrill.contracts import ContractError, canonical_digest
+from jevdrill.discovery import reference
 from jevdrill.integrations import archive
 from jevdrill.integrations.archive import decrypt_archive
 from jevdrill.maintenance import DAY, Maintenance
@@ -53,6 +54,10 @@ REFUSED = (
 )
 # Bytes no text handling would keep: every line ending, NUL and invalid UTF-8.
 AWKWARD = b"first\r\nsecond\rthird\n\x00\xff\xfe" + bytes(range(256)) + b"\r\n"
+# The raw kinds that raw retention governs.
+RAW = ("raw_task", "raw_output")
+# Valid UTF-8 with every line ending, so a step that decodes text first is tried too.
+TEXT = "first\r\nsecond\rthird\nnon-ASCII: \u00e9\u00f8\u2713\r\n".encode()
 
 
 class NoProvider:
@@ -65,6 +70,27 @@ class NoProvider:
 
     def observe_option(self, *args):
         pytest.fail("a discovery judgment was requested")
+
+
+class Observer:
+    """A synthetic discovery port: an option is supported unless it is a resource whose
+    description does not mention the objective. Nothing asks a provider."""
+
+    model_revision = "jev-latest"
+
+    def observe_option(self, task, offered, question_digest, option_id, deadline):
+        option = json.loads(offered)
+        return {
+            "schema_version": "1",
+            "function_revision": "ObserveDiscoveryOption-v1",
+            "model_revision": "jev-latest",
+            "question_digest": question_digest,
+            "judgments": {
+                option_id: option["level"] != "resource"
+                or json.loads(task)["objective"] in (option["description"] or "")
+            },
+            "measurements": [],
+        }
 
 
 @pytest.fixture
@@ -128,7 +154,7 @@ def inputs():
     return discovery, route, scope
 
 
-def application(path, scope, synthetic, policy=False):
+def application(path, scope, synthetic, policy=False, observer=False):
     path.parent.mkdir(parents=True, exist_ok=True)
     kwargs = {}
     if policy:
@@ -149,7 +175,10 @@ def application(path, scope, synthetic, policy=False):
             "policy_task_group": lambda request: GROUP,
         }
     app = Application(
-        SQLiteStorage(path), judgments=NoProvider(), discovery_judgments=NoProvider(), **kwargs
+        SQLiteStorage(path),
+        judgments=NoProvider(),
+        discovery_judgments=Observer() if observer else NoProvider(),
+        **kwargs,
     )
     app.policy_lifecycle.clock = synthetic.instant
     return app
@@ -244,8 +273,8 @@ def recovery(scope, action, key=None, bundle=None, artifact=None):
     }
 
 
-def stage(app, scope, task, content, kind="raw_task"):
-    """Content saved in the store at START, as an earlier version or import saved it."""
+def stage(app, scope, task, content, kind="raw_task", created=START):
+    """Content saved in the store at `created`, as an earlier version or import saved it."""
     return app.storage.stage_artifact(
         scope,
         task,
@@ -255,23 +284,29 @@ def stage(app, scope, task, content, kind="raw_task"):
         encryption="none",
         retain_raw_tasks=True,
         retain_raw_outputs=True,
-        created_at=START,
+        created_at=created,
     )
 
 
-def archive_item(app, scope, synthetic, identity):
-    """Two maintenance runs through `Application`: the 30-day prompt, then the archive."""
+def archive_item(app, scope, synthetic, *identities):
+    """Two maintenance runs through `Application`: the 30-day prompt, then the archive.
+    Returns each item's archive identity and archival time, in order."""
     synthetic.now = START + 30 * DAY
-    assert app.maintain(maintenance(scope))["processed"] == 1
+    assert app.maintain(maintenance(scope))["processed"] == len(identities)
     synthetic.now += 7 * DAY
-    assert app.maintain(maintenance(scope))["processed"] == 1
-    with app.storage._connect() as c:
-        row = c.execute(
-            "SELECT a.artifact_id,l.archived FROM artifacts a JOIN artifact_lifecycle l ON a.scope=l.scope AND a.artifact_id=l.artifact_id WHERE a.kind='archive' AND l.source_id=?",
-            (identity,),
-        ).fetchone()
-    assert not (app.storage._artifact_directory(app.storage._task_scope(scope)) / identity).exists()
-    return row[0], row[1]
+    assert app.maintain(maintenance(scope))["processed"] == len(identities)
+    directory = app.storage._artifact_directory(app.storage._task_scope(scope))
+    archives = []
+    for identity in identities:
+        with app.storage._connect() as c:
+            archives.append(
+                c.execute(
+                    "SELECT a.artifact_id,l.archived FROM artifacts a JOIN artifact_lifecycle l ON a.scope=l.scope AND a.artifact_id=l.artifact_id WHERE a.kind='archive' AND l.source_id=?",
+                    (identity,),
+                ).fetchone()
+            )
+        assert not (directory / identity).exists()
+    return archives if len(archives) > 1 else archives[0]
 
 
 def active_bytes(app, scope, task, kind):
@@ -393,7 +428,10 @@ def learning_store(path, synthetic):
     under the policy (one linked to a discovery), saved evidence without outcomes, then
     two more tasks with reported outcomes, one succeeded and one failed."""
     discovery, route, scope = inputs()
-    app = application(path, scope, synthetic, policy=True)
+    # Two attempts, so a failed run may be retried (the discovery and the route share
+    # these constraints).
+    route["request"]["hard_constraints"]["max_attempts"] = 2
+    app = application(path, scope, synthetic, policy=True, observer=True)
     tasks = [str(uuid4()) for _ in range(200)]
     for task in tasks:
         seed_task(app.storage, scope, task)
@@ -413,11 +451,13 @@ def learning_store(path, synthetic):
     # After the saved evidence: two more tasks routed under the policy, one run that
     # succeeded with a measurement and one that failed its checks, so the next evidence
     # carries both kinds of outcome for the policy's revision, and metrics.
+    runs = {}
     for succeeded in (True, False):
-        later = route_task(app, route, str(uuid4()), str(uuid4()))
+        task, request = str(uuid4()), str(uuid4())
+        later = route_task(app, route, task, request)
         assert later["details"]["versions"]["policy_revision"] == "one"
         record(app, scope, later)
-        report_outcome(app, route, later, succeeded)
+        runs[succeeded] = (task, request, later, report_outcome(app, route, later, succeeded))
     return SimpleNamespace(
         app=app,
         discovery=discovery,
@@ -425,6 +465,7 @@ def learning_store(path, synthetic):
         scope=scope,
         objective=objective,
         archived=archived,
+        failed=runs[False],
     )
 
 
@@ -490,6 +531,7 @@ def report_outcome(app, route, decision, succeeded=True):
             "payload": payload,
         }
         assert app.report({"envelope": envelope, "event": event})["status"] == "accepted"
+    return run
 
 
 def outcome_groups(app, scope):
@@ -524,6 +566,8 @@ def test_analysis_writes_no_policy_record(tmp_path, synthetic):
         analysis(scope, "record", context_for(decision)),
         analysis(scope, objectives=[store.objective]),
         analysis(scope, objectives=[dict(store.objective, version="reclassified-v2")]),
+        # Nothing new and within the interval: not due.
+        analysis(scope, objectives=[dict(store.objective, version="reclassified-v2")]),
         analysis(scope, "inspect"),
     ]
     statuses = []
@@ -532,7 +576,7 @@ def test_analysis_writes_no_policy_record(tmp_path, synthetic):
         statuses.append(app.analyze(step)["status"])
         assert policy_writes(app) == []
         assert policy_rows(app) == before
-    assert statuses == ["recorded", "updated", "updated", "inspected"]
+    assert statuses == ["recorded", "updated", "updated", "not_due", "inspected"]
     assert evidence_revision(app, scope) != revision
 
 
@@ -540,13 +584,17 @@ def test_maintenance_follow_up_analysis_writes_no_policy_record(tmp_path, synthe
     """EC-LEARN-1 "Under existing policy" (D new, SL-3), for the follow-up analysis."""
     store = learning_store(tmp_path / "route.db", synthetic)
     app, scope = store.app, store.scope
+    # An item 30 days old when the run comes, so the run writes an archive prompt too.
+    synthetic.now = store.archived + 366 * DAY
+    stage(app, scope, str(uuid4()), b"synthetic task", created=synthetic.now - 30 * DAY)
     before = policy_rows(app)
     assert len(before) == 7 and before["policy_records"] and before["policy_uses"]
     watch_policy_writes(app)
     revision = evidence_revision(app, scope)
-    synthetic.now = store.archived + 366 * DAY
     result = app.maintain(maintenance(scope))
-    assert result["status"] == "completed" and result["processed"] == 1
+    assert result["status"] == "completed" and result["processed"] == 2
+    assert [n["kind"] for n in result["notices"]] == ["archive_prompt"]
+    # The follow-up ran over the prior evidence and saved new evidence.
     assert evidence_revision(app, scope) != revision
     assert policy_writes(app) == []
     assert policy_rows(app) == before
@@ -562,16 +610,23 @@ def test_identical_inputs_give_the_same_later_discovery_and_route(
     The store is copied before the learning step; the learning runs in one copy. Every
     field of each later result is compared, none left out. The inputs, the request
     identities among them, are the same in both copies, and the one random value on the
-    path, a discovery's identity (`storage.py:1635`), is pinned to the same value in both,
-    so the identity and the trace digest that covers it are compared as well.
+    path, a discovery's identity (`storage.py:1635`), is pinned to the same sequence in
+    both, so the identities and the trace digests that cover them are compared as well.
+    The later requests are: a discovery with no catalog resource and a route linked to it;
+    an unlinked route; a discovery that selects guidance and a route linked to it; the
+    failed run's route sent again; and a retry of that failed run.
     """
     original = tmp_path / "original"
     store = learning_store(original / "route.db", synthetic)
     scope = store.scope
     shutil.copytree(original, tmp_path / "before")
     shutil.copytree(original, tmp_path / "after")
-    before = application(tmp_path / "before" / "route.db", scope, synthetic, policy=True)
-    after = application(tmp_path / "after" / "route.db", scope, synthetic, policy=True)
+    before = application(
+        tmp_path / "before" / "route.db", scope, synthetic, policy=True, observer=True
+    )
+    after = application(
+        tmp_path / "after" / "route.db", scope, synthetic, policy=True, observer=True
+    )
     revision = evidence_revision(after, scope)
     if learning == "analysis":
         synthetic.now += 1
@@ -585,10 +640,47 @@ def test_identical_inputs_give_the_same_later_discovery_and_route(
     # The learning step's evidence carries both outcomes and a metric for the policy's
     # revision; the other copy's does not.
     assert outcome_groups(after, scope) and outcome_groups(before, scope) == []
-    monkeypatch.setattr("jevdrill.storage.uuid4", lambda: UUID(int=7))
+    # The later requests. A discovery over the whole catalog selects guidance, and a
+    # route is linked to it; the failed run's route is sent again (the stored decision
+    # comes back) and retried under a retry context.
+    guided = json.loads((FIXTURES / "discovery.json").read_text(encoding="utf-8"))[0]["payload"]
+    guided["hard_constraints"] = store.route["request"]["hard_constraints"]
+    guided_route = copy.deepcopy(store.route)
+    guided_route["catalog"] = guided["catalog"]
+    guided_task = "00000000-0000-4000-8000-000000000105"
+    guided_route["inventory"]["candidates"][0]["guidance_options"] = [
+        reference(row)
+        | {
+            "role": "optional-" + str(number),
+            "admission": row["admission"],
+            "authority": "synthetic-admission",
+            "task_id": guided_task,
+            "token_count": None,
+        }
+        for number, row in enumerate(guided["catalog"]["resources"])
+    ]
+    failed_task, failed_request, failed, failed_run = store.failed
+    retry = copy.deepcopy(store.route)
+    retry["request"]["retry_context"] = {
+        "prior_routing_decision_id": failed["details"]["routing_decision_id"],
+        "prior_execution_run_id": failed_run,
+        "failure_class": "quality",
+        "failure_summary": "synthetic checks failed",
+        "remaining_attempts": 1,
+        "remaining_time_ms": 5000,
+        "remaining_spend": None,
+    }
+    for candidate in retry["inventory"]["candidates"]:
+        candidate["addresses_failures"] = ["quality"]
     later = {}
     for name, app in (("before", before), ("after", after)):
+        # The one random value on the path, pinned to the same sequence in both copies.
+        identities = itertools.count(7)
+        monkeypatch.setattr(
+            "jevdrill.storage.uuid4", lambda identities=identities: UUID(int=next(identities))
+        )
         found = discover(app, store.discovery, "00000000-0000-4000-8000-000000000100")
+        selected = discover(app, guided, "00000000-0000-4000-8000-000000000106")
         later[name] = [
             found,
             route_task(
@@ -604,10 +696,27 @@ def test_identical_inputs_give_the_same_later_discovery_and_route(
                 "00000000-0000-4000-8000-000000000103",
                 "00000000-0000-4000-8000-000000000104",
             ),
+            selected,
+            route_task(
+                app,
+                guided_route,
+                guided_task,
+                "00000000-0000-4000-8000-000000000107",
+                linkage(selected),
+            ),
+            route_task(app, store.route, failed_task, failed_request),
+            route_task(app, retry, failed_task, "00000000-0000-4000-8000-000000000108"),
         ]
-    found, linked, plain = later["before"]
+    found, linked, plain, selected, guided_linked, again, retried = later["before"]
     assert found["status"] == "no_optional_guidance"
-    for decision in (linked, plain):
+    assert selected["status"] == "selected_guidance" and selected["details"]["guidance_refs"]
+    assert guided_linked["details"]["discovery_ref"] == linkage(selected)
+    assert again == failed
+    assert (
+        retried["execution_plan"]["predecessor_plan_id"]
+        == failed["execution_plan"]["execution_plan_id"]
+    )
+    for decision in (linked, plain, guided_linked, retried):
         assert decision["status"] == "ready", decision.get("error_code")
         assert decision["details"]["versions"]["policy_revision"] == "one"
     assert later["after"] == later["before"]
@@ -646,15 +755,17 @@ def test_import_and_restore_write_saved_text_back_unchecked(tmp_path, synthetic,
         },
     }
     envelope = dict(route["request"]["envelope"], operation="report", request_id=str(uuid4()))
-    # A new submission of the text is refused: as a task, as recorded context, as a report.
+    # A new submission of the text is refused, before anything is stored: as a task, as
+    # recorded context, as a report (contract lines 7 and 16).
     with pytest.raises(ContractError):
         route_task(source, route, str(uuid4()), str(uuid4()), retain_raw=True, text=text)
     with pytest.raises(ContractError):
         source.analyze(analysis(scope, "record", context_for(decision, task_group=text)))
     with pytest.raises(ContractError):
         source.report({"envelope": envelope, "event": event})
-    # The store holds it as saved before today's check.
-    identity = stage(source, scope, task, text.encode())
+    # The store holds it as saved before today's check: as raw task text, as raw output,
+    # as recorded context and as a report.
+    identities = {kind: stage(source, scope, task, text.encode(), kind) for kind in RAW}
     source.storage.record_learning_context(scope, context_for(decision, task_group=text))
     assert (
         source.storage.ingest_report(
@@ -670,21 +781,24 @@ def test_import_and_restore_write_saved_text_back_unchecked(tmp_path, synthetic,
     assert route_task(fresh, route, off, str(uuid4()), retain_raw=False)["status"] == "ready"
     assert active_bytes(fresh, scope, off, "raw_task") == []
     imported = fresh.recover(recovery(scope, "import", key, bundle))
-    assert imported["status"] == "imported" and imported["restored_count"] == 1
-    assert active_bytes(fresh, scope, task, "raw_task") == [text.encode()]
+    assert imported["status"] == "imported" and imported["restored_count"] == len(RAW)
+    for kind in RAW:
+        assert active_bytes(fresh, scope, task, kind) == [text.encode()]
     groups = fresh.analyze(analysis(scope))["groups"]
     assert [g["conditions"]["task_group"] for g in groups] == [text]
     events = fresh.storage.project_run(scope, event["execution_run_id"])["events"]
     assert [e["payload"]["reason"] for e in events] == [text]
 
-    archived, _ = archive_item(source, scope, synthetic, identity)
-    assert active_bytes(source, scope, task, "raw_task") == []
+    archives = archive_item(source, scope, synthetic, *(identities[kind] for kind in RAW))
+    for kind in RAW:
+        assert active_bytes(source, scope, task, kind) == []
     assert route_task(source, route, str(uuid4()), str(uuid4()), retain_raw=False)["status"] == (
         "ready"
     )
-    restored = source.recover(recovery(scope, "restore", artifact=archived))
-    assert restored["status"] == "restored" and restored["restored_count"] == 1
-    assert active_bytes(source, scope, task, "raw_task") == [text.encode()]
+    for kind, (archived, _) in zip(RAW, archives, strict=True):
+        restored = source.recover(recovery(scope, "restore", artifact=archived))
+        assert restored["status"] == "restored" and restored["restored_count"] == 1
+        assert active_bytes(source, scope, task, kind) == [text.encode()]
 
 
 def test_completed_maintenance_whose_follow_up_refuses_stored_objectives_answers_invalid_input(
@@ -731,18 +845,29 @@ def test_completed_maintenance_whose_follow_up_refuses_stored_objectives_answers
             (identity, synthetic.now),
         ).fetchone()
 
+    # A completed run with nothing to process answers the same way.
+    synthetic.now += 1
+    with pytest.raises(ContractError, match="credential-like material"):
+        app.maintain(maintenance(scope))
 
-def test_deleted_supporting_data_restores_no_earlier_verified_policy(tmp_path, synthetic):
+
+@pytest.mark.parametrize("split", ["holdout", "regression"])
+def test_deleted_supporting_data_restores_no_earlier_verified_policy(tmp_path, synthetic, split):
     """EC-LEARN-3 "Policy validation becomes stale without automatic rollback" (D new,
-    SL-3): with an earlier verified policy, none restored."""
+    SL-3): with an earlier verified policy, none restored. The deleted task supports the
+    later policy as a holdout case, or as a regression case."""
     _, route, scope = inputs()
     app = application(tmp_path / "route.db", scope, synthetic, policy=True)
     tasks = [str(uuid4()) for _ in range(201)]
     for task in tasks:
         seed_task(app.storage, scope, task)
     first = promote(app, scope, definition("one", "execution-ceilings-v1", route, tasks[:200]))
-    # The later policy differs from the earlier one in a single supporting task.
-    second = promote(app, scope, definition("two", "one", route, [tasks[200], *tasks[1:200]]))
+    # The later policy differs from the earlier one in a single supporting task: its first
+    # holdout case (index 0) or its first regression case (index 100).
+    index = 0 if split == "holdout" else 100
+    supporting = [*tasks[:index], tasks[200], *tasks[index + 1 : 200]]
+    second = promote(app, scope, definition("two", "one", route, supporting))
+    assert inspect_policy(app, second)["definition"]["cases"][index]["split"] == "policy_" + split
     earlier = inspect_policy(app, first)
     assert earlier["policy_status"] == "evaluated" and earlier["reasons"] == []
     assert inspect_policy(app, second)["previous_policy_revision"] == "one"
@@ -760,26 +885,36 @@ def test_deleted_supporting_data_restores_no_earlier_verified_policy(tmp_path, s
     assert inspect_policy(app, first) == earlier
 
 
+@pytest.mark.parametrize("content", [AWKWARD, TEXT], ids=["invalid-utf8", "utf8"])
 @pytest.mark.parametrize("kind", ["raw_task", "raw_output", "context"])
-def test_restored_bytes_equal_the_original(tmp_path, synthetic, kind):
-    """EC-LEARN-3 "Restoration" (D new, SL-3): restored bytes equal the original."""
+def test_restored_bytes_equal_the_original(tmp_path, synthetic, kind, content):
+    """EC-LEARN-3 "Restoration" (D new, SL-3): restored bytes equal the original, for
+    bytes that are not text and for valid UTF-8 text, each with every line ending."""
     _, route, scope = inputs()
     app = application(tmp_path / "route.db", scope, synthetic)
     task = str(uuid4())
     route_task(app, route, task, str(uuid4()))
-    identity = stage(app, scope, task, AWKWARD, kind)
-    assert active_bytes(app, scope, task, kind) == [AWKWARD]
+    identity = stage(app, scope, task, content, kind)
+    assert active_bytes(app, scope, task, kind) == [content]
     archived, _ = archive_item(app, scope, synthetic, identity)
     assert active_bytes(app, scope, task, kind) == []
     restored = app.recover(recovery(scope, "restore", artifact=archived))
     assert restored["restored_count"] == 1
-    assert active_bytes(app, scope, task, kind) == [AWKWARD]
+    assert active_bytes(app, scope, task, kind) == [content]
 
 
-@pytest.mark.parametrize("order", ["deletions_first", "deletions_last"])
+def analysed(app, scope):
+    return {s["task_id"] for g in app.analyze(analysis(scope))["groups"] for s in g["sources"]}
+
+
+@pytest.mark.parametrize("order", ["deletions_first", "deletions_last", "tombstones_only"])
 def test_backup_deletion_records_are_honoured_in_a_fresh_store(tmp_path, synthetic, order):
     """EC-LEARN-3 "Deletion records applied before restored or imported analysis" (D new,
-    SL-3): a backup's own deletion records honoured in a fresh store."""
+    SL-3): a backup's own deletion records honoured in a fresh store.
+
+    `tombstones_only` deletes every task and the objective, so the later backup holds
+    deletion records and nothing live; it is imported before the earlier backup.
+    """
     discovery, route, scope = inputs()
     source = application(tmp_path / "source" / "route.db", scope, synthetic)
     link = linkage(discover(source, discovery, str(uuid4())))
@@ -789,20 +924,33 @@ def test_backup_deletion_records_are_honoured_in_a_fresh_store(tmp_path, synthet
     record(source, scope, deleted)
     kept = route_task(source, route, str(uuid4()), str(uuid4()))
     record(source, scope, kept)
+    tasks = {d["details"]["task_id"]: d for d in (linked, deleted, kept)}
     key = Fernet.generate_key()
     earlier = source.recover(recovery(scope, "backup", key))["encrypted_bundle"]
+    removed = [deleted, linked, kept] if order == "tombstones_only" else [deleted]
     source.delete_discovery(dict(scope, operation="discover"), link["work_objective_id"])
-    source.delete_task(scope, deleted["details"]["task_id"])
+    for decision in removed:
+        source.delete_task(scope, decision["details"]["task_id"])
     later = source.recover(recovery(scope, "backup", key))["encrypted_bundle"]
     body = json.loads(decrypt_archive(later.encode(), key))
     assert body["objectives"] == {link["work_objective_id"]: True}
-    assert body["tasks"][deleted["details"]["task_id"]] is True
-    # The later backup still holds the linked task's decision and context.
-    assert linked["details"]["task_id"] in {c["task_id"] for c in body["contexts"]}
+    for decision in removed:
+        assert body["tasks"][decision["details"]["task_id"]] is True
+    if order == "tombstones_only":
+        assert all(body["tasks"].values()) and set(body["tasks"]) == set(tasks)
+        assert [body[k] for k in ("decisions", "events", "contexts", "artifacts")] == [[]] * 4
+        # Imported alone, the earlier backup makes every task analysable again.
+        alone = application(tmp_path / "alone" / "route.db", scope, synthetic)
+        assert alone.recover(recovery(scope, "import", key, earlier))["status"] == "imported"
+        assert analysed(alone, scope) == set(tasks)
+    else:
+        # The later backup still holds the linked task's decision and context.
+        assert linked["details"]["task_id"] in {c["task_id"] for c in body["contexts"]}
 
     fresh = application(tmp_path / "fresh" / "route.db", scope, synthetic)
-    for bundle in [later, earlier] if order == "deletions_first" else [earlier, later]:
+    for bundle in [earlier, later] if order == "deletions_last" else [later, earlier]:
         assert fresh.recover(recovery(scope, "import", key, bundle))["status"] == "imported"
-    groups = fresh.analyze(analysis(scope))["groups"]
-    assert {s["task_id"] for g in groups for s in g["sources"]} == {kept["details"]["task_id"]}
-    assert fresh.replay(scope, deleted["details"]["routing_decision_id"]) is None
+    expected = set() if order == "tombstones_only" else {kept["details"]["task_id"]}
+    assert analysed(fresh, scope) == expected
+    for decision in removed:
+        assert fresh.replay(scope, decision["details"]["routing_decision_id"]) is None
