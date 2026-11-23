@@ -100,6 +100,8 @@ archive expires keeps that archive and its expiry, and the expiry notice says so
 (Consiliency/jevdrill#46). Content restored and archived again after its first
 archive has expired gets a new archive, which expires one year after that
 archival, whatever the order and timing of runs (Consiliency/jevdrill#125).
+When more archives enter their last seven days than one run can announce, the
+rest are announced by the following runs, and nothing written is lost.
 Measurements persist until explicit deletion. Each
 is a number, or a reason from a fixed list when the value is unknown, with a
 metric name, version, method, unit and parent metric that the reporting host

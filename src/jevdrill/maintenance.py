@@ -49,7 +49,7 @@ class Maintenance:
             ),
             "summary": {
                 "archive_prompt": "Content is 30 days old. Encrypted archival is due after seven days.",
-                "archive_expiry": "Archived content expires in seven days. Restore or export it before the deadline. Content restored and archived again before this archive expires keeps this expiry.",
+                "archive_expiry": "Archived content expires at the deadline shown. Restore or export it before then. Content restored and archived again before this archive expires keeps this expiry.",
                 "item_failed": f"Maintenance could not verify item {identity}; it stays as it is and is tried again on a later run.",
                 "archive_key_missing": "Archive key unavailable; content remains local. Configure the supported OS key store and retry.",
                 "clock_rollback": "The clock moved backwards; retention remains paused until it catches up.",
@@ -77,7 +77,7 @@ class Maintenance:
                     (pair, task, notice["notice_id"], self.storage._encode(notice)),
                 )
 
-    def _announce_expiries(self, pair: str, now: float) -> None:
+    def _announce_expiries(self, scope: Mapping[str, str], now: float) -> None:
         """Write the expiry notice of each archive in its last seven days that has none (#128).
 
         Every archive the run's filters admit is considered, whatever page the cursor is
@@ -85,8 +85,14 @@ class Maintenance:
         task and archival time, and the scope's notice identities; no content. A notice
         already written is left as it is, so each archive's notice is written once, by
         the first run in its last seven days that gets this far.
+
+        Each notice is written in its own short transaction by `_notice`, whose
+        connection checks the run's storage deadline. A run cut off part way, by that
+        deadline or by a failure, keeps the notices it wrote; the next run writes the
+        rest before it reaches the items.
         """
-        with self.storage._connect(True) as c:
+        pair = self.storage._task_scope(scope)
+        with self.storage._connect() as c:
             archives = c.execute(
                 "SELECT a.artifact_id,a.task,l.archived FROM artifacts a JOIN artifact_lifecycle l ON a.scope=l.scope AND a.artifact_id=l.artifact_id JOIN tasks t ON a.scope=t.scope AND a.task=t.task WHERE a.scope=? AND t.deleted=0 AND a.retention!='retired' AND l.archived IS NOT NULL ORDER BY a.artifact_id",
                 (pair,),
@@ -97,18 +103,13 @@ class Maintenance:
                     "SELECT notice_id FROM lifecycle_notices WHERE scope=?", (pair,)
                 )
             }
-            for identity, task, archived in archives:
-                expiry = self._expiry(archived)
-                if not expiry - 7 * DAY <= now < expiry:
-                    continue
-                if self._notice_id(pair, task, "archive_expiry", identity) in written:
-                    continue
-                if self.storage._admit(c, pair, task):
-                    notice = self._notice_payload(pair, task, "archive_expiry", identity, expiry)
-                    c.execute(
-                        "INSERT OR REPLACE INTO lifecycle_notices VALUES (?,?,?,?)",
-                        (pair, task, notice["notice_id"], self.storage._encode(notice)),
-                    )
+        for identity, task, archived in archives:
+            expiry = self._expiry(archived)
+            if not expiry - 7 * DAY <= now < expiry:
+                continue
+            if self._notice_id(pair, task, "archive_expiry", identity) in written:
+                continue
+            self._notice(scope, task, "archive_expiry", identity, expiry)
 
     def _interactive(self, request: Mapping[str, Any]) -> bool:
         if request["interactive_busy"]:
@@ -189,7 +190,7 @@ class Maintenance:
                 result["notices"] = self.storage.load_notices(scope)
                 return result
             # Before any item, so a run that stops early has still written them (#128).
-            self._announce_expiries(pair, now)
+            self._announce_expiries(scope, now)
             for identity, task, kind, digest, created, prompted, archived in rows[
                 : request["max_items"]
             ]:

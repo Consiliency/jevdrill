@@ -26,8 +26,8 @@ from uuid import NAMESPACE_URL, uuid4, uuid5
 import pytest
 from cryptography.fernet import Fernet
 
-from jevdrill.contracts import canonical_digest
-from jevdrill.integrations.archive import maintenance_lock
+from jevdrill.contracts import ContractError, canonical_digest
+from jevdrill.integrations.archive import encode_archive, maintenance_lock
 from jevdrill.maintenance import DAY, Maintenance
 from jevdrill.storage import SQLiteStorage
 from tests.analysis.test_observations import case
@@ -353,7 +353,10 @@ def kept(store, scope, source, original, tmp_path):
         live.backup(c)
     duplicate = SQLiteStorage(copy / "c.db")
     shutil.copytree(store._artifact_directory(pair), duplicate._artifact_directory(pair))
-    Maintenance(duplicate, lambda _: KEY, lambda: 0).restore(scope, found[0])
+    try:
+        Maintenance(duplicate, lambda _: KEY, lambda: 0).restore(scope, found[0])
+    except ContractError:
+        return False  # the archive does not authenticate or does not match
     return (duplicate._artifact_directory(pair) / source).read_bytes() == original
 
 
@@ -479,11 +482,13 @@ def archived_store(tmp_path, count):
     return app, scope, context, sorted(identity for identity, _ in found), found[0][1] + 365 * DAY
 
 
+def expiry_notice_id(pair, task, identity):
+    return str(uuid5(NAMESPACE_URL, canonical_digest([pair, task, "archive_expiry", identity])))
+
+
 def expiry_notice(store, pair, task, identity):
     """The archive's expiry notice, found by the identity the code gives it, or None."""
-    notice_id = str(
-        uuid5(NAMESPACE_URL, canonical_digest([pair, task, "archive_expiry", identity]))
-    )
+    notice_id = expiry_notice_id(pair, task, identity)
     with store._connect() as c:
         row = c.execute(
             "SELECT payload FROM lifecycle_notices WHERE scope=? AND notice_id=?", (pair, notice_id)
@@ -590,7 +595,8 @@ def test_128_a_run_that_does_nothing_writes_none_and_the_next_run_does(tmp_path,
 
 def test_128_the_notice_is_written_by_the_first_eligible_run_not_the_second(tmp_path):
     """Case 4: a run just before the last seven days writes none; the first run in them,
-    at their first instant, writes the notice, dated at the expiry."""
+    at their first instant, writes the notice, dated at the expiry; a second eligible run
+    leaves it alone."""
     app, scope, context, archives, expiry = archived_store(tmp_path, 1)
     clock = [expiry - 7 * DAY - 1]
     maintenance = Maintenance(app.storage, lambda _: KEY, lambda: clock[0])
@@ -599,6 +605,22 @@ def test_128_the_notice_is_written_by_the_first_eligible_run_not_the_second(tmp_
     clock[0] = expiry - 7 * DAY
     maintenance.run(request(scope))
     assert announced(app, scope, context, archives, expiry)
+    # Record every later write to the notice table, then make a second eligible run.
+    with app.storage._connect(True) as c:
+        c.execute("CREATE TABLE notice_writes (notice_id TEXT)")
+        for event in ("INSERT", "UPDATE"):
+            c.execute(
+                f"CREATE TRIGGER notice_{event.lower()} AFTER {event} ON lifecycle_notices "
+                "BEGIN INSERT INTO notice_writes VALUES (new.notice_id); END"
+            )
+    clock[0] += 3600
+    maintenance.run(request(scope))
+    notice_id = expiry_notice_id(app.storage._task_scope(scope), context["task_id"], archives[0])
+    with app.storage._connect() as c:
+        rewrites = c.execute(
+            "SELECT count(*) FROM notice_writes WHERE notice_id=?", (notice_id,)
+        ).fetchone()[0]
+    assert rewrites == 0
 
 
 def test_128_an_expired_archive_with_no_notice_is_retired_by_the_run_that_reaches_it(tmp_path):
@@ -651,3 +673,77 @@ def test_128_no_notice_for_an_archive_the_run_does_not_admit(tmp_path, other):
         )
     maintenance.run(request(scope))
     assert announced(app, scope, context, archives, expiry)
+
+
+@pytest.mark.parametrize("order", ["before", "after"])
+def test_125_copy_kept_when_its_new_archive_fails_durable_verification(
+    tmp_path, monkeypatch, order
+):
+    """The copy's new archive is corrupt on disk, so the readback check fails: the run stops,
+    and the restored copy is still restorable."""
+    app, scope, clock, source, original, _, archived_at = restored_copy(tmp_path, order, 330)
+    store = app.storage
+    stage = store.stage_artifact
+
+    def staged_corrupt(*args, **kwargs):
+        identity = stage(*args, **kwargs)
+        if kwargs["kind"] == "archive":
+            path = store._artifact_directory(store._task_scope(scope)) / identity
+            path.write_bytes(encode_archive({"not": "the content"}, KEY))
+        return identity
+
+    monkeypatch.setattr(store, "stage_artifact", staged_corrupt)
+    clock[0] = archived_at + 368 * DAY
+    with pytest.raises(ContractError, match="durable archive verification failed"):
+        Maintenance(store, lambda _: KEY, lambda: clock[0]).run(request(scope))
+    assert kept(store, scope, source, original, tmp_path)
+
+
+def test_128_a_wave_of_25_archives_is_announced_in_one_run(tmp_path):
+    """25 archives enter their last seven days together; the first run in them announces
+    every one, though it reaches only `max_items` of them."""
+    app, scope, context, archives, expiry = archived_store(tmp_path, 25)
+    clock = [expiry - 7 * DAY + 3600]
+    Maintenance(app.storage, lambda _: KEY, lambda: clock[0]).run(request(scope, max_items=10))
+    assert announced(app, scope, context, archives, expiry)
+
+
+class CutOffAfter(Maintenance):
+    """A run cut off after `count` expiry notices.
+
+    Before the next one, either the run's storage deadline passes (the next storage
+    connection then refuses, as it does at a real deadline) or the write fails.
+    """
+
+    def __init__(self, storage, clock, count, how):
+        super().__init__(storage, lambda _: KEY, clock)
+        self.count, self.how = count, how
+
+    def _notice_payload(self, pair, task, kind, identity, deadline):
+        if kind == "archive_expiry":
+            if self.count == 0:
+                if self.how == "deadline":
+                    self.storage.deadline = float("-inf")
+                else:
+                    raise OSError("simulated failure")
+            self.count -= 1
+        return super()._notice_payload(pair, task, kind, identity, deadline)
+
+
+@pytest.mark.parametrize("how", ["deadline", "failure"])
+def test_128_a_wave_cut_off_part_way_keeps_its_notices_and_the_next_run_finishes(tmp_path, how):
+    """Eight archives enter their last seven days and the run is cut off after three
+    notices. The three remain; the next run writes the other five and reaches the items."""
+    app, scope, context, archives, expiry = archived_store(tmp_path, 8)
+    store, pair = app.storage, app.storage._task_scope(scope)
+    clock = [expiry - 7 * DAY + 3600]
+    artifact(app, scope, context, b"an item due for its archive prompt", clock[0] - 30 * DAY)
+    with pytest.raises((OSError, sqlite3.Error)):
+        CutOffAfter(store, lambda: clock[0], 3, how).run(request(scope))
+    store.deadline = None
+    written = [a for a in archives if expiry_notice(store, pair, context["task_id"], a)]
+    assert len(written) == 3
+    clock[0] += 3600
+    result = Maintenance(store, lambda _: KEY, lambda: clock[0]).run(request(scope))
+    assert announced(app, scope, context, archives, expiry)
+    assert result["processed"] == 1  # the item's archive prompt: the run reached the items
