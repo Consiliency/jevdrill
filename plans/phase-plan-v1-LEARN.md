@@ -268,9 +268,11 @@ applies on its terms: a possibility, not a request.
   support them, that row is not covered.
 - **Delivers:** the held verifier, tests and workflow with every declared
   change below; its reducer tests pass in CI. They fail if a part over its
-  bound or a receipt lacking part times passes, a control is missing or counted
-  from two sources, or the inherited call differs from HOST's. On
-  `main`, its writer
+  bound or a receipt lacking part times passes; a control is missing or counted
+  from two sources; the inherited call differs from HOST's; the inherited
+  interval is not the HOST call's own, from its start to its return; or a LEARN
+  child sees more than HOST's child allowlist and an empty home, or the HOST call
+  starts from a changed environment. On `main`, its writer
   dispatches `learn.yml` with the pinned SHA and records the run, which has no
   lists yet and so produces no gate.
 
@@ -329,11 +331,11 @@ applies on its terms: a possibility, not a request.
   `maintenance.py:395`, `:249`, `:212`, `:157-159`; `storage.py:2232`). A
   restored copy archived after its earlier archive has expired, by the rule of
   `maintenance.py:157`, expires one year after that archival, whatever the order
-  and timing of runs. For Consiliency/jevdrill#128: for an archive the run's
-  filters admit, in any page, the first run in its last seven days, unless
-  paused, cancelled or busy at start, writes its notice; a run out of time
-  keeps those it wrote; following runs write the rest (#139);
-  retirement never waits for one. No contract or schema change. The control
+  and timing of runs. For Consiliency/jevdrill#128, for an archive the run's
+  filters admit, in any page, while the archive is still in its last seven
+  days: the first run, unless paused, cancelled or busy at start, writes its
+  notice; a run out of time keeps those it wrote, following runs the rest
+  (#139). Retirement never waits for one. No contract or schema change. The control
   fails if the content cannot be restored with its original bytes before a year
   from that archival, or still can after a run past that year: in #125's
   sequence in either order, with the two items reached in different runs, or at
@@ -344,19 +346,19 @@ applies on its terms: a possibility, not a request.
 
 ### SL-9 — Discovery erasure
 
-- **Needs:** GitHub CI alone.
 - **Owned files:** `src/jevdrill/storage.py` (`delete_discovery`, import of
   deletion records, their callees), `tests/storage/test_discovery_erasure.py`
   (new).
 - **Delivers:** fix lane for Consiliency/jevdrill#138, the metadata issue
   (opened at #141's merge) and #21's `delete-discovery` half. A finished
-  deletion, requested or imported, leaves nothing taken from it in the
-  store's files; until then it answers as `delete_task` since SL-2. No contract
-  or schema change. The control fails if, after a discovery's finished
-  deletion, its domain label is in a store file, an item identity of it in a
-  notice, or either in a store that imported the discovery and then its deletion
-  record; if it answers finished while a reader blocks the checkpoint; or if
-  another discovery's metadata or notices go.
+  deletion, requested or imported, leaves neither the discovery's recovered
+  metadata nor a notice row naming its items in the store's files; until then
+  it answers as `delete_task` since SL-2. No contract or schema change. The
+  control fails if, after a finished deletion, its domain label is
+  in a store file, an item identity of it in a notice, or either in a store that
+  imported the discovery and then its deletion record; if it answers finished
+  while a reader blocks the checkpoint; or if another discovery's metadata or
+  notices go.
 
 ## Verification
 
@@ -393,7 +395,7 @@ witness; the inherited HOST receipts, by the HOST verifier; three native
 receipts from one run, each naming its runner, command, platform, versions and
 result; the companion at the pinned commit, clean, and the jevdrill checkout unchanged after its code ran; the extras
 against each platform's list; module provenance; the coverage record and a
-`no_spec_delta` closeout; each part's time recorded: HOST's collector call
+`no_spec_delta` closeout; each part's time recorded: HOST's call
 within its two bounds, LEARN's part within 600 seconds on every platform;
 flagging proof over five minutes; a malformed receipt reported, not raised. A
 clause of EC-LEARN-1 to 5 that is not covered is reported so, never as passed,
@@ -441,9 +443,9 @@ artifact of the run that made it and is never committed.
     holds the lock and encryption of EC-LEARN-2 and 3.
 11. The spec-delta record is re-made in the roadmap's words. Reason: the tag's
     names paths the roadmap does not.
-12. As HOST's change 17: one unmodified HOST collector call; all else,
-    LEARN's part, by the collection's clock, in LEARN's own commands; no
-    test in two. Reason: `host.yml` run 45279806415 took 638.98 seconds on macOS.
+12. As HOST's change 17: one unmodified HOST call, all else LEARN's part in
+    LEARN's own commands, no test in two. Reason: `host.yml` run 45279806415,
+    638.98 seconds on macOS.
 
 ## Acceptance Criteria
 
@@ -472,6 +474,11 @@ artifact of the run that made it and is never committed.
   output and context content.
 - That import or restore checks the text it writes back.
 - That a measurement's text is checked for more than credential-like material.
+- That a deleted discovery's item identities, as references or unsalted digests
+  a catalog holder can map back, are gone from the decisions and retries of
+  tasks routed with it or from notices copied into decisions, or that request
+  text such a task supplied is gone: those records go when their task is
+  deleted.
 - Ratified review, publication, adoption or release readiness.
 
 ## Attached backlog
