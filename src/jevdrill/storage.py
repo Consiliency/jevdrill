@@ -1021,7 +1021,9 @@ class SQLiteStorage:
                         else shared(canonical_digest(linkage)),
                         discovery_domains=self._encode(domains),
                         discovery_choices=self._encode(discovery["details"]["guidance_refs"]),
-                        discovery_revisions=canonical_digest(discovery["details"]["revisions"]),
+                        discovery_revisions=canonical_digest(discovery["details"]["revisions"])
+                        if pair == pair_requested
+                        else shared(canonical_digest(discovery["details"]["revisions"])),
                     )
                 measurements = [
                     m

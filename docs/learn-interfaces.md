@@ -11,20 +11,35 @@ observations require requesting consent and producer consent; their
 task/decision/run/discovery identities are left out of the observation's source
 (the source origin is `user_wide_redacted`). For an observation linked to a
 discovery, the group conditions still carry the discovery's status, domains and
-guidance choices and a SHA-256 digest of the discovery's revisions. Each group
-lists digests of its observations. In a user-wide observation, the digest of the
-producer's discovery reference and the observation's digest are each keyed with
-a random key that the store keeps and never exports, together with the
-requesting project and workspace, so they differ between requesters and between
-stores; one requester gets the same values from one store each time. Evidence
-stored before this change keeps its earlier values until it is replaced, so each
-analysis after the change counts every user-wide observation as new until one of
-them saves evidence. A store rebuilt elsewhere from a recovery export has its
-own key and gives a requester different values; a copy of the store's file keeps
-the key. A policy promoted on earlier evidence is not changed. The discovery's
-status, domains, guidance choices and revisions digest are not keyed: they are
-the same for every requester and store, so they can still link one discovery's
-groups across requesters, and to a holder of the producer's discovery result.
+guidance choices and a digest of the discovery's revisions. Each group lists
+digests of its observations. In a user-wide observation, the digest of the
+producer's discovery reference, the digest of the discovery's revisions and the
+observation's digest are each keyed with a random key that the store keeps and
+never exports, together with the requesting project and workspace, so they
+differ between requesters and between stores; one requester gets the same values
+from one store each time. Evidence stored before the first two were keyed keeps
+its earlier values until it is replaced, so each analysis after the change
+counts every user-wide observation as new until one of them saves evidence. The
+revisions digest was keyed after the other two. That change leaves observation
+digests as they were, so the batch trigger counts nothing new because of it, but
+each user-wide group linked to a discovery gets a new group identity, once,
+because its conditions change; which observations share a group does not change.
+Until evidence is next saved, by the batch count or the interval, a changed
+objective does not make analysis due again for a requester whose stored evidence
+holds such groups, because the stored source digest no longer matches. A store
+rebuilt elsewhere from a recovery export has its own key and gives a requester
+different values; a copy of the store's file keeps the key. A policy promoted on
+earlier evidence is not changed. The discovery's status, domains and guidance
+choices are not keyed, nor are the group's other conditions (context fields,
+configuration digests, policy revision, model) or its measurements: they are the
+same for every requester and store, so they can still link one producer's groups
+across requesters, and a holder of the producer's discovery result can match its
+status and guidance choices. Keying protects only values a requester has not
+already received: one holding output from before the revisions digest was keyed
+can pair its old and new values through the unchanged observation digests.
+Within one requester's view, a keyed value still links every observation that
+shares it, for example the observations of one producer's discoveries made with
+the same constraints, catalog and settings.
 
 Comparable groups retain task family/group, environment/isolation, actual
 evaluator/rubric revisions, source measurement definitions and selected/applied

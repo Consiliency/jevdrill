@@ -7,6 +7,7 @@ store makes no request.
 """
 
 import base64
+import copy
 import hashlib
 import hmac
 import json
@@ -221,3 +222,139 @@ def test_an_exported_bundle_does_not_contain_the_key(shared, tmp_path):
         forms += (base64.urlsafe_b64encode(key).decode(),)
         assert [form for form in forms if form in body] == []
         assert "shared_record_key" not in body
+
+
+# LEARN SL-7: the revisions digest in user-wide groups (Consiliency/jevdrill#86).
+
+
+def discovery_for(discovery_inputs, project, token_limit):
+    """A discovery of one producer; equal inputs give equal revisions."""
+    inputs = copy.deepcopy(discovery_inputs)
+    inputs["envelope"].update(project_id=project, idempotency_key=str(uuid4()))
+    inputs["envelope"]["request_id"] = str(uuid4())
+    inputs["work_objective_id"] = str(uuid4())
+    inputs["hard_constraints"]["context_token_limit"] = token_limit
+    return inputs
+
+
+@pytest.fixture
+def revisions(tmp_path, discovery_inputs):
+    """One producer: A1 and A2 with equal inputs (A1 run twice), A3 with another limit."""
+    project = str(uuid4())
+    made = {}
+    for name, limit, runs in (("A1", 32768, 2), ("A2", 32768, 1), ("A3", 16384, 1)):
+        app, producer, context, decision = case(
+            tmp_path, discovery_for(discovery_inputs, project, limit)
+        )
+        context["share_user_wide"] = True
+        app.storage.record_learning_context(producer, context)
+        for _ in range(runs):
+            completed(app, producer, context, decision)
+        made[name] = context
+    requesters = [dict(producer, project_id=str(uuid4())) for _ in range(2)]
+    return app, producer, made, requesters
+
+
+def revisions_of(app, context):
+    ((result,),) = _rows(
+        app,
+        "SELECT result FROM discoveries WHERE discovery_id=?",
+        context["discovery_ref"]["discovery_id"],
+    )
+    return canonical_digest(json.loads(result)["details"]["revisions"])
+
+
+def keyed_value(app, scope, value):
+    ((key,),) = _rows(app, "SELECT key FROM shared_record_key")
+    pair = SQLiteStorage._task_scope(scope)
+    return hmac.new(key, canonical_digest([pair, value]).encode(), hashlib.sha256).hexdigest()
+
+
+def per_discovery(app, scope, made, analyze=False):
+    """name -> (revisions value, sorted observation refs) as `scope` receives them.
+
+    Read from the analysis response (the public value) when `analyze`, otherwise from
+    the observations. Discoveries are matched by their expected keyed identity, so a
+    value attached to the wrong discovery fails.
+    """
+    rows = {}
+    if analyze:
+        for group in Application(app.storage).analyze(request(scope))["groups"]:
+            conditions = group["conditions"]
+            rows.setdefault(conditions["discovery_identity"], []).append(
+                (conditions["discovery_revisions"], tuple(sorted(group["observation_refs"])))
+            )
+    else:
+        for o in app.storage.learning_observations(scope, True):
+            if o["source"]["origin"] == "user_wide_redacted":
+                c = o["conditions"]
+                rows.setdefault(c["discovery_identity"], []).append(
+                    (c["discovery_revisions"], (o["observation_ref"],))
+                )
+    result = {}
+    for name, context in made.items():
+        entries = rows.pop(keyed_value(app, scope, canonical_digest(context["discovery_ref"])))
+        assert not analyze or len(entries) == 1, f"{name}: one discovery, one group"
+        values = {value for value, _ in entries}
+        assert len(values) == 1, name
+        result[name] = (values.pop(), tuple(sorted(r for _, refs in entries for r in refs)))
+    assert rows == {}
+    return result
+
+
+def test_revisions_value_needs_the_store_key(revisions):
+    app, _producer, made, requesters = revisions
+    public = per_discovery(app, requesters[0], made, analyze=True)
+    for name, context in made.items():
+        unkeyed = revisions_of(app, context)
+        assert public[name][0] == keyed_value(app, requesters[0], unkeyed) != unkeyed
+
+
+def test_revisions_value_differs_between_requesters_and_stores(revisions, tmp_path):
+    app, producer, made, requesters = revisions
+    first, second = (per_discovery(app, r, made, analyze=True) for r in requesters)
+    assert all(first[name][0] != second[name][0] for name in made)
+    (tmp_path / "elsewhere").mkdir()
+    other = Application(SQLiteStorage(tmp_path / "elsewhere" / app.storage.path.name))
+    other.storage.import_recovery(producer, app.storage.export_recovery(producer), time.time())
+    elsewhere = per_discovery(other, requesters[0], made, analyze=True)
+    assert all(elsewhere[name][0] != first[name][0] for name in made)
+
+
+def test_revisions_value_is_stable_for_a_requester(revisions):
+    app, _producer, made, requesters = revisions
+    first = per_discovery(app, requesters[0], made, analyze=True)
+    assert len(first) == 3
+    assert per_discovery(app, requesters[0], made, analyze=True) == first
+    reopened = Application(SQLiteStorage(app.storage.path))
+    assert per_discovery(reopened, requesters[0], made, analyze=True) == first
+
+
+def test_equal_revisions_get_equal_values_and_unequal_ones_differ(revisions):
+    app, _producer, made, requesters = revisions
+    assert revisions_of(app, made["A1"]) == revisions_of(app, made["A2"])
+    assert revisions_of(app, made["A1"]) != revisions_of(app, made["A3"])
+    public = per_discovery(app, requesters[0], made, analyze=True)
+    assert public["A1"][0] == public["A2"][0] != public["A3"][0]
+
+
+def test_one_discovery_still_shares_a_group_with_all_three_values_keyed(revisions):
+    app, _producer, made, requesters = revisions
+    observed = per_discovery(app, requesters[0], made)
+    public = per_discovery(app, requesters[0], made, analyze=True)
+    # A1's two observations are one group, holding exactly those two references.
+    assert len(observed["A1"][1]) == 2 and public["A1"][1] == observed["A1"][1]
+    assert all(public[name][1] == observed[name][1] for name in made)
+
+
+def test_local_revisions_values_are_unchanged(revisions):
+    app, producer, made, _requesters = revisions
+    local = {}
+    for o in app.storage.learning_observations(producer, True):
+        if o["source"]["origin"] == "local":
+            c = o["conditions"]
+            local.setdefault(c["discovery_identity"], set()).add(c["discovery_revisions"])
+    assert local == {
+        canonical_digest(context["discovery_ref"]): {revisions_of(app, context)}
+        for context in made.values()
+    }
