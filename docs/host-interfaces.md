@@ -1,6 +1,6 @@
 # HOST interfaces
 
-This page describes the host integration at the commit [`evidence/HOST/adapter-handoff.json`](../evidence/HOST/adapter-handoff.json) pins: Consiliency/agent-harness `a06a952e8ff1c96bb5ec40a88be6b65edb468a7b`, package version 0.7.39. Its two modules are [`jevdrill_adapter.py`](https://github.com/Consiliency/agent-harness/blob/a06a952e8ff1c96bb5ec40a88be6b65edb468a7b/phase-loop-runtime/src/phase_loop_runtime/jevdrill_adapter.py) and [`jevdrill_queue.py`](https://github.com/Consiliency/agent-harness/blob/a06a952e8ff1c96bb5ec40a88be6b65edb468a7b/phase-loop-runtime/src/phase_loop_runtime/jevdrill_queue.py), under `phase-loop-runtime/src/phase_loop_runtime/`. It describes code at that commit, not behaviour a run has shown; [HOST readiness](host-readiness.md) says what the one run shows.
+This page describes the host integration at the commit [`evidence/HOST/adapter-handoff.json`](../evidence/HOST/adapter-handoff.json) pins: Consiliency/agent-harness `a06a952e8ff1c96bb5ec40a88be6b65edb468a7b`, package version 0.7.39. The two modules it draws on are [`jevdrill_adapter.py`](https://github.com/Consiliency/agent-harness/blob/a06a952e8ff1c96bb5ec40a88be6b65edb468a7b/phase-loop-runtime/src/phase_loop_runtime/jevdrill_adapter.py) and [`jevdrill_queue.py`](https://github.com/Consiliency/agent-harness/blob/a06a952e8ff1c96bb5ec40a88be6b65edb468a7b/phase-loop-runtime/src/phase_loop_runtime/jevdrill_queue.py), under `phase-loop-runtime/src/phase_loop_runtime/`. It describes code at that commit, not behaviour a run has shown; [HOST readiness](host-readiness.md) says what the one run shows.
 
 ## Commands
 
@@ -73,4 +73,4 @@ Before each `discover`, each `route`, each `delete-discovery` and each queued re
 
 - **A decline is not visible to learning.** When the host declines a recommendation, no routed run starts, and learning sees a host preference only as a choice among runs that happened.
 - **Usage capture is exercised on Linux only.** The usage, input and diagnostics test files run only in the Linux command.
-- **The deselected launcher tests are not exercised.** The 53 tests of the `dotfiles_integration` class in `test_phase_loop_launcher.py` are deselected: launcher skill and adoption bundle building, and the execute path that resolves a dotfiles skill source and profile overlay.
+- **The deselected launcher tests are not exercised.** The 53 tests of the `dotfiles_integration` class in `test_phase_loop_launcher.py` are deselected. They cover launcher skill and adoption bundle building, and the execute path that resolves a dotfiles skill source and profile overlay.
