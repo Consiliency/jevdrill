@@ -2,8 +2,8 @@
 
 Every case routes a dry run and, beside it, a real run, gives both the same reports,
 and checks the observations in the deciding store and in a fresh store after an
-export and an import. Inputs are the committed synthetic route fixture; no judgment
-policy is set, so no request leaves the runner.
+export and an import. Inputs are the committed synthetic route fixture; a judgment
+port that fails if called is injected, so no request leaves the runner.
 """
 
 import json
@@ -30,6 +30,15 @@ LIFECYCLE = (
 )
 REPORTS = [f"lifecycle:{name}" for name in LIFECYCLE] + ["usage", "evaluation", "host_choice"]
 CASES = [*REPORTS, "none"]  # 11 report sets: every kind and every event_type, and none
+
+
+class ForbiddenJudge:
+    """Stand-in judgment port that fails the test if it is called at all."""
+
+    model_revision = "jev-latest"
+
+    def judge(self, *args):
+        raise AssertionError("judgment port called")
 
 
 def route(app, mode, task=None):
@@ -137,7 +146,7 @@ def test_routing_and_storage_share_the_dry_run_code():
 @pytest.mark.parametrize("where", ["deciding", "imported"])
 @pytest.mark.parametrize("case", CASES)
 def test_no_dry_run_becomes_an_observation(tmp_path, case, where):
-    app = Application(SQLiteStorage(tmp_path / "route.db"))
+    app = Application(SQLiteStorage(tmp_path / "route.db"), judgments=ForbiddenJudge())
     scope, dry_context, dry = route(app, "dry_run")
     _, main_context, main = route(app, "main")
     for context, decision in ((dry_context, dry), (main_context, main)):
@@ -160,10 +169,11 @@ def test_no_dry_run_becomes_an_observation(tmp_path, case, where):
 
 @pytest.mark.parametrize("marked", [True, False])
 def test_unmarked_cached_dry_run_decision_is_not_reused(tmp_path, marked):
-    app = Application(SQLiteStorage(tmp_path / "route.db"))
+    app = Application(SQLiteStorage(tmp_path / "route.db"), judgments=ForbiddenJudge())
     _, _, first = route(app, "dry_run")
     identity = first["details"]["routing_decision_id"]
-    if not marked:  # a dry-run decision recorded before the mode was
+    if not marked:
+        # Simulate a dry-run decision recorded before the fix: remove its diagnostic in the store.
         with sqlite3.connect(app.storage.path) as connection:
             (raw,) = connection.execute(
                 "SELECT bundle FROM decisions_v1 WHERE decision_id=?", (identity,)

@@ -60,7 +60,7 @@ def decision_details(
         "diagnostics": [
             {
                 "code": DRY_RUN_DIAGNOSTIC,
-                "summary": "Decision for a dry run; it is never execution evidence.",
+                "summary": "Decision for a dry run; excluded from learning observations.",
                 "evidence_refs": [],
                 "resolution_advice": [],
             }
