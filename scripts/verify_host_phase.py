@@ -790,23 +790,36 @@ def host_test_command(python, temporary):
     ]
 
 
-def _under_temporary(value, temporary):
+# The path separators of each platform a receipt can record. On Linux and macOS a backslash is an
+# ordinary file-name character, so `<root>\\host-tests` names a sibling of the root, not a path
+# under it.
+PLATFORM_SEPARATORS = {"Linux": ("/",), "Darwin": ("/",), "Windows": ("\\", "/")}
+
+
+def _under_temporary(value, temporary, separators):
     """`value` with the temporary root replaced by `<temporary>` and what follows it kept, with
-    `/` separators; a value outside the root is returned unchanged, so that it cannot match."""
+    `/` separators. A path is under the root only through one of `separators`; a value outside
+    the root is returned unchanged, so that it cannot match."""
     root = str(temporary)
-    if value == root or value.startswith((root + "/", root + "\\")):
-        return "<temporary>" + value[len(root) :].replace("\\", "/")
+    if value == root or value.startswith(tuple(root + separator for separator in separators)):
+        rest = value[len(root) :]
+        for separator in separators:
+            rest = rest.replace(separator, "/")
+        return "<temporary>" + rest
     return value
 
 
-def normalized_command(command, report, temporary=None):
+def normalized_command(command, report, temporary=None, os_name=None):
     """The command with its interpreter and temporary paths replaced; no flag is touched.
 
     With `temporary`, the root of the collection's temporary directory, only that root is replaced
     in a `--junitxml` or `--basetemp` value, and what follows it is kept, so the reducer sees the
     exact directory a command used. Without it (the conformance fixture's discovery child, whose
-    root the collector does not know) the whole value is replaced.
+    root the collector does not know) the whole value is replaced. `os_name` is the platform whose
+    separators count: the collector passes its own, which is the platform its receipt records;
+    the reducer's expected commands, joined on the reducer's own platform, use the reducer's.
     """
+    separators = PLATFORM_SEPARATORS[os_name or platform.system()]
     suffix = "tests" if report in ("companion", "host") else "child"
     normalized = []
     for index, part in enumerate(command):
@@ -815,7 +828,7 @@ def normalized_command(command, report, temporary=None):
         elif part.startswith(("--junitxml=", "--basetemp=")):
             flag, value = part.split("=", 1)
             if temporary is not None:
-                normalized.append(f"{flag}={_under_temporary(value, temporary)}")
+                normalized.append(f"{flag}={_under_temporary(value, temporary, separators)}")
             elif flag == "--junitxml":
                 normalized.append(f"--junitxml=<temporary>/{report}.xml")
             else:
@@ -1523,10 +1536,16 @@ def collect(root, companion_root):
     # The receipt records each command as it was launched, not as it was built; a child that was
     # never started records an empty command.
     normalized = normalized_command(
-        companion_launched[0] if companion_launched else [], "companion", temporary=tmp
+        companion_launched[0] if companion_launched else [],
+        "companion",
+        temporary=tmp,
+        os_name=platform.system(),
     )
     host_normalized = normalized_command(
-        host_launched[0] if host_launched else [], "host", temporary=tmp
+        host_launched[0] if host_launched else [],
+        "host",
+        temporary=tmp,
+        os_name=platform.system(),
     )
     copies = contract_copies(root, runtime)
     companion_stable = source_digest(runtime) == companion_before

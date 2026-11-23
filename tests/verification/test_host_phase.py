@@ -2520,14 +2520,17 @@ def test_final_b_a_path_with_dot_segments_is_not_a_test_id(evidence):
     ids=["posix", "windows"],
 )
 def test_final_c_normalization_keeps_what_follows_the_temporary_root(root, value):
+    os_name = "Windows" if "\\" in root else "Linux"
     command = ["python", "-m", "pytest", f"--basetemp={value}", f"--junitxml={root}/host.xml"]
-    assert runner.normalized_command(command, "host", temporary=root)[3:] == [
+    assert runner.normalized_command(command, "host", temporary=root, os_name=os_name)[3:] == [
         "--basetemp=<temporary>/x/y",
         "--junitxml=<temporary>/host.xml",
     ]
     # A value outside the root is kept whole, so that it cannot match an expected command.
     assert (
-        runner.normalized_command(["python", "--basetemp=/elsewhere/x"], "host", temporary=root)[1]
+        runner.normalized_command(
+            ["python", "--basetemp=/elsewhere/x"], "host", temporary=root, os_name=os_name
+        )[1]
         == "--basetemp=/elsewhere/x"
     )
 
@@ -2565,3 +2568,72 @@ def test_final_c_the_expected_temporary_directories_are_the_plans():
             "--junitxml=<temporary>/companion.xml",
             "--basetemp=<temporary>/companion-tests",
         ]
+
+
+@pytest.mark.parametrize(
+    ("os_name", "root", "accepted"),
+    [
+        ("Linux", "/tmp/jevdrill-host-1", False),
+        ("Darwin", "/private/var/folders/jevdrill-host-1", False),
+        ("Windows", "D:\\a\\_temp\\jevdrill-host-1", True),
+    ],
+    ids=["Linux", "Darwin", "Windows"],
+)
+def test_final_c_a_backslash_is_a_separator_only_on_a_windows_receipt(
+    evidence, os_name, root, accepted
+):
+    """(c), the vendor's finding: on a POSIX receipt `<root>\\host-tests` is a sibling of the
+    temporary root, not under it, and is rejected; on a Windows receipt it is the root's
+    `host-tests` and is accepted. Which separators count is the receipt's platform's, whatever
+    platform this test (or the reducer) runs on."""
+    manifests, reference = evidence
+    launched = [
+        f"--junitxml={root}\\host.xml"
+        if part.startswith("--junitxml=")
+        else f"--basetemp={root}\\host-tests"
+        if part.startswith("--basetemp=")
+        else part
+        for part in runner.host_test_command("/opt/python", "<unused>")
+    ]
+    command = runner.normalized_command(launched, "host", temporary=root, os_name=os_name)
+    row = linux(manifests)
+    row["host_controls"].update(command=command, command_sha256=runner.digest_value(command))
+    errors = runner.receipt_errors(manifests, reference)
+    assert ("Linux: HOST command is not the expected command" in errors) is not accepted, errors
+    assert (command == runner.expected_host_command()) is accepted
+
+
+def test_final_c_the_collector_normalizes_with_its_own_platform(collection, tmp_path, monkeypatch):
+    """(c): the collector names its own platform when it normalizes. On a Linux collector a
+    launched `<root>\\host-tests` is a sibling of the root: it is recorded whole, and rejected."""
+    companion_root, _ = collection
+    monkeypatch.setattr(runner.subprocess, "run", Children(tmp_path))
+    monkeypatch.setattr(runner.platform, "system", lambda: "Linux")
+    built = {"host": runner.host_test_command, "companion": runner.companion_command}
+
+    def sibling(command, name):
+        """The command with `--basetemp=<root>\\<name>`: a backslash after the root."""
+        return [
+            f"--basetemp={Path(part.split('=', 1)[1]).parent}\\{name}"
+            if part.startswith("--basetemp=")
+            else part
+            for part in command
+        ]
+
+    monkeypatch.setattr(
+        runner, "host_test_command", lambda *a: sibling(built["host"](*a), "host-tests")
+    )
+    monkeypatch.setattr(
+        runner,
+        "companion_command",
+        lambda *a: sibling(built["companion"](*a), "companion-tests"),
+    )
+    receipt_value = runner.collect(ROOT, companion_root)
+    for part_of, name in (("host_controls", "host-tests"), ("companion", "companion-tests")):
+        (basetemp,) = [p for p in receipt_value[part_of]["command"] if p.startswith("--basetemp=")]
+        assert basetemp.endswith("\\" + name) and not basetemp.startswith("--basetemp=<temporary>")
+    assert "HOST command is not the expected command" in runner._host_command_errors(
+        receipt_value["host_controls"]
+    )
+    companion_errors = runner._companion_errors(receipt_value["companion"], "Linux", HANDOFF, {})
+    assert "companion command is not the expected command" in companion_errors
