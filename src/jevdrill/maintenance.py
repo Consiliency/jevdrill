@@ -227,9 +227,11 @@ class Maintenance:
     ) -> tuple[dict[str, Any], bytes]:
         """The item's archive body and encrypted bytes, verified; ValueError if not.
 
-        Only this item's own checks raise ValueError here: its digest, an existing
-        archive's authentication, and its decrypted body. Storage and file-system
-        errors propagate.
+        ValueError here means this item could not be verified: its digest does not
+        match, or an existing archive of it does not decrypt with the key given or
+        does not match. A key that cannot decrypt any archive (replaced, or malformed)
+        therefore fails every item that has one. Storage and file-system errors,
+        including a missing file, propagate.
         """
         content = (self.storage._artifact_directory(pair) / identity).read_bytes()
         if hashlib.sha256(content).hexdigest() != digest:
@@ -310,10 +312,11 @@ class Maintenance:
             / canonical_digest(self.storage._task_scope(request["scope"]))[:16]
         )
         directory.mkdir(parents=True, exist_ok=True)
-        # -P: nothing from the job's working directory goes on the import path (#52).
+        # -I: no working directory, PYTHON* variable or user site directory goes on the
+        # import path (#52); -P alone still honours PYTHONPATH.
         argv = [
             sys.executable,
-            "-P",
+            "-I",
             "-m",
             "jevdrill.cli",
             "--storage",

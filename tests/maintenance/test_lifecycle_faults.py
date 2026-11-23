@@ -9,10 +9,12 @@ on a store with no item, so no OS key store is reached.
 
 import json
 import math
+import os
 import platform
 import plistlib
 import shlex
 import subprocess
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from uuid import uuid4
@@ -260,9 +262,39 @@ def test_the_generated_command_imports_nothing_from_the_working_directory(tmp_pa
     (job / "json.py").write_bytes(
         f"open({str(mark)!r}, 'w').close()\nraise ImportError('planted')\n".encode()
     )
+    # The environment a scheduler may hand it: the working directory on PYTHONPATH (an
+    # empty entry, then the directory itself) and a user base holding a planted .pth.
+    marked = tmp_path / "imported-from-the-user-site"
+    userbase = tmp_path / "userbase"
+    environment = dict(os.environ, PYTHONPATH=os.pathsep + str(job), PYTHONUSERBASE=str(userbase))
+    user_site, site_packages = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import site; print(site.ENABLE_USER_SITE); print(site.getusersitepackages())",
+        ],
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.split("\n")[:2]
+    Path(site_packages).mkdir(parents=True)
+    (Path(site_packages) / "planted.pth").write_bytes(
+        f"import os; open({str(marked)!r}, 'w').close()\n".encode()
+    )
     result = subprocess.run(
-        command, cwd=job, capture_output=True, text=True, timeout=120, check=False
+        command,
+        cwd=job,
+        env=environment,
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
     )
     assert not mark.exists(), result.stdout + result.stderr
+    # A venv without system site packages never reads a user site, whatever the flag, so
+    # this half can only fail where the interpreter has a user site to read.
+    if user_site == "True":
+        assert not marked.exists(), result.stdout + result.stderr
     assert result.returncode == 0, result.stdout + result.stderr
     assert json.loads(result.stdout)["status"] == "completed"
