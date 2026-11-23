@@ -268,9 +268,10 @@ applies on its terms: a possibility, not a request.
   support them, that row is not covered.
 - **Delivers:** the held verifier, tests and workflow with every declared
   change below; its reducer tests pass in CI. They fail if a part over its
-  bound or a receipt lacking part times passes; a control is missing or counted
+  bound, parts not summing to the collection's time, or a receipt lacking part
+  times passes; a control is missing or counted
   from two sources; the inherited call differs from HOST's; the inherited
-  interval is not the HOST call's own, from its start to its return; or a LEARN
+  interval is not the HOST call's, start to return; or a LEARN
   child sees more than HOST's child allowlist and an empty home, or the HOST call
   starts from a changed environment. On `main`, its writer
   dispatches `learn.yml` with the pinned SHA and records the run, which has no
@@ -396,7 +397,7 @@ receipts from one run, each naming its runner, command, platform, versions and
 result; the companion at the pinned commit, clean, and the jevdrill checkout unchanged after its code ran; the extras
 against each platform's list; module provenance; the coverage record and a
 `no_spec_delta` closeout; each part's time recorded: HOST's call
-within its two bounds, LEARN's part within 600 seconds on every platform;
+within its two bounds, LEARN's part within 600 seconds;
 flagging proof over five minutes; a malformed receipt reported, not raised. A
 clause of EC-LEARN-1 to 5 that is not covered is reported so, never as passed,
 and blocks IF-0-LEARN-1. HOST clauses are not covered today
