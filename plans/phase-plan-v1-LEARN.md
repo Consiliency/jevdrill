@@ -10,54 +10,39 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
 > with three seats (correctness; security and privacy; alternate vendor).
 > Rounds: one, and a confirmation of its fixes. Pull request:
-> Consiliency/jevdrill#92. Amended to add SL-7: Consiliency/jevdrill#122,
-> reviewed the same way. This is a reviewed plan. It verifies no criterion.
+> Consiliency/jevdrill#92. Amended to add SL-7 (Consiliency/jevdrill#122) and
+> SL-8 (Consiliency/jevdrill#AMEND), each reviewed the same way. This is a reviewed plan. It verifies no criterion.
 
 ## Context
 
 This plan revises LEARN against the amended roadmap, EC-LEARN-1 to 5 and
-IF-0-LEARN-1. It starts from the October plan held at the tag
-`pr1-final-record`, without its local paths and worktrees, its recovery from
-another checkout, its old Python and its claim that a committed record
-verifies IF-0-HOST-1. That plan was reviewed only by its planner and is not
-accepted as the required revision.
+IF-0-LEARN-1. The October plan at the tag `pr1-final-record` was reviewed only
+by its planner and is not accepted as the required revision.
 
-The LEARN code is on `main`: the roadmap's two lanes have landed, and the seven
-here are what remains. SL-1 to SL-3 and SL-7 need only GitHub CI; the rest
-waits for the host integration and HOST's verifier. Nothing here runs a collector,
-lands a held file, requests a host run, spends money or closes a gate.
+The LEARN code is on `main`: the roadmap's two lanes have landed, and the eight
+here are what remains. SL-1 to SL-3, SL-7 and SL-8 need only GitHub CI; the
+rest waits for the host integration and HOST's verifier. Nothing here runs a
+collector, lands a held file, requests a host run, spends money or closes a gate.
 
 Length exception: every clause is mapped to code, control, falsifier and
 evidence kind.
 
 ## State of `main` at `d58e52e85`
 
-**On `main`, by stack pull request.**
-
-| What | Pull request |
-| --- | --- |
-| LEARN contracts (`baml_src/contracts.baml:177-230`) and schemas | Consiliency/jevdrill#12 |
-| Settings, storage | Consiliency/jevdrill#18 |
-| `analysis.py`, `maintenance.py`, `integrations/archive.py` (under `src/jevdrill/`) | Consiliency/jevdrill#44 |
-| The `analyze`, `maintenance` and `recovery` commands; the LEARN tests | Consiliency/jevdrill#54 |
-| `docs/learn-interfaces.md`; the ratified `docs/sanitization-contract.md` | Consiliency/jevdrill#85; #27, #54, #88 |
+The stack pull requests that put LEARN on `main` are listed in
+`plans/pr1-stack-split-20261119.md`.
 
 `unit.yml` runs the LEARN tests on three platforms, deselecting for good the
 one that needs the host integration,
 `tests/application/test_learning.py::test_installed_discovery_host_tasks_reports_analysis_and_entered_denials`.
 
-**Held at the tag, not on `main`.** `scripts/verify_learn_phase.py`,
-`tests/verification/test_learn_phase.py`,
-`.github/workflows/learn.yml`, `docs/learn-readiness.md`, October's
-`evidence/LEARN/**` and `evidence/HOST/companion/extra-*.json`. None of that
-evidence is restored: the lists are made again (SL-5), the coverage and
-spec-delta records re-made (SL-4); receipts, verdicts and history are never
-committed.
+**Held at the tag, not on `main`:** SL-4's verifier, tests and workflow, and
+`docs/learn-readiness.md`. October's evidence is not restored; SL-4 and SL-5
+make it again, and receipts and verdicts are never committed.
 
-**Exists nowhere.** An accepted host-integration commit; a run of the
-installed LEARN control on `main`'s code; a hosted-runner LEARN receipt or
-expected-test list; the controls marked "D new" below; use of an installed
-scheduler or a real key store.
+**Exists nowhere:** an accepted host-integration commit, a hosted LEARN
+receipt or expected-test list, the controls marked "D new", or use of an
+installed scheduler or real key store.
 
 ## External Inputs
 
@@ -114,7 +99,7 @@ verified.
 | Clock and key-failure fixtures on three platforms | `maintenance.py:124-125`, `:76-80`; `integrations/archive.py:28` | main `tests/retention/test_retention.py::test_clock_rollback_and_corruption_enter_production_retention`, `::test_key_failures_keep_pending_active_content_and_notice` [3], `test_maintenance.py::test_os_key_store_failure_is_bounded_without_plaintext_fallback` | Retention after the clock moves back, or content lost when the key fails | simulated; native CI run |
 | 30-day active retention, seven-day archive grace | `maintenance.py:160-169` | main `test_retention.py::test_active_grace_encrypted_archive_one_year_expiry_and_measurement_persistence` | A prompt before day 30, or archival before seven more days | native CI run |
 | Encrypted archival; never archive unencrypted | `maintenance.py:170-224`; `integrations/archive.py:17-24` | main the active-grace and key-failure tests, `test_retention.py::test_archive_crash_retry_keeps_source_until_durable_verification`, `::test_archive_tamper_cannot_restore` | Plaintext in an archive, or an archive made without a key | simulated; native CI run |
-| One-year expiry notices | `maintenance.py:153-159` | main the active-grace test; D new, SL-2: a failing item leaves the others on time (Consiliency/jevdrill#45); re-archived content expires and is announced one year after its first archival (#46) | A notice missing or misdated before expiry; an earlier failing item unreported or abandoned; later healthy content kept past expiry; unverified content retired | native CI run |
+| One-year expiry notices | `maintenance.py:153-159` | main the active-grace test; D new, SL-2: a failing item leaves the others on time (Consiliency/jevdrill#45); re-archived content expires and is announced one year after its first archival (#46); D new, SL-8 | A notice missing or misdated before expiry; restored content retired in the run that archives it again; an earlier failing item unreported or abandoned; later healthy content kept past expiry; unverified content retired | native CI run |
 | Restoration | `maintenance.py:366-401` | main `tests/maintenance/test_recovery.py::test_native_archive_restore_and_portable_archive_export`, the tamper test; D new, SL-3: restored bytes equal the original | Restored bytes that differ, or a tampered or deleted archive restored | native CI run |
 | Deletion propagation | `storage.py:1045-1049`; `delete_task` `storage.py:2384-2397` | main the active-grace and native-restore tests; `test_observations.py::test_source_digest_recheck_prevents_deleted_analysis_commit`; `tests/storage/test_learning.py::test_deletion_preserves_unrelated_project_evidence_and_objective_history`; D new, SL-2: deletion while another connection reads (Consiliency/jevdrill#21); an archived copy's file gone after task deletion | Deleted content, archived copies included, left on disk, readable or analysed; `deleted` reported while a payload stays in the write-ahead log, or erasure still incomplete after the reader closes and deletion is retried | native CI run |
 | Missing credentials, headless Linux included, keep content pending with notices | `maintenance.py:170-173`; `storage.py:2311` | main the key-failure test [3] | Content removed, or no notice, without a key | simulated; native CI run |
@@ -157,16 +142,13 @@ verified.
 - **The HOST handoff.** LEARN is planned against metadata-only objective,
   discovery, task, decision and run bindings and durable objective tombstones.
   It distinguishes selected from applied plans, independent task deletion,
-  unknown usage and host retain or decline preferences. Where `main` does each:
+  unknown usage and host retain or decline preferences.
 
-  | Ask | On `main` | Row |
-  | --- | --- | --- |
-  | Metadata-only bindings | Identities and a discovery reference | EC-LEARN-5, first |
-  | Objective tombstones | Skipped in analysis and on import | EC-LEARN-5, first; EC-LEARN-3, deletion records |
-  | Selected versus applied | Applied identity from reports, with a reason | EC-LEARN-5, first |
-  | Independent task deletion | Task deletion spares other tasks; objective deletion keeps task reports | EC-LEARN-3, deletion propagation; EC-LEARN-5, first |
-  | Unknown usage | Counted as missing, never averaged | EC-LEARN-1, last |
-  | Retain or decline | A choice among runs that happened | EC-LEARN-5, third |
+  Each maps to clause rows: metadata-only bindings and selected versus applied
+  to EC-LEARN-5's first row; objective tombstones to that row and to
+  EC-LEARN-3's deletion records; independent task deletion to EC-LEARN-3's
+  deletion propagation and EC-LEARN-5's first row; unknown usage to
+  EC-LEARN-1's last row; retain or decline to EC-LEARN-5's third.
 
 - **Deterministic analysis is default** is read as the mode: the only
   analysis is deterministic, run where settings enable it. `main` has local
@@ -195,9 +177,7 @@ verified.
   control is EC-LEARN-5's.
 - **Re-archived content (Consiliency/jevdrill#46)** reuses the first archive
   and its time (`maintenance.py:188-197`; `storage.py:2202`), so expires a year
-  after the first archival; "Cold archives expire one year after archival"
-  (`specs/jevdrill-design-input.md:364`) is read so. SL-2 makes the notice and
-  doc say it.
+  after the first archival (`specs/jevdrill-design-input.md:364`).
 - **No companion-free diagnostic mode** is planned; one added by a declared
   change would produce no gate.
 
@@ -218,10 +198,11 @@ applies on its terms: a possibility, not a request.
 - SL-1 — Shared-record fingerprint; Depends on: (none); Blocks: SL-4; Parallel-safe: no
 - SL-2 — Deletion, retention and scheduler fixes; Depends on: (none); Blocks: SL-4; Parallel-safe: no
 - SL-3 — LEARN-side controls; Depends on: (none); Blocks: SL-4; Parallel-safe: no
-- SL-4 — Verifier and workflow; Depends on: SL-1, SL-2, SL-3, SL-7, HOST's verifier lane on `main`; Blocks: SL-5; Parallel-safe: no
+- SL-4 — Verifier and workflow; Depends on: SL-1, SL-2, SL-3, SL-7, SL-8, HOST's verifier lane on `main`; Blocks: SL-5; Parallel-safe: no
 - SL-5 — Expected-test lists; Depends on: SL-4 and one dispatched run; Blocks: SL-6; Parallel-safe: no
 - SL-6 — Readiness doc; Depends on: SL-5 and one dispatched run; Blocks: (none); Parallel-safe: no
 - SL-7 — Revisions digest in shared records; Depends on: SL-1; Blocks: SL-4; Parallel-safe: no
+- SL-8 — Restored content kept; Depends on: SL-2; Blocks: SL-4; Parallel-safe: no
 
 ## Lanes
 
@@ -337,6 +318,23 @@ applies on its terms: a possibility, not a request.
   stop sharing a group; or if a local observation's value changes. Evidence
   stored earlier keeps its values until replaced, and a store rebuilt from a
   recovery export gives different values; the doc says so.
+
+### SL-8 — Restored content kept
+
+- **Needs:** GitHub CI alone.
+- **Owned files:** `src/jevdrill/maintenance.py` (archiving a restored copy;
+  retiring an archive), `src/jevdrill/storage.py` (only where an archive row is
+  reused), `tests/maintenance/test_lifecycle_faults.py`, the sentence of
+  `docs/learn-interfaces.md` naming #125.
+- **Delivers:** fix lane for Consiliency/jevdrill#125 (at `5ba5e62e9`:
+  `maintenance.py:395`, `:249`, `:212`, `:157-159`; `storage.py:2232`). Content
+  restored before its archive expires is kept or lost the same way whether or
+  not a run falls between that archive's expiry and the copy's archival. No
+  contract or schema change. The control fails if, in #125's sequence, the
+  content cannot be restored afterwards with its original bytes; if the outcome
+  differs with and without a run in that window, or with the order the two items
+  are reached; if content restored and archived again before the archive
+  expires stops keeping that expiry; or if anything unverified is retired.
 
 ## Verification
 
@@ -456,6 +454,7 @@ artifact of the run that made it and is never committed.
 | --- | --- |
 | Consiliency/jevdrill#86 (shared-record fingerprint) | Fix lane, SL-1, by the owner's decision; fix lane, SL-7, for `discovery_revisions` |
 | Consiliency/jevdrill#21, #45 (both contradict EC-LEARN-3), #46, #52 | Fix lanes, SL-2 |
+| Consiliency/jevdrill#125 (restored content destroyed on re-archival) | Fix lane, SL-8 |
 | Consiliency/jevdrill#53, #58 (recovery and maintenance as ratified) | Verified as built by SL-3's controls; stated limits; the issues stay open as records |
 | Consiliency/jevdrill#74 for `learn.yml`, and the changes ruled earlier for this cut (declared changes 1 to 5) | Fix lane, SL-4 |
 | The held spec paragraph | Plan text and a "may not claim" line |
@@ -465,7 +464,7 @@ artifact of the run that made it and is never committed.
 ## Owner inputs
 
 - **Who takes the host integration to a merged state**, as in the HOST plan.
-  Without it only SL-1 to SL-3 and SL-7 can run.
+  Without it only SL-1 to SL-3, SL-7 and SL-8 can run.
 - **Closing the LEARN gate**, including whether generated scheduler
   configuration and simulated key-store states satisfy EC-LEARN-2 and 3 under
   `specs/phase-plans-v1.md:354`, and what to do about each clause not covered,
