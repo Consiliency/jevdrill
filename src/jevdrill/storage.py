@@ -2423,5 +2423,12 @@ class SQLiteStorage:
             self._purge_task(connection, pair, task_id)
         self.recover_artifacts()
         with self._connect() as connection:
-            connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            busy, _, _ = connection.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+        if busy:
+            # Another connection (a reader, a writer or a checkpointer) kept the checkpoint
+            # from finishing, so deleted payloads may remain in the database file or the
+            # write-ahead log. The logical deletion is committed; this fails as a storage
+            # failure, and the same request, once nothing blocks the checkpoint, finishes
+            # the erasure (#21).
+            raise sqlite3.OperationalError("deleted content not yet erased; retry the request")
         return {"status": "deleted", "task_id": task_id}
