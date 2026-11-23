@@ -11,7 +11,7 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 > and three seats (correctness, security and privacy, alternate vendor); one
 > round and a confirmation. Pull request: Consiliency/jevdrill#92. Amended to
 > add SL-7 (Consiliency/jevdrill#122) and SL-8 (Consiliency/jevdrill#126,
-> #AMEND). This is a reviewed plan. It verifies no criterion.
+> #131). This is a reviewed plan. It verifies no criterion.
 
 ## Context
 
