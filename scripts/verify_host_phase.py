@@ -175,7 +175,7 @@ CONTROL_COUNTS = {
     "tests/storage/test_host_notices.py::test_notice_scope_reads_and_cross_producer_deletion": 1,
     "tests/verification/test_host_phase.py::test_missing_companion_configuration_is_failure": 1,
     "tests/verification/test_host_phase.py::test_reducer_accepts_valid_receipts": 1,
-    "tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts": 61,
+    "tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts": 64,
 }
 _ALL = {name: None for name in PLATFORMS}
 _LINUX = {"Linux": None}
@@ -1189,15 +1189,21 @@ def witness_errors(witness):
             or events.index("planning.executor") >= min(routed)
         ):
             errors.append("missing entered harness decomposition")
-        runs = flow.get("runs")
-        runs = [run for run in runs if isinstance(run, dict)] if isinstance(runs, list) else []
+        # The run list is validated as received: an entry that is not an object is an error,
+        # never silently dropped.
+        received = flow.get("runs")
+        if not isinstance(received, list) or not all(isinstance(run, dict) for run in received):
+            errors.append("malformed discovery run list")
+        runs = (
+            [run for run in received if isinstance(run, dict)] if isinstance(received, list) else []
+        )
         # Each run names its task, model and effort as non-empty strings; a missing value is
         # never a second configuration.
-        typed = all(
-            isinstance(run.get(key), str) and run[key]
-            for run in runs
-            for key in ("task_id", "model", "effort")
-        )
+        typed = True
+        for key in ("task_id", "model", "effort"):
+            if not all(isinstance(run.get(key), str) and run[key] for run in runs):
+                errors.append(f"discovery run with no string {key}")
+                typed = False
         if (
             len(runs) < 2
             or not typed

@@ -393,6 +393,12 @@ def mutate(manifests, fault, tmp_path):
         ] = "failed"
     elif fault == "missing_model":
         flow(row)["runs"][1].pop("model")
+    elif fault == "non_object_run":
+        flow(row)["runs"].append("task-2")
+    elif fault == "non_string_effort":
+        flow(row)["runs"][1]["effort"] = 2
+    elif fault == "non_string_task_id":
+        flow(row)["runs"][1]["task_id"] = 1
     elif fault == "boolean_judgment":
         judged = next(r for r in records if r.get("flow") == "judged")
         judged.update(stored_judgments=True, loopback_judgment_requests=True)
@@ -521,6 +527,9 @@ FAULTS = [
     ),
     # Typed two-task and judged-task records.
     ("missing_model", "missing independent two-task configuration"),
+    ("non_object_run", "malformed discovery run list"),
+    ("non_string_effort", "discovery run with no string effort"),
+    ("non_string_task_id", "discovery run with no string task_id"),
     ("boolean_judgment", "missing v2 judged task"),
     ("judged_without_task", "missing v2 judged task"),
     # A receipt that contradicts itself.
