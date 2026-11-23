@@ -1,8 +1,13 @@
-"""Installed transport checks with a separate companion interpreter and synthetic tokens."""
+"""Installed transport checks with a separate companion interpreter.
+
+Token counts are synthetic, except in `recorded_usage`, whose fixture holds the counts and
+output schema captured from one real run in October 2026.
+"""
 
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -26,15 +31,43 @@ CASES = (
     "startup_loss",
     "recorded_usage",
 )
+# The synthetic executor's own task text is not a sentinel here: prepare never receives it,
+# and only the synthetic executor's argv carries it. The scan covers the markers that reach
+# the host through the executor's output and reports.
 SENTINELS = (
-    "SYNTHETIC_PRIVATE_TASK",
     "PRIVATE_OUTPUT_SENTINEL",
     "PRIVATE_REASONING_SENTINEL",
     "PRIVATE_CREDENTIAL_SENTINEL",
 )
 
 
-def _probe(directory, case):
+# The only parent variables the probe sees (as in tests/conformance/conftest.py).
+INHERITED_VARIABLES = (
+    "PATH",
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "TMPDIR",
+    "TEMP",
+    "TMP",
+    "SYSTEMROOT",
+    "SystemRoot",
+    "WINDIR",
+    "COMSPEC",
+    "PATHEXT",
+)
+TOKEN_METRICS = {"input_tokens", "output_tokens", "cached_input_tokens", "reasoning_tokens"}
+
+
+def _scan(directory, queue_path):
+    scanned = [path for path in directory.rglob("*.sqlite*") if path.is_file()]
+    assert queue_path in scanned
+    for path in scanned:
+        raw = path.read_bytes()
+        assert not any(sentinel.encode() in raw for sentinel in SENTINELS)
+
+
+def _probe(directory, case, installed_python):
     import sqlite3
     import time
     from copy import deepcopy
@@ -49,9 +82,6 @@ def _probe(directory, case):
 
     supported_capture = sys.platform.startswith("linux")
     executable = os.environ["JEVDRILL_TEST_CLI"]
-    installed_python = str(
-        Path(executable).parent / ("python.exe" if os.name == "nt" else "python")
-    )
     cli_argv = (installed_python, "-m", "jevdrill.cli") if os.name == "nt" else (executable,)
 
     adapter, inputs, _, kwargs, _, _ = adapter_fixture(directory)
@@ -162,7 +192,14 @@ def _probe(directory, case):
 
             patch.setattr(launcher, "run_heartbeat_summary", heartbeat)
             options["heartbeat_interval_seconds"] = 0
+        if os.name != "nt":
+            # The synthetic executor, not any other `codex` on PATH, is what will run.
+            assert shutil.which("codex") == str(directory / "codex")
         result = adapter.launch(launcher.launch_with_spec, spec, **options)
+    # The usage report, whose acknowledgment will be lost, and the terminal report are still
+    # queued: scan the queue file while they are.
+    assert adapter.queue.status()["records"] > 0
+    _scan(directory, adapter.queue.path)
     input_ok = None
     if recorded and supported_capture:
 
@@ -234,6 +271,7 @@ def _probe(directory, case):
                 reported[row["metric_id"]] == row for row in recorded["usage"]["measurements"]
             )
     else:
+        assert set(token_values) == TOKEN_METRICS
         assert all(
             value == {"kind": "unknown", "reason": "not_reported"}
             for value in token_values.values()
@@ -291,10 +329,7 @@ def _probe(directory, case):
     assert projected.returncode == 0, projected.stderr
     projection = json.loads(projected.stdout)
     assert projection["events"] == events and projection["status"] == terminal
-    for path in directory.rglob("*.sqlite*"):
-        if path.is_file():
-            raw = path.read_bytes()
-            assert not any(sentinel.encode() in raw for sentinel in SENTINELS)
+    _scan(directory, adapter.queue.path)
     result_record = {
         "case": case,
         "provenance": "synthetic_local_codex",
@@ -333,14 +368,26 @@ def test_installed_usage_persistence(tmp_path, case):
     companion = Path(companion_root) / "phase-loop-runtime"
     python = Path(companion_python)
     assert python.is_file() and Path(cli).is_file()
-    env = {
-        key: value
-        for key, value in os.environ.items()
-        if not key.endswith(("_API_KEY", "_TOKEN", "_SECRET")) and key != "PYTHONHOME"
-    }
-    env["PYTHONPATH"] = os.pathsep.join((str(companion / "src"), str(companion / "tests")))
+    home, codex_home = tmp_path / "home", tmp_path / "codex-home"
+    home.mkdir()
+    codex_home.mkdir()
+    env = {name: os.environ[name] for name in INHERITED_VARIABLES if name in os.environ}
+    env.update(
+        HOME=str(home),
+        USERPROFILE=str(home),
+        CODEX_HOME=str(codex_home),
+        JEVDRILL_TEST_CLI=cli,
+        PYTHONPATH=os.pathsep.join((str(companion / "src"), str(companion / "tests"))),
+    )
     result = subprocess.run(
-        [str(python), str(Path(__file__).resolve()), "--probe", str(tmp_path), case],
+        [
+            str(python),
+            str(Path(__file__).resolve()),
+            "--probe",
+            str(tmp_path),
+            case,
+            sys.executable,
+        ],
         cwd=tmp_path,
         env=env,
         text=True,
@@ -357,4 +404,4 @@ def test_installed_usage_persistence(tmp_path, case):
 
 if __name__ == "__main__":
     assert sys.argv[1] == "--probe"
-    print(json.dumps(_probe(Path(sys.argv[2]), sys.argv[3])))
+    print(json.dumps(_probe(Path(sys.argv[2]), sys.argv[3], sys.argv[4])))
