@@ -10,7 +10,8 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
 > with three seats (correctness; security and privacy; alternate vendor).
 > Rounds: one, and a confirmation of its fixes. Pull request:
-> Consiliency/jevdrill#92. This is a reviewed plan. It verifies no criterion.
+> Consiliency/jevdrill#92. Amended to add SL-7: Consiliency/jevdrill#122,
+> reviewed the same way. This is a reviewed plan. It verifies no criterion.
 
 ## Context
 
@@ -21,9 +22,9 @@ another checkout, its old Python and its claim that a committed record
 verifies IF-0-HOST-1. That plan was reviewed only by its planner and is not
 accepted as the required revision.
 
-The LEARN code is on `main`: the roadmap's two lanes have landed, and the six
-here are what remains. SL-1 to SL-3 need only GitHub CI; the rest waits for the
-host integration and HOST's verifier. Nothing here runs a collector,
+The LEARN code is on `main`: the roadmap's two lanes have landed, and the seven
+here are what remains. SL-1 to SL-3 and SL-7 need only GitHub CI; the rest
+waits for the host integration and HOST's verifier. Nothing here runs a collector,
 lands a held file, requests a host run, spends money or closes a gate.
 
 Length exception: every clause is mapped to code, control, falsifier and
@@ -129,7 +130,7 @@ verified.
 | Persistent local notices | Written `maintenance.py:56-61`, read `storage.py:2311` | main the key-failure test [3] (notices read back from the store); D new, SL-2: read again after reopening it | A notice lost after its run or after reopening | simulated; native CI run |
 | Opt-out and exclusion controls work | `application.py:1270-1275`; `storage.py:765-775`, `:800-801` | main the settings test, `tests/privacy/test_learning.py::test_default_workspace_scope_and_explicit_redacted_user_wide_consent`, `tests/storage/test_learning.py::test_restart_migration_evidence_history_and_optout` | An excluded or opted-out task analysed, or evidence drawn from it before the opt-out kept | native CI run |
 | Sharing project-scoped by default, user-wide only by explicit opt-in | `storage.py:857-859` | main the privacy test (nothing seen without both consents) | An observation shared without producer or requester consent | native CI run |
-| User-wide learning is redacted | `storage.py:994`, `:1008-1010`, `:1022-1030` | D new, SL-1 (the privacy test checks keys an observation never has, so shows no redaction) | Any failure SL-1's control names | native CI run |
+| User-wide learning is redacted | `storage.py:994`, `:997`, `:1008-1010`, `:1022-1030` | D new, SL-1 and SL-7 (the privacy test checks keys an observation never has, so shows no redaction) | Any failure SL-1's or SL-7's control names | native CI run |
 | Benchmark assessments retain source metrics and objective history | `analysis.py:687-701`; objective history `application.py:1283-1286` | main `test_metric_revisions_units_methods_remain_separate`, the missing-failed test (source measurement kept), the batch test, `test_deletion_preserves_unrelated_project_evidence_and_objective_history` | A metric definition or prior objective version lost | native CI run |
 
 **EC-LEARN-5**
@@ -217,9 +218,10 @@ applies on its terms: a possibility, not a request.
 - SL-1 — Shared-record fingerprint; Depends on: (none); Blocks: SL-4; Parallel-safe: no
 - SL-2 — Deletion, retention and scheduler fixes; Depends on: (none); Blocks: SL-4; Parallel-safe: no
 - SL-3 — LEARN-side controls; Depends on: (none); Blocks: SL-4; Parallel-safe: no
-- SL-4 — Verifier and workflow; Depends on: SL-1, SL-2, SL-3, HOST's verifier lane on `main`; Blocks: SL-5; Parallel-safe: no
+- SL-4 — Verifier and workflow; Depends on: SL-1, SL-2, SL-3, SL-7, HOST's verifier lane on `main`; Blocks: SL-5; Parallel-safe: no
 - SL-5 — Expected-test lists; Depends on: SL-4 and one dispatched run; Blocks: SL-6; Parallel-safe: no
 - SL-6 — Readiness doc; Depends on: SL-5 and one dispatched run; Blocks: (none); Parallel-safe: no
+- SL-7 — Revisions digest in shared records; Depends on: SL-1; Blocks: SL-4; Parallel-safe: no
 
 ## Lanes
 
@@ -312,6 +314,29 @@ applies on its terms: a possibility, not a request.
 - **Delivers:** the held doc rewritten: the second run linked, with its verdict
   as that run's artifact (as in `docs/route-readiness.md`) or why it has none;
   no dotfiles fixture; counts recounted or removed; no October receipt.
+
+### SL-7 — Revisions digest in shared records
+
+- **Needs:** GitHub CI alone.
+- **Owned files:** `src/jevdrill/storage.py` (`learning_observations`),
+  `tests/privacy/test_shared_records.py`, the paragraph of
+  `docs/learn-interfaces.md` that SL-1 changed.
+- **Delivers:** fix lane for Consiliency/jevdrill#86. In a user-wide
+  observation, `discovery_revisions` is an unkeyed digest of the discovery's
+  revisions (`storage.py:1024` at `83cfe464c`). Their `authorization_digest`
+  covers the producer's discovery scope, constraints, attachments and required
+  guidance (`application.py:191-193`), so the value differs between producers
+  and is equal for every requester and store. It is treated as SL-1's two values
+  are: keyed with the store's key and the requesting scope, in the same form.
+  Local observations are unchanged; no contract or schema change. The control
+  fails if the value can be recomputed without the store's key; if two
+  requesters, or two independently created stores, receive an equal value; if a
+  requester's value changes between two analyses; if, for one requester and
+  store, observations with unequal revisions receive an equal value or with
+  equal revisions unequal values; if two user-wide observations of one discovery
+  stop sharing a group; or if a local observation's value changes. Evidence
+  stored earlier keeps its values until replaced, and a store rebuilt from a
+  recovery export gives different values; the doc says so.
 
 ## Verification
 
@@ -414,9 +439,11 @@ artifact of the run that made it and is never committed.
 - That a decline that starts no run is visible to learning.
 - That "retain" is shown except as a refusal to replace an operator-set model.
 - That LEARN evidence informs later discovery or task selection.
-- That a shared record cannot be linked by a condition it still carries, such
-  as its domains, guidance choices or revisions digest, or by values stored
-  before SL-1.
+- That a shared record cannot be linked by a condition or value it still
+  carries, such as its domains, guidance choices, context fields, policy
+  revision, configuration digests or exact measurements; by a keyed value, which
+  within one requester's view still links every observation sharing it; or by
+  values stored before SL-1 or SL-7.
 - That an export or backup is metadata only: it carries retained raw task,
   output and context content.
 - That import or restore checks the text it writes back.
@@ -427,7 +454,7 @@ artifact of the run that made it and is never committed.
 
 | Item | Disposition |
 | --- | --- |
-| Consiliency/jevdrill#86 (shared-record fingerprint) | Fix lane, SL-1, by the owner's decision |
+| Consiliency/jevdrill#86 (shared-record fingerprint) | Fix lane, SL-1, by the owner's decision; fix lane, SL-7, for `discovery_revisions` |
 | Consiliency/jevdrill#21, #45 (both contradict EC-LEARN-3), #46, #52 | Fix lanes, SL-2 |
 | Consiliency/jevdrill#53, #58 (recovery and maintenance as ratified) | Verified as built by SL-3's controls; stated limits; the issues stay open as records |
 | Consiliency/jevdrill#74 for `learn.yml`, and the changes ruled earlier for this cut (declared changes 1 to 5) | Fix lane, SL-4 |
@@ -438,7 +465,7 @@ artifact of the run that made it and is never committed.
 ## Owner inputs
 
 - **Who takes the host integration to a merged state**, as in the HOST plan.
-  Without it only SL-1 to SL-3 can run.
+  Without it only SL-1 to SL-3 and SL-7 can run.
 - **Closing the LEARN gate**, including whether generated scheduler
   configuration and simulated key-store states satisfy EC-LEARN-2 and 3 under
   `specs/phase-plans-v1.md:354`, and what to do about each clause not covered,
