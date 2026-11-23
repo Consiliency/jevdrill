@@ -115,8 +115,8 @@ below is verified.
 | Acceptance failures supply bounded rerouting context | `retry_context` `contracts.baml:51`; bound `application.py:619-620`; the rerouting call in the host integration | main `tests/application/test_route_integration.py::test_retry_requires_recorded_run_and_remaining_attempt_authority`. Host half: not covered; the draft builds no `retry_context`, it only forwards one | A retry accepted with no recorded failed run | native CI run |
 | Guidance not reinjected on retries | `jevdrill_adapter.py:491-492` | HI `test_jevdrill_adapter.py::test_guidance_is_verified_injected_once_and_deactivated` | An optional revision appended again when the prompt is reused | needs the host integration |
 | Deactivates at task end, reporting host limitations | `guidance_deactivated` `contracts.baml:79`; emitted in the host integration | Same HI test. "Reporting host limitations": not covered; the draft sends every lifecycle `reason` as null | No deactivation event at task end | needs the host integration |
-| Dry runs never become execution-success evidence: ordering | `dry_run` `contracts.baml:78`; excluded from ordering `application.py:898` | D new, SL-1; HI `test_dry_run_and_recursion_bypass_do_not_route` | A dry run that reaches learned-policy ordering | native CI run; needs the host integration |
-| Dry runs never become execution-success evidence: counting | Counted on `main` (`storage.py:884-935`; Consiliency/jevdrill#109) | D new, SL-5 | A dry run counted, in the deciding store or after export, import, backup or restore | native CI run |
+| Dry runs never become execution-success evidence: ordering | `dry_run` `contracts.baml:50`; excluded from ordering `application.py:898` | D new, SL-1; HI `test_dry_run_and_recursion_bypass_do_not_route` | A dry run that reaches learned-policy ordering | native CI run; needs the host integration |
+| Dry runs never become execution-success evidence: counting | Counted on `main` (`storage.py:884-935`; Consiliency/jevdrill#109) | D new, SL-5 | A dry run counted, in the deciding store or after export and import | native CI run |
 
 **EC-HOST-2**
 
@@ -361,15 +361,15 @@ possibility, not a request.
 
 ### SL-5 — Dry-run evidence fix
 
-- **Needs:** GitHub CI alone. Not cut together with LEARN's SL-1, which also
-  owns `learning_observations`.
+- **Needs:** GitHub CI alone. Not cut together with LEARN's or PREPARE's SL-1.
 - **Owned files:** `src/jevdrill/storage.py`, `application.py` and
   `routing.py`, only where a decision's mode is recorded or read;
   `tests/storage/test_dry_run_evidence.py` (new); any storage migration.
-- **Delivers:** with no public contract or schema change, no dry run's terminal
-  report becomes an observation in either store the counting row names. Control: the reproduction in Consiliency/jevdrill#109, before and
-  after an export and import. A changed response is a declared contract change
-  under CONTRACT's rules. If the received store needs a public contract change,
+- **Delivers:** without a public contract change, no dry run becomes an
+  observation in either store the counting row names. Control:
+  Consiliency/jevdrill#109's reproduction, for every report kind and
+  `event_type`, and none, in that store and a fresh one after import. A changed response stays
+  within the public contract, declared under CONTRACT's rules. If the received store needs a public contract change,
   that half is "not covered: needs an owner input"; the deciding store is
   still fixed.
 
@@ -482,8 +482,8 @@ and JD-084 (`specs/phase-plans-v1.md:216`).
 - That the deselected launcher tests' behaviour is exercised.
 - That Linux evidence proves JD-084 on macOS.
 - That usage capture is exercised outside Linux.
-- That dry runs decided before SL-5's fix are excluded.
-- That an import detects a bundle altered to hide a dry run.
+- That dry runs decided without SL-5's fix are excluded.
+- That an import detects a bundle that misstates a decision's mode.
 - Ratified review, publication, adoption or release readiness.
 
 ## Attached backlog
