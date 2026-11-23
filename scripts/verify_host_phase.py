@@ -1618,6 +1618,11 @@ def receipt_errors(manifests, reference, root=ROOT, *, required_platforms=None, 
         if identity not in MATRIX or identity in seen:
             errors.append("unexpected or duplicate platform")
         seen.add(identity)
+        if nesting_depth(manifest) > MAX_RECEIPT_DEPTH:
+            errors.append(
+                f"{identity[0]}: malformed receipt (nesting deeper than {MAX_RECEIPT_DEPTH})"
+            )
+            continue
         if name is not None and name != f"{identity[0]}-{identity[1]}.json":
             errors.append(f"{identity[0]}: receipt file {name} names another platform")
         try:
@@ -1682,26 +1687,76 @@ def reference_state(root, companion_root):
     }
 
 
+# The deepest nesting a receipt may have. An honest receipt nests about ten levels (receipt,
+# companion or witness, a list of records, a record, its runs, a run, its execution run).
+# 64 leaves room for any honest growth while staying far below the depth at which any Python
+# build's recursion (JSON parsing, digesting, rendering) could fail. Deeper input is refused by
+# this explicit check, so no verdict depends on where an interpreter raises RecursionError.
+MAX_RECEIPT_DEPTH = 64
+# The most digits a JSON integer in a receipt may have; no honest field comes near it. Checked
+# while parsing, so that no verdict depends on the interpreter's integer-string limit.
+MAX_INTEGER_DIGITS = 100
+
+
+class ReceiptFormatError(ValueError):
+    """A receipt file that is valid JSON for no unambiguous, bounded reading."""
+
+
 def _unique_keys(pairs):
     keys = [key for key, _ in pairs]
     if len(set(keys)) != len(keys):
-        raise ValueError("duplicate key")
+        raise ReceiptFormatError("duplicate key")
     return dict(pairs)
+
+
+def _bounded_integer(text):
+    if len(text.lstrip("-")) > MAX_INTEGER_DIGITS:
+        raise ReceiptFormatError(f"integer longer than {MAX_INTEGER_DIGITS} digits")
+    return int(text)
+
+
+def _no_constant(name):
+    raise ReceiptFormatError(f"non-standard JSON constant {name}")
+
+
+def nesting_depth(value):
+    """The nesting depth of a JSON value, measured iteratively: no recursion, so no limit."""
+    deepest, pending = 0, [(value, 1)]
+    while pending:
+        item, depth = pending.pop()
+        if isinstance(item, dict | list):
+            deepest = max(deepest, depth)
+            if depth > MAX_RECEIPT_DEPTH:
+                return depth
+            pending.extend(
+                (child, depth + 1) for child in (item.values() if isinstance(item, dict) else item)
+            )
+    return deepest
 
 
 def read_receipts(directory):
     """(file name, receipt) for every receipt in the directory.
 
-    A file that cannot be read as one unambiguous JSON object (unparsable, nesting too deep, a
-    number too long, a duplicate key) is kept as an UnreadableReceipt and reported.
+    A file that cannot be read as one unambiguous JSON object (unparsable, nested deeper than
+    MAX_RECEIPT_DEPTH, an integer longer than MAX_INTEGER_DIGITS, a non-standard constant such
+    as NaN, a duplicate key) is kept as an UnreadableReceipt and reported.
     """
     receipts = []
     for path in sorted(directory.glob("*.json")):
         try:
-            value = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=_unique_keys)
+            value = json.loads(
+                path.read_text(encoding="utf-8"),
+                object_pairs_hook=_unique_keys,
+                parse_int=_bounded_integer,
+                parse_constant=_no_constant,
+            )
+            if nesting_depth(value) > MAX_RECEIPT_DEPTH:
+                raise ReceiptFormatError(f"nesting deeper than {MAX_RECEIPT_DEPTH}")
+        except ReceiptFormatError as error:
+            value = UnreadableReceipt(str(error))
+        # A backstop only: the explicit bounds above decide every case the tests name.
         except (OSError, RecursionError, ValueError) as error:
-            reason = "duplicate key" if str(error) == "duplicate key" else type(error).__name__
-            value = UnreadableReceipt(reason)
+            value = UnreadableReceipt(type(error).__name__)
         receipts.append((path.name, value))
     return receipts
 

@@ -648,7 +648,9 @@ def test_a_malformed_receipt_gives_a_verdict_not_a_traceback(evidence, value, er
     assert error in errors, errors
 
 
-def deep(depth=100_000):
+def deep(depth=200):
+    """Nested deeper than the verifier's bound, yet shallow enough for any Python to handle."""
+    assert depth > runner.MAX_RECEIPT_DEPTH
     value = []
     for _ in range(depth):
         value = [value]
@@ -660,8 +662,8 @@ def deep(depth=100_000):
     [
         # A number too large for a float, where it is compared with the 600-second bound.
         ("huge_duration", "Linux: collection over 600 seconds, or no valid duration"),
-        # Nesting too deep to digest.
-        ("deep_witness", "Linux: malformed receipt (RecursionError)"),
+        # Nesting deeper than the verifier's explicit bound.
+        ("deep_witness", "Linux: malformed receipt (nesting deeper than 64)"),
         ("architecture_number", "Linux: missing or malformed architecture"),
         ("architecture_list", "Linux: missing or malformed architecture"),
         ("python_version_text", "Linux: Python version disagrees with the receipt's minor"),
@@ -684,7 +686,7 @@ def test_malformed_fields_are_reported_with_their_own_error(evidence, case, erro
         row["python_version"] = "text"
     else:
         manifests[manifests.index(row)] = {"os": "Linux", "python_minor": "3.14"} | {
-            "collection_error": {"nested": deep(10)}
+            "collection_error": {"nested": [[[[]]]]}
         }
     errors = runner.receipt_errors(manifests, reference)
     assert error in errors, errors
@@ -695,23 +697,30 @@ def test_a_deeply_nested_platform_name_is_reported_not_raised(evidence):
     malformed = {"os": deep(), "python_minor": "3.14", "proof_cost_target_exceeded": True}
     report = runner.verdict([*manifests[1:], malformed], reference)
     assert "malformed platform identity" in report["errors"], report["errors"]
+    # Only a string names a platform in the verdict's own lists.
+    assert report["platforms"] == sorted(m["os"] for m in manifests[1:])
+    assert report["proof_cost_over_five_minutes"] == []
 
 
 @pytest.mark.parametrize(
     ("text", "error"),
     [
         ("{", "unreadable HOST receipt Linux-3.14.json: JSONDecodeError"),
-        ("[" * 100_000 + "]" * 100_000, "unreadable HOST receipt Linux-3.14.json: RecursionError"),
+        ("[" * 200 + "]" * 200, "unreadable HOST receipt Linux-3.14.json: nesting deeper than 64"),
         (
-            '{"duration_seconds": ' + "9" * 5000 + "}",
-            "unreadable HOST receipt Linux-3.14.json: ValueError",
+            '{"duration_seconds": ' + "9" * 101 + "}",
+            "unreadable HOST receipt Linux-3.14.json: integer longer than 100 digits",
+        ),
+        (
+            '{"duration_seconds": NaN}',
+            "unreadable HOST receipt Linux-3.14.json: non-standard JSON constant NaN",
         ),
         (
             '{"os": "Linux", "os": "Darwin"}',
             "unreadable HOST receipt Linux-3.14.json: duplicate key",
         ),
     ],
-    ids=["unparsable", "deep", "long_number", "duplicate_key"],
+    ids=["unparsable", "deep", "long_number", "nan", "duplicate_key"],
 )
 def test_unreadable_receipt_files_are_reported(tmp_path, evidence, text, error):
     manifests, reference = evidence
