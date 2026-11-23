@@ -10,7 +10,8 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
 > with three seats (correctness; security and privacy; alternate vendor).
 > Rounds: one, and a confirmation of its fixes. Pull request:
-> Consiliency/jevdrill#89. This is a reviewed plan. It verifies no criterion.
+> Consiliency/jevdrill#89; amended by Consiliency/jevdrill#PRNUM, one round.
+> This is a reviewed plan. It verifies no criterion.
 
 ## Context
 
@@ -23,15 +24,15 @@ revision.
 
 The JEV Drill side of HOST is largely on `main`. The host side lives in
 `Consiliency/agent-harness`, where it is a draft (Consiliency/agent-harness#2071).
-This plan was written against that draft. Execution apart from SL-1, a lane of
-tests that needs only GitHub CI, waits for a commit that repository has
+This plan was written against that draft. Execution apart from SL-1 and SL-5, lanes
+that need only GitHub CI, waits for a commit that repository has
 accepted. SL-0 checks R1 to R5 against it and records the install inputs of R6;
 SL-3's first hosted run tests R6. Nothing here runs a collector, lands a held
 file, requests a host run, spends money or closes a gate.
 
 Length exception: this plan exceeds 3,000 words because every clause is mapped
 to code, control, falsifier and evidence kind, and the cross-repository
-conditions are stated in full.
+conditions are stated in full. It is held to 5,200 words.
 
 ## State of `main` at `998912b1e`
 
@@ -114,7 +115,8 @@ below is verified.
 | Acceptance failures supply bounded rerouting context | `retry_context` `contracts.baml:51`; bound `application.py:619-620`; the rerouting call in the host integration | main `tests/application/test_route_integration.py::test_retry_requires_recorded_run_and_remaining_attempt_authority`. Host half: not covered; the draft builds no `retry_context`, it only forwards one | A retry accepted with no recorded failed run | native CI run |
 | Guidance not reinjected on retries | `jevdrill_adapter.py:491-492` | HI `test_jevdrill_adapter.py::test_guidance_is_verified_injected_once_and_deactivated` | An optional revision appended again when the prompt is reused | needs the host integration |
 | Deactivates at task end, reporting host limitations | `guidance_deactivated` `contracts.baml:79`; emitted in the host integration | Same HI test. "Reporting host limitations": not covered; the draft sends every lifecycle `reason` as null | No deactivation event at task end | needs the host integration |
-| Dry runs never become execution-success evidence | `dry_run` `contracts.baml:78`; excluded from ordering `application.py:898` | D new, SL-1; HI `test_dry_run_and_recursion_bypass_do_not_route` | A dry run counted as a completed run | native CI run; needs the host integration |
+| Dry runs never become execution-success evidence: ordering | `dry_run` `contracts.baml:78`; excluded from ordering `application.py:898` | D new, SL-1; HI `test_dry_run_and_recursion_bypass_do_not_route` | A dry run that reaches learned-policy ordering | native CI run; needs the host integration |
+| Dry runs never become execution-success evidence: counting | Counted on `main` (`storage.py:884-935`; Consiliency/jevdrill#109) | D new, SL-5 | A dry run counted as completed, failed or canceled, in the deciding store or after export, import, backup or restore | native CI run |
 
 **EC-HOST-2**
 
@@ -295,8 +297,9 @@ possibility, not a request.
 - SL-0 — Pin step; Depends on: an accepted commit; Blocks: SL-2, SL-3, SL-4; Parallel-safe: no
 - SL-1 — JEV-side controls; Depends on: (none); Blocks: SL-3; Parallel-safe: no
 - SL-2 — Conformance and probes; Depends on: SL-0; Blocks: SL-3; Parallel-safe: no
-- SL-3 — Verifier and workflow; Depends on: SL-0, SL-1, SL-2; Blocks: SL-4; Parallel-safe: no
+- SL-3 — Verifier and workflow; Depends on: SL-0, SL-1, SL-2, SL-5; Blocks: SL-4; Parallel-safe: no
 - SL-4 — Readiness docs; Depends on: SL-3 and one dispatched run; Blocks: (none); Parallel-safe: no
+- SL-5 — Dry-run evidence fix; Depends on: (none); Blocks: SL-3; Parallel-safe: no
 
 ## Lanes
 
@@ -313,12 +316,12 @@ possibility, not a request.
 
 ### SL-1 — JEV-side controls
 
-- **Needs:** GitHub CI alone. The only lane that needs no accepted commit; it
-  may be executed before the pin step.
+- **Needs:** GitHub CI alone. With SL-5, a lane that needs no accepted
+  commit; it may be executed before the pin step.
 - **Owned files:** `tests/application/test_host_routing.py` (new).
 - **Delivers:** controls, entered through `Application.route`, for: recursion
-  bypass makes no judgment call; a dry run is never ordered or counted as
-  success; a capability mismatch carries the supported advice. Run by `unit.yml`
+  bypass makes no judgment call; a dry run is never ordered; a
+  capability mismatch carries the supported advice. Run by `unit.yml`
   on three platforms without an edit to it; SL-3 makes them HOST controls.
 
 ### SL-2 — Conformance and probes
@@ -356,6 +359,20 @@ possibility, not a request.
   version; the run linked, with its verdict or why it has none; no October receipt,
   no history, no LEARN instruction.
 
+### SL-5 — Dry-run evidence fix
+
+- **Needs:** GitHub CI alone. Never cut together with the LEARN plan's SL-1,
+  which also owns `learning_observations`.
+- **Owned files:** `src/jevdrill/storage.py`, `application.py` and
+  `routing.py`, only where a decision's mode is recorded or read;
+  `tests/storage/test_dry_run_evidence.py` (new); any storage migration.
+- **Delivers:** with no public contract or schema change, no dry run's terminal
+  report becomes an observation in either store the counting row names. Control: the reproduction in Consiliency/jevdrill#109, before and
+  after an export and import. A changed response is a declared contract change
+  under CONTRACT's rules. If the received store needs a public contract change,
+  that half is "not covered: needs an owner input"; the deciding store is
+  still fixed.
+
 ## Verification
 
 Runs on `main` today:
@@ -368,6 +385,7 @@ Deliverables (the two verifier commands are steps of `host.yml`):
 
 ```sh
 uv run python -m pytest -q tests/application/test_host_routing.py
+uv run python -m pytest -q tests/storage/test_dry_run_evidence.py
 uv run python -m pytest -q tests/verification/test_host_phase.py
 uv run python scripts/verify_host_phase.py --local-only --agent-harness .host/companion
 uv run python scripts/verify_host_phase.py --reduce-only --agent-harness .host/companion
@@ -429,8 +447,8 @@ that made it and is never committed.
 10. Same-run receipts only; any other is a diagnostic, never uploaded
     (Consiliency/jevdrill#73).
 11. The handoff names repository and commit (J3).
-12. `test_usage_reporting.py`, `test_host_routing.py` and every "main" control of
-    the clause tables become required controls, in the test paths and digest.
+12. `test_usage_reporting.py`, `test_host_routing.py`, `test_dry_run_evidence.py`
+    and every "main" control of the clause tables become required controls, in the test paths and digest.
 13. Every HI control of the clause tables added to the companion controls, on
     each platform where its file runs, the two JD-084 launcher tests among them.
 14. The witness requires a v2 judgment-policy task.
@@ -464,6 +482,8 @@ and JD-084 (`specs/phase-plans-v1.md:216`).
 - That the deselected launcher tests' behaviour is exercised.
 - That Linux evidence proves JD-084 on macOS.
 - That usage capture is exercised outside Linux.
+- That dry runs decided before SL-5's fix are excluded.
+- That an importing store detects a dry run whose mark was removed.
 - Ratified review, publication, adoption or release readiness.
 
 ## Attached backlog
@@ -477,13 +497,14 @@ and JD-084 (`specs/phase-plans-v1.md:216`).
 | R1 to R6 and J1 to J7 | R: pin conditions, SL-0. J: fix lanes SL-0 and SL-3; J4 is the LEARN plan's |
 | The changes ruled for this cut earlier (declared changes 1 to 6 and 11) and the conformance landing rules | Fix lanes, SL-0, SL-2 and SL-3 |
 | HOST coverage and spec-delta records | Re-made, SL-3 |
+| Consiliency/jevdrill#109 (dry-run counting) | Fix lane, SL-5 |
 | Conditional host run | Owner input, only if hosted runners fail |
 | ROUTE verifier not reopened; the deadline-failure rule | Stated limits, standing |
 
 ## Owner inputs
 
 - **Who takes the host integration to a merged state** in
-  `Consiliency/agent-harness`. Without it, only SL-1 can be executed.
+  `Consiliency/agent-harness`. Without it, only SL-1 and SL-5 can be executed.
 - **Closing the HOST gate**, including whether synthetic evidence with
   `insufficient_evidence` closes EC-HOST-3, and what to do about each clause left
   not covered: each blocks the verifier's gate.
