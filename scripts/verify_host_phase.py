@@ -1489,6 +1489,11 @@ def not_covered():
     return sorted(name for name, (_c, status, _n) in CLAUSES.items() if status == "not_covered")
 
 
+def outside_reading():
+    """Clauses the plan reads as outside their criterion; they do not block, and are shown."""
+    return sorted(name for name, (_c, status, _n) in CLAUSES.items() if status == "outside_reading")
+
+
 def reduce_manifests(manifests, reference, root=ROOT, *, required_platforms=None):
     """Receipt errors, then one entry per clause not covered: a gate needs an empty list."""
     return receipt_errors(manifests, reference, root, required_platforms=required_platforms) + [
@@ -1541,6 +1546,8 @@ def verdict(manifests, reference, root=ROOT):
         "controls_passed": not errors,
         "errors": errors,
         "not_covered": gaps,
+        # A gate produced here still rests on the plan's reading of these clauses.
+        "outside_reading": outside_reading(),
         "proof_cost_over_five_minutes": sorted(
             str(item.get("os"))
             for item in manifests

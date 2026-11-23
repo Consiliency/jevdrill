@@ -476,6 +476,20 @@ def test_reducer_accepts_valid_receipts(evidence, monkeypatch):
     assert report["produced_if_gates"] == ["IF-0-HOST-1"]
 
 
+def test_verdict_names_the_clauses_outside_the_plans_reading(evidence, monkeypatch):
+    manifests, reference = evidence
+    expected = sorted(
+        name for name, (_c, status, _n) in runner.CLAUSES.items() if status == "outside_reading"
+    )
+    assert expected == ["EC-HOST-3/live-evaluation"]
+    assert runner.verdict(manifests, reference)["outside_reading"] == expected
+    # Shown beside a produced gate too: the gate rests on the plan's reading of EC-HOST-3.
+    monkeypatch.setattr(runner, "not_covered", list)
+    report = runner.verdict(manifests, reference)
+    assert report["produced_if_gates"] == ["IF-0-HOST-1"]
+    assert report["outside_reading"] == expected
+
+
 def test_reducer_rejects_a_reduction_outside_the_run_or_on_a_foreign_checkout(evidence):
     manifests, reference = evidence
     outside = copy.deepcopy(reference)
