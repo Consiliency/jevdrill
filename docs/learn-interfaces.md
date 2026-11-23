@@ -17,11 +17,14 @@ producer's discovery reference and the observation's digest are each keyed with
 a random key that the store keeps and never exports, together with the
 requesting project and workspace, so they differ between requesters and between
 stores; one requester gets the same values from one store each time. Evidence
-stored before this change keeps its earlier values until it is replaced, so the
-first analysis after it counts every user-wide observation as new, once. A store
-rebuilt elsewhere from a recovery export has its own key and gives a requester
-different values; a copy of the store's file keeps the key. A policy promoted on
-earlier evidence is not changed.
+stored before this change keeps its earlier values until it is replaced, so each
+analysis after the change counts every user-wide observation as new until one of
+them saves evidence. A store rebuilt elsewhere from a recovery export has its
+own key and gives a requester different values; a copy of the store's file keeps
+the key. A policy promoted on earlier evidence is not changed. The discovery's
+status, domains, guidance choices and revisions digest are not keyed: they are
+the same for every requester and store, so they can still link one discovery's
+groups across requesters, and to a holder of the producer's discovery result.
 
 Comparable groups retain task family/group, environment/isolation, actual
 evaluator/rubric revisions, source measurement definitions and selected/applied

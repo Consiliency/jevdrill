@@ -7,6 +7,8 @@ store makes no request.
 """
 
 import base64
+import hashlib
+import hmac
 import json
 import time
 from uuid import uuid4
@@ -121,6 +123,15 @@ def test_values_differ_from_main_and_from_another_store_with_the_same_inputs(sha
     formula = [main_formula(app, producer, context, run) for run in runs]
     assert not {f[0] for f in formula} & set(identities)
     assert not {f[1] for f in formula} & set(references)
+    # Both values come from the key this store holds, and from nothing a requester knows.
+    ((key,),) = _rows(app, "SELECT key FROM shared_record_key")
+    pair = SQLiteStorage._task_scope(requesters[0])
+
+    def keyed(value):
+        return hmac.new(key, canonical_digest([pair, value]).encode(), hashlib.sha256).hexdigest()
+
+    assert identities == sorted({keyed(f[0]) for f in formula})
+    assert references == sorted(keyed(f[1]) for f in formula)
     # A second store holding the same producer records, for the same requester. Only the
     # store's key differs, so equal values here would mean the inputs alone rebuild them.
     other = Application(SQLiteStorage(tmp_path / "other.db"))
@@ -196,6 +207,6 @@ def test_an_exported_bundle_does_not_contain_the_key(shared):
     for scope in (producer, *requesters):
         body = json.dumps(app.storage.export_recovery(scope))
         forms = (key.hex(), key.hex().upper(), base64.b64encode(key).decode())
-        forms += (base64.urlsafe_b64encode(key).decode(), key.decode("latin-1"))
+        forms += (base64.urlsafe_b64encode(key).decode(),)
         assert [form for form in forms if form in body] == []
         assert "shared_record_key" not in body

@@ -705,7 +705,7 @@ class SQLiteStorage:
                 "CREATE TABLE IF NOT EXISTS lifecycle_notices (scope TEXT, task TEXT, notice_id TEXT, payload TEXT NOT NULL, PRIMARY KEY(scope,notice_id))",
                 # One random key per store for user-wide observation values. Only
                 # learning_observations reads it; no export, backup or notice includes this table.
-                "CREATE TABLE IF NOT EXISTS shared_record_key (id INTEGER PRIMARY KEY CHECK (id = 1), key BLOB NOT NULL)",
+                "CREATE TABLE IF NOT EXISTS shared_record_key (id INTEGER PRIMARY KEY CHECK (id = 1), key BLOB NOT NULL CHECK (length(key) = 32))",
             ):
                 connection.execute(statement)
             # Made here, under the write lock, not on first read: save_evidence recomputes the
@@ -864,6 +864,8 @@ class SQLiteStorage:
                     "SELECT discovery_id,domains FROM recovered_discovery_metadata"
                 )
             }
+            # Every open inserts the key, and nothing deletes it; a missing row would raise
+            # here, and the next open would make a new key, changing every user-wide value.
             (key,) = connection.execute("SELECT key FROM shared_record_key").fetchone()
 
         def shared(value: str) -> str:
