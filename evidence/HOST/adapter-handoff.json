@@ -1,0 +1,13 @@
+{
+  "commit": "a06a952e8ff1c96bb5ec40a88be6b65edb468a7b",
+  "modules": {
+    "jevdrill_adapter": "1514d6a79686984905c55a97164404ecd2115716ba1aae9825ef173d58bcd6b4",
+    "jevdrill_queue": "554a4b9e12b86881b127518a518aa5f5d53e8f2d6d24eb8603dc4a8bb695e371",
+    "launcher": "0e30539fbe422dd6d744d2b73025ae0676ba2e499ca62a6e29f5ab583fe05b5c",
+    "observability": "44737cd866dd2697d6cc224e10a49736da3eb77a09decf46628c7b99a8caa910",
+    "runner": "68f9ae28f94a1af880c3fb47a3982bc9a1a31b7c31b6f2f5c3ac94b471c63482"
+  },
+  "package_version": "0.7.39",
+  "repository": "Consiliency/agent-harness",
+  "schema_version": 2
+}
