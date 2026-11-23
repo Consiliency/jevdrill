@@ -10,7 +10,7 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
 > with three seats (correctness; security and privacy; alternate vendor).
 > Rounds: one, and a confirmation of its fixes. Pull request:
-> Consiliency/jevdrill#92. Amended to add SL-7: Consiliency/jevdrill#AMEND,
+> Consiliency/jevdrill#92. Amended to add SL-7: Consiliency/jevdrill#122,
 > reviewed the same way. This is a reviewed plan. It verifies no criterion.
 
 ## Context
