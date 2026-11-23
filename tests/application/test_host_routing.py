@@ -1,7 +1,7 @@
 """JEV-side HOST controls, entered through ``Application.route`` (HOST plan, SL-1).
 
 No request leaves the runner: every test injects a judgment port, so
-``Application`` never builds the real ``JevAdapter`` (``application.py:842``), and
+``Application`` never builds the real ``JevAdapter``, and
 no test reads a credential or opens a socket. Each control has a sibling case in
 which the guarded condition is absent and the same stand-in is reached, so the
 assertion can fail.
@@ -85,7 +85,7 @@ def test_recursion_bypass_makes_no_judgment_call(tmp_path, bypass):
 def test_dry_run_is_never_ordered_by_learned_policy(tmp_path, mode):
     """EC-HOST-1 dry-run clause, ORDERING HALF ONLY: a dry run never reaches learned
     policy ordering. Whether a dry run's terminal report is counted as a completed
-    run is not tested here (see the pull request)."""
+    run is not tested here: Consiliency/jevdrill#109."""
     value = inputs()
     value["request"]["execution_mode"] = mode
     grouped = []
