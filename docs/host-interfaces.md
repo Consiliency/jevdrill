@@ -1,0 +1,76 @@
+# HOST interfaces
+
+This page describes the host integration at the commit [`evidence/HOST/adapter-handoff.json`](../evidence/HOST/adapter-handoff.json) pins: Consiliency/agent-harness `a06a952e8ff1c96bb5ec40a88be6b65edb468a7b`, package version 0.7.39. Its two modules are [`jevdrill_adapter.py`](https://github.com/Consiliency/agent-harness/blob/a06a952e8ff1c96bb5ec40a88be6b65edb468a7b/phase-loop-runtime/src/phase_loop_runtime/jevdrill_adapter.py) and [`jevdrill_queue.py`](https://github.com/Consiliency/agent-harness/blob/a06a952e8ff1c96bb5ec40a88be6b65edb468a7b/phase-loop-runtime/src/phase_loop_runtime/jevdrill_queue.py), under `phase-loop-runtime/src/phase_loop_runtime/`. It describes code at that commit, not behaviour a run has shown; [HOST readiness](host-readiness.md) says what the one run shows.
+
+## Commands
+
+`JevDrillTransport.call` runs the JEV Drill CLI once per call. It validates the request against its schema before the spawn and the response after it.
+
+| Command | Request | Response |
+| --- | --- | --- |
+| `discover` | `DiscoveryInputs` | `DiscoveryResult` |
+| `route` | `RouteInputs`, or `DiscoveryRouteInputs` when `schema_version` is `"2"` | `RoutingDecision` |
+| `inspect-discovery` | `DiscoveryInspectRequest` | `DiscoveryResult`, or exactly `{"schema_version": "1", "status": "not_found"}` |
+| `delete-discovery` | `DiscoveryDeleteRequest` | exactly `{"schema_version": "1", "status": "deleted", "work_objective_id": …}` |
+| `report` | `ReportRequest` | `ReportAcknowledgment` |
+| `notices` | `NoticeRequest` | `NoticeInbox` |
+| `delete` | `DeleteRequest` | exactly `{"schema_version": "1", "status": "deleted", "task_id": …}` |
+
+The schemas are in [`schemas/`](../schemas/). The host integration carries copies of them, and the collector compares those copies with jevdrill's files.
+
+- `discover`, `route`, `report` and `notices` send the request on standard input; `inspect-discovery`, `delete-discovery` and `delete` give it as command-line arguments. `inspect-discovery` refuses a replay request.
+- A request and a response are each limited to 1,000,000 bytes. Standard error is discarded.
+- Exit code 0 carries a response. Exit code 3 carries one only for a `report` whose acknowledgment status is `conflict`. Any other exit raises.
+- Every command but `delete` is given `--remaining-budget-ms`: the allowance left at spawn time, and at least 1.
+
+## The 5-second allowance
+
+A call's deadline is 5 seconds after the `started_at` it is given, or after the call begins when it is given none. A call whose allowance is spent before the spawn is refused; a call that outlives it is killed and raises `TimeoutError`. Calls given one `started_at` share one allowance:
+
+| Logical operation | Calls that share one allowance |
+| --- | --- |
+| Discovery (`discover_objective`) | `notices`, `discover` |
+| Routing a task (`prepare`) | `notices`; for a task linked to a discovery, `inspect-discovery`; `route` |
+| Delivering one queued report (`flush`) | `notices`, `report` |
+| Deleting an objective (`delete_objective`) | `notices`, `delete-discovery` |
+
+At launch, a linked task's `inspect-discovery` recheck has an allowance of its own, and so does `delete` for a task. For discovery and routing, the allowance starts before the objective lifecycle lock is taken, so time spent waiting for that lock counts against it. The wait for the lock is itself bounded at 5 seconds.
+
+## Notices
+
+Before each `discover`, each `route`, each `delete-discovery` and each queued report's delivery, the adapter calls `notices` for the project, workspace and producer, with operation `report` for a report and `route` otherwise. It hands each notice returned to the host's `notice_sink` callback. If the sink raises, the adapter records a `notice_delivery_failed` warning and goes on. The same sink receives the queue's dispositions: a report that was not queued, the disposition counts after a delivery, an invalid usage receipt and a failed delivery.
+
+## The queue
+
+`ReportQueue` is one SQLite file, and each adapter opens one. The adapter's lifecycle and usage reports for a launched task enter it.
+
+- **Limits:** 16 MiB of stored reports, 10,000 reports, 1 MiB per report, and seven days' retention.
+- **File:** on Linux and macOS it is created with mode 0600 in a directory created with mode 0700; on Windows it is opened through a private bound directory, with a persistent journal.
+- **Before any write,** each report goes through the adapter's `sanitize_report`.
+- **Enqueue** returns `queued`, `duplicate` (same event, same content), `conflict` (same event, different content), `deleted` (the task has a tombstone) or `overflow`. Conflicts, deletions, overflows and expiries are counted.
+- **Delivery** takes the oldest pending report whose retry time has come. The report is removed only when the acknowledgment names the same event, has status `accepted` or `duplicate`, and has `durable` true. A `conflict` or `rejected` acknowledgment with `durable` false marks the report and is counted. Anything else, a transport error included, schedules a retry after min(300, 2^min(attempts, 9)) seconds.
+- **`flush`** delivers at most one report per call, and `launch` calls it once after a run's reports are queued.
+- **Deletion:** deleting a task writes a tombstone and removes the task's queued reports, before JEV Drill is called. Deleting an objective writes an objective tombstone and removes its bindings, before JEV Drill is called.
+- **Corruption:** a failed integrity check or a corrupt database writes a marker file, and the marker blocks every later use of the queue. Nothing in the module removes it.
+
+## The companion's environment
+
+- **Sync:** `uv sync --project .host/companion/phase-loop-runtime --group test --extra visual --locked --python 3.12`, in `host.yml`. The host integration's own workflow uses the same options.
+- **Python:** 3.12 for the host integration; JEV Drill runs on 3.14. The run's receipts record 3.12.16 on Linux and 3.12.10 on macOS.
+- **The interpreter** reaches the collector as `JEVDRILL_AGENT_HARNESS_PYTHON`, and the collector refuses to collect without it.
+- **Variables:** the host integration's test command is given only these. `PATH`, `LANG`, `LC_ALL`, `LC_CTYPE`, `TMPDIR`, `TEMP`, `TMP`, `SYSTEMROOT`, `SystemRoot`, `WINDIR`, `COMSPEC` and `PATHEXT`, where set. `HOME` and `USERPROFILE`, pointing at an empty temporary home. `NO_PROXY` and `no_proxy`, set to `127.0.0.1,localhost`. `PYTHONPATH`, the checkout's `src` and `tests`. `JEVDRILL_TEST_CLI` and `JEVDRILL_TEST_PYTHON`, the installed JEV Drill command and its Python. `PHASE_LOOP_TDD_EXPECT_SCHED=1`.
+- **Command:** pytest with `-m "not dotfiles_integration"` over seven test files on Linux. On macOS and Windows, `test_jevdrill_input.py`, `test_jevdrill_usage.py` and `test_jevdrill_diagnostics.py` are left out.
+
+## Dry runs
+
+- A decision made for a dry-run request carries a diagnostic with the code `dry_run_decision`. The learning-observation builder skips any decision that carries it; a test checks this in the store that took the decision and in a fresh store after an export and an import. The adapter at the pinned commit sends no dry-run route.
+- A cached decision is reused only for a request of the same mode. The cache lookup returns the lowest-numbered matching decision, so a dry-run request whose lowest-numbered cached decision predates the diagnostic is decided afresh each time.
+- A dry run decided before the diagnostic existed is not excluded.
+- An import does not detect a bundle that misstates a decision's mode: a dry run whose diagnostic was removed is counted, and a real decision given the diagnostic is not.
+- Analysis evidence saved before the diagnostic existed, and any policy promoted on it, keeps its counts until it is replaced.
+
+## Limits the plan states
+
+- **A decline is not visible to learning.** When the host declines a recommendation, no routed run starts, and learning sees a host preference only as a choice among runs that happened.
+- **Usage capture is exercised on Linux only.** The usage, input and diagnostics test files run only in the Linux command.
+- **The deselected launcher tests are not exercised.** The 53 tests of the `dotfiles_integration` class in `test_phase_loop_launcher.py` are deselected: launcher skill and adoption bundle building, and the execute path that resolves a dotfiles skill source and profile overlay.
