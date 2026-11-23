@@ -4,7 +4,7 @@ This page describes the host integration at the commit [`evidence/HOST/adapter-h
 
 ## Commands
 
-`JevDrillTransport.call` runs the JEV Drill CLI once per call. It validates the request against its schema before the spawn and the response after it.
+`JevDrillTransport.call` spawns the JEV Drill CLI at most once per call. Before the spawn it checks the request against its schema, the 1,000,000-byte limit and the deadline, and any of these can refuse the call; after the CLI exits it validates the response.
 
 | Command | Request | Response |
 | --- | --- | --- |
@@ -20,8 +20,8 @@ The schemas are in [`schemas/`](../schemas/). The host integration carries copie
 
 - `discover`, `route`, `report` and `notices` send the request on standard input; `inspect-discovery`, `delete-discovery` and `delete` give it as command-line arguments. `inspect-discovery` refuses a replay request.
 - A request and a response are each limited to 1,000,000 bytes. Standard error is discarded.
-- Exit code 0 carries a response. Exit code 3 carries one only for a `report` whose acknowledgment status is `conflict`. Any other exit raises.
-- Every command but `delete` is given `--remaining-budget-ms`: the allowance left at spawn time, and at least 1.
+- Exit code 0 or 3 leads to response validation, which can still refuse the response: invalid JSON, a duplicate key, a `NaN` or `Infinity` constant, a response outside its contract, or an expired deadline. After validation, exit code 3 raises unless the command is `report` and the acknowledgment's status is `conflict`. Any other exit code, or a failed write of the request, raises.
+- Every command but `delete` is given `--remaining-budget-ms`: the allowance left when the command line is built, before the spawn, and at least 1.
 
 ## The 5-second allowance
 
@@ -34,22 +34,24 @@ A call's deadline is 5 seconds after the `started_at` it is given, or after the 
 | Delivering one queued report (`flush`) | `notices`, `report` |
 | Deleting an objective (`delete_objective`) | `notices`, `delete-discovery` |
 
+This section describes the pinned commit's code; no run measured the allowance.
+
 At launch, a linked task's `inspect-discovery` recheck has an allowance of its own, and so does `delete` for a task. For discovery and routing, the allowance starts before the objective lifecycle lock is taken, so time spent waiting for that lock counts against it. The wait for the lock is itself bounded at 5 seconds.
 
 ## Notices
 
-Before each `discover`, each `route`, each `delete-discovery` and each queued report's delivery, the adapter calls `notices` for the project, workspace and producer, with operation `report` for a report and `route` otherwise. It hands each notice returned to the host's `notice_sink` callback. If the sink raises, the adapter records a `notice_delivery_failed` warning and goes on. The same sink receives the queue's dispositions: a report that was not queued, the disposition counts after a delivery, an invalid usage receipt and a failed delivery.
+Before each `discover`, each `route`, each `delete-discovery` and each queued report's delivery, the adapter calls `notices` for the project, workspace and producer, with operation `report` for a report and `route` otherwise. It hands each notice returned to the host's `notice_sink` callback. If the sink raises, the adapter records a `notice_delivery_failed` warning and goes on. A failed `notices` call raises before the command it precedes is called: no `discover`, `route` or `delete-discovery` call follows, and in a delivery the report is not sent, and the queue's delivery rules below decide what happens to it. In an objective deletion the local tombstone is already written by then. The same sink receives the queue's dispositions: a report that was not queued, the disposition counts after a delivery, an invalid usage receipt and a failed delivery.
 
 ## The queue
 
-`ReportQueue` is one SQLite file, and each adapter opens one. The adapter's lifecycle and usage reports for a launched task enter it.
+`ReportQueue` is one SQLite file, and each adapter opens one. For a routed launch the adapter offers the run's lifecycle and usage reports to the queue, and enqueue can refuse them (below); a launch that was not routed makes no report.
 
-- **Limits:** 16 MiB of stored reports, 10,000 reports, 1 MiB per report, and seven days' retention.
-- **File:** on Linux and macOS it is created with mode 0600 in a directory created with mode 0700; on Windows it is opened through a private bound directory, with a persistent journal.
+- **Limits:** 16 MiB of stored reports, 10,000 reports, 1 MiB per report, and seven days' retention. The 1 MiB per-report limit sits beside the transport's 1,000,000-byte request limit, which still applies when the report is delivered. A report older than seven days is removed and counted when a queue operation (enqueue, delivery or a status read) runs, not on a timer.
+- **File:** on Linux and macOS it is created with mode 0600 in a directory created with mode 0700; on Windows the code opens it through a private bound directory, with a persistent journal. That Windows path is code at the pinned commit only: the hosted Windows job stopped at import, before any queue was opened.
 - **Before any write,** each report goes through the adapter's `sanitize_report`.
 - **Enqueue** returns `queued`, `duplicate` (same event, same content), `conflict` (same event, different content), `deleted` (the task has a tombstone) or `overflow`. Conflicts, deletions, overflows and expiries are counted.
-- **Delivery** takes the oldest pending report whose retry time has come. The report is removed only when the acknowledgment names the same event, has status `accepted` or `duplicate`, and has `durable` true. A `conflict` or `rejected` acknowledgment with `durable` false marks the report and is counted. Anything else, a transport error included, schedules a retry after min(300, 2^min(attempts, 9)) seconds.
-- **`flush`** delivers at most one report per call, and `launch` calls it once after a run's reports are queued.
+- **Delivery** takes the oldest pending report whose retry time has come. A delivery removes the report only when the acknowledgment names the same event, has status `accepted` or `duplicate`, and has `durable` true. An acknowledgment that names the same event with status `conflict` or `rejected` and `durable` false marks the report and is counted. Any other acknowledgment, or an `OSError`, `TimeoutError` or `ValueError` from the call, schedules a retry after min(300, 2^min(attempts, 9)) seconds; any other exception, such as a response that fails its schema, leaves the queue unchanged and propagates. Expiry and task deletion also remove reports.
+- **`flush`** attempts at most one delivery per call, of the oldest eligible report, which need not be the current run's. The routed launch path calls it once, after offering the run's terminal, usage and any deactivation reports; if an exception is raised before it in that step, `flush` is not called.
 - **Deletion:** deleting a task writes a tombstone and removes the task's queued reports, before JEV Drill is called. Deleting an objective writes an objective tombstone and removes its bindings, before JEV Drill is called.
 - **Corruption:** a failed integrity check or a corrupt database writes a marker file, and the marker blocks every later use of the queue. Nothing in the module removes it.
 
@@ -58,8 +60,8 @@ Before each `discover`, each `route`, each `delete-discovery` and each queued re
 - **Sync:** `uv sync --project .host/companion/phase-loop-runtime --group test --extra visual --locked --python 3.12`, in `host.yml`. The host integration's own workflow uses the same options.
 - **Python:** 3.12 for the host integration; JEV Drill runs on 3.14. The run's receipts record 3.12.16 on Linux and 3.12.10 on macOS.
 - **The interpreter** reaches the collector as `JEVDRILL_AGENT_HARNESS_PYTHON`, and the collector refuses to collect without it.
-- **Variables:** the host integration's test command is given only these. `PATH`, `LANG`, `LC_ALL`, `LC_CTYPE`, `TMPDIR`, `TEMP`, `TMP`, `SYSTEMROOT`, `SystemRoot`, `WINDIR`, `COMSPEC` and `PATHEXT`, where set. `HOME` and `USERPROFILE`, pointing at an empty temporary home. `NO_PROXY` and `no_proxy`, set to `127.0.0.1,localhost`. `PYTHONPATH`, the checkout's `src` and `tests`. `JEVDRILL_TEST_CLI` and `JEVDRILL_TEST_PYTHON`, the installed JEV Drill command and its Python. `PHASE_LOOP_TDD_EXPECT_SCHED=1`.
-- **Command:** pytest with `-m "not dotfiles_integration"` over seven test files on Linux. On macOS and Windows, `test_jevdrill_input.py`, `test_jevdrill_usage.py` and `test_jevdrill_diagnostics.py` are left out.
+- **Variables (the HOST verifier's test configuration):** the host integration's test command is given only these. `PATH`, `LANG`, `LC_ALL`, `LC_CTYPE`, `TMPDIR`, `TEMP`, `TMP`, `SYSTEMROOT`, `SystemRoot`, `WINDIR`, `COMSPEC` and `PATHEXT`, where set. `HOME` and `USERPROFILE`, pointing at an empty temporary home. `NO_PROXY` and `no_proxy`, set to `127.0.0.1,localhost`. `PYTHONPATH`, the checkout's `src` and `tests`. `JEVDRILL_TEST_CLI` and `JEVDRILL_TEST_PYTHON`, the installed JEV Drill command and its Python. `PHASE_LOOP_TDD_EXPECT_SCHED=1`.
+- **Command (the HOST verifier's test configuration):** pytest with `-m "not dotfiles_integration"` over seven test files on Linux. On macOS and Windows, `test_jevdrill_input.py`, `test_jevdrill_usage.py` and `test_jevdrill_diagnostics.py` are left out.
 
 ## Dry runs
 
