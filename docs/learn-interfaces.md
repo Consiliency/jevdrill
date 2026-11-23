@@ -54,8 +54,23 @@ existing absolute `request_path` containing a scoped run request. Generated
 systemd, launchd or Task Scheduler configuration calls the installed interpreter
 with `--request-file PATH maintenance`; no configuration is installed/enabled.
 Paths with control characters are refused. The generated command is
-`python -m jevdrill.cli`, and under `-m` Python puts the job's working directory
-first on its import path (Consiliency/jevdrill#52).
+`python -I -m jevdrill.cli`; `-I` keeps the job's working directory, `PYTHON*`
+variables and the user site directory off the import path
+(Consiliency/jevdrill#52). An item that cannot be verified when it is archived
+(its digest no longer matches, or its existing archive no longer decrypts or
+matches) is reported in a persistent notice naming its identity, not its
+content; it is left as it is, the run goes on to the others, and a later run
+tries it again. Storage and file-system errors, including a missing file, still
+stop the run. A replaced archive key makes every item with an existing archive
+fail this way. A run processes up to `max_items` items after a cursor that
+survives restarts, in identity order, and the run that reaches the last item
+ends the pass. A pass reaches every item present when it starts within
+`ceil(N / max_items)` completed runs, where `N` counts every item in scope
+during the pass, archives it makes included; an item that appears during a pass,
+such as an archive the pass makes, is reached by the end of the next pass. So,
+with a fixed set of items, every item is reached within
+`ceil(N / max_items) + 1` completed runs from any point, however many fail
+(Consiliency/jevdrill#45).
 
 When a run completes, the application passes the stored objectives of the last
 analysis to a new analysis, which applies the credential check to them. If
@@ -65,15 +80,19 @@ the same until that evidence is replaced (Consiliency/jevdrill#58).
 
 Active raw task/output/context content is prompted at 30 days, archived after
 seven additional days, and expires one year after successful archival with
-seven-day advance notice. Measurements persist until explicit deletion. Each is
-a number, or a reason from a fixed list when the value is unknown, with a metric
-name, version, method, unit and parent metric that the reporting host chooses;
-that text is checked only for credential-like material. Only authenticated
-archives may replace active content, after durable-byte verification.
-Missing/locked/failed OS keys keep content pending with persistent notices.
-Clock rollback pauses retention. Supported stores are macOS Keychain, Windows
-Credential Locker and Linux Secret Service; no plaintext fallback or automatic
-key provisioning exists.
+seven-day advance notice. Content restored and archived again before its first
+archive expires keeps that archive and its expiry, and the expiry notice says so
+(Consiliency/jevdrill#46). Restored content can be destroyed in the run that
+archives it again if its first archive has expired by then
+(Consiliency/jevdrill#125). Measurements persist until explicit deletion. Each
+is a number, or a reason from a fixed list when the value is unknown, with a
+metric name, version, method, unit and parent metric that the reporting host
+chooses; that text is checked only for credential-like material. Only
+authenticated archives may replace active content, after durable-byte
+verification. Missing/locked/failed OS keys keep content pending with persistent
+notices. Clock rollback pauses retention. Supported stores are macOS Keychain,
+Windows Credential Locker and Linux Secret Service; no plaintext fallback or
+automatic key provisioning exists.
 
 `jevdrill recovery` consumes `RecoveryRequest`: export/backup/import require an
 explicit portable Fernet key; restore requires an archive identity and

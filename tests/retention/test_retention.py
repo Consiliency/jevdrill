@@ -109,9 +109,16 @@ def test_clock_rollback_and_corruption_enter_production_retention(tmp_path):
     now[0] = 100 + 37 * DAY
     directory = app.storage._artifact_directory(app.storage._task_scope(scope))
     (directory / identity).write_bytes(b"corrupt")
-    with pytest.raises(ContractError, match="digest"):
-        maintenance.run(request(scope))
+    # An unverifiable item is reported and left as it is; the run finishes (#45).
+    assert maintenance.run(request(scope))["status"] == "completed"
+    (notice,) = [n for n in app.storage.load_notices(scope) if n["kind"] == "failure"]
+    assert identity in notice["summary"] and "corrupt" not in notice["summary"]
     assert (directory / identity).exists()
+    with app.storage._connect() as c:
+        assert c.execute(
+            "SELECT retention FROM artifacts WHERE artifact_id=?", (identity,)
+        ).fetchone() == ("active",)
+        assert c.execute("SELECT count(*) FROM artifacts WHERE kind='archive'").fetchone() == (0,)
 
 
 def test_archive_crash_retry_keeps_source_until_durable_verification(tmp_path, monkeypatch):
