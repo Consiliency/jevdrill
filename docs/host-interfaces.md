@@ -1,6 +1,6 @@
 # HOST interfaces
 
-This page describes the host integration at the commit [`evidence/HOST/adapter-handoff.json`](../evidence/HOST/adapter-handoff.json) pins: Consiliency/agent-harness `a06a952e8ff1c96bb5ec40a88be6b65edb468a7b`, package version 0.7.39. The two modules it draws on are [`jevdrill_adapter.py`](https://github.com/Consiliency/agent-harness/blob/a06a952e8ff1c96bb5ec40a88be6b65edb468a7b/phase-loop-runtime/src/phase_loop_runtime/jevdrill_adapter.py) and [`jevdrill_queue.py`](https://github.com/Consiliency/agent-harness/blob/a06a952e8ff1c96bb5ec40a88be6b65edb468a7b/phase-loop-runtime/src/phase_loop_runtime/jevdrill_queue.py), under `phase-loop-runtime/src/phase_loop_runtime/`. It describes code at that commit, not behaviour a run has shown; [HOST readiness](host-readiness.md) says what the one run shows.
+This page describes the host integration at the commit [`evidence/HOST/adapter-handoff.json`](../evidence/HOST/adapter-handoff.json) pins: Consiliency/agent-harness `a06a952e8ff1c96bb5ec40a88be6b65edb468a7b`, package version 0.7.39. The two modules it draws on are [`jevdrill_adapter.py`](https://github.com/Consiliency/agent-harness/blob/a06a952e8ff1c96bb5ec40a88be6b65edb468a7b/phase-loop-runtime/src/phase_loop_runtime/jevdrill_adapter.py) and [`jevdrill_queue.py`](https://github.com/Consiliency/agent-harness/blob/a06a952e8ff1c96bb5ec40a88be6b65edb468a7b/phase-loop-runtime/src/phase_loop_runtime/jevdrill_queue.py), under `phase-loop-runtime/src/phase_loop_runtime/`. It describes code at that commit, not behaviour a run has shown; [HOST readiness](host-readiness.md) says what the one run shows. It is a summary: it does not list every refusal or failure path, and the code at that commit is the authority.
 
 ## Commands
 
@@ -20,7 +20,7 @@ The schemas are in [`schemas/`](../schemas/). The host integration carries copie
 
 - `discover`, `route`, `report` and `notices` send the request on standard input; `inspect-discovery`, `delete-discovery` and `delete` give it as command-line arguments. `inspect-discovery` refuses a replay request.
 - A request and a response are each limited to 1,000,000 bytes. Standard error is discarded.
-- Exit code 0 or 3 leads to response validation, which can still refuse the response: invalid JSON, a duplicate key, a `NaN` or `Infinity` constant, a response outside its contract, or an expired deadline. After validation, exit code 3 raises unless the command is `report` and the acknowledgment's status is `conflict`. Any other exit code, or a failed write of the request, raises.
+- Output over the limit, or a stream that did not finish in time, is refused whatever the exit code; only after exit code 0 or 3 is the response examined, and it can still be refused: invalid JSON, a duplicate key, a `NaN`, `Infinity` or `-Infinity` constant, a response outside its contract, or an expired deadline. After validation, exit code 3 raises unless the command is `report` and the acknowledgment's status is `conflict`. Any other exit code, or a failed write of the request, raises.
 - Every command but `delete` is given `--remaining-budget-ms`: the allowance left when the command line is built, before the spawn, and at least 1.
 
 ## The 5-second allowance
@@ -34,7 +34,7 @@ A call's deadline is 5 seconds after the `started_at` it is given, or after the 
 | Delivering one queued report (`flush`) | `notices`, `report` |
 | Deleting an objective (`delete_objective`) | `notices`, `delete-discovery` |
 
-This section describes the pinned commit's code; no run measured the allowance.
+The hosted run publishes no measurement of the full allowance.
 
 At launch, a linked task's `inspect-discovery` recheck has an allowance of its own, and so does `delete` for a task. For discovery and routing, the allowance starts before the objective lifecycle lock is taken, so time spent waiting for that lock counts against it. The wait for the lock is itself bounded at 5 seconds.
 
@@ -46,12 +46,12 @@ Before each `discover`, each `route`, each `delete-discovery` and each queued re
 
 `ReportQueue` is one SQLite file, and each adapter opens one. For a routed launch the adapter offers the run's lifecycle and usage reports to the queue, and enqueue can refuse them (below); a launch that was not routed makes no report.
 
-- **Limits:** 16 MiB of stored reports, 10,000 reports, 1 MiB per report, and seven days' retention. The 1 MiB per-report limit sits beside the transport's 1,000,000-byte request limit, which still applies when the report is delivered. A report older than seven days is removed and counted when a queue operation (enqueue, delivery or a status read) runs, not on a timer.
+- **Limits:** 16 MiB of stored reports, 10,000 reports, 1 MiB per report, and seven days' retention. `sanitize_report` refuses a report over the transport's 1,000,000-byte limit, with a `ValueError`, before it is stored, so through the adapter no report reaches the queue's 1 MiB limit. A report seven days old or older is removed and counted when a queue operation (enqueue, delivery or a status read) runs and its transaction commits, not on a timer.
 - **File:** on Linux and macOS it is created with mode 0600 in a directory created with mode 0700; on Windows the code opens it through a private bound directory, with a persistent journal. That Windows path is code at the pinned commit only: the hosted Windows job stopped at import, before any queue was opened.
 - **Before any write,** each report goes through the adapter's `sanitize_report`.
-- **Enqueue** returns `queued`, `duplicate` (same event, same content), `conflict` (same event, different content), `deleted` (the task has a tombstone) or `overflow`. Conflicts, deletions, overflows and expiries are counted.
+- **Enqueue** returns `queued`, `duplicate` (same event, same content), `conflict` (same event, different content), `deleted` (the task has a tombstone) or `overflow`. Conflicts, deletions, overflows and expiries are counted. Enqueue can also raise.
 - **Delivery** takes the oldest pending report whose retry time has come. A delivery removes the report only when the acknowledgment names the same event, has status `accepted` or `duplicate`, and has `durable` true. An acknowledgment that names the same event with status `conflict` or `rejected` and `durable` false marks the report and is counted. Any other acknowledgment, or an `OSError`, `TimeoutError` or `ValueError` from the call, schedules a retry after min(300, 2^min(attempts, 9)) seconds; any other exception, such as a response that fails its schema, leaves the queue unchanged and propagates. Expiry and task deletion also remove reports.
-- **`flush`** attempts at most one delivery per call, of the oldest eligible report, which need not be the current run's. The routed launch path calls it once, after offering the run's terminal, usage and any deactivation reports; if an exception is raised before it in that step, `flush` is not called.
+- **`flush`** attempts at most one delivery per call, of the oldest eligible report, which need not be the current run's. The routed launch path calls it once, after offering the run's terminal, usage and any deactivation reports; if an exception escapes that step before it, `flush` is not called; an invalid usage receipt is handled inside the step and does not stop it.
 - **Deletion:** deleting a task writes a tombstone and removes the task's queued reports, before JEV Drill is called. Deleting an objective writes an objective tombstone and removes its bindings, before JEV Drill is called.
 - **Corruption:** a failed integrity check or a corrupt database writes a marker file, and the marker blocks every later use of the queue. Nothing in the module removes it.
 

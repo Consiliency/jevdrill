@@ -4,7 +4,7 @@
 
 ## On `main`
 
-- **The verifier,** `scripts/verify_host_phase.py`. On each native runner it collects one receipt: the inherited ROUTE regressions with the HOST controls added, the companion's own tests at the pinned commit, and the conformance fixture's witness. Its reduction counts only the three receipts of the workflow run it is part of; a receipt collected outside a workflow run is a diagnostic, and the reduction rejects it.
+- **The verifier,** `scripts/verify_host_phase.py`. On each native runner it collects one receipt: the inherited ROUTE regressions with the HOST controls added, the companion's own tests at the pinned commit, and the conformance fixture's witness. Its reduction counts only the three receipts that record the workflow run and attempt it is part of; a receipt that records no workflow run, or another run or attempt, is a diagnostic, and the reduction rejects it.
 - **Its tests,** `tests/verification/test_host_phase.py`.
 - **The workflow,** `.github/workflows/host.yml` (`HOST verification`): one native job on each of hosted Linux, macOS and Windows, then a reduce job.
 - **The conformance tests and probes:** `tests/conformance/` (a fixture module, five test files and one fixture) and `research/evaluation/host/test_bridge_probe.py` and `test_baseline_probe.py`, beside the synthetic protocol `research/evaluation/host/protocol.json`. The conformance tests are among the verifier's controls, and the conformance fixture runs the two probes in a child process.
@@ -54,7 +54,7 @@ A run is green only if every job succeeds. The reduce job's reduction step succe
 
 One more clause, EC-HOST-3's "A live development or validation evaluation", is outside the plan's reading. It does not block, and a verdict lists it under `outside_reading`.
 
-This run is red because a native job failed: the reduction did not run and there is no verdict. If every native job succeeds and the reduction runs to its end, it uploads a verdict whose `status` is `"blocked"`; its `controls_passed` says whether the reduction found any error other than the clauses not covered. A step before or after the reduction can also fail, and then there may be no verdict. A new pin that lets Windows import does not by itself make a run green: with no receipt error, the verdict is still `"blocked"`, with `controls_passed: true` and no gate.
+This run is red because a native job failed: the reduction did not run and there is no verdict. If every native job succeeds and the reduction runs to its end, it writes a verdict whose `status` is `"blocked"`, and the next step uploads it as the run's artifact; its `controls_passed` says whether the reduction found any error other than the clauses not covered. Any step can also fail or be cancelled, and then there may be no verdict. A new pin that lets Windows import does not by itself make a run green: with no receipt error, the verdict is still `"blocked"`, with `controls_passed: true` and no gate.
 
 ## Artifacts
 
