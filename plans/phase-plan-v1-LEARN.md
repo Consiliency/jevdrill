@@ -350,8 +350,8 @@ applies on its terms: a possibility, not a request.
 - **Owned files:** `src/jevdrill/storage.py` (`delete_discovery`, import of
   deletion records, their callees), `tests/storage/test_discovery_erasure.py`
   (new).
-- **Delivers:** fix lane for Consiliency/jevdrill#138, the metadata issue
-  (opened at #141's merge) and #21's `delete-discovery` half. A finished
+- **Delivers:** fix lane for Consiliency/jevdrill#138, #144
+  and #21's `delete-discovery` half. A finished
   deletion, requested or imported, leaves neither the discovery's recovered
   metadata nor a notice row naming its items in the store's files; until then
   it answers as `delete_task` since SL-2. No contract or schema change. The
@@ -490,7 +490,7 @@ artifact of the run that made it and is never committed.
 | Consiliency/jevdrill#21, #45 (both contradict EC-LEARN-3), #46, #52 | Fix lanes, SL-2 |
 | Consiliency/jevdrill#125 | Fix lane, SL-8 |
 | Consiliency/jevdrill#128, #139 | Fix lane, SL-8 |
-| Consiliency/jevdrill#138, #TBD-METADATA, #21 | Fix lane, SL-9 |
+| Consiliency/jevdrill#138, #144, #21 | Fix lane, SL-9 |
 | Consiliency/jevdrill#53, #58 (recovery and maintenance as ratified) | Verified as built by SL-3's controls; stated limits; the issues stay open as records |
 | Consiliency/jevdrill#74 for `learn.yml`, and the changes ruled earlier for this cut (declared changes 1 to 5) | Fix lane, SL-4 |
 | The held spec paragraph | Plan text and a "may not claim" line |
