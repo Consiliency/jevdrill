@@ -8,7 +8,7 @@
 - **Its tests,** `tests/verification/test_host_phase.py`.
 - **The workflow,** `.github/workflows/host.yml` (`HOST verification`): one native job on each of hosted Linux, macOS and Windows, then a reduce job.
 - **The conformance tests and probes:** `tests/conformance/` (a fixture module, five test files and one fixture) and `research/evaluation/host/test_bridge_probe.py` and `test_baseline_probe.py`, beside the synthetic protocol `research/evaluation/host/protocol.json`. The conformance tests are among the verifier's controls, and the conformance fixture runs the two probes in a child process.
-- **The records:** [`evidence/HOST/coverage.json`](../evidence/HOST/coverage.json), each clause of the plan's tables with its status and controls; [`evidence/HOST/spec-delta.json`](../evidence/HOST/spec-delta.json), the closeout record, whose `closeout_status` is `verification_pending`; and [`evidence/HOST/adapter-handoff.json`](../evidence/HOST/adapter-handoff.json), which names the pinned host-integration commit, its package version and the digests of five modules. The run this page reports was made when it named Consiliency/agent-harness `a06a952e8ff1c96bb5ec40a88be6b65edb468a7b`, package version 0.7.39; it now names `85b29c76ecfb8cf5a94523e7da84edc44dcd250f`, at which no run has been made yet.
+- **The records:** [`evidence/HOST/coverage.json`](../evidence/HOST/coverage.json), each clause of the plan's tables with its status and controls; [`evidence/HOST/spec-delta.json`](../evidence/HOST/spec-delta.json), the closeout record, whose `closeout_status` is `verification_pending`; and [`evidence/HOST/adapter-handoff.json`](../evidence/HOST/adapter-handoff.json), which names the pinned host-integration commit, Consiliency/agent-harness source commit `85b29c76ecfb8cf5a94523e7da84edc44dcd250f` (in-tree version 0.7.41), and the digests of five modules.
 
 ## How a run is made
 
@@ -20,30 +20,45 @@ The workflow runs only when dispatched. Its one input, `companion_ref`, is requi
 
 ## The run
 
-[Run 45121428848](https://github.com/Consiliency/jevdrill/actions/runs/45121428848) was dispatched on 2026-11-23 on `main` at `cf3c9926abcbdc09a34823334693df42568f771a`, with the handoff's commit. Its conclusion is `failure`.
+[Run 45236348900](https://github.com/Consiliency/jevdrill/actions/runs/45236348900) was dispatched on 2026-11-23 on `main` at `af87ded53a5d02dfd05cd3335a4bf4e75fddcf2a`, with the handoff's commit. Its conclusion is `failure`.
 
 | Job | Result as recorded |
 | --- | --- |
-| [native (ubuntu-latest, Linux)](https://github.com/Consiliency/jevdrill/actions/runs/45121428848/job/137515866020) | `success` |
-| [native (macos-latest, Darwin)](https://github.com/Consiliency/jevdrill/actions/runs/45121428848/job/137515865965) | `success` |
-| [native (windows-latest, Windows)](https://github.com/Consiliency/jevdrill/actions/runs/45121428848/job/137515865778) | `failure`, at the step that runs `verify_host_phase.py --local-only` |
-| [reduce](https://github.com/Consiliency/jevdrill/actions/runs/45121428848/job/137519269431) | `failure`, at "Require successful native jobs"; every later workflow step `skipped` |
+| [native (ubuntu-latest, Linux)](https://github.com/Consiliency/jevdrill/actions/runs/45236348900/job/137909003697) | `success` |
+| [native (macos-latest, Darwin)](https://github.com/Consiliency/jevdrill/actions/runs/45236348900/job/137909004141) | `success` |
+| [native (windows-latest, Windows)](https://github.com/Consiliency/jevdrill/actions/runs/45236348900/job/137909003932) | `failure`, at the step that runs `verify_host_phase.py --local-only` |
+| [reduce](https://github.com/Consiliency/jevdrill/actions/runs/45236348900/job/137917670552) | `failure`, at "Require successful native jobs"; every later workflow step `skipped` |
 
 ## Why it has no verdict
 
-On Windows the collector stopped before any test ran, with `HOST collection failed: the companion did not import`. The import went through `provider_tree_proof.py:48` of the host integration at the pinned commit, which reads `select.POLLIN`, and the job's log shows `AttributeError: module 'select' has no attribute 'POLLIN'`. This is Consiliency/agent-harness#2092. The Windows artifact holds only the receipt's identifying fields and the collection error, `the companion did not import`; the `AttributeError` is in the job's log. Because a native job failed, the reduce job stopped at its first check: the reduction did not run, and the run has no `host-verification` artifact.
+The Windows receipt was written, uploaded and rejected. Its collection ran past the 600-second bound, with the inherited test command unfinished and the companion's tests ended by the deadline. The collector wrote the receipt, the job's next step uploaded it as `host-native-Windows`, and the job's own check on it reported errors, so the job failed. Because a native job failed, the reduce job stopped at its first check: the reduction did not run, and the run has no `host-verification` artifact.
+
+## The Windows receipt
+
+- **The Windows receipt was rejected, though the collector's import check of the host integration succeeded there.** The receipt records the five modules the handoff names, and the job's own check reported no error about them. That shows the host integration imports on Windows; it shows nothing of how it behaves.
+- **The collection did not finish.** JEV Drill's inherited test command was stopped when the inherited collection's 600 seconds ran out; the last progress mark pytest printed in the job's log is 85 per cent. The companion's tests were then started with none of the HOST collection's 600 seconds left, and the deadline stopped them (`deadline_expired: true`). The HOST static check was stopped the same way.
+- **No Windows receipt holds a complete result.** The receipt's two lists of test outcomes are empty: none from the inherited test command and none from the companion's test command. The conformance fixture's witness, written before the cut-off, records 49 assertions as passed: 35 synthetic probe assertions and the companion's 14 discovery tests. No reduction examined them, and the receipt that carries them was rejected.
+- **Its other errors follow from the cut-off.** The job's log lists 57 errors in all. Apart from the bound and the stopped commands, they report controls and checks with no result because those commands were stopped; they are not separate failures.
 
 ## The Linux and macOS receipts
 
-Each of the two jobs ran the verifier's own check on its own receipt alone, and that check reported no error (`"local_errors": []` in each job's log). No reduction examined either receipt, and nothing is verified. Both receipts name jevdrill at `cf3c9926a` and the host integration at `a06a952e8`, each with a clean checkout, and both name run 45121428848. The receipts hold synthetic software-conformance results, and the times below are collection durations; the plan's ["This plan may not claim"](../plans/phase-plan-v1-HOST.md#this-plan-may-not-claim) lists what they cannot support.
+Each of the two jobs ran the verifier's own check on its own receipt alone, and that check reported no error (`"local_errors": []` in each job's log). No reduction examined either receipt, and nothing is verified. Both receipts name jevdrill at `af87ded53` and the host integration at `85b29c76e`, each with a clean checkout, and both name run 45236348900. The receipts hold synthetic software-conformance results, and the times below are collection durations; the plan's ["This plan may not claim"](../plans/phase-plan-v1-HOST.md#this-plan-may-not-claim) lists what they cannot support.
 
 ## Time
 
-The collection bound is 600 seconds. The roadmap says: "Flag proof-cost limits when single-node evaluation exceeds roughly five minutes or cannot report multiple failures" ([roadmap](../specs/phase-plans-v1.md), line 354), and the verifier flags a collection over 300 seconds. The Linux receipt records 417 seconds and the macOS receipt 569 seconds, 31 seconds inside the bound. Both carry `proof_cost_target_exceeded: true`.
+The collection bound is 600 seconds. The roadmap says: "Flag proof-cost limits when single-node evaluation exceeds roughly five minutes or cannot report multiple failures" ([roadmap](../specs/phase-plans-v1.md), line 354), and the verifier flags a collection over 300 seconds. The receipts give these times, in seconds:
+
+| Receipt | Whole collection | Inherited collection | Its test command | Rest |
+| --- | --- | --- | --- | --- |
+| Linux | 481.6 | 433.5 | 417.5 | 48.1 |
+| macOS | 536.9 | 506.8 | 493.5 | 30.1 |
+| Windows | 605.4 | 600.1 | 597.5, stopped | 5.3 |
+
+Linux finished 118 seconds inside the bound and macOS 63 seconds inside it; Windows ran 5.4 seconds past it. All three receipts carry `proof_cost_target_exceeded: true`. The rest is the whole collection less the inherited collection: it holds the import check, the companion's tests, the HOST static check and the collector's other work, and the receipts record no time for any of them. Neither the log nor the receipts split the inherited test command's time between the ROUTE tests and HOST's paths: the log shows only each command's result, or on Windows pytest's progress, and the receipts record each test's outcome without its time.
 
 ## Red and green
 
-A run is green only if every job succeeds. The reduce job's reduction step succeeds only if the verdict's `status` is `"passed"`, which needs no receipt error and no clause not covered; only such a verdict lists `IF-0-HOST-1` under `produced_if_gates`. Under the plan as it stands no run can be green: `coverage.json` holds nine clauses as not covered, the verifier holds the same nine as constants, and each one blocks the gate. They are:
+A run is green only if every job succeeds. The reduce job's reduction step succeeds only if the verdict's `status` is `"passed"`, which needs no receipt error and no clause not covered; only such a verdict lists `IF-0-HOST-1` under `produced_if_gates`. Under the plan as it stands no run can be green: `coverage.json` holds nine clauses as not covered, the verifier holds the same nine as constants, and each one blocks the gate. They are listed in Consiliency/jevdrill#120:
 
 - EC-HOST-1: "Acceptance failures supply bounded rerouting context: the host half".
 - EC-HOST-1: "Deactivates at task end, reporting host limitations".
@@ -54,7 +69,13 @@ A run is green only if every job succeeds. The reduce job's reduction step succe
 
 One more clause, EC-HOST-3's "A live development or validation evaluation", is outside the plan's reading. It does not block, and a verdict lists it under `outside_reading`.
 
-This run is red because a native job failed: the reduction did not run and there is no verdict. If every native job succeeds and the reduction runs to its end, it writes a verdict whose `status` is `"blocked"`, and the next step uploads it as the run's artifact; its `controls_passed` says whether the reduction found any error other than the clauses not covered. Any step can also fail or be cancelled, and then there may be no verdict. A new pin that lets Windows import does not by itself make a run green: with no receipt error, the verdict is still `"blocked"`, with `controls_passed: true` and no gate.
+A run can be red in three ways:
+
+- **A collection stops with an error.** Its receipt holds only that error, its native job fails, and the reduce job stops at its first check.
+- **A receipt is rejected by its job's own check,** as when a collection runs past the 600-second bound. Its native job fails, and the reduce job stops at its first check. This run is red this way.
+- **The reduction runs to its end.** If every native job succeeds, the reduction writes a verdict whose `status` is `"blocked"`, and the next step uploads it as the run's artifact; its `controls_passed` says whether the reduction found any error other than the clauses not covered.
+
+Any step can also fail or be cancelled, and then there may be no verdict. Three collections that fit the bound do not by themselves make a run green: with no receipt error, the verdict is still `"blocked"`, with `controls_passed: true` and no gate.
 
 ## Artifacts
 
@@ -62,7 +83,9 @@ Receipts (`host-native-Linux`, `host-native-Darwin`, `host-native-Windows`) and 
 
 ## Not shown
 
-- Windows: no Windows receipt holds a test result.
+- Windows: no Windows receipt holds a complete result.
+- An observed exit-4 deletion answer, on any platform. The conformance tests through the pinned delete path passed on Linux and macOS; on Windows only the witness's probe cases through that path are recorded as passed, in a rejected receipt.
+- How the inherited test command's time divides between the ROUTE tests and HOST's paths.
 - Any reduction of the receipts.
 - Any criterion: EC-HOST-1 to 4, IF-0-HOST-1 or IF-0-VC-2.
 - The gate.
