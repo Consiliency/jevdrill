@@ -692,14 +692,12 @@ class Application:
             for row in cached["decision"]["details"]["diagnostics"]
         ):
             cached = None
-        # A dry-run decision cached before its mode was recorded is not reused.
-        if (
-            cached is not None
-            and request["execution_mode"] == "dry_run"
-            and not any(
-                row["code"] == DRY_RUN_DIAGNOSTIC
-                for row in cached["decision"]["details"]["diagnostics"]
-            )
+        # A cached decision is reused only when its mode matches the request's: a
+        # dry-run decision cached before its mode was recorded lacks the diagnostic,
+        # and a real request must never be served a decision that carries it.
+        if cached is not None and (request["execution_mode"] == "dry_run") != any(
+            row["code"] == DRY_RUN_DIAGNOSTIC
+            for row in cached["decision"]["details"]["diagnostics"]
         ):
             cached = None
         request["versions"]["settings_revision"] = settings["settings_revision"]

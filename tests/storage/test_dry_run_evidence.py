@@ -1,7 +1,7 @@
 """HOST SL-5: no dry run becomes a learning observation (Consiliency/jevdrill#109).
 
-Every case routes a dry run and, beside it, a real run, gives both the same reports,
-and checks the observations in the deciding store and in a fresh store after an
+Each observation case routes a dry run and, beside it, a main and a delegated real
+run, gives all three the same reports, and checks the observations in the deciding store and in a fresh store after an
 export and an import. Inputs are the committed synthetic route fixture; a judgment
 port that fails if called is injected, so no request leaves the runner.
 """
@@ -114,24 +114,28 @@ def payload(case, decision, run):
 
 
 def report(store, scope, context, decision, case):
+    """Send the case's reports for one run; `completed` follows `plan_applied`, as in #109."""
     run = str(uuid4())
-    event = {
-        "schema_version": "1",
-        "event_id": str(uuid4()),
-        "task_id": context["task_id"],
-        "routing_decision_id": context["routing_decision_id"],
-        "execution_run_id": run,
-        "source_id": "synthetic-host",
-        "source_sequence": 1,
-        "occurred_at": "2026-11-22T00:00:00Z",
-        "supersedes_event_id": None,
-        "payload": payload(case, decision, run),
-    }
-    parse_contract("ExecutionEvent", event)
-    result = store.ingest_report(
-        dict(scope, operation="report"), event["event_id"], canonical_digest(event), event
-    )
-    assert result["status"] == "accepted" and result["durable"] is True
+    cases = ["lifecycle:plan_applied", case] if case == "lifecycle:completed" else [case]
+    for sequence, name in enumerate(cases, 1):
+        event = {
+            "schema_version": "1",
+            "event_id": str(uuid4()),
+            "task_id": context["task_id"],
+            "routing_decision_id": context["routing_decision_id"],
+            "execution_run_id": run,
+            "source_id": "synthetic-host",
+            "source_sequence": sequence,
+            "occurred_at": "2026-11-22T00:00:00Z",
+            "supersedes_event_id": None,
+            "payload": payload(name, decision, run),
+        }
+        parse_contract("ExecutionEvent", event)
+        result = store.ingest_report(
+            dict(scope, operation="report"), event["event_id"], canonical_digest(event), event
+        )
+        assert result["status"] == "accepted" and result["durable"] is True
+    return run
 
 
 def observed(store, scope, decision_id):
@@ -148,43 +152,65 @@ def test_routing_and_storage_share_the_dry_run_code():
 def test_no_dry_run_becomes_an_observation(tmp_path, case, where):
     app = Application(SQLiteStorage(tmp_path / "route.db"), judgments=ForbiddenJudge())
     scope, dry_context, dry = route(app, "dry_run")
-    _, main_context, main = route(app, "main")
-    for context, decision in ((dry_context, dry), (main_context, main)):
+    decisions = [(dry_context, dry)]
+    decisions += [route(app, mode)[1:] for mode in ("main", "delegated")]
+    runs = {}
+    for context, decision in decisions:
         if case != "none":
-            report(app.storage, scope, context, decision, case)
+            runs[context["routing_decision_id"]] = report(
+                app.storage, scope, context, decision, case
+            )
+    ids = {context["routing_decision_id"] for context, _ in decisions}
     store = app.storage
     if where == "imported":
         body = store.export_recovery(scope)
         store = SQLiteStorage(tmp_path / "fresh.db")
         store.import_recovery(scope, body, time.time())
         arrived = store.export_recovery(scope)
-        ids = {d["bundle"]["routing_decision_id"] for d in arrived["decisions"]}
-        assert {dry_context["routing_decision_id"], main_context["routing_decision_id"]} <= ids
-        contexts = {c["routing_decision_id"] for c in arrived["contexts"]}
-        assert {dry_context["routing_decision_id"], main_context["routing_decision_id"]} <= contexts
-        assert len(arrived["events"]) == len(body["events"]) == (0 if case == "none" else 2)
+        assert ids <= {d["bundle"]["routing_decision_id"] for d in arrived["decisions"]}
+        assert ids <= {c["routing_decision_id"] for c in arrived["contexts"]}
+        events = sorted(json.dumps(e, sort_keys=True) for e in body["events"])
+        assert sorted(json.dumps(e, sort_keys=True) for e in arrived["events"]) == events
     assert observed(store, scope, dry_context["routing_decision_id"]) == []
-    assert len(observed(store, scope, main_context["routing_decision_id"])) == 1
+    for context, _ in decisions[1:]:  # the main and the delegated real runs
+        (row,) = observed(store, scope, context["routing_decision_id"])
+        if case != "none":
+            assert row["source"]["execution_run_id"] == runs[context["routing_decision_id"]]
+        if case == "lifecycle:completed":
+            assert row["status"] == "completed"
 
 
-@pytest.mark.parametrize("marked", [True, False])
-def test_unmarked_cached_dry_run_decision_is_not_reused(tmp_path, marked):
+def edit_diagnostics(path, identity, diagnostics):
+    """Rewrite one stored decision's diagnostics, standing in for another store's record."""
+    with sqlite3.connect(path) as connection:
+        (raw,) = connection.execute(
+            "SELECT bundle FROM decisions_v1 WHERE decision_id=?", (identity,)
+        ).fetchone()
+        bundle = json.loads(raw)
+        bundle["decision"]["details"]["diagnostics"] = diagnostics
+        connection.execute(
+            "UPDATE decisions_v1 SET bundle=? WHERE decision_id=?",
+            (json.dumps(bundle, sort_keys=True, separators=(",", ":")), identity),
+        )
+
+
+@pytest.mark.parametrize("matching", [True, False], ids=["matching", "mismatching"])
+@pytest.mark.parametrize("mode", ["dry_run", "main"])
+def test_cached_decision_is_reused_only_when_its_mode_matches(tmp_path, mode, matching):
     app = Application(SQLiteStorage(tmp_path / "route.db"), judgments=ForbiddenJudge())
-    _, _, first = route(app, "dry_run")
+    _, _, first = route(app, mode)
     identity = first["details"]["routing_decision_id"]
-    if not marked:
-        # Simulate a dry-run decision recorded before the fix: remove its diagnostic in the store.
-        with sqlite3.connect(app.storage.path) as connection:
-            (raw,) = connection.execute(
-                "SELECT bundle FROM decisions_v1 WHERE decision_id=?", (identity,)
-            ).fetchone()
-            bundle = json.loads(raw)
-            bundle["decision"]["details"]["diagnostics"] = []
-            connection.execute(
-                "UPDATE decisions_v1 SET bundle=? WHERE decision_id=?",
-                (json.dumps(bundle, sort_keys=True, separators=(",", ":")), identity),
-            )
-    _, _, second = route(app, "dry_run", task=first["details"]["task_id"])
-    assert second["details"]["reused_decision_id"] == (identity if marked else None)
+    marker = {
+        "code": "dry_run_decision",
+        "summary": "Decision for a dry run; excluded from learning observations.",
+        "evidence_refs": [],
+        "resolution_advice": [],
+    }
+    if not matching:
+        # A dry-run decision recorded before the fix (marker removed), or a real decision
+        # given the marker by an altered import.
+        edit_diagnostics(app.storage.path, identity, [] if mode == "dry_run" else [marker])
+    _, _, second = route(app, mode, task=first["details"]["task_id"])
+    assert second["details"]["reused_decision_id"] == (identity if matching else None)
     codes = [row["code"] for row in second["details"]["diagnostics"]]
-    assert codes == ["dry_run_decision"]
+    assert codes == (["dry_run_decision"] if mode == "dry_run" else [])
