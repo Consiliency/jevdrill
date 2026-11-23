@@ -38,11 +38,14 @@ def companion_tree(root):
 
 
 def write_digests(directory):
+    """digests.json as the companion commits it: digests of the LF blobs."""
     digests = {
-        name: runner.hashlib.sha256((directory / name).read_bytes()).hexdigest()
+        name: runner.hashlib.sha256(
+            (directory / name).read_bytes().replace(b"\r\n", b"\n")
+        ).hexdigest()
         for name in runner.CONTRACT_SCHEMAS
     }
-    (directory / "digests.json").write_text(json.dumps(digests, indent=2) + "\n")
+    (directory / "digests.json").write_bytes((json.dumps(digests, indent=2) + "\n").encode())
 
 
 def rows_for(counts, key="node_id"):
@@ -586,14 +589,14 @@ def test_contract_copies_are_compared_with_jevdrills_files(tmp_path):
     # A differing schema copy, an extra file, a missing file and a wrong digest list.
     runtime = companion_tree(tmp_path / "other")
     directory = runtime / runner.CONTRACT_DIRECTORY
-    (directory / "RouteInputs.json").write_text("{}\n")
+    (directory / "RouteInputs.json").write_bytes(b"{}\n")
     assert runner.contract_copies(ROOT, runtime)["mismatches"] == [
         "RouteInputs.json",
         "digests.json",
     ]
     write_digests(directory)
     assert runner.contract_copies(ROOT, runtime)["mismatches"] == ["RouteInputs.json"]
-    (directory / "Extra.json").write_text("{}\n")
+    (directory / "Extra.json").write_bytes(b"{}\n")
     assert (
         "unexpected or missing contract copies"
         in (runner.contract_copies(ROOT, runtime)["mismatches"])
