@@ -14,6 +14,9 @@ from uuid import NAMESPACE_URL, uuid4, uuid5
 
 from .contracts import ContractError, canonical_digest, parse_contract
 
+# Must equal routing.DRY_RUN_DIAGNOSTIC; storage may not import routing.
+DRY_RUN_DIAGNOSTIC = "dry_run_decision"
+
 
 def _open_private(path: str, flags: int) -> int:
     return os.open(path, flags, 0o600)
@@ -869,7 +872,9 @@ class SQLiteStorage:
             ):
                 continue
             decision = bundle["decision"]
-            if decision["status"] != "ready":
+            if decision["status"] != "ready" or any(
+                row["code"] == DRY_RUN_DIAGNOSTIC for row in decision["details"]["diagnostics"]
+            ):
                 continue
             plan = decision["execution_plan"]
             events = [json.loads(e) for p, e in event_rows if p == pair]
