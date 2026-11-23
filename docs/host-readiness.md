@@ -35,9 +35,9 @@ The Windows receipt was written, uploaded and rejected. Its collection ran past 
 
 ## The Windows receipt
 
-- **The collector's import check of the host integration succeeded on Windows.** The receipt records the five modules the handoff names, and the job's own check reported no error about them. That shows the host integration imports there; it shows nothing of how it behaves.
+- **The Windows receipt was rejected, though the collector's import check of the host integration succeeded there.** The receipt records the five modules the handoff names, and the job's own check reported no error about them. That shows the host integration imports on Windows; it shows nothing of how it behaves.
 - **The collection did not finish.** JEV Drill's inherited test command was stopped when the inherited collection's 600 seconds ran out; the last progress mark pytest printed in the job's log is 85 per cent. The companion's tests were then started with none of the HOST collection's 600 seconds left, and the deadline stopped them (`deadline_expired: true`). The HOST static check was stopped the same way.
-- **No Windows receipt holds a complete result.** The receipt records no test outcome from the inherited test command and none from the companion's tests.
+- **No Windows receipt holds a complete result.** The receipt's two lists of test outcomes are empty: none from the inherited test command and none from the companion's test command. The conformance fixture's witness, written before the cut-off, records 49 assertions as passed: 35 synthetic probe assertions and the companion's 14 discovery tests. No reduction examined them, and the receipt that carries them was rejected.
 - **Its other errors follow from the cut-off.** The job's log lists 57 errors in all. Apart from the bound and the stopped commands, they report controls and checks with no result because those commands were stopped; they are not separate failures.
 
 ## The Linux and macOS receipts
@@ -83,7 +83,8 @@ Receipts (`host-native-Linux`, `host-native-Darwin`, `host-native-Windows`) and 
 
 ## Not shown
 
-- Windows: no Windows receipt holds a complete result. In particular, the deletion of a task through the pinned host integration's delete path, against `main`'s deletion answer (exit code 4 while deleted content is not yet erased), has a conformance outcome on Linux and macOS only, and no receipt records a deletion answered with exit code 4.
+- Windows: no Windows receipt holds a complete result.
+- An observed exit-4 deletion answer, on any platform. The conformance tests through the pinned delete path passed on Linux and macOS; on Windows only the witness's probe cases through that path are recorded as passed, in a rejected receipt.
 - How the inherited test command's time divides between the ROUTE tests and HOST's paths.
 - Any reduction of the receipts.
 - Any criterion: EC-HOST-1 to 4, IF-0-HOST-1 or IF-0-VC-2.
