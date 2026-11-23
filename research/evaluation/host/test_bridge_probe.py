@@ -30,6 +30,7 @@ from phase_loop_runtime.models import (
 )
 from phase_loop_test_utils import make_repo, write_phase_plan
 from test_jevdrill_adapter import FIXTURES, adapter_fixture
+
 # installed_discovery is the companion's pytest fixture (a name the handoff keeps);
 # importing it registers it for the judged-task test below.
 from test_jevdrill_discovery import installed_discovery, linked_task  # noqa: F401
@@ -389,6 +390,13 @@ def test_installed_flow_carries_a_judged_task(installed_discovery, tmp_path, mon
         adapter.prepare(mode="main", dry_run=False, **kwargs)
         decision = adapter.last_decision
         assert decision["status"] == "ready" and len(judgments) == 1
+        # What JEV Drill itself recorded for the decision: the replay bundle's judgment record.
+        with sqlite3.connect(tmp_path / "jev.sqlite") as db:
+            (stored,) = db.execute(
+                "SELECT bundle FROM decisions_v1 WHERE decision_id=?",
+                (decision["details"]["routing_decision_id"],),
+            ).fetchone()
+        recorded = json.loads(stored)["judgments"] or {}
     finally:
         server.shutdown()
         server.server_close()
@@ -398,7 +406,8 @@ def test_installed_flow_carries_a_judged_task(installed_discovery, tmp_path, mon
             {
                 "flow": "judged",
                 "task_id": tasks[0]["task_id"],
-                "function_revision": JUDGMENT_POLICY["function_revision"],
+                "stored_function_revision": recorded.get("function_revision"),
+                "stored_judgments": len(recorded.get("judgments") or {}),
                 "loopback_judgment_requests": len(judgments),
                 "decision_status": decision["status"],
                 "routing_decision_id": decision["details"]["routing_decision_id"],
