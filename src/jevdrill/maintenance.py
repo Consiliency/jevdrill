@@ -229,8 +229,8 @@ class Maintenance:
 
         ValueError here means this item could not be verified: its digest does not
         match, or an existing archive of it does not decrypt with the key given or
-        does not match. A key that cannot decrypt any archive (replaced, or malformed)
-        therefore fails every item that has one. Storage and file-system errors,
+        does not match. A replaced key therefore fails every item that has an archive;
+        a malformed key fails every item. Storage and file-system errors,
         including a missing file, propagate.
         """
         content = (self.storage._artifact_directory(pair) / identity).read_bytes()

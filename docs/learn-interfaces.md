@@ -63,11 +63,14 @@ content; it is left as it is, the run goes on to the others, and a later run
 tries it again. Storage and file-system errors, including a missing file, still
 stop the run. A replaced archive key makes every item with an existing archive
 fail this way. A run processes up to `max_items` items after a cursor that
-survives restarts and starts again from the first item after the last; with
-`max_items` fixed, every item is reached within `ceil(N / max_items) + 1`
-completed runs, or `ceil(N / max_items)` from the start of a pass, where `N`
-counts every item in scope during the pass, archives the pass makes included,
-however many fail (Consiliency/jevdrill#45).
+survives restarts, in identity order, and the run that reaches the last item
+ends the pass. A pass reaches every item present when it starts within
+`ceil(N / max_items)` completed runs, where `N` counts every item in scope
+during the pass, archives it makes included; an item that appears during a pass,
+such as an archive the pass makes, is reached by the end of the next pass. So,
+with a fixed set of items, every item is reached within
+`ceil(N / max_items) + 1` completed runs from any point, however many fail
+(Consiliency/jevdrill#45).
 
 When a run completes, the application passes the stored objectives of the last
 analysis to a new analysis, which applies the credential check to them. If
