@@ -1613,10 +1613,15 @@ def test_requirement_7_a_child_and_every_process_it_started_are_stopped(monkeypa
 
     def await_exit(child, timeout):
         connection, _ = listener.accept()
+        # Each read is bounded by the socket's timeout; a peer that closes early, or sends more
+        # than a process id, ends the loop with a failure instead of a spin.
         connection.settimeout(120)
         data = b""
         while not data.endswith(b"\n"):
-            data += connection.recv(64)
+            chunk = connection.recv(64)
+            if not chunk or len(data) > 64:
+                pytest.fail(f"the grandchild did not name itself before closing: {data!r}")
+            data += chunk
         held.update(connection=connection, pid=int(data))
         if ending != "returned":
             raise subprocess.TimeoutExpired(child.args, timeout)
@@ -2223,6 +2228,11 @@ def test_round1_a_launched_command_with_an_added_deselection_is_rejected(evidenc
     assert "Linux: HOST command is not the expected command" in errors, errors
 
 
+# Each git call in these tests takes well under a second, a few seconds at most on a slow hosted
+# runner. 120 seconds is far above that, so only a hung call reaches it.
+GIT_TIMEOUT_SECONDS = 120
+
+
 def setup_environment(tmp_path):
     """For setting a test repository up: no user or system configuration of this machine's."""
     empty = tmp_path / "setup-gitconfig"
@@ -2237,7 +2247,13 @@ def git_repository(path):
     for args in (["init", "-q"], ["add", "."], ["commit", "-q", "-m", "x"]):
         if args[0] == "add":
             (path / "file.txt").write_text("x\n")
-        subprocess.run([*git, "-C", str(path), *args], check=True, capture_output=True, env=env)
+        subprocess.run(
+            [*git, "-C", str(path), *args],
+            check=True,
+            capture_output=True,
+            env=env,
+            timeout=GIT_TIMEOUT_SECONDS,
+        )
     return path
 
 
@@ -2258,7 +2274,13 @@ def set_config(tmp_path, key, value, *, repository=None, file=None):
         if file is not None
         else ["git", "-C", str(repository), "config", key, value]
     )
-    subprocess.run(command, check=True, capture_output=True, env=setup_environment(tmp_path))
+    subprocess.run(
+        command,
+        check=True,
+        capture_output=True,
+        env=setup_environment(tmp_path),
+        timeout=GIT_TIMEOUT_SECONDS,
+    )
 
 
 def plain_status(repository, env):
@@ -2269,6 +2291,7 @@ def plain_status(repository, env):
         text=True,
         env=env,
         check=True,
+        timeout=GIT_TIMEOUT_SECONDS,
     ).stdout
 
 
