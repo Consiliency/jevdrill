@@ -1433,7 +1433,7 @@ class SQLiteStorage:
                                 f"DELETE FROM {table} WHERE scope=? AND task=?", (pair, identity)
                             )
                     c.execute(
-                        "UPDATE discoveries SET seed='{}',result=NULL,trace=NULL WHERE objective_scope=? AND objective=?",
+                        "UPDATE discoveries SET seed='{}',request_digest=NULL,result=NULL,trace=NULL WHERE objective_scope=? AND objective=?",
                         (parent, objective),
                     )
                     self._invalidate_learning(c, pair, objective=objective, purge=True)
@@ -1899,7 +1899,7 @@ class SQLiteStorage:
                         (self._task_scope(scope), identity),
                     )
             connection.execute(
-                "UPDATE discoveries SET seed='{}',result=NULL,trace=NULL WHERE objective_scope=? AND objective=?",
+                "UPDATE discoveries SET seed='{}',request_digest=NULL,result=NULL,trace=NULL WHERE objective_scope=? AND objective=?",
                 (parent, objective),
             )
             self._invalidate_learning(

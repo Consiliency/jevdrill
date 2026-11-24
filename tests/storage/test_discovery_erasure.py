@@ -29,7 +29,7 @@ from uuid import uuid4
 import pytest
 from cryptography.fernet import Fernet
 
-from jevdrill.contracts import ContractError
+from jevdrill.contracts import ContractError, canonical_digest
 from jevdrill.integrations.archive import encode_archive
 from jevdrill.maintenance import Maintenance
 from jevdrill.storage import SQLiteStorage
@@ -147,6 +147,7 @@ class Discovery:
             "guidance_refs": [],
             "domains": [self.label],
         }
+        self.record = record
         self.bundle = bundle(scope, {self.objective: False}, [record])
         assert store.import_recovery(scope, self.bundle, 0.0) == 0
         self.items = [self.id]
@@ -256,6 +257,49 @@ def test_2_imported_deletion_erases_metadata_and_notices(store, scope, tmp_path)
         assert notice_rows(store, made.items) == []
     finally:
         keeper.close()
+
+
+@pytest.mark.parametrize("path", ["request", "import"])
+def test_1_and_2_finished_deletion_leaves_no_digest_of_the_discovery_record(
+    store, scope, tmp_path, path
+):
+    """The imported discovery's request digest is a digest of its record, domains
+    included, so a guessed label could be confirmed against it (#148, B1)."""
+    made = Discovery(store, scope)
+    digest = canonical_digest(made.record)  # with its real label
+    assert found(store, digest)
+    keeper = idle(store)
+    try:
+        if path == "request":
+            assert store.delete_discovery(made.discover_scope, made.objective) == made.deleted()
+        else:
+            assert (
+                store.import_recovery(scope, deletion_record(tmp_path, scope, made.objective), 0.0)
+                == 0
+            )
+        assert found(store, digest) == []
+    finally:
+        keeper.close()
+
+
+def test_a_repeat_of_a_deleted_discovery_request_under_its_key_is_refused(store, scope):
+    """With its digest cleared, the deleted request's key is still not taken as new."""
+    discover_scope = dict(scope, operation="discover")
+    objective, key, digest = str(uuid4()), str(uuid4()), uuid4().hex * 2
+    first = store.reserve_discovery(discover_scope, key, digest, objective, {}, {"o": "x"})
+    assert first["created"]
+    assert store.delete_discovery(discover_scope, objective)["status"] == "deleted"
+    with pytest.raises(ContractError, match="objective deleted"):
+        store.reserve_discovery(discover_scope, key, digest, objective, {}, {"o": "x"})
+    # The same key and digest for another objective: a conflict, neither a new
+    # discovery nor the deleted one handed back.
+    with pytest.raises(ContractError, match="idempotency conflict"):
+        store.reserve_discovery(discover_scope, key, digest, str(uuid4()), {}, {"o": "x"})
+    with store._connect() as connection:
+        rows = connection.execute(
+            "SELECT discovery_id FROM discoveries WHERE request_key=?", (key,)
+        ).fetchall()
+    assert rows == [(first["discovery_id"],)]
 
 
 def committed(store, made):
