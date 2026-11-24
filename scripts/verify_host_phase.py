@@ -1213,6 +1213,8 @@ def _kernel32():
     kernel32.TerminateJobObject.argtypes = (wintypes.HANDLE, wintypes.UINT)
     kernel32.CloseHandle.restype = wintypes.BOOL
     kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
+    kernel32.WaitForSingleObject.restype = wintypes.DWORD
+    kernel32.WaitForSingleObject.argtypes = (wintypes.HANDLE, wintypes.DWORD)
     return kernel32
 
 
@@ -1236,7 +1238,19 @@ def _windows_job(pid):
 
 def _ended_unreaped(pid, timeout):
     """Whether process `pid` ended within `timeout` seconds, without reaping it; None if this
-    platform offers no way (a pidfd on Linux, kqueue on macOS)."""
+    platform offers no way (a process handle on Windows, a pidfd on Linux, kqueue on macOS)."""
+    if os.name == "nt":
+        # A handle of our own that can only wait: the child's `Popen` keeps its exit code unread
+        # until the job is terminated, as on Linux and macOS the child stays unreaped.
+        kernel32 = _kernel32()
+        handle = kernel32.OpenProcess(0x00100000, False, pid)  # SYNCHRONIZE
+        if not handle:
+            return None
+        try:
+            result = kernel32.WaitForSingleObject(handle, int(max(0, timeout) * 1000))
+        finally:
+            kernel32.CloseHandle(handle)
+        return True if result == 0 else False if result == 0x102 else None  # WAIT_TIMEOUT
     if hasattr(os, "pidfd_open"):
         try:
             descriptor = os.pidfd_open(pid)
@@ -1272,15 +1286,16 @@ def _ended_unreaped(pid, timeout):
 def _await_exit(child, timeout):
     """Return once the child has ended, or raise TimeoutExpired after `timeout` seconds.
 
-    On Linux and macOS the child is left unreaped, so that the tree is stopped while its process
-    id still names its group (security finding N4a). Elsewhere it is waited for.
+    On every platform the child is left unreaped, so that the tree is stopped before the child is
+    reaped (security finding N4a): on Linux and macOS its process id still names its group, and on
+    Windows the job is terminated before `Popen` takes the child's exit code. Only where no way to
+    wait without reaping is available is it waited for.
     """
-    if os.name != "nt":
-        ended = _ended_unreaped(child.pid, timeout)
-        if ended is False:
-            raise subprocess.TimeoutExpired(child.args, timeout)
-        if ended:
-            return
+    ended = _ended_unreaped(child.pid, timeout)
+    if ended is False:
+        raise subprocess.TimeoutExpired(child.args, timeout)
+    if ended:
+        return
     child.wait(timeout=timeout)
 
 

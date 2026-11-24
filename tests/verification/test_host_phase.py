@@ -1112,8 +1112,10 @@ def collection(tmp_path, monkeypatch):
     cli = Path(runner.sys.executable).parent / (
         "jevdrill.exe" if runner.os.name == "nt" else "jevdrill"
     )
+    # HOST's command must pass whole, so nothing in this file may skip: HOST's command, like unit
+    # CI, always runs with the package installed. A missing CLI is a broken environment.
     if not cli.is_file():
-        pytest.skip("the installed jevdrill CLI is not beside this interpreter")
+        pytest.fail(f"the installed jevdrill CLI is not beside this interpreter: {cli}", False)
     seen = []
 
     def run_child(command, *, cwd, env, timeout, capture=True, launched=None):
@@ -1611,10 +1613,15 @@ def test_requirement_7_a_child_and_every_process_it_started_are_stopped(monkeypa
 
     def await_exit(child, timeout):
         connection, _ = listener.accept()
+        # Each read is bounded by the socket's timeout; a peer that closes early, or sends more
+        # than a process id, ends the loop with a failure instead of a spin.
         connection.settimeout(120)
         data = b""
         while not data.endswith(b"\n"):
-            data += connection.recv(64)
+            chunk = connection.recv(64)
+            if not chunk or len(data) > 64:
+                pytest.fail(f"the grandchild did not name itself before closing: {data!r}")
+            data += chunk
         held.update(connection=connection, pid=int(data))
         if ending != "returned":
             raise subprocess.TimeoutExpired(child.args, timeout)
@@ -2221,6 +2228,11 @@ def test_round1_a_launched_command_with_an_added_deselection_is_rejected(evidenc
     assert "Linux: HOST command is not the expected command" in errors, errors
 
 
+# Each git call in these tests takes well under a second, a few seconds at most on a slow hosted
+# runner. 120 seconds is far above that, so only a hung call reaches it.
+GIT_TIMEOUT_SECONDS = 120
+
+
 def setup_environment(tmp_path):
     """For setting a test repository up: no user or system configuration of this machine's."""
     empty = tmp_path / "setup-gitconfig"
@@ -2235,7 +2247,13 @@ def git_repository(path):
     for args in (["init", "-q"], ["add", "."], ["commit", "-q", "-m", "x"]):
         if args[0] == "add":
             (path / "file.txt").write_text("x\n")
-        subprocess.run([*git, "-C", str(path), *args], check=True, capture_output=True, env=env)
+        subprocess.run(
+            [*git, "-C", str(path), *args],
+            check=True,
+            capture_output=True,
+            env=env,
+            timeout=GIT_TIMEOUT_SECONDS,
+        )
     return path
 
 
@@ -2256,7 +2274,13 @@ def set_config(tmp_path, key, value, *, repository=None, file=None):
         if file is not None
         else ["git", "-C", str(repository), "config", key, value]
     )
-    subprocess.run(command, check=True, capture_output=True, env=setup_environment(tmp_path))
+    subprocess.run(
+        command,
+        check=True,
+        capture_output=True,
+        env=setup_environment(tmp_path),
+        timeout=GIT_TIMEOUT_SECONDS,
+    )
 
 
 def plain_status(repository, env):
@@ -2267,6 +2291,7 @@ def plain_status(repository, env):
         text=True,
         env=env,
         check=True,
+        timeout=GIT_TIMEOUT_SECONDS,
     ).stdout
 
 
@@ -2320,31 +2345,116 @@ def test_round1_n1_a_changed_git_configuration_is_rejected(evidence, checkout):
     assert "Linux: a checkout's git configuration changed during the collection" in errors, errors
 
 
-@pytest.mark.skipif(runner.os.name == "nt", reason="process groups are POSIX")
-def test_round1_n4a_the_group_is_signalled_before_the_child_is_reaped(monkeypatch):
-    """Security N4a: when the tree is stopped after a normal return, the child is still unreaped,
-    so its process id still names its group."""
+def test_round1_n4a_the_tree_is_stopped_before_the_child_is_reaped(monkeypatch):
+    """Security N4a, on the platform this runs on: when the tree is stopped after a normal return,
+    the child is still unreaped. On Linux and macOS its process group is signalled while its
+    process id still names it; on Windows its job object is terminated before `Popen` takes its
+    exit code. A real child; the stop must have happened, so the test cannot pass vacuously."""
     children = []
-    real_popen, real_killpg = runner.subprocess.Popen, runner.os.killpg
-    signalled = []
+    real_popen = runner.subprocess.Popen
+    stopped = []
 
     def popen(*args, **kwargs):
         child = real_popen(*args, **kwargs)
         children.append(child)
         return child
 
-    def killpg(pgid, sig):
-        signalled.append((sig, children[0].returncode))
-        return real_killpg(pgid, sig)
-
     monkeypatch.setattr(runner.subprocess, "Popen", popen)
-    monkeypatch.setattr(runner.os, "killpg", killpg)
+    if runner.os.name == "nt":
+        real_kernel32 = runner._kernel32
+
+        class Recording:
+            """The real kernel32, recording when the job is terminated."""
+
+            def __init__(self):
+                self.real = real_kernel32()
+
+            def __getattr__(self, name):
+                return getattr(self.real, name)
+
+            def TerminateJobObject(self, job, code):
+                stopped.append(("job", children[0].returncode))
+                return self.real.TerminateJobObject(job, code)
+
+        monkeypatch.setattr(runner, "_kernel32", Recording)
+    else:
+        real_killpg = runner.os.killpg
+
+        def killpg(pgid, sig):
+            stopped.append((sig, children[0].returncode))
+            return real_killpg(pgid, sig)
+
+        monkeypatch.setattr(runner.os, "killpg", killpg)
     code, _output, expired = runner._run(
         [runner.sys.executable, "-c", "pass"], cwd=ROOT, env=dict(runner.os.environ), timeout=120
     )
     assert (code, expired) == (0, False)
-    assert signalled and all(returncode is None for _sig, returncode in signalled), signalled
+    assert stopped and all(returncode is None for _how, returncode in stopped), stopped
     assert children[0].returncode == 0
+
+
+class AsWindows:
+    """The `os` module as the verifier sees it, but naming Windows: its Windows paths run."""
+
+    name = "nt"
+
+    def __getattr__(self, attribute):
+        return getattr(runner.os, attribute)
+
+
+def test_n4a_on_windows_the_job_is_terminated_before_the_child_is_reaped(monkeypatch):
+    """The Windows stop path, exercised on every platform with stand-ins for the child and
+    kernel32: the child's end is awaited without reaping it, the job is terminated, and only then
+    is the child reaped. Reversing that order fails here."""
+    events = []
+
+    class Child:
+        pid, args = 4242, ["child"]
+
+        def __init__(self, *_args, **_kwargs):
+            self.returncode = None
+
+        def wait(self, timeout=None):
+            events.append("reaped")
+            self.returncode = 0
+            return 0
+
+        def kill(self):
+            events.append("killed")
+
+    children = []
+
+    class Kernel32:
+        def CreateJobObjectW(self, *_args):
+            return 101
+
+        def OpenProcess(self, *_args):
+            return 202
+
+        def AssignProcessToJobObject(self, *_args):
+            return 1
+
+        def WaitForSingleObject(self, handle, milliseconds):
+            events.append("ended, unreaped")
+            return 0  # WAIT_OBJECT_0
+
+        def TerminateJobObject(self, job, code):
+            events.append(("job terminated", children[0].returncode))
+            return 1
+
+        def CloseHandle(self, handle):
+            return 1
+
+    def popen(*args, **kwargs):
+        children.append(Child())
+        return children[-1]
+
+    monkeypatch.setattr(runner, "os", AsWindows())
+    monkeypatch.setattr(runner, "_kernel32", Kernel32)
+    monkeypatch.setattr(runner.subprocess, "Popen", popen)
+    code, _output, expired = runner._run(["child"], cwd=ROOT, env={}, timeout=120)
+    assert (code, expired) == (0, False)
+    assert events == ["ended, unreaped", ("job terminated", None), "reaped"], events
 
 
 def test_round1_n5_a_tree_that_cannot_be_made_still_ends_the_child(monkeypatch):
@@ -2637,3 +2747,81 @@ def test_final_c_the_collector_normalizes_with_its_own_platform(collection, tmp_
     )
     companion_errors = runner._companion_errors(receipt_value["companion"], "Linux", HANDOFF, {})
     assert "companion command is not the expected command" in companion_errors
+
+
+# What would skip a test. Held as strings, and matched only as names and attributes in the
+# code, so this list does not count as a skip itself.
+SKIP_NAMES = frozenset(
+    {"skip", "skipif", "importorskip", "xfail", "skipTest", "SkipTest", "skipIf", "skipUnless"}
+)
+
+
+def skips_in(path):
+    """Every use of a skip in a Python file's code: a name or an attribute in SKIP_NAMES."""
+    import ast
+
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    label = path.relative_to(ROOT).as_posix() if path.is_relative_to(ROOT) else path.name
+    found = []
+    for node in ast.walk(tree):
+        name = (
+            node.attr
+            if isinstance(node, ast.Attribute)
+            else node.id
+            if isinstance(node, ast.Name)
+            else None
+        )
+        if name in SKIP_NAMES:
+            found.append(f"{label}:{node.lineno}: {name}")
+        if isinstance(node, ast.ImportFrom | ast.Import):
+            found.extend(
+                f"{label}:{node.lineno}: import {alias.name}"
+                for alias in node.names
+                if alias.name.rsplit(".", 1)[-1] in SKIP_NAMES
+            )
+    return found
+
+
+def host_command_files():
+    """The files HOST's command selects, and every conftest.py that applies to them."""
+    files = {ROOT / path for path in runner.HOST_TEST_PATHS}
+    for path in runner.HOST_TEST_PATHS:
+        for parent in (ROOT / path).parents:
+            if parent == ROOT:
+                break
+            if (parent / "conftest.py").is_file():
+                files.add(parent / "conftest.py")
+    return sorted(files)
+
+
+def test_no_file_hosts_command_selects_can_skip_a_test():
+    """HOST's command must pass whole, with no skipped case, on every platform (run 45279806415
+    was rejected for one). So no file it selects, nor any conftest.py over them, holds a skip of
+    any kind: `pytest.skip`, `skipif`, `mark.skip`, `importorskip`, `xfail`, or unittest's."""
+    files = host_command_files()
+    assert {ROOT / path for path in runner.HOST_TEST_PATHS} <= set(files)
+    assert ROOT / "tests/conformance/conftest.py" in files and ROOT / "tests/conftest.py" in files
+    found = [use for path in files for use in skips_in(path)]
+    assert found == [], found
+
+
+def test_the_skip_guard_finds_every_kind_of_skip(tmp_path):
+    """The guard is not vacuous: each kind of skip, written into a test file, is found."""
+    for line in (
+        "pytest.skip('x')",
+        "@pytest.mark.skipif(True, reason='x')\ndef test_x(): pass",
+        "@pytest.mark.skip\ndef test_x(): pass",
+        "pytest.importorskip('json')",
+        "@pytest.mark.xfail\ndef test_x(): pass",
+        "pytest.xfail('x')",
+        "import unittest\n@unittest.skipIf(True, 'x')\ndef test_x(): pass",
+        "raise unittest.SkipTest('x')",
+        "from pytest import skip",
+    ):
+        path = tmp_path / "test_probe.py"
+        path.write_text("import pytest\n" + line + "\n", encoding="utf-8")
+        assert skips_in(path), line
+    # A file with none is clean, and a string that names a skip is not one.
+    path = tmp_path / "test_clean.py"
+    path.write_text("NAMES = ['skip', 'xfail']\ndef test_x():\n    assert True\n", encoding="utf-8")
+    assert skips_in(path) == []
