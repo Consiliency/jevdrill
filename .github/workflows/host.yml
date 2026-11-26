@@ -79,7 +79,7 @@ jobs:
         env:
           BAML_CLI: ${{ steps.compiler.outputs.path }}
           JEVDRILL_AGENT_HARNESS_PYTHON: ${{ steps.companion.outputs.python }}
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: host-native-${{ matrix.platform }}
@@ -128,7 +128,7 @@ jobs:
       - id: reduce
         run: uv run python scripts/verify_host_phase.py --reduce-only --agent-harness .host/companion
       # The verdict is uploaded only when the reduction ran (Consiliency/jevdrill#74).
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ !cancelled() && (steps.reduce.outcome == 'success' || steps.reduce.outcome == 'failure') }}
         with:
           name: host-verification
