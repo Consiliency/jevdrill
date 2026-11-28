@@ -10,8 +10,9 @@ roadmap_sha256: 4ecbf27188b634d6ea5346cd67d61ab36d50d3ad0416a9a6d0d2602bb2698ab8
 > Review status: draft written by Claude Opus 5.5. Board: a Fable 5.2 president
 > with three seats (correctness; security and privacy; alternate vendor).
 > Rounds: one, and a confirmation of its fixes. Pull request:
-> Consiliency/jevdrill#89; amended by Consiliency/jevdrill#111 and
-> Consiliency/jevdrill#132, one round each.
+> Consiliency/jevdrill#89; amended by Consiliency/jevdrill#111,
+> Consiliency/jevdrill#132 and Consiliency/jevdrill#150, one round
+> each.
 > This is a reviewed plan. It verifies no criterion.
 
 ## Context
@@ -86,7 +87,7 @@ any live evaluation; any record of a decline.
 
 Key. "main" marks a test id that resolves on `main` today. "D" marks a
 deliverable: the id exists at the tag unless marked "new". "HI" marks a test in
-the host integration at the draft head, under `phase-loop-runtime/tests/`;
+the host integration at the pinned commit, under `phase-loop-runtime/tests/`;
 its source is cited relative to `phase-loop-runtime/src/phase_loop_runtime/`.
 Evidence kinds: native CI run; synthetic; simulated; generated configuration;
 needs the host integration; needs a container; needs an owner input. Nothing
@@ -96,13 +97,13 @@ below is verified.
 
 | Clause | Implementation | Control | Falsifier | Evidence |
 | --- | --- | --- | --- | --- |
-| Main, delegated and lane execution apply validated plans | `runner.py:3370,5292,6001`; decision `src/jevdrill/application.py:583`; `ExecutionRun` `baml_src/contracts.baml:78` | D `tests/conformance/test_launch_paths.py::test_real_main_delegated_lane_constructors`; HI `test_jevdrill_adapter.py::test_real_runner_construction_sites_reach_bridge` | An entry point missing, or a launch with no `applied_plan_id` | native CI run; needs the host integration |
+| Main, delegated and lane execution apply validated plans | `runner.py:3391,5570,6282`; decision `src/jevdrill/application.py:583`; `ExecutionRun` `baml_src/contracts.baml:78` | D `tests/conformance/test_launch_paths.py::test_real_main_delegated_lane_constructors`; HI `test_jevdrill_adapter.py::test_real_runner_construction_sites_reach_bridge` | An entry point missing, or a launch with no `applied_plan_id` | native CI run; needs the host integration |
 | Report substitutions and observations | `substitution_reason` `contracts.baml:78`; `src/jevdrill/storage.py:2004` | main `tests/analysis/test_observations.py::test_substitution_preference_and_evaluation_are_distinct`; HI `test_jevdrill_adapter.py::test_observed_substitution_is_not_attributed_to_selected_plan` | A substitution attributed to the selected plan | native CI run; needs the host integration |
-| Preserve permission restrictions | `jevdrill_adapter.py:434-455,576-584` | D `test_launch_paths.py::test_entered_permission_expansion_denials`; HI `test_jevdrill_adapter.py::test_forged_capability_or_candidate_cannot_expand_authority` | A widened launch that starts | native CI run; needs the host integration |
+| Preserve permission restrictions | `jevdrill_adapter.py:517-538,873-881` | D `test_launch_paths.py::test_entered_permission_expansion_denials`; HI `test_jevdrill_adapter.py::test_forged_capability_or_candidate_cannot_expand_authority` | A widened launch that starts | native CI run; needs the host integration |
 | Prevent recursive routing | `recursion_bypass` `contracts.baml:51`, honoured `application.py:821`; propagation in the host integration | No control on `main` (no test sets the flag): D new, SL-1; HI `test_jevdrill_adapter.py::test_dry_run_and_recursion_bypass_do_not_route` | A bypassed request that the host still routes or JEV still judges | native CI run; needs the host integration |
-| Acceptance failures supply bounded rerouting context | `retry_context` `contracts.baml:51`; bound `application.py:619-620`; the rerouting call in the host integration | main `tests/application/test_route_integration.py::test_retry_requires_recorded_run_and_remaining_attempt_authority`. Host half: not covered; the draft builds no `retry_context`, it only forwards one | A retry accepted with no recorded failed run | native CI run |
-| Guidance not reinjected on retries | `jevdrill_adapter.py:491-492` | HI `test_jevdrill_adapter.py::test_guidance_is_verified_injected_once_and_deactivated` | An optional revision appended again when the prompt is reused | needs the host integration |
-| Deactivates at task end, reporting host limitations | `guidance_deactivated` `contracts.baml:79`; emitted in the host integration | Same HI test. "Reporting host limitations": not covered; the draft sends every lifecycle `reason` as null | No deactivation event at task end | needs the host integration |
+| Acceptance failures supply bounded rerouting context | `retry_context` `contracts.baml:51`; bound `application.py:619-620`; host half `jevdrill_adapter.py:499` | main `tests/application/test_route_integration.py::test_retry_requires_recorded_run_and_remaining_attempt_authority`. Host half: HI `test_jevdrill_host_gaps.py::test_acceptance_failure_builds_bounded_retry_context`, `::test_supplied_retry_context_cannot_widen_or_bypass`, `::test_unrecorded_supplied_context_never_launches` (1 case each), `test_host_integration_runner.py::test_acceptance_verdicts_reach_the_observer` (21 cases), three platforms | A retry accepted with no recorded failed run; a host retry lacking its context, naming another task's run, widening its budget, or unrecorded yet launched | native CI run; needs the host integration |
+| Guidance not reinjected on retries | `jevdrill_adapter.py:578-579` | HI `test_jevdrill_adapter.py::test_guidance_is_verified_injected_once_and_deactivated` | An optional revision appended again when the prompt is reused | needs the host integration |
+| Deactivates at task end, reporting host limitations | `guidance_deactivated` `contracts.baml:79`; reasons `host_integration.py:102` | Same HI test. Host limitations: HI `test_jevdrill_host_gaps.py::test_deactivation_reports_the_host_limitation` (5 cases, none timed-out or stalled), three platforms | No deactivation event at task end, or a reason other than that case's limitation | needs the host integration |
 | Dry runs never become execution-success evidence: ordering | `dry_run` `contracts.baml:50`; excluded from ordering `application.py:898` | D new, SL-1; HI `test_dry_run_and_recursion_bypass_do_not_route` | A dry run that reaches learned-policy ordering | native CI run; needs the host integration |
 | Dry runs never become execution-success evidence: counting | Counted on `main` (`storage.py:884-935`; Consiliency/jevdrill#109) | D new, SL-5 | A dry run counted, in the deciding store or after export and import | native CI run |
 
@@ -110,10 +111,10 @@ below is verified.
 
 | Clause | Implementation | Control | Falsifier | Evidence |
 | --- | --- | --- | --- | --- |
-| Hooks and explicit reporting use one durable bounded queue | `jevdrill_queue.py`; enqueued at `jevdrill_adapter.py:539-553` | HI `test_jevdrill_queue.py::test_overflow_and_expiry_have_persistent_loss_counters`; D `tests/conformance/test_transport_queue.py::test_entered_ack_loss_and_cross_producer_deletion`. That explicit reports enter the same queue: not covered | A report dropped without a loss count | needs the host integration |
+| Hooks and explicit reporting use one durable bounded queue | `jevdrill_queue.py`; enqueued at `jevdrill_adapter.py:825-838`; hook `:763-801` | HI `test_jevdrill_queue.py::test_overflow_and_expiry_have_persistent_loss_counters`; D `tests/conformance/test_transport_queue.py::test_entered_ack_loss_and_cross_producer_deletion`. Explicit reports: D new, SL-7, through R5's hook, three platforms, relying on: one queue; a report the hook accepts is in it and counted; a report it does not accept is made known to its caller; enqueue order shared; delivery order unconstrained, later losses counted queue-wide (`docs/jevdrill-integration.md:165-168`); an unconfirmed enqueue may already be stored (`:160`) | A report dropped without a loss count; an explicit report the hook accepted that is not durably in the same queue, or that is lost without a loss count; or one it did not accept without its caller being told | needs the host integration |
 | Redacted before persistence | Queue in the host integration; `_sanitize` refuses, never rewrites, `application.py:68`, applied `:1230` | main `tests/privacy/test_round41_learning.py::test_report_sensitive_map_key_rejects_before_persistence`, `tests/privacy/test_sink_proof.py::test_a_report_with_a_refused_identifier_is_refused_before_it_is_stored`; HI `test_jevdrill_adapter.py::test_production_sanitizer_rejects_raw_fields_and_erases_free_text`; D `tests/conformance/test_usage_reporting.py::test_installed_usage_persistence` (11 cases) | A sentinel in the queue file or the store | native CI run; needs the host integration |
 | Idempotent acknowledgments and recovery | `storage.py:2004`; `contracts.baml:86-89` | main `tests/application/test_application.py::test_report_is_a_versioned_durable_acknowledgment`; HI `test_jevdrill_queue.py::test_acknowledgment_loss_replays_exact_report`, `::test_process_crash_windows_recover_durable_reports`, `::test_only_matching_durable_acknowledgment_removes_report` | A report removed on a non-durable acknowledgment | native CI run; needs the host integration |
-| Disconnects and capability mismatches include supported resolution advice | `contracts.baml:54`; `src/jevdrill/routing.py:83-93`; disconnect advice in the host integration | No control on `main`: D new, SL-1. Disconnect advice: not covered; the draft's outage test asserts a disposition only | A mismatch without the supported refresh advice | native CI run; needs the host integration |
+| Disconnects and capability mismatches include supported resolution advice | `contracts.baml:54`; `src/jevdrill/routing.py:97-105`; disconnect advice `host_integration.py:140` | No control on `main`: D new, SL-1. Disconnect advice: HI `test_jevdrill_host_gaps.py::test_route_disconnect_carries_advice` (2 cases), `::test_report_disconnect_keeps_backoff_and_advises` (1 case), `test_host_integration.py::test_disconnect_advice_is_exact_per_operation` (1 case), three platforms | A mismatch without the supported refresh advice; a disconnect lacking its operation's advice | native CI run; needs the host integration |
 | Host choices separate from check results | `contracts.baml:81-82` | main `test_observations.py::test_substitution_preference_and_evaluation_are_distinct` | A host choice counted as a check | native CI run |
 | Unknown telemetry is not fabricated | `contracts.baml:4` | main `test_observations.py::test_missing_failed_canceled_corrected_and_unknown_observations`; HI `test_jevdrill_usage.py::test_incomplete_drain_is_unknown_and_bounded`, `test_jevdrill_discovery.py::test_native_unsupported_observer_records_unknown_capture`; D `test_installed_usage_persistence` | A missing counter reported as a number | native CI run; needs the host integration |
 | Pending notices shown on the next connection | `application.py:1242`; `storage.py:2311`; `src/jevdrill/cli.py:87` | main `tests/storage/test_host_notices.py::test_notice_scope_reads_and_cross_producer_deletion`, `tests/application/test_host_notices.py::test_notice_snapshots_do_not_mutate_retry_or_replay`; D `tests/conformance/test_notices.py::test_every_report_connection_queries_notices`; D new, SL-2: a pending notice reaches the notice sink | A report connection with no notice query before it, or a notice that never reaches the sink | native CI run; needs the host integration |
@@ -133,12 +134,12 @@ below is verified.
 
 | Clause | Implementation | Control | Falsifier | Evidence |
 | --- | --- | --- | --- | --- |
-| Installed flow takes an objective through discovery and returns selected guidance | `application.py:107`; `cli.py:85`; `runner.py:6-23` | HI `test_jevdrill_discovery.py::test_installed_discovery_decomposition_two_task_launch` (2 cases), `::test_installed_discovery_status_gates_planning[no_optional_guidance]`; D `tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks` | Entered trace lacks `main`, `open_application`, `discover`, `next_question` or `route`; or the planner refuses a no-guidance result | needs the host integration |
-| The harness decomposes it | `runner.py:6-23` | HI `test_jevdrill_discovery.py::test_entered_discovery_requires_harness_decomposition`; same D | `planning.executor` absent or after the first route-v2 | needs the host integration |
+| Installed flow takes an objective through discovery and returns selected guidance | `application.py:107`; `cli.py:85`; `runner.py:260-277` | HI `test_jevdrill_discovery.py::test_installed_discovery_decomposition_two_task_launch` (2 cases), `::test_installed_discovery_status_gates_planning[no_optional_guidance]`; D `tests/conformance/test_discovery_handoff.py::test_installed_discovery_harness_planning_two_independent_tasks` | Entered trace lacks `main`, `open_application`, `discover`, `next_question` or `route`; or the planner refuses a no-guidance result | needs the host integration |
+| The harness decomposes it | `runner.py:260-277` | HI `test_jevdrill_discovery.py::test_entered_discovery_requires_harness_decomposition`; same D | `planning.executor` absent or after the first route-v2 | needs the host integration |
 | At least two tasks routed independently | `application.py:587-589` | main `tests/application/test_discovery_application.py::test_public_discovery_two_independent_tasks_and_replay` (synthetic caller); HI and D as above | One task, or equal model and effort | native CI run; needs the host integration |
 | Objective, skill, task and decision links | `baml_src/discovery.baml:90-91`; `storage.py:1906` | main `test_discovery_application.py::test_bad_links_never_enter_prepare`; D `test_discovery_handoff.py::test_entered_reference_deletion_revision_and_policy_controls`; HI `test_jevdrill_discovery.py::test_entered_linked_launch_rejections` (5 cases) | A forged, deleted or stale reference that launches | needs the host integration |
 | Guidance lifetime and substitutions | As EC-HOST-1 | HI `test_guidance_is_verified_injected_once_and_deactivated`; prompt isolation in the two-task test | Another objective's instructions in a task prompt | needs the host integration |
-| The harness may retain its current model | `jevdrill_adapter.py:484-486`: an operator-set model refuses the route | HI `test_jevdrill_adapter.py::test_override_staleness_and_final_token_enforcement` shows that refusal. A launch that keeps the model: not covered | A route that replaces an operator-set model | needs the host integration |
+| The harness may retain its current model | `jevdrill_adapter.py:571-573`: an operator-set model refuses the route | HI `test_jevdrill_adapter.py::test_override_staleness_and_final_token_enforcement` shows that refusal. Launch keeping it: HI `test_jevdrill_host_gaps.py::test_operator_model_is_kept_through_launch` (1 case), three platforms | A route or launch spec replacing an operator-set model or effort | needs the host integration |
 | Or decline a recommendation | In the host integration | HI `test_entered_linked_launch_rejections[decline]`; D `test_entered_reference_deletion_revision_and_policy_controls` | A decline that starts a run | needs the host integration |
 | Production paths, no injected preselected guidance | As the first row | As the first row; reducer entered-path check | Selected guidance supplied without `discover` | needs the host integration |
 | No recursive routing; no forced single model per skill | As EC-HOST-1; `application.py:583` per task | As EC-HOST-1; reducer requires a distinct decision per task, two models and two efforts | A reused decision, or identical configurations | needs the host integration |
@@ -147,15 +148,20 @@ below is verified.
 
 | Item | Implementation | Control | Falsifier | Evidence |
 | --- | --- | --- | --- | --- |
-| JD-084: leased macOS launch rejects before startup and names a Linux worker; Linux proves leased cleanup | `launcher.py:2829`, `:2671` | HI `test_phase_loop_launcher.py::test_launcher_accepts_explicit_nonserialized_lease_authority` (on Linux: reaps the tree and frees the lease) and `::test_supervised_launch_drains_retained_stdout_before_returning` (on Linux: stdout drain only), required passed in the Darwin and the Linux receipt | A macOS executor that starts, a Linux receipt standing in for macOS, or a Linux tree or lease that outlives the launch | native CI run; needs the host integration |
-| JD-083: estimated cost with no ceiling; ceilings need verified whole-run limits | `jevdrill_adapter.py:576-584`; JEV side `application.py:583` | main `test_route_integration.py::test_builtin_task_judgment_keeps_verified_spending_bounds`; HI `test_jevdrill_adapter.py::test_requested_ceiling_rejects_unproven_executor_limits`, `::test_override_staleness_and_final_token_enforcement`, `::test_no_requested_ceiling_does_not_require_token_enforcement` | A ceiling accepted without enforcement, or a route with no ceiling refused | native CI run; needs the host integration |
+| JD-084: leased macOS launch rejects before startup and names a Linux worker; Linux proves leased cleanup | `launcher.py:2981-2988`, `:2762` | HI `test_phase_loop_launcher.py::test_launcher_accepts_explicit_nonserialized_lease_authority` (on Linux: reaps the tree and frees the lease) and `::test_supervised_launch_drains_retained_stdout_before_returning` (on Linux: stdout drain only), required passed in the Darwin and the Linux receipt | A macOS executor that starts, a Linux receipt standing in for macOS, or a Linux tree or lease that outlives the launch | native CI run; needs the host integration |
+| JD-083: estimated cost with no ceiling; ceilings need verified whole-run limits | `jevdrill_adapter.py:873-881`; JEV side `application.py:583` | main `test_route_integration.py::test_builtin_task_judgment_keeps_verified_spending_bounds`; HI `test_jevdrill_adapter.py::test_requested_ceiling_rejects_unproven_executor_limits`, `::test_override_staleness_and_final_token_enforcement`, `::test_no_requested_ceiling_does_not_require_token_enforcement` | A ceiling accepted without enforcement, or a route with no ceiling refused | native CI run; needs the host integration |
 | IF-0-HOST-1 | The four criteria | D `test_installed_discovery_harness_planning_two_independent_tasks`; reducer `produced_if_gates` only when every clause of the four criteria is covered and its controls pass where they run, in three receipts of one run | A gate produced with a clause not covered, a criterion failing or a platform missing | native CI run, no model called; needs the host integration |
 | IF-0-VC-2 | D `scripts/verify_host_phase.py` | D `tests/verification/test_host_phase.py::test_reducer_rejects_invalid_receipts` (19 cases at the tag, plus one per new rejection, each asserting its own error), `::test_missing_companion_configuration_is_failure`, D new `::test_reducer_accepts_valid_receipts` | A forged, skipped or foreign receipt passes, or a valid one is rejected | native CI run |
+| Readiness rechecked before launch | `jevdrill_adapter.py:885-890` | HI `test_jevdrill_host_gaps.py::test_readiness_expiring_in_a_final_callback_refuses_launch`, `::test_readiness_expiring_during_the_started_write_refuses_launch` (1 case each), `::test_lock_wait_cannot_outlive_readiness` (2 cases), three platforms; unlinked launches only | A launch after readiness expired | needs the host integration |
+| Budget passed after host spawn time | Reserve `jevdrill_adapter.py:53`, `:170-175`; child clock `src/jevdrill/cli.py:5`, `:112` | HI `test_jevdrill_host_gaps.py::test_budget_reserves_spawn_time`, `::test_over_reserve_spawn_is_bounded_by_the_parent_deadline` (1 case each, controlled clock), three platforms. Limit: a start outrunning the reserve tells the child it has more time than it has; the host's deadline ends the call; repeated flags pass. Basis, Linux only: 30 starts, CPython 3.14.4; cold 79.9 ms; warm median 72.4, p95 94.2, maximum 100.9 ms (`docs/jevdrill-integration.md:216-220`) | A budget passed without the 250 ms reserve, or a child outliving the host's deadline | needs the host integration |
+| Ordinary macOS execution stays local | `launcher.py:2981-2988` refuses only leased Darwin launches | D new, SL-7; macOS only, required in the Darwin receipt; Linux does not stand in | An ordinary macOS launch refused, forwarded or not local | native CI run; needs the host integration |
+| No silent forwarding | `jevdrill_adapter.py:487-496`; no check without `.jevdrill/harnesses.yaml` (`docs/jevdrill-integration.md:126`); routed launches execute locally (`launcher.py:2981-2988`) | HI `test_jevdrill_host_gaps.py::test_undeclared_identity_makes_no_cli_request` (3 cases), `::test_declared_identity_and_absent_file_still_route` (1 case), three platforms. Limit: a forward beside JD-084's refusal is unobserved | A CLI request for a pair a present declaration omits, or a declared pair refused | needs the host integration |
 
-Other scope notes (`specs/phase-plans-v1.md:193`, `:195`). Not covered: the
-readiness recheck before launch (untested, `jevdrill_adapter.py:576-578`); the
-budget passed after host spawn time (the draft computes it before the spawn);
-ordinary macOS execution staying local; the absence of silent forwarding.
+Other scope notes (`specs/phase-plans-v1.md:193`, `:195`): the last four rows.
+At Consiliency/agent-harness `3a588dd19a52a28e4e5b2cd786e2799f381cdd15`, its own
+run passed `test_jevdrill_host_gaps.py` on Linux, macOS and Windows, none
+skipped; no workflow there runs `test_host_integration*.py` off Linux. R3
+applies.
 
 ## Readings and points settled
 
@@ -213,6 +219,8 @@ has accepted. The conditions of the pin:
   `test_phase_loop_work_unit_observability.py`, `test_windows_locking.py`,
   `test_launcher_liveness.py`, `test_windows_processes.py`,
   `test_windows_storage.py`) and every helper they import;
+  `test_jevdrill_host_gaps.py`, helper `jevdrill_fixture_values.py`;
+  `test_host_integration*.py`;
   `tests/fixtures/jevdrill/` with 14 schemas, 3 fixtures and `digests.json`; a
   `pyproject.toml` and `uv.lock` whose locked sync imports `phase_loop_runtime`
   from the checkout's `src`. Nothing need match October's digests or 0.7.20.
@@ -229,7 +237,7 @@ has accepted. The conditions of the pin:
   to that repository and HOST waits for a new accepted commit.
 - **R4 — No private dependency.** No selected test needs `Consiliency/dotfiles`,
   another private repository or a secret. jevdrill deselects exactly
-  `dotfiles_integration` and tolerates no other skip; none of the eight
+  `dotfiles_integration` and tolerates no other skip; none of the 37
   companion controls and none of the four LEARN files carries that marker.
 - **R5 — Names kept, or the change declared:** `launcher`, `runner`, `models`,
   `jevdrill_adapter.JevDrillTransport`, `JevDrillUnavailable`,
@@ -237,7 +245,11 @@ has accepted. The conditions of the pin:
   `.linked_task`, `.test_installed_discovery_decomposition_two_task_launch`;
   `test_jevdrill_adapter.FIXTURES`, `.adapter_fixture`;
   `test_jevdrill_usage.records`, `.synthetic_spec`, `.values`;
-  `phase_loop_test_utils.make_repo`, `.write_phase_plan`.
+  `phase_loop_test_utils.make_repo`, `.write_phase_plan`; hook
+  (`docs/jevdrill-integration.md:148-189`):
+  `JevDrillAdapter.active_execution_run_ids`, `.run_event_identity`,
+  `.enqueue_run_event`, `.run_report_counts`, `.queue.status`,
+  `LaunchResult.jevdrill_execution_run["execution_run_id"]`.
 - **R6 — Installs on hosted runners.** The pull request states the sync command
   and the Python its CI tests (3.12 today), and the command works on hosted
   Linux, macOS and Windows.
@@ -282,13 +294,15 @@ possibility, not a request.
 
 ## Lane Index & Dependencies
 
-- SL-0 — Pin step; Depends on: an accepted commit; Blocks: SL-2, SL-3, SL-4; Parallel-safe: no
+- SL-0 — Pin step; Depends on: an accepted commit; Blocks: SL-2, SL-3, SL-4, SL-7, SL-8; Parallel-safe: no
 - SL-1 — JEV-side controls; Depends on: (none); Blocks: SL-3; Parallel-safe: no
 - SL-2 — Conformance and probes; Depends on: SL-0; Blocks: SL-3; Parallel-safe: no
 - SL-3 — Verifier and workflow; Depends on: SL-0, SL-1, SL-2, SL-5; Blocks: SL-4; Parallel-safe: no
-- SL-4 — Readiness docs; Depends on: SL-6 and a run after it; Blocks: (none); Parallel-safe: no
+- SL-4 — Readiness docs; Depends on: SL-8 and a run after it; Blocks: (none); Parallel-safe: no
 - SL-5 — Dry-run evidence fix; Depends on: (none); Blocks: SL-3; Parallel-safe: no
 - SL-6 — Collection bound; Depends on: SL-3; Blocks: the next dispatch; Parallel-safe: no
+- SL-7 — Conformance for items 3 and 8; Depends on: SL-0; Blocks: SL-8; Parallel-safe: no
+- SL-8 — Verifier and coverage; Depends on: SL-0, SL-7; Blocks: the next dispatch; Parallel-safe: no
 
 ## Lanes
 
@@ -376,6 +390,22 @@ possibility, not a request.
   missing from the receipt, or a failed one from its failure summary; a
   control's id or count stops being required, or is counted from two sources; or
   the inherited budget differs from ROUTE's.
+
+### SL-7 — Conformance for items 3 and 8
+
+- **Owned files:** new files under `tests/conformance/`; any needed probe
+  under `research/evaluation/host/`.
+- **Delivers:** the item 3 and 8 controls.
+
+### SL-8 — Verifier and coverage
+
+- **Owned files:** `scripts/verify_host_phase.py`,
+  `tests/verification/test_host_phase.py`, `evidence/HOST/coverage.json`.
+- **Delivers:** the nine clauses covered with their controls;
+  `test_jevdrill_host_gaps.py` and `test_host_integration*.py` in the companion
+  command where they run; every new id and count bound; totals re-taken by
+  collection. Its control fails on a clause covered with no control bound, a
+  replaced id, an inexact count, or a gate produced with one not covered.
 
 ## Verification
 
@@ -482,7 +512,7 @@ and JD-084 (`specs/phase-plans-v1.md:216`).
 
 - Any criterion verified or any gate produced.
 - Anything on the strength of the October reports, receipts or plans.
-- That hosted runners can run the host integration; nobody has tried.
+- That hosted runners can run the host integration.
 - That the host integration is accepted, or works against `main`.
 - Performance, quality, cost or savings.
 - That a synthetic evaluation is empirical evidence. Synthetic HOST receipts are
@@ -511,6 +541,7 @@ and JD-084 (`specs/phase-plans-v1.md:216`).
 | Conditional host run | Owner input, only if hosted runners fail |
 | ROUTE verifier not reopened; the deadline-failure rule | Stated limits, standing |
 | `host.yml` run 45236348900 | Fix lane, SL-6 |
+| Consiliency/jevdrill#120 | SL-7, SL-8 |
 
 ## Owner inputs
 
