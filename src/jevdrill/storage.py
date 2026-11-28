@@ -1394,6 +1394,10 @@ class SQLiteStorage:
                     "INSERT INTO tasks VALUES (?,?,?) ON CONFLICT(scope,task) DO UPDATE SET deleted=max(deleted,excluded.deleted)",
                     (pair, task, int(deleted)),
                 )
+            # The bundle carries a discovery deletion record, new to this store or not.
+            # While a reader blocks the checkpoint, the store cannot tell whether the log
+            # still holds what such a record erases (#21, SL-9).
+            erasing = False
             for objective, deleted in body["objectives"].items():
                 parent = self._objective_scope(scope)
                 c.execute(
@@ -1404,6 +1408,7 @@ class SQLiteStorage:
                     "SELECT deleted FROM discovery_objectives WHERE scope=? AND objective=?",
                     (parent, objective),
                 ).fetchone()[0]:
+                    erasing = erasing or bool(deleted)
                     ids = [
                         r[0]
                         for r in c.execute(
@@ -1418,8 +1423,17 @@ class SQLiteStorage:
                             "UPDATE artifacts SET retention='retired' WHERE scope=? AND artifact_id IN (SELECT artifact_id FROM discovery_content_artifacts WHERE discovery_id=?)",
                             (pair, identity),
                         )
+                        # As `delete_discovery` erases them (#138, #144).
+                        c.execute(
+                            "DELETE FROM recovered_discovery_metadata WHERE discovery_id=?",
+                            (identity,),
+                        )
+                        for table in ("lifecycle_notices", "notices"):
+                            c.execute(
+                                f"DELETE FROM {table} WHERE scope=? AND task=?", (pair, identity)
+                            )
                     c.execute(
-                        "UPDATE discoveries SET seed='{}',result=NULL,trace=NULL WHERE objective_scope=? AND objective=?",
+                        "UPDATE discoveries SET seed='{}',request_digest=NULL,result=NULL,trace=NULL WHERE objective_scope=? AND objective=?",
                         (parent, objective),
                     )
                     self._invalidate_learning(c, pair, objective=objective, purge=True)
@@ -1561,6 +1575,19 @@ class SQLiteStorage:
                 task = artifact["task"]
                 if not self._admit(c, pair, task):
                     continue
+                # Content filed under a deleted discovery's identity, as the store's rows
+                # or the bundle's own records show it, is not restored (#148, vendor).
+                if self._discovery_deleted(c, scope, task) or (
+                    task in discoveries
+                    and c.execute(
+                        "SELECT deleted FROM discovery_objectives WHERE scope=? AND objective=?",
+                        (
+                            self._objective_scope(scope),
+                            discoveries[task]["discovery_ref"]["work_objective_id"],
+                        ),
+                    ).fetchone()[0]
+                ):
+                    continue
                 content = bytes.fromhex(artifact["content"])
                 kind = artifact["kind"]
                 digest = artifact["digest"]
@@ -1577,13 +1604,31 @@ class SQLiteStorage:
             self._invalidate_learning(c, pair, purge=True)
         self.recover_artifacts()
         with self._connect() as c:
-            c.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            busy, _, _ = c.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+        if busy and erasing:
+            # A discovery deletion record was applied and committed, but its erased rows
+            # may remain in the database file or the write-ahead log: as `delete_discovery`,
+            # this fails as a storage failure, and the same import finishes the erasure. A
+            # bundle with no discovery deletion record ignores it, as before (#21's remainder).
+            raise sqlite3.OperationalError("deleted content not yet erased; retry the request")
         return restored
 
     @classmethod
     def _objective_scope(cls, scope: Mapping[str, str]) -> str:
         cls._scope(scope)
         return cls._encode([scope["project_id"], scope["workspace_id"], "discover"])
+
+    def _discovery_deleted(
+        self, connection: sqlite3.Connection, scope: Mapping[str, str], identity: str
+    ) -> bool:
+        """True if `identity` is a discovery of a deleted objective in this scope."""
+        return (
+            connection.execute(
+                "SELECT 1 FROM discoveries d JOIN discovery_objectives p ON p.scope=d.objective_scope AND p.objective=d.objective WHERE d.discovery_id=? AND d.objective_scope=? AND p.deleted=1",
+                (identity, self._objective_scope(scope)),
+            ).fetchone()
+            is not None
+        )
 
     def _discovery_row(
         self,
@@ -1867,8 +1912,19 @@ class SQLiteStorage:
                     "UPDATE artifacts SET retention='retired' WHERE scope=? AND artifact_id IN (SELECT artifact_id FROM discovery_content_artifacts WHERE discovery_id=?)",
                     (self._task_scope(scope), identity),
                 )
+                # Its recovered metadata (domain labels), and the notices filed for its
+                # items: a discovery's content is staged under the discovery's identity
+                # as its task (#138, #144).
+                connection.execute(
+                    "DELETE FROM recovered_discovery_metadata WHERE discovery_id=?", (identity,)
+                )
+                for table in ("lifecycle_notices", "notices"):
+                    connection.execute(
+                        f"DELETE FROM {table} WHERE scope=? AND task=?",
+                        (self._task_scope(scope), identity),
+                    )
             connection.execute(
-                "UPDATE discoveries SET seed='{}',result=NULL,trace=NULL WHERE objective_scope=? AND objective=?",
+                "UPDATE discoveries SET seed='{}',request_digest=NULL,result=NULL,trace=NULL WHERE objective_scope=? AND objective=?",
                 (parent, objective),
             )
             self._invalidate_learning(
@@ -1887,6 +1943,13 @@ class SQLiteStorage:
                         connection, self._task_scope(scope), task=task, purge=True
                     )
         self.recover_artifacts()
+        with self._connect() as connection:
+            busy, _, _ = connection.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+        if busy:
+            # As in `delete_task`: the deletion is committed, but erased rows may remain in
+            # the database file or the write-ahead log until the checkpoint finishes. This
+            # fails as a storage failure; the same request finishes the erasure (#21).
+            raise sqlite3.OperationalError("deleted content not yet erased; retry the request")
         return {"schema_version": "1", "status": "deleted", "work_objective_id": objective}
 
     @classmethod
@@ -2301,6 +2364,10 @@ class SQLiteStorage:
             with self._connect(True) as connection:
                 if not self._admit(connection, pair, task):
                     raise ContractError("task deleted")
+                # As the same call with a key refuses it: a deletion that committed while
+                # the key was requested leaves no notice behind it (#148, vendor).
+                if self._discovery_deleted(connection, scope, task):
+                    raise ContractError("discovery objective deleted")
                 connection.execute(
                     "INSERT OR IGNORE INTO notices VALUES (?,?,'archive_key_missing')", (pair, task)
                 )
