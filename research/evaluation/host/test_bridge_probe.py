@@ -6,16 +6,23 @@ Provider authentication and output are synthetic. Routing, reporting, launch con
 the final subprocess and durable storage use production implementations.
 """
 
+import hashlib
 import json
 import os
+import secrets
+import shutil
+import socket
 import sqlite3
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import urllib.parse
 import urllib.request
+import uuid
 from copy import deepcopy
+from dataclasses import replace
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -36,6 +43,7 @@ from test_jevdrill_adapter import FIXTURES, adapter_fixture
 # installed_discovery is the companion's pytest fixture (a name the handoff keeps);
 # importing it registers it for the judged-task test below.
 from test_jevdrill_discovery import installed_discovery, linked_task  # noqa: F401
+from test_jevdrill_usage import synthetic_spec
 
 CASES = json.loads(Path(__file__).with_name("protocol.json").read_text())["cases"]
 # grant: which side permits the fixture's capability. "both" launches; "neither" and the two
@@ -492,3 +500,261 @@ def test_installed_flow_carries_a_judged_task(installed_discovery, tmp_path, mon
             }
         )
     )
+
+
+def installed_transport(tmp_path):
+    """The installed JEV Drill CLI, as test_real_bridge reaches it."""
+    return JevDrillTransport(
+        (os.environ["JEVDRILL_TEST_PYTHON"], "-m", "jevdrill.cli"),
+        tmp_path / "jev.sqlite",
+        FIXTURES,
+        json.loads((FIXTURES / "digests.json").read_text()),
+    )
+
+
+# HOST SL-7, item 3. A separate process, standard library only and started with -I so that
+# nothing of the host integration is on its path, opens the queue's file read-only and prints
+# what each stored report holds. No public call lists stored reports, so this depends on the
+# queue's private layout, table `reports`, column `payload` (jevdrill_queue.py:57-61 at the pin);
+# each pin step re-checks it.
+QUEUE_READER = """
+import importlib.util, json, sqlite3, sys
+from pathlib import Path
+db = sqlite3.connect(Path(sys.argv[1]).as_uri() + "?mode=ro", uri=True, timeout=5)
+rows = []
+for (stored,) in db.execute("SELECT payload FROM reports"):
+    event = json.loads(stored)["event"]
+    body = event["payload"]
+    names = ("execution_run_id", "task_id", "routing_decision_id", "source_id", "source_sequence")
+    row = {name: event[name] for name in names}
+    row.update(kind=body["kind"], event_type=body.get("event_type"))
+    row.update(content=body.get("selected_run_id"))
+    rows.append(row)
+db.close()
+host = importlib.util.find_spec("phase_loop_runtime") is not None
+print(json.dumps({"rows": rows, "host_importable": host}))
+"""
+
+
+def read_queue(path):
+    read = subprocess.run(
+        [os.environ["JEVDRILL_TEST_PYTHON"], "-I", "-c", QUEUE_READER, str(path)],
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=60,
+    )
+    return json.loads(read.stdout)
+
+
+def test_explicit_reports_share_the_run_queue(tmp_path, monkeypatch):
+    """Item 3: four explicit reports under two runs of one adapter, read by another process.
+
+    Delivery is held: every report send fails as a disconnect before it reaches JEV Drill, so
+    the queue keeps each row and nothing is delivered before the last read. Every hook call is
+    serial, on this thread, and none is retried. The record holds observations only.
+    """
+    from phase_loop_runtime import launcher
+
+    adapter, inputs, _, kwargs, _, _ = adapter_fixture(tmp_path)
+    adapter.transport = installed_transport(tmp_path)
+    actual_call = adapter.transport.call
+    held = []
+
+    def hold_reports(command, payload, **options):
+        if command == "report":
+            held.append(payload["event"]["event_id"])
+            raise OSError("synthetic disconnect: delivery is held until the last read")
+        return actual_call(command, payload, **options)
+
+    adapter.transport.call = hold_reports
+    spec = synthetic_spec(tmp_path, monkeypatch)
+    runs, active, launched, sent = {}, {}, {}, []
+
+    def explicit(label, run_id):
+        others = [other for other in runs.values() if other != run_id]
+
+        def sequences():
+            return [adapter.run_event_identity(other)["next_source_sequence"] for other in others]
+
+        before, counts, other_before = (
+            adapter.run_event_identity(run_id),
+            adapter.run_report_counts(run_id),
+            sequences(),
+        )
+        content = str(uuid.uuid4())
+        report = {"kind": "host_choice", "reason": label, "selected_run_id": content}
+        try:
+            answer = adapter.enqueue_run_event(run_id, report)
+        except (KeyError, ValueError, RuntimeError, OSError, sqlite3.Error) as error:
+            answer = "raised " + type(error).__name__
+        sent.append(
+            {
+                "label": label,
+                "run": run_id,
+                "content": content,
+                "answer": answer,
+                "sequence_before": before["next_source_sequence"],
+                "counts_before": counts,
+                "counts_after": adapter.run_report_counts(run_id),
+                "other_sequences": [other_before, sequences()],
+            }
+        )
+
+    def launch_run(name, during):
+        value = deepcopy(inputs)
+        task_id = value["request"]["task_id"] = str(uuid.uuid4())
+        value["request"]["envelope"].update(request_id=str(uuid.uuid4()), idempotency_key=name)
+        adapter.inputs_for = lambda _context: deepcopy(value)
+        prepared = adapter.prepare(mode="main", dry_run=False, **kwargs)
+
+        def execute(launch_spec, **options):
+            active[name] = list(adapter.active_execution_run_ids(task_id))
+            runs[name] = active[name][0]
+            during()
+            return launcher.launch_with_spec(launch_spec, **options)
+
+        result = adapter.launch(execute, replace(spec, prompt_bundle=prepared["prompt_bundle"]))
+        launched[name] = result.jevdrill_execution_run["execution_run_id"]
+
+    launch_run("A", lambda: explicit("E1", runs["A"]))
+    explicit("E2", launched["A"])
+    launch_run("B", lambda: explicit("E3", launched["A"]))
+    explicit("E4", launched["B"])
+    first = read_queue(adapter.queue.path)
+    status_first = adapter.queue.status()
+    identities = {name: adapter.run_event_identity(run) for name, run in launched.items()}
+    envelope = inputs["request"]["envelope"]
+    scope = {key: envelope[key] for key in ("project_id", "workspace_id")}
+    scope.update(producer="synthetic-delete", operation=envelope["operation"])
+    adapter.delete_task(scope, identities["A"]["task_id"])
+    second = read_queue(adapter.queue.path)
+    record = {
+        "runs": launched,
+        "active": active,
+        "sent": sent,
+        "identities": identities,
+        "held_report_sends": len(held),
+        "first_read": first,
+        "status_first": status_first,
+        "deleted_task": identities["A"]["task_id"],
+        "second_read": second,
+        "status_second": adapter.queue.status(),
+    }
+    (Path(os.environ["JEVDRILL_TEST_ARTIFACTS"]) / "explicit-reports.json").write_text(
+        json.dumps({"explicit_reports": record})
+    )
+
+
+if sys.platform == "darwin":
+    # HOST SL-7, item 8, macOS only. The machine identity is the boot session UUID, read from the
+    # operating system by absolute path; it differs between machines and between boots. The
+    # record holds only digests of it salted with a one-time value.
+    MACHINE_IDENTITY = ("/usr/sbin/sysctl", "-n", "kern.bootsessionuuid")
+    RENDEZVOUS_SECONDS = 20
+    # Appended to the synthetic executor by synthetic_spec: after its protocol lines, the child
+    # connects to the rendezvous, sends its pid, platform and digest, and waits to be released.
+    LOCAL_CHILD = """
+import hashlib, socket, subprocess
+identity = subprocess.run({command!r}, capture_output=True, text=True, timeout=10, check=True)
+identity = identity.stdout.strip()
+assert identity
+client = socket.socket(socket.AF_UNIX)
+client.settimeout({bound})
+client.connect({path!r})
+digest = hashlib.sha256(({nonce!r} + identity).encode()).hexdigest()
+message = {{"pid": os.getpid(), "platform": sys.platform, "digest": digest}}
+client.sendall(json.dumps(message).encode() + b"\\n")
+client.recv(1)
+client.close()
+"""
+
+    def machine_digest(nonce):
+        read = subprocess.run(
+            MACHINE_IDENTITY, capture_output=True, text=True, timeout=10, check=False
+        )
+        identity = read.stdout.strip() if read.returncode == 0 else ""
+        return hashlib.sha256((nonce + identity).encode()).hexdigest() if identity else None
+
+    def process_row(pid):
+        """[pid, parent pid] from the machine's process table, or None if it is absent."""
+        found = subprocess.run(
+            ("/bin/ps", "-o", "pid=,ppid=", "-p", str(pid)),
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        ).stdout.split()
+        return [int(value) for value in found] if len(found) == 2 else None
+
+    def serve(listener, nonce, observed):
+        try:
+            connection, _ = listener.accept()
+        except OSError:
+            return
+        with connection:
+            connection.settimeout(RENDEZVOUS_SECONDS)
+            message = json.loads(connection.makefile("rb").readline())
+            observed.update(
+                connected=True,
+                pid_sent=message["pid"],
+                child_platform=message["platform"],
+                child_digest=message["digest"],
+            )
+            row = process_row(message["pid"])
+            ancestry = [message["pid"]]
+            observed["pid_found"] = row[0] if row else None
+            while row and row[1] > 1 and ancestry[-1] != os.getpid() and len(ancestry) < 32:
+                ancestry.append(row[1])
+                row = process_row(row[1])
+            observed.update(ancestry=ancestry, parent_digest=machine_digest(nonce))
+            connection.sendall(b"\n")
+
+    def test_ordinary_macos_launch_stays_local(tmp_path, monkeypatch):
+        """Item 8: a routed, live launch with no lease authority, through the unpatched launcher.
+
+        The rendezvous is a Unix-domain socket in a private directory, reachable only on this
+        machine; it is closed and removed when the case ends. Every wait is bounded.
+        """
+        from phase_loop_runtime import launcher
+
+        adapter, _, _, kwargs, _, _ = adapter_fixture(tmp_path)
+        adapter.transport = installed_transport(tmp_path)
+        nonce = secrets.token_hex(16)
+        directory = tempfile.mkdtemp(prefix="jd8-", dir="/tmp")
+        path = os.path.join(directory, "s")
+        assert len(path.encode()) < 104
+        listener = socket.socket(socket.AF_UNIX)
+        observed = {"connected": False}
+        result, refusal = None, None
+        try:
+            listener.bind(path)
+            listener.listen(1)
+            listener.settimeout(RENDEZVOUS_SECONDS)
+            thread = threading.Thread(target=serve, args=(listener, nonce, observed), daemon=True)
+            thread.start()
+            tail = LOCAL_CHILD.format(
+                command=MACHINE_IDENTITY, bound=RENDEZVOUS_SECONDS, path=path, nonce=nonce
+            )
+            spec = synthetic_spec(tmp_path, monkeypatch, tail=tail)
+            prepared = adapter.prepare(mode="main", dry_run=False, **kwargs)
+            spec = replace(spec, prompt_bundle=prepared["prompt_bundle"])
+            try:
+                result = adapter.launch(launcher.launch_with_spec, spec)
+            except JevDrillUnavailable as error:
+                refusal = str(error)
+            thread.join(RENDEZVOUS_SECONDS + 10)
+        finally:
+            listener.close()
+            shutil.rmtree(directory)
+        observed.update(
+            parent_pid=os.getpid(),
+            parent_platform=sys.platform,
+            returncode=result.returncode if result else None,
+            available=result.available if result else None,
+            unavailable_reason=result.unavailable_reason if result else None,
+            refusal=refusal,
+        )
+        (Path(os.environ["JEVDRILL_TEST_ARTIFACTS"]) / "local-execution.json").write_text(
+            json.dumps({"local_execution": observed})
+        )
