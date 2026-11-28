@@ -8,7 +8,7 @@
 - **Its tests,** `tests/verification/test_host_phase.py`.
 - **The workflow,** `.github/workflows/host.yml` (`HOST verification`): one native job on each of hosted Linux, macOS and Windows, then a reduce job.
 - **The conformance tests and probes:** `tests/conformance/` (a fixture module, five test files and one fixture) and `research/evaluation/host/test_bridge_probe.py` and `test_baseline_probe.py`, beside the synthetic protocol `research/evaluation/host/protocol.json`. The conformance tests are among the verifier's controls, and the conformance fixture runs the two probes in a child process.
-- **The records:** [`evidence/HOST/coverage.json`](../evidence/HOST/coverage.json), each clause of the plan's tables with its status and controls; [`evidence/HOST/spec-delta.json`](../evidence/HOST/spec-delta.json), the closeout record, whose `closeout_status` is `verification_pending`; and [`evidence/HOST/adapter-handoff.json`](../evidence/HOST/adapter-handoff.json), which names the pinned host-integration commit, Consiliency/agent-harness source commit `85b29c76ecfb8cf5a94523e7da84edc44dcd250f` (in-tree version 0.7.41), and the digests of five modules.
+- **The records:** [`evidence/HOST/coverage.json`](../evidence/HOST/coverage.json), each clause of the plan's tables with its status and controls; [`evidence/HOST/spec-delta.json`](../evidence/HOST/spec-delta.json), the closeout record, whose `closeout_status` is `verification_pending`; and [`evidence/HOST/adapter-handoff.json`](../evidence/HOST/adapter-handoff.json), which names the pinned host-integration commit, its package version and the digests of five modules. The run this page reports was made when it named Consiliency/agent-harness source commit `85b29c76ecfb8cf5a94523e7da84edc44dcd250f` (in-tree version 0.7.41); it now names `3a588dd19a52a28e4e5b2cd786e2799f381cdd15` (0.7.42), at which no run has been made yet.
 
 ## How a run is made
 
@@ -110,5 +110,5 @@ The verifier's outputs under `evidence/HOST/` are ignored by git, and a verdict 
 - The gate.
 - The nine clauses not covered, and the live evaluation outside the plan's reading.
 - Anything beyond synthetic software conformance; the plan's ["This plan may not claim"](../plans/phase-plan-v1-HOST.md#this-plan-may-not-claim) applies in full.
-- An observed exit-4 deletion answer, on any platform. The conformance tests through the pinned delete path passed on all three platforms; no receipt holds a deletion answered with exit code 4.
+- An observed exit-4 deletion answer, on any platform. The conformance tests through the delete path at `85b29c76e` passed on all three platforms; no receipt holds a deletion answered with exit code 4.
 - A check of the receipts by anything other than the run that wrote them.

@@ -1,6 +1,6 @@
 # HOST interfaces
 
-This page describes the host integration at the commit [`evidence/HOST/adapter-handoff.json`](../evidence/HOST/adapter-handoff.json) pins: Consiliency/agent-harness source commit `85b29c76ecfb8cf5a94523e7da84edc44dcd250f` (in-tree version 0.7.41). The two modules it draws on are [`jevdrill_adapter.py`](https://github.com/Consiliency/agent-harness/blob/85b29c76ecfb8cf5a94523e7da84edc44dcd250f/phase-loop-runtime/src/phase_loop_runtime/jevdrill_adapter.py) and [`jevdrill_queue.py`](https://github.com/Consiliency/agent-harness/blob/85b29c76ecfb8cf5a94523e7da84edc44dcd250f/phase-loop-runtime/src/phase_loop_runtime/jevdrill_queue.py), under `phase-loop-runtime/src/phase_loop_runtime/`. It describes code at that commit, not behaviour a run has shown; [HOST readiness](host-readiness.md) says what the reported run shows. It is a summary: it does not list every refusal or failure path, and the code at that commit is the authority.
+This page describes the host integration at Consiliency/agent-harness source commit `85b29c76ecfb8cf5a94523e7da84edc44dcd250f` (in-tree version 0.7.41), the earlier pin. [`evidence/HOST/adapter-handoff.json`](../evidence/HOST/adapter-handoff.json) now pins `3a588dd19a52a28e4e5b2cd786e2799f381cdd15` (0.7.42), whose adapter, queue and runner modules differ from the ones described here; this page is brought up to that pin with the run made there. The two modules it draws on are [`jevdrill_adapter.py`](https://github.com/Consiliency/agent-harness/blob/85b29c76ecfb8cf5a94523e7da84edc44dcd250f/phase-loop-runtime/src/phase_loop_runtime/jevdrill_adapter.py) and [`jevdrill_queue.py`](https://github.com/Consiliency/agent-harness/blob/85b29c76ecfb8cf5a94523e7da84edc44dcd250f/phase-loop-runtime/src/phase_loop_runtime/jevdrill_queue.py), under `phase-loop-runtime/src/phase_loop_runtime/`. It describes code at that commit, not behaviour a run has shown; [HOST readiness](host-readiness.md) says what the reported run shows. It is a summary: it does not list every refusal or failure path, and the code at that commit is the authority.
 
 ## Commands
 
@@ -65,7 +65,7 @@ Before each `discover`, each `route`, each `delete-discovery` and each queued re
 
 ## Dry runs
 
-- A decision made for a dry-run request carries a diagnostic with the code `dry_run_decision`. The learning-observation builder skips any decision that carries it; a test checks this in the store that took the decision and in a fresh store after an export and an import. The adapter at the pinned commit sends no dry-run route.
+- A decision made for a dry-run request carries a diagnostic with the code `dry_run_decision`. The learning-observation builder skips any decision that carries it; a test checks this in the store that took the decision and in a fresh store after an export and an import. The adapter at that commit sends no dry-run route.
 - A cached decision is reused only for a request of the same mode. The cache lookup returns the lowest-numbered matching decision, so a dry-run request whose lowest-numbered cached decision predates the diagnostic is decided afresh each time.
 - A dry run decided before the diagnostic existed is not excluded.
 - An import does not detect a bundle that misstates a decision's mode: a dry run whose diagnostic was removed is counted, and a real decision given the diagnostic is not.
