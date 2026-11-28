@@ -129,11 +129,12 @@ def bundle(scope, objectives, discoveries=()):
 
 
 class Discovery:
-    """One imported discovery of its own objective, with content items and notices."""
+    """One imported discovery, of its own objective unless one is given, with content
+    items and notices."""
 
-    def __init__(self, store, scope):
+    def __init__(self, store, scope, objective=None):
         self.store, self.scope = store, scope
-        self.objective, self.id = str(uuid4()), str(uuid4())
+        self.objective, self.id = objective or str(uuid4()), str(uuid4())
         self.label = f"sl9-synthetic-domain-{uuid4().hex}"
         record = {
             "scope": dict(scope, operation="route"),
@@ -278,6 +279,28 @@ def test_1_and_2_finished_deletion_leaves_no_digest_of_the_discovery_record(
                 == 0
             )
         assert found(store, digest) == []
+    finally:
+        keeper.close()
+
+
+@pytest.mark.parametrize("path", ["request", "import"])
+def test_1_and_2_every_discovery_of_the_objective_is_erased(store, scope, tmp_path, path):
+    """An objective can have several discoveries; the deletion erases every one."""
+    first = Discovery(store, scope)
+    second = Discovery(store, scope, objective=first.objective)
+    keeper = idle(store)
+    try:
+        if path == "request":
+            assert store.delete_discovery(first.discover_scope, first.objective) == first.deleted()
+        else:
+            assert (
+                store.import_recovery(scope, deletion_record(tmp_path, scope, first.objective), 0.0)
+                == 0
+            )
+        for made in (first, second):
+            assert made.erased()
+            assert metadata(store, made.id) is None
+            assert found(store, canonical_digest(made.record)) == []
     finally:
         keeper.close()
 
@@ -627,3 +650,122 @@ def test_5_nothing_else_goes(store, scope, tmp_path, path):
     assert metadata(store, deleted.id) is None  # the deletion happened
     assert everything_of(store, kept, task) == before
     assert found(store, kept.label)
+
+
+@pytest.mark.parametrize("path", ["request", "import"])
+def test_6_no_notice_is_written_for_a_discovery_deleted_while_an_archive_key_is_pending(
+    store, scope, tmp_path, path
+):
+    """The deletion commits while `archive_artifact` waits for its key, which then does
+    not come: the notice it would write is refused, as it is with a key (#148, vendor)."""
+    made = Discovery(store, scope)
+    record = deletion_record(tmp_path, scope, made.objective) if path == "import" else None
+    keeper = idle(store)
+    ran = []
+
+    def provider():
+        if path == "request":
+            assert store.delete_discovery(made.discover_scope, made.objective) == made.deleted()
+        else:
+            assert store.import_recovery(scope, record, 0.0) == 0
+        assert made.erased()
+        ran.append(True)  # and no key comes
+
+    try:
+        with pytest.raises(ContractError, match="objective deleted"):
+            store.archive_artifact(scope, made.items[1], provider, lambda c, k: c)
+        assert ran == [True]
+        assert notice_rows(store, made.items) == []
+        assert store.load_notices(scope) == []
+        assert made.erased()
+    finally:
+        keeper.close()
+
+
+def task_rows(store, task):
+    with store._connect() as connection:
+        return connection.execute(
+            "SELECT artifact_id FROM artifacts WHERE task=?", (task,)
+        ).fetchall()
+
+
+def has_artifact(store, identity):
+    with store._connect() as connection:
+        return (
+            connection.execute(
+                "SELECT 1 FROM artifacts WHERE artifact_id=?", (identity,)
+            ).fetchone()
+            is not None
+        )
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        "the_store_that_erased_it",
+        "the_store_that_erased_it_and_a_bundle_without_the_record",
+        "a_store_that_imported_the_deletion_record_first",
+    ],
+)
+def test_7_a_replayed_export_does_not_restore_a_deleted_discoverys_item(
+    store, scope, tmp_path, case
+):
+    """An export made while a discovery's item was staged under its identity, but not
+    yet linked to it, is replayed after the discovery's deletion (#148, vendor)."""
+    made, kept = Discovery(store, scope), Discovery(store, scope)
+    items = {}
+    for owner in (made, kept):
+        text = f"sl9-synthetic-item-{uuid4().hex}"
+        identity = store.stage_artifact(
+            scope, owner.id, text.encode(), kind="context", retention="active", encryption="none"
+        )
+        items[owner.id] = (identity, text)
+    (made_item, made_text), (kept_item, _) = items[made.id], items[kept.id]
+    export = store.export_recovery(scope)
+    assert {(a["task"], bytes.fromhex(a["content"]).decode()) for a in export["artifacts"]} == {
+        (owner, text) for owner, (_, text) in items.items()
+    }
+    assert not export["objectives"].get(made.objective)
+    # Linked to its discovery now: the same artifact.
+    assert (
+        store.stage_artifact(
+            scope,
+            made.id,
+            made_text.encode(),
+            kind="context",
+            retention="active",
+            encryption="none",
+            discovery_id=made.id,
+        )
+        == made_item
+    )
+    record = deletion_record(tmp_path, scope, made.objective)
+    target = other_store(tmp_path) if case.startswith("a_store_that_imported") else store
+    replay = export
+    if case.endswith("a_bundle_without_the_record"):
+        # An export made while a discovery has no result carries no record of it.
+        replay = dict(
+            export,
+            discoveries=[
+                r for r in export["discoveries"] if r["discovery_ref"]["discovery_id"] != made.id
+            ],
+        )
+        assert len(replay["discoveries"]) == len(export["discoveries"]) - 1
+    keeper = idle(target)
+    try:
+        assert target.import_recovery(scope, record, 0.0) == 0
+        if target is store:
+            assert not has_artifact(store, made_item)
+            assert found(store, made_text) == []
+        assert target.import_recovery(scope, replay, 0.0) == 1  # kept's item
+        assert task_rows(target, made.id) == []
+        assert found(target, made_text) == []
+        assert has_artifact(target, kept_item)
+        Maintenance(target, key_provider=lambda _: None)._notice(
+            scope, made.id, "archive_prompt", made_item, 0.0
+        )
+        assert notice_rows(target, [made.id, made_item]) == []
+        if target is store:
+            assert made.erased()
+    finally:
+        keeper.close()

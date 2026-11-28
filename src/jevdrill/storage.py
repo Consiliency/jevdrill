@@ -1575,6 +1575,19 @@ class SQLiteStorage:
                 task = artifact["task"]
                 if not self._admit(c, pair, task):
                     continue
+                # Content filed under a deleted discovery's identity, as the store's rows
+                # or the bundle's own records show it, is not restored (#148, vendor).
+                if self._discovery_deleted(c, scope, task) or (
+                    task in discoveries
+                    and c.execute(
+                        "SELECT deleted FROM discovery_objectives WHERE scope=? AND objective=?",
+                        (
+                            self._objective_scope(scope),
+                            discoveries[task]["discovery_ref"]["work_objective_id"],
+                        ),
+                    ).fetchone()[0]
+                ):
+                    continue
                 content = bytes.fromhex(artifact["content"])
                 kind = artifact["kind"]
                 digest = artifact["digest"]
@@ -1604,6 +1617,18 @@ class SQLiteStorage:
     def _objective_scope(cls, scope: Mapping[str, str]) -> str:
         cls._scope(scope)
         return cls._encode([scope["project_id"], scope["workspace_id"], "discover"])
+
+    def _discovery_deleted(
+        self, connection: sqlite3.Connection, scope: Mapping[str, str], identity: str
+    ) -> bool:
+        """True if `identity` is a discovery of a deleted objective in this scope."""
+        return (
+            connection.execute(
+                "SELECT 1 FROM discoveries d JOIN discovery_objectives p ON p.scope=d.objective_scope AND p.objective=d.objective WHERE d.discovery_id=? AND d.objective_scope=? AND p.deleted=1",
+                (identity, self._objective_scope(scope)),
+            ).fetchone()
+            is not None
+        )
 
     def _discovery_row(
         self,
@@ -2339,6 +2364,10 @@ class SQLiteStorage:
             with self._connect(True) as connection:
                 if not self._admit(connection, pair, task):
                     raise ContractError("task deleted")
+                # As the same call with a key refuses it: a deletion that committed while
+                # the key was requested leaves no notice behind it (#148, vendor).
+                if self._discovery_deleted(connection, scope, task):
+                    raise ContractError("discovery objective deleted")
                 connection.execute(
                     "INSERT OR IGNORE INTO notices VALUES (?,?,'archive_key_missing')", (pair, task)
                 )
