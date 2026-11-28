@@ -20,7 +20,7 @@ The workflow runs only when dispatched. Its one input, `companion_ref`, is requi
 
 ## The run
 
-[Run 45294995110](https://github.com/Consiliency/jevdrill/actions/runs/45294995110) was dispatched on 2026-11-24 (UTC) on `main` at `72d3450d97ffb3fb7dc7dc812bf26dfcb687df92`, with the handoff's commit. Its conclusion is `failure`.
+[Run 45294995110](https://github.com/Consiliency/jevdrill/actions/runs/45294995110) was dispatched on 2026-11-24 (UTC) on `main` at `72d3450d97ffb3fb7dc7dc812bf26dfcb687df92`, with the handoff's commit at the time, `85b29c76ecfb8cf5a94523e7da84edc44dcd250f`. Its conclusion is `failure`.
 
 | Job | Result as recorded |
 | --- | --- |
