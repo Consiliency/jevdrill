@@ -110,5 +110,5 @@ The verifier's outputs under `evidence/HOST/` are ignored by git, and a verdict 
 - The gate.
 - The nine clauses not covered, and the live evaluation outside the plan's reading.
 - Anything beyond synthetic software conformance; the plan's ["This plan may not claim"](../plans/phase-plan-v1-HOST.md#this-plan-may-not-claim) applies in full.
-- An observed exit-4 deletion answer, on any platform. The conformance tests through the pinned delete path passed on all three platforms, against `main`'s deletion answer (exit code 4 while deleted content is not yet erased); no receipt holds a deletion answered with exit code 4.
+- An observed exit-4 deletion answer, on any platform. The conformance tests through the pinned delete path passed on all three platforms; no receipt holds a deletion answered with exit code 4.
 - A check of the receipts by anything other than the run that wrote them.
